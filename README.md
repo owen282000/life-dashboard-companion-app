@@ -53,8 +53,8 @@ A privacy-focused Android app that syncs your **Health Connect** and **Screen Ti
 ### Build from Source
 ```bash
 # Clone the repository
-git clone https://github.com/owen282000/life-dashboard-companion.git
-cd life-dashboard-companion
+git clone https://github.com/owen282000/life-dashboard-companion-app.git
+cd life-dashboard-companion-app
 
 # Build debug APK
 ./gradlew assembleDebug

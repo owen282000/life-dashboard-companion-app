@@ -197,7 +197,7 @@ class AboutActivity : ComponentActivity() {
                                 .clickable {
                                     val intent = Intent(
                                         Intent.ACTION_VIEW,
-                                        Uri.parse("https://github.com/owen282000/life-dashboard-companion")
+                                        Uri.parse("https://github.com/owen282000/life-dashboard-companion-app")
                                     )
                                     context.startActivity(intent)
                                 }
