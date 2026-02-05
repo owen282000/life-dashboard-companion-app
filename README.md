@@ -1,5 +1,9 @@
 # Life Dashboard Companion
 
+[![Download APK](https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK)](https://github.com/owen282000/life-dashboard-companion-app/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Android](https://img.shields.io/badge/Android-14%2B-green.svg)](https://developer.android.com)
+
 <p align="center">
   <img src="docs/screenshots/health-connect.png" width="250" alt="Health Connect Screen">
   <img src="docs/screenshots/screen-time.png" width="250" alt="Screen Time Screen">
@@ -49,6 +53,10 @@ A privacy-focused Android app that syncs your **Health Connect** and **Screen Ti
 - Usage access permission (for Screen Time feature)
 
 ## Installation
+
+### From Releases (Recommended)
+1. Download the latest APK from [Releases](https://github.com/owen282000/life-dashboard-companion-app/releases/latest)
+2. Install on your Android device (enable "Install from unknown sources" if needed)
 
 ### Build from Source
 ```bash
