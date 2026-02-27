@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.serialization.json.Json
@@ -36,11 +37,17 @@ fun LogsScreen() {
     val preferencesManager = remember { PreferencesManager(context) }
 
     var selectedFilter by remember { mutableStateOf<LogType?>(null) }
-    var logs by remember { mutableStateOf(preferencesManager.getWebhookLogs(selectedFilter)) }
+    var allLogs by remember { mutableStateOf(preferencesManager.getWebhookLogs(null)) }
+    var logs by remember { mutableStateOf(allLogs) }
 
     // Update logs when filter changes
     LaunchedEffect(selectedFilter) {
-        logs = preferencesManager.getWebhookLogs(selectedFilter)
+        allLogs = preferencesManager.getWebhookLogs(null)
+        logs = if (selectedFilter != null) {
+            allLogs.filter { it.logType == selectedFilter!!.name }
+        } else {
+            allLogs
+        }
     }
 
     Column(
@@ -93,7 +100,12 @@ fun LogsScreen() {
                 IconButton(
                     onClick = {
                         preferencesManager.clearWebhookLogs(selectedFilter)
-                        logs = emptyList()
+                        allLogs = preferencesManager.getWebhookLogs(null)
+                        logs = if (selectedFilter != null) {
+                            allLogs.filter { it.logType == selectedFilter!!.name }
+                        } else {
+                            allLogs
+                        }
                     }
                 ) {
                     Icon(
@@ -125,8 +137,9 @@ fun LogsScreen() {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Sync History Dashboard
                 item {
-                    Spacer(modifier = Modifier.height(4.dp))
+                    SyncStatsDashboard(allLogs)
                 }
 
                 items(logs) { log ->
@@ -138,6 +151,134 @@ fun LogsScreen() {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SyncStatsDashboard(logs: List<WebhookLog>) {
+    if (logs.isEmpty()) return
+
+    val totalSyncs = logs.size
+    val successfulSyncs = logs.count { it.success }
+    val failedSyncs = totalSyncs - successfulSyncs
+    val successRate = if (totalSyncs > 0) (successfulSyncs * 100) / totalSyncs else 0
+    val lastSuccess = logs.filter { it.success }.maxByOrNull { it.timestamp }
+    val totalRecords = logs.filter { it.success }.sumOf { it.recordCount ?: 0 }
+
+    val healthSyncs = logs.count { it.logType == LogType.HEALTH_CONNECT.name }
+    val healthSuccess = logs.count { it.logType == LogType.HEALTH_CONNECT.name && it.success }
+    val screenTimeSyncs = logs.count { it.logType == LogType.SCREEN_TIME.name }
+    val screenTimeSuccess = logs.count { it.logType == LogType.SCREEN_TIME.name && it.success }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                "Sync Overview",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Main stats row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatItem(value = "$successRate%", label = "Success", color = Success)
+                StatItem(value = "$totalSyncs", label = "Total", color = MaterialTheme.colorScheme.primary)
+                StatItem(value = "$totalRecords", label = "Records", color = MaterialTheme.colorScheme.tertiary)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Per-type breakdown
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        "Health Connect",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = HealthPrimary
+                    )
+                    Text(
+                        "$healthSuccess / $healthSyncs",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        "Screen Time",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = ScreenTimePrimary
+                    )
+                    Text(
+                        "$screenTimeSuccess / $screenTimeSyncs",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Last success
+            if (lastSuccess != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Last success: ${formatTimestamp(lastSuccess.timestamp)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Recent failures
+            val recentFailures = logs.filter { !it.success }.take(3)
+            if (recentFailures.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Recent failures:",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Error
+                )
+                recentFailures.forEach { failure ->
+                    Text(
+                        "${formatTimestamp(failure.timestamp)}: ${failure.errorMessage ?: "Unknown error"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Error.copy(alpha = 0.8f),
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatItem(
+    value: String,
+    label: String,
+    color: androidx.compose.ui.graphics.Color
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            value,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
