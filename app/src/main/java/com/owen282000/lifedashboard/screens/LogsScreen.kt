@@ -14,6 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Share
+import com.owen282000.lifedashboard.ExportManager
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +41,7 @@ fun LogsScreen() {
     var selectedFilter by remember { mutableStateOf<LogType?>(null) }
     var allLogs by remember { mutableStateOf(preferencesManager.getWebhookLogs(null)) }
     var logs by remember { mutableStateOf(allLogs) }
+    var showExportDialog by remember { mutableStateOf(false) }
 
     // Update logs when filter changes
     LaunchedEffect(selectedFilter) {
@@ -97,6 +100,13 @@ fun LogsScreen() {
             Spacer(modifier = Modifier.weight(1f))
 
             if (logs.isNotEmpty()) {
+                IconButton(onClick = { showExportDialog = true }) {
+                    Icon(
+                        Icons.Outlined.Share,
+                        contentDescription = "Export logs",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
                 IconButton(
                     onClick = {
                         preferencesManager.clearWebhookLogs(selectedFilter)
@@ -151,6 +161,44 @@ fun LogsScreen() {
                 }
             }
         }
+    }
+
+    // Export Dialog
+    if (showExportDialog) {
+        AlertDialog(
+            onDismissRequest = { showExportDialog = false },
+            title = { Text("Export Logs") },
+            text = {
+                Text(
+                    "Export ${logs.size} log(s) as JSON or CSV via the share sheet.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showExportDialog = false
+                    val exportManager = ExportManager(context)
+                    val json = exportManager.exportAsJson(logs)
+                    val timestamp = java.time.LocalDateTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                    exportManager.shareFile(json, "logs_$timestamp.json", "application/json")
+                }) {
+                    Text("JSON")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showExportDialog = false
+                    val exportManager = ExportManager(context)
+                    val csv = exportManager.exportAsCsv(logs)
+                    val timestamp = java.time.LocalDateTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                    exportManager.shareFile(csv, "logs_$timestamp.csv", "text/csv")
+                }) {
+                    Text("CSV")
+                }
+            }
+        )
     }
 }
 
