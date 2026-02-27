@@ -31,7 +31,11 @@ enum class HealthDataType(val displayName: String, val recordClass: KClass<out R
     EXERCISE("Exercise Sessions", ExerciseSessionRecord::class),
     HYDRATION("Hydration", HydrationRecord::class),
     NUTRITION("Nutrition", NutritionRecord::class),
-    MINDFULNESS("Mindfulness", MindfulnessSessionRecord::class)
+    MINDFULNESS("Mindfulness", MindfulnessSessionRecord::class),
+    BODY_FAT("Body Fat", BodyFatRecord::class),
+    LEAN_BODY_MASS("Lean Body Mass", LeanBodyMassRecord::class),
+    BONE_MASS("Bone Mass", BoneMassRecord::class),
+    BODY_WATER_MASS("Body Water Mass", BodyWaterMassRecord::class)
 }
 
 data class HealthData(
@@ -52,7 +56,11 @@ data class HealthData(
     val exercise: List<ExerciseData>,
     val hydration: List<HydrationData>,
     val nutrition: List<NutritionData>,
-    val mindfulness: List<MindfulnessData>
+    val mindfulness: List<MindfulnessData>,
+    val bodyFat: List<BodyFatData>,
+    val leanBodyMass: List<LeanBodyMassData>,
+    val boneMass: List<BoneMassData>,
+    val bodyWaterMass: List<BodyWaterMassData>
 )
 
 data class StepsData(
@@ -167,6 +175,26 @@ data class MindfulnessData(
     val duration: Duration
 )
 
+data class BodyFatData(
+    val percentage: Double,
+    val time: Instant
+)
+
+data class LeanBodyMassData(
+    val kilograms: Double,
+    val time: Instant
+)
+
+data class BoneMassData(
+    val kilograms: Double,
+    val time: Instant
+)
+
+data class BodyWaterMassData(
+    val kilograms: Double,
+    val time: Instant
+)
+
 class HealthConnectManager(private val context: Context) {
 
     private val healthConnectClient by lazy {
@@ -221,6 +249,14 @@ class HealthConnectManager(private val context: Context) {
                 readNutritionData(startTime, endTime, lastSyncTimestamps[HealthDataType.NUTRITION]) else emptyList()
             val mindfulnessData = if (HealthDataType.MINDFULNESS in enabledTypes)
                 readMindfulnessData(startTime, endTime, lastSyncTimestamps[HealthDataType.MINDFULNESS]) else emptyList()
+            val bodyFatData = if (HealthDataType.BODY_FAT in enabledTypes)
+                readBodyFatData(startTime, endTime, lastSyncTimestamps[HealthDataType.BODY_FAT]) else emptyList()
+            val leanBodyMassData = if (HealthDataType.LEAN_BODY_MASS in enabledTypes)
+                readLeanBodyMassData(startTime, endTime, lastSyncTimestamps[HealthDataType.LEAN_BODY_MASS]) else emptyList()
+            val boneMassData = if (HealthDataType.BONE_MASS in enabledTypes)
+                readBoneMassData(startTime, endTime, lastSyncTimestamps[HealthDataType.BONE_MASS]) else emptyList()
+            val bodyWaterMassData = if (HealthDataType.BODY_WATER_MASS in enabledTypes)
+                readBodyWaterMassData(startTime, endTime, lastSyncTimestamps[HealthDataType.BODY_WATER_MASS]) else emptyList()
 
             Result.success(HealthData(
                 steps = stepsData,
@@ -240,7 +276,11 @@ class HealthConnectManager(private val context: Context) {
                 exercise = exerciseData,
                 hydration = hydrationData,
                 nutrition = nutritionData,
-                mindfulness = mindfulnessData
+                mindfulness = mindfulnessData,
+                bodyFat = bodyFatData,
+                leanBodyMass = leanBodyMassData,
+                boneMass = boneMassData,
+                bodyWaterMass = bodyWaterMassData
             ))
         } catch (e: Exception) {
             Result.failure(e)
@@ -433,6 +473,34 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
+    private suspend fun readBodyFatData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BodyFatData> {
+        val request = ReadRecordsRequest(recordType = BodyFatRecord::class, timeRangeFilter = TimeRangeFilter.between(startTime, endTime))
+        val response = healthConnectClient.readRecords(request)
+        return response.records.filter { lastSync == null || it.time >= lastSync }
+            .map { BodyFatData(it.percentage.value, it.time) }
+    }
+
+    private suspend fun readLeanBodyMassData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<LeanBodyMassData> {
+        val request = ReadRecordsRequest(recordType = LeanBodyMassRecord::class, timeRangeFilter = TimeRangeFilter.between(startTime, endTime))
+        val response = healthConnectClient.readRecords(request)
+        return response.records.filter { lastSync == null || it.time >= lastSync }
+            .map { LeanBodyMassData(it.mass.inKilograms, it.time) }
+    }
+
+    private suspend fun readBoneMassData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BoneMassData> {
+        val request = ReadRecordsRequest(recordType = BoneMassRecord::class, timeRangeFilter = TimeRangeFilter.between(startTime, endTime))
+        val response = healthConnectClient.readRecords(request)
+        return response.records.filter { lastSync == null || it.time >= lastSync }
+            .map { BoneMassData(it.mass.inKilograms, it.time) }
+    }
+
+    private suspend fun readBodyWaterMassData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BodyWaterMassData> {
+        val request = ReadRecordsRequest(recordType = BodyWaterMassRecord::class, timeRangeFilter = TimeRangeFilter.between(startTime, endTime))
+        val response = healthConnectClient.readRecords(request)
+        return response.records.filter { lastSync == null || it.time >= lastSync }
+            .map { BodyWaterMassData(it.mass.inKilograms, it.time) }
+    }
+
     fun isHealthConnectAvailable(): Boolean {
         return try {
             HealthConnectClient.getOrCreate(context)
@@ -489,6 +557,10 @@ class HealthConnectManager(private val context: Context) {
             HealthPermission.getReadPermission(HydrationRecord::class),
             HealthPermission.getReadPermission(NutritionRecord::class),
             HealthPermission.getReadPermission(MindfulnessSessionRecord::class),
+            HealthPermission.getReadPermission(BodyFatRecord::class),
+            HealthPermission.getReadPermission(LeanBodyMassRecord::class),
+            HealthPermission.getReadPermission(BoneMassRecord::class),
+            HealthPermission.getReadPermission(BodyWaterMassRecord::class),
             "android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND"
         )
     }

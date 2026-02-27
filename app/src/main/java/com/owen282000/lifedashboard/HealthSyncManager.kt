@@ -53,7 +53,9 @@ class HealthSyncManager(private val context: Context) {
                     healthData.weight.size + healthData.height.size + healthData.bloodPressure.size +
                     healthData.bloodGlucose.size + healthData.oxygenSaturation.size + healthData.bodyTemperature.size +
                     healthData.respiratoryRate.size + healthData.restingHeartRate.size + healthData.exercise.size +
-                    healthData.hydration.size + healthData.nutrition.size + healthData.mindfulness.size
+                    healthData.hydration.size + healthData.nutrition.size + healthData.mindfulness.size +
+                    healthData.bodyFat.size + healthData.leanBodyMass.size + healthData.boneMass.size +
+                    healthData.bodyWaterMass.size
 
             val webhookManager = WebhookManager(
                 webhookUrls = webhookUrls,
@@ -88,7 +90,9 @@ class HealthSyncManager(private val context: Context) {
                 data.weight.isEmpty() && data.height.isEmpty() && data.bloodPressure.isEmpty() &&
                 data.bloodGlucose.isEmpty() && data.oxygenSaturation.isEmpty() && data.bodyTemperature.isEmpty() &&
                 data.respiratoryRate.isEmpty() && data.restingHeartRate.isEmpty() && data.exercise.isEmpty() &&
-                data.hydration.isEmpty() && data.nutrition.isEmpty() && data.mindfulness.isEmpty()
+                data.hydration.isEmpty() && data.nutrition.isEmpty() && data.mindfulness.isEmpty() &&
+                data.bodyFat.isEmpty() && data.leanBodyMass.isEmpty() && data.boneMass.isEmpty() &&
+                data.bodyWaterMass.isEmpty()
     }
 
     private fun updateSyncTimestamps(data: HealthData, syncCounts: MutableMap<HealthDataType, Int>) {
@@ -163,6 +167,22 @@ class HealthSyncManager(private val context: Context) {
         if (data.mindfulness.isNotEmpty()) {
             preferencesManager.setHealthLastSyncTimestamp(HealthDataType.MINDFULNESS, data.mindfulness.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.MINDFULNESS] = data.mindfulness.size
+        }
+        if (data.bodyFat.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BODY_FAT, data.bodyFat.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.BODY_FAT] = data.bodyFat.size
+        }
+        if (data.leanBodyMass.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.LEAN_BODY_MASS, data.leanBodyMass.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.LEAN_BODY_MASS] = data.leanBodyMass.size
+        }
+        if (data.boneMass.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BONE_MASS, data.boneMass.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.BONE_MASS] = data.boneMass.size
+        }
+        if (data.bodyWaterMass.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BODY_WATER_MASS, data.bodyWaterMass.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.BODY_WATER_MASS] = data.bodyWaterMass.size
         }
     }
 
@@ -358,6 +378,42 @@ class HealthSyncManager(private val context: Context) {
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
                         put("duration_seconds", it.duration.seconds)
+                    }) }
+                }
+            }
+
+            if (healthData.bodyFat.isNotEmpty()) {
+                putJsonArray("body_fat") {
+                    healthData.bodyFat.forEach { add(buildJsonObject {
+                        put("percentage", it.percentage)
+                        put("time", it.time.toString())
+                    }) }
+                }
+            }
+
+            if (healthData.leanBodyMass.isNotEmpty()) {
+                putJsonArray("lean_body_mass") {
+                    healthData.leanBodyMass.forEach { add(buildJsonObject {
+                        put("kilograms", it.kilograms)
+                        put("time", it.time.toString())
+                    }) }
+                }
+            }
+
+            if (healthData.boneMass.isNotEmpty()) {
+                putJsonArray("bone_mass") {
+                    healthData.boneMass.forEach { add(buildJsonObject {
+                        put("kilograms", it.kilograms)
+                        put("time", it.time.toString())
+                    }) }
+                }
+            }
+
+            if (healthData.bodyWaterMass.isNotEmpty()) {
+                putJsonArray("body_water_mass") {
+                    healthData.bodyWaterMass.forEach { add(buildJsonObject {
+                        put("kilograms", it.kilograms)
+                        put("time", it.time.toString())
                     }) }
                 }
             }
