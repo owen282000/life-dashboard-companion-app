@@ -15,7 +15,8 @@ class WebhookManager(
     private val context: Context? = null,
     private val dataType: String? = null,
     private val recordCount: Int? = null,
-    private val logType: LogType = LogType.HEALTH_CONNECT
+    private val logType: LogType = LogType.HEALTH_CONNECT,
+    private val customHeaders: Map<String, String> = emptyMap()
 ) {
 
     private val client = OkHttpClient.Builder()
@@ -54,10 +55,11 @@ class WebhookManager(
 
         return try {
             val requestBody = jsonPayload.toRequestBody(jsonMediaType)
-            val request = Request.Builder()
+            val requestBuilder = Request.Builder()
                 .url(url)
                 .post(requestBody)
-                .build()
+            customHeaders.forEach { (key, value) -> requestBuilder.header(key, value) }
+            val request = requestBuilder.build()
 
             var lastException: Exception? = null
             for (attempt in 1..MAX_RETRIES) {

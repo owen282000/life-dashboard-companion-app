@@ -25,6 +25,10 @@ class PreferencesManager(context: Context) {
         private const val KEY_SCREENTIME_DAY_BOUNDARY_HOUR = "screentime_day_boundary_hour"
         private const val KEY_SCREENTIME_USE_DAY_BOUNDARY = "screentime_use_day_boundary"
 
+        // Webhook header keys
+        private const val KEY_HEALTH_WEBHOOK_HEADERS = "health_webhook_headers"
+        private const val KEY_SCREENTIME_WEBHOOK_HEADERS = "screentime_webhook_headers"
+
         // Shared keys
         private const val KEY_WEBHOOK_LOGS = "webhook_logs"
 
@@ -79,6 +83,20 @@ class PreferencesManager(context: Context) {
         prefs.edit().putLong(KEY_HEALTH_LAST_SYNC_TS_PREFIX + type.name, timestamp).apply()
     }
 
+    fun getHealthWebhookHeaders(): Map<String, String> {
+        val headersJson = prefs.getString(KEY_HEALTH_WEBHOOK_HEADERS, null) ?: return emptyMap()
+        return try {
+            Json.decodeFromString<Map<String, String>>(headersJson)
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
+    fun setHealthWebhookHeaders(headers: Map<String, String>) {
+        val headersJson = Json.encodeToString(headers)
+        prefs.edit().putString(KEY_HEALTH_WEBHOOK_HEADERS, headersJson).apply()
+    }
+
     // ==================== Screen Time Settings ====================
 
     fun getScreenTimeSyncIntervalMinutes(): Int {
@@ -97,6 +115,20 @@ class PreferencesManager(context: Context) {
     fun setScreenTimeWebhookUrls(urls: List<String>) {
         val urlsString = urls.joinToString(",")
         prefs.edit().putString(KEY_SCREENTIME_WEBHOOK_URLS, urlsString).apply()
+    }
+
+    fun getScreenTimeWebhookHeaders(): Map<String, String> {
+        val headersJson = prefs.getString(KEY_SCREENTIME_WEBHOOK_HEADERS, null) ?: return emptyMap()
+        return try {
+            Json.decodeFromString<Map<String, String>>(headersJson)
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
+    fun setScreenTimeWebhookHeaders(headers: Map<String, String>) {
+        val headersJson = Json.encodeToString(headers)
+        prefs.edit().putString(KEY_SCREENTIME_WEBHOOK_HEADERS, headersJson).apply()
     }
 
     fun getScreenTimeLastSyncTimestamp(): Long? {

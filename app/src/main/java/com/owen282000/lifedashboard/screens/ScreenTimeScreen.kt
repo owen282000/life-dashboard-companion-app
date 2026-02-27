@@ -42,11 +42,16 @@ fun ScreenTimeScreen() {
     var initialWebhookUrls by remember { mutableStateOf(preferencesManager.getScreenTimeWebhookUrls()) }
     var initialDayBoundaryHour by remember { mutableStateOf(preferencesManager.getScreenTimeDayBoundaryHour()) }
     var initialUseDayBoundary by remember { mutableStateOf(preferencesManager.useScreenTimeDayBoundary()) }
+    var initialWebhookHeaders by remember { mutableStateOf(preferencesManager.getScreenTimeWebhookHeaders()) }
 
     var syncInterval by remember { mutableStateOf(initialSyncInterval.toString()) }
     var webhookUrls by remember { mutableStateOf(initialWebhookUrls) }
     var dayBoundaryHour by remember { mutableStateOf(initialDayBoundaryHour.toString()) }
     var useDayBoundary by remember { mutableStateOf(initialUseDayBoundary) }
+    var webhookHeaders by remember { mutableStateOf(initialWebhookHeaders) }
+    var newHeaderKey by remember { mutableStateOf("") }
+    var newHeaderValue by remember { mutableStateOf("") }
+    var isHeadersExpanded by remember { mutableStateOf(false) }
     var newUrl by remember { mutableStateOf("") }
     var isSyncing by remember { mutableStateOf(false) }
     var dayBoundaryExpanded by remember { mutableStateOf(false) }
@@ -57,10 +62,10 @@ fun ScreenTimeScreen() {
         hasPermission = screenTimeManager.hasPermission()
     }
 
-    val hasChanges = remember(syncInterval, webhookUrls, dayBoundaryHour, useDayBoundary, initialSyncInterval, initialWebhookUrls, initialDayBoundaryHour, initialUseDayBoundary) {
+    val hasChanges = remember(syncInterval, webhookUrls, dayBoundaryHour, useDayBoundary, webhookHeaders, initialSyncInterval, initialWebhookUrls, initialDayBoundaryHour, initialUseDayBoundary, initialWebhookHeaders) {
         val currentInterval = syncInterval.toIntOrNull() ?: initialSyncInterval
         val currentBoundaryHour = dayBoundaryHour.toIntOrNull() ?: initialDayBoundaryHour
-        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || currentBoundaryHour != initialDayBoundaryHour || useDayBoundary != initialUseDayBoundary
+        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || currentBoundaryHour != initialDayBoundaryHour || useDayBoundary != initialUseDayBoundary || webhookHeaders != initialWebhookHeaders
     }
 
     val scrollState = rememberScrollState()
@@ -334,6 +339,142 @@ fun ScreenTimeScreen() {
                 }
             }
 
+            // Webhook Headers - collapsible
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 1.dp
+            ) {
+                val headersChevronRotation by animateFloatAsState(
+                    targetValue = if (isHeadersExpanded) 180f else 0f,
+                    label = "headersChevron"
+                )
+
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isHeadersExpanded = !isHeadersExpanded },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Webhook Headers",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                if (webhookHeaders.isEmpty()) "None configured" else "${webhookHeaders.size} header(s)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (webhookHeaders.isNotEmpty()) ScreenTimePrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.ExpandMore,
+                            contentDescription = if (isHeadersExpanded) "Collapse" else "Expand",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .rotate(headersChevronRotation),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    AnimatedVisibility(
+                        visible = isHeadersExpanded,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(top = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            webhookHeaders.forEach { (key, value) ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = key,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = value,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { webhookHeaders = webhookHeaders - key },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Close,
+                                            contentDescription = "Remove",
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            OutlinedTextField(
+                                value = newHeaderKey,
+                                onValueChange = { newHeaderKey = it },
+                                placeholder = { Text("Header name") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = ScreenTimePrimary,
+                                    cursorColor = ScreenTimePrimary
+                                )
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedTextField(
+                                    value = newHeaderValue,
+                                    onValueChange = { newHeaderValue = it },
+                                    placeholder = { Text("Header value") },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = ScreenTimePrimary,
+                                        cursorColor = ScreenTimePrimary
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                FilledIconButton(
+                                    onClick = {
+                                        if (newHeaderKey.isNotBlank() && newHeaderValue.isNotBlank()) {
+                                            webhookHeaders = webhookHeaders + (newHeaderKey.trim() to newHeaderValue.trim())
+                                            newHeaderKey = ""
+                                            newHeaderValue = ""
+                                        } else {
+                                            Toast.makeText(context, "Enter header name and value", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = ScreenTimePrimary)
+                                ) {
+                                    Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.White)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Manual Sync
             SectionCard(
                 title = "Manual Sync",
@@ -431,12 +572,14 @@ fun ScreenTimeScreen() {
                             preferencesManager.setScreenTimeWebhookUrls(webhookUrls)
                             preferencesManager.setScreenTimeDayBoundaryHour(boundaryHour)
                             preferencesManager.setUseScreenTimeDayBoundary(useDayBoundary)
+                            preferencesManager.setScreenTimeWebhookHeaders(webhookHeaders)
                             (context.applicationContext as? LifeDashboardApplication)?.scheduleScreenTimeSyncWork()
 
                             initialSyncInterval = interval
                             initialWebhookUrls = webhookUrls
                             initialDayBoundaryHour = boundaryHour
                             initialUseDayBoundary = useDayBoundary
+                            initialWebhookHeaders = webhookHeaders
                             Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
                         }
                     },

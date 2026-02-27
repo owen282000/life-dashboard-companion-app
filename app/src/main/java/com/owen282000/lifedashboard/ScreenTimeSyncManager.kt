@@ -50,7 +50,8 @@ class ScreenTimeSyncManager(private val context: Context) {
                 context = context,
                 dataType = "screen_time",
                 recordCount = totalApps,
-                logType = LogType.SCREEN_TIME
+                logType = LogType.SCREEN_TIME,
+                customHeaders = preferencesManager.getScreenTimeWebhookHeaders()
             )
 
             // Build JSON payload

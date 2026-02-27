@@ -50,9 +50,14 @@ fun HealthConnectScreen(
     var initialSyncInterval by remember { mutableStateOf(preferencesManager.getHealthSyncIntervalMinutes()) }
     var initialWebhookUrls by remember { mutableStateOf(preferencesManager.getHealthWebhookUrls()) }
     var initialEnabledDataTypes by remember { mutableStateOf(preferencesManager.getHealthEnabledDataTypes()) }
+    var initialWebhookHeaders by remember { mutableStateOf(preferencesManager.getHealthWebhookHeaders()) }
 
     var syncInterval by remember { mutableStateOf(initialSyncInterval.toString()) }
     var webhookUrls by remember { mutableStateOf(initialWebhookUrls) }
+    var webhookHeaders by remember { mutableStateOf(initialWebhookHeaders) }
+    var newHeaderKey by remember { mutableStateOf("") }
+    var newHeaderValue by remember { mutableStateOf("") }
+    var isHeadersExpanded by remember { mutableStateOf(false) }
     var newUrl by remember { mutableStateOf("") }
     var isSyncing by remember { mutableStateOf(false) }
     var syncMessage by remember { mutableStateOf<String?>(null) }
@@ -64,9 +69,9 @@ fun HealthConnectScreen(
     var isDataTypesExpanded by remember { mutableStateOf(false) }
     var healthConnectUnavailableReason by remember { mutableStateOf<String?>(null) }
 
-    val hasChanges = remember(syncInterval, webhookUrls, enabledDataTypes, initialSyncInterval, initialWebhookUrls, initialEnabledDataTypes) {
+    val hasChanges = remember(syncInterval, webhookUrls, enabledDataTypes, webhookHeaders, initialSyncInterval, initialWebhookUrls, initialEnabledDataTypes, initialWebhookHeaders) {
         val currentInterval = syncInterval.toIntOrNull() ?: initialSyncInterval
-        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || enabledDataTypes != initialEnabledDataTypes
+        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || enabledDataTypes != initialEnabledDataTypes || webhookHeaders != initialWebhookHeaders
     }
 
     val scrollState = rememberScrollState()
@@ -423,6 +428,142 @@ fun HealthConnectScreen(
                 }
             }
 
+            // Webhook Headers - collapsible
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 1.dp
+            ) {
+                val headersChevronRotation by animateFloatAsState(
+                    targetValue = if (isHeadersExpanded) 180f else 0f,
+                    label = "headersChevron"
+                )
+
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isHeadersExpanded = !isHeadersExpanded },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Webhook Headers",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                if (webhookHeaders.isEmpty()) "None configured" else "${webhookHeaders.size} header(s)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (webhookHeaders.isNotEmpty()) HealthPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.ExpandMore,
+                            contentDescription = if (isHeadersExpanded) "Collapse" else "Expand",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .rotate(headersChevronRotation),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    AnimatedVisibility(
+                        visible = isHeadersExpanded,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(top = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            webhookHeaders.forEach { (key, value) ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = key,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = value,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { webhookHeaders = webhookHeaders - key },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Close,
+                                            contentDescription = "Remove",
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            OutlinedTextField(
+                                value = newHeaderKey,
+                                onValueChange = { newHeaderKey = it },
+                                placeholder = { Text("Header name") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = HealthPrimary,
+                                    cursorColor = HealthPrimary
+                                )
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedTextField(
+                                    value = newHeaderValue,
+                                    onValueChange = { newHeaderValue = it },
+                                    placeholder = { Text("Header value") },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = HealthPrimary,
+                                        cursorColor = HealthPrimary
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                FilledIconButton(
+                                    onClick = {
+                                        if (newHeaderKey.isNotBlank() && newHeaderValue.isNotBlank()) {
+                                            webhookHeaders = webhookHeaders + (newHeaderKey.trim() to newHeaderValue.trim())
+                                            newHeaderKey = ""
+                                            newHeaderValue = ""
+                                        } else {
+                                            Toast.makeText(context, "Enter header name and value", Toast.LENGTH_SHORT).show()
+                                        }
+                                    },
+                                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = HealthPrimary)
+                                ) {
+                                    Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.White)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Manual Sync
             SectionCard(
                 title = "Manual Sync",
@@ -455,6 +596,7 @@ fun HealthConnectScreen(
                                 preferencesManager.setHealthSyncIntervalMinutes(currentInterval)
                                 preferencesManager.setHealthWebhookUrls(webhookUrls)
                                 preferencesManager.setHealthEnabledDataTypes(enabledDataTypes)
+                                preferencesManager.setHealthWebhookHeaders(webhookHeaders)
 
                                 val syncManager = HealthSyncManager(context)
                                 val result = syncManager.performSync()
@@ -473,6 +615,7 @@ fun HealthConnectScreen(
                                 initialSyncInterval = currentInterval
                                 initialWebhookUrls = webhookUrls
                                 initialEnabledDataTypes = enabledDataTypes
+                                initialWebhookHeaders = webhookHeaders
                             } catch (e: Exception) {
                                 syncMessage = "Failed: ${e.message}"
                             } finally {
@@ -530,11 +673,13 @@ fun HealthConnectScreen(
                             preferencesManager.setHealthSyncIntervalMinutes(interval)
                             preferencesManager.setHealthWebhookUrls(webhookUrls)
                             preferencesManager.setHealthEnabledDataTypes(enabledDataTypes)
+                            preferencesManager.setHealthWebhookHeaders(webhookHeaders)
                             (context.applicationContext as? LifeDashboardApplication)?.scheduleHealthSyncWork()
 
                             initialSyncInterval = interval
                             initialWebhookUrls = webhookUrls
                             initialEnabledDataTypes = enabledDataTypes
+                            initialWebhookHeaders = webhookHeaders
                             Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
                         }
                     },

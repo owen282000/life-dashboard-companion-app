@@ -62,7 +62,8 @@ class HealthSyncManager(private val context: Context) {
                 context = context,
                 dataType = "health_connect",
                 recordCount = totalRecords,
-                logType = LogType.HEALTH_CONNECT
+                logType = LogType.HEALTH_CONNECT,
+                customHeaders = preferencesManager.getHealthWebhookHeaders()
             )
 
             // Build JSON payload
