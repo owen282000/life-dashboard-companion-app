@@ -62,6 +62,7 @@ fun HealthConnectScreen(
     var showPermissionModal by remember { mutableStateOf(false) }
     var selectedDataTypeForPermission by remember { mutableStateOf<HealthDataType?>(null) }
     var isDataTypesExpanded by remember { mutableStateOf(false) }
+    var healthConnectUnavailableReason by remember { mutableStateOf<String?>(null) }
 
     val hasChanges = remember(syncInterval, webhookUrls, enabledDataTypes, initialSyncInterval, initialWebhookUrls, initialEnabledDataTypes) {
         val currentInterval = syncInterval.toIntOrNull() ?: initialSyncInterval
@@ -75,6 +76,11 @@ fun HealthConnectScreen(
             val availability = HealthConnectClient.getSdkStatus(context)
             if (availability != HealthConnectClient.SDK_AVAILABLE) {
                 hasPermissions = false
+                healthConnectUnavailableReason = when (availability) {
+                    HealthConnectClient.SDK_UNAVAILABLE -> "not_installed"
+                    HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> "needs_update"
+                    else -> "unavailable"
+                }
                 return@LaunchedEffect
             }
 
@@ -187,7 +193,7 @@ fun HealthConnectScreen(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Permission Status - compact inline
+            // Health Connect Status
             if (hasPermissions == false) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -199,28 +205,50 @@ fun HealthConnectScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Warning,
+                            imageVector = if (healthConnectUnavailableReason != null) Icons.Filled.ErrorOutline else Icons.Filled.Warning,
                             contentDescription = null,
                             tint = Error,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            "Permissions required",
+                            when (healthConnectUnavailableReason) {
+                                "not_installed" -> "Health Connect is not installed"
+                                "needs_update" -> "Health Connect needs to be updated"
+                                "unavailable" -> "Health Connect is not available"
+                                else -> "Permissions required"
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = OnErrorContainer,
                             modifier = Modifier.weight(1f)
                         )
-                        TextButton(
-                            onClick = {
-                                try {
-                                    permissionLauncher.launch(HealthConnectManager.ALL_PERMISSIONS)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                        if (healthConnectUnavailableReason != null) {
+                            TextButton(
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        data = android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata")
+                                    }
+                                    context.startActivity(intent)
                                 }
+                            ) {
+                                Text(
+                                    if (healthConnectUnavailableReason == "needs_update") "Update" else "Install",
+                                    color = Error,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
-                        ) {
-                            Text("Grant", color = Error, fontWeight = FontWeight.SemiBold)
+                        } else {
+                            TextButton(
+                                onClick = {
+                                    try {
+                                        permissionLauncher.launch(HealthConnectManager.ALL_PERMISSIONS)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            ) {
+                                Text("Grant", color = Error, fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
                 }

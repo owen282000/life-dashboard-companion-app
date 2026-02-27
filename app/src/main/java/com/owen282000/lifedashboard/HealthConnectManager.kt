@@ -35,7 +35,8 @@ enum class HealthDataType(val displayName: String, val recordClass: KClass<out R
     BODY_FAT("Body Fat", BodyFatRecord::class),
     LEAN_BODY_MASS("Lean Body Mass", LeanBodyMassRecord::class),
     BONE_MASS("Bone Mass", BoneMassRecord::class),
-    BODY_WATER_MASS("Body Water Mass", BodyWaterMassRecord::class)
+    BODY_WATER_MASS("Body Water Mass", BodyWaterMassRecord::class),
+    HEART_RATE_VARIABILITY("Heart Rate Variability", HeartRateVariabilityRmssdRecord::class)
 }
 
 data class HealthData(
@@ -60,7 +61,8 @@ data class HealthData(
     val bodyFat: List<BodyFatData>,
     val leanBodyMass: List<LeanBodyMassData>,
     val boneMass: List<BoneMassData>,
-    val bodyWaterMass: List<BodyWaterMassData>
+    val bodyWaterMass: List<BodyWaterMassData>,
+    val hrv: List<HrvData>
 )
 
 data class StepsData(
@@ -195,6 +197,11 @@ data class BodyWaterMassData(
     val time: Instant
 )
 
+data class HrvData(
+    val heartRateVariabilityMillis: Double,
+    val time: Instant
+)
+
 class HealthConnectManager(private val context: Context) {
 
     private val healthConnectClient by lazy {
@@ -257,6 +264,8 @@ class HealthConnectManager(private val context: Context) {
                 readBoneMassData(startTime, endTime, lastSyncTimestamps[HealthDataType.BONE_MASS]) else emptyList()
             val bodyWaterMassData = if (HealthDataType.BODY_WATER_MASS in enabledTypes)
                 readBodyWaterMassData(startTime, endTime, lastSyncTimestamps[HealthDataType.BODY_WATER_MASS]) else emptyList()
+            val hrvData = if (HealthDataType.HEART_RATE_VARIABILITY in enabledTypes)
+                readHrvData(startTime, endTime, lastSyncTimestamps[HealthDataType.HEART_RATE_VARIABILITY]) else emptyList()
 
             Result.success(HealthData(
                 steps = stepsData,
@@ -280,7 +289,8 @@ class HealthConnectManager(private val context: Context) {
                 bodyFat = bodyFatData,
                 leanBodyMass = leanBodyMassData,
                 boneMass = boneMassData,
-                bodyWaterMass = bodyWaterMassData
+                bodyWaterMass = bodyWaterMassData,
+                hrv = hrvData
             ))
         } catch (e: Exception) {
             Result.failure(e)
@@ -501,6 +511,13 @@ class HealthConnectManager(private val context: Context) {
             .map { BodyWaterMassData(it.mass.inKilograms, it.time) }
     }
 
+    private suspend fun readHrvData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<HrvData> {
+        val request = ReadRecordsRequest(recordType = HeartRateVariabilityRmssdRecord::class, timeRangeFilter = TimeRangeFilter.between(startTime, endTime))
+        val response = healthConnectClient.readRecords(request)
+        return response.records.filter { lastSync == null || it.time >= lastSync }
+            .map { HrvData(it.heartRateVariabilityMillis, it.time) }
+    }
+
     fun isHealthConnectAvailable(): Boolean {
         return try {
             HealthConnectClient.getOrCreate(context)
@@ -561,6 +578,7 @@ class HealthConnectManager(private val context: Context) {
             HealthPermission.getReadPermission(LeanBodyMassRecord::class),
             HealthPermission.getReadPermission(BoneMassRecord::class),
             HealthPermission.getReadPermission(BodyWaterMassRecord::class),
+            HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class),
             "android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND"
         )
     }

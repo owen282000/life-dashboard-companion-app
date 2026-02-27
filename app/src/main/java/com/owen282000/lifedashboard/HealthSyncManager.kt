@@ -55,7 +55,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.respiratoryRate.size + healthData.restingHeartRate.size + healthData.exercise.size +
                     healthData.hydration.size + healthData.nutrition.size + healthData.mindfulness.size +
                     healthData.bodyFat.size + healthData.leanBodyMass.size + healthData.boneMass.size +
-                    healthData.bodyWaterMass.size
+                    healthData.bodyWaterMass.size + healthData.hrv.size
 
             val webhookManager = WebhookManager(
                 webhookUrls = webhookUrls,
@@ -92,7 +92,7 @@ class HealthSyncManager(private val context: Context) {
                 data.respiratoryRate.isEmpty() && data.restingHeartRate.isEmpty() && data.exercise.isEmpty() &&
                 data.hydration.isEmpty() && data.nutrition.isEmpty() && data.mindfulness.isEmpty() &&
                 data.bodyFat.isEmpty() && data.leanBodyMass.isEmpty() && data.boneMass.isEmpty() &&
-                data.bodyWaterMass.isEmpty()
+                data.bodyWaterMass.isEmpty() && data.hrv.isEmpty()
     }
 
     private fun updateSyncTimestamps(data: HealthData, syncCounts: MutableMap<HealthDataType, Int>) {
@@ -183,6 +183,10 @@ class HealthSyncManager(private val context: Context) {
         if (data.bodyWaterMass.isNotEmpty()) {
             preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BODY_WATER_MASS, data.bodyWaterMass.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.BODY_WATER_MASS] = data.bodyWaterMass.size
+        }
+        if (data.hrv.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.HEART_RATE_VARIABILITY, data.hrv.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.HEART_RATE_VARIABILITY] = data.hrv.size
         }
     }
 
@@ -413,6 +417,15 @@ class HealthSyncManager(private val context: Context) {
                 putJsonArray("body_water_mass") {
                     healthData.bodyWaterMass.forEach { add(buildJsonObject {
                         put("kilograms", it.kilograms)
+                        put("time", it.time.toString())
+                    }) }
+                }
+            }
+
+            if (healthData.hrv.isNotEmpty()) {
+                putJsonArray("heart_rate_variability") {
+                    healthData.hrv.forEach { add(buildJsonObject {
+                        put("heart_rate_variability_millis", it.heartRateVariabilityMillis)
                         put("time", it.time.toString())
                     }) }
                 }

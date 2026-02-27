@@ -17,18 +17,18 @@ A privacy-focused Android app that syncs your **Health Connect** and **Screen Ti
 - **Own Your Data** - Send health data to your own server, not third-party clouds
 - **Flexible Webhooks** - Works with any backend that accepts JSON POST requests
 - **Combined App** - Health Connect + Screen Time in one app
-- **22 Health Data Types** - Supports all major Health Connect data types
+- **23 Health Data Types** - Supports all major Health Connect data types
 - **Modern UI** - Built with Jetpack Compose and Material 3
 
 ## Features
 
 ### Health Connect Integration
 - Syncs data from Google Health Connect to your webhook
-- **22 supported data types:**
+- **23 supported data types:**
   - Activity: Steps, Distance, Active Calories, Total Calories, Exercise Sessions
   - Body: Weight, Height, Body Temperature
   - Body Composition: Body Fat %, Lean Body Mass, Bone Mass, Body Water Mass
-  - Vitals: Heart Rate, Resting Heart Rate, Blood Pressure, Blood Glucose, Oxygen Saturation, Respiratory Rate
+  - Vitals: Heart Rate, Resting Heart Rate, Heart Rate Variability (HRV), Blood Pressure, Blood Glucose, Oxygen Saturation, Respiratory Rate
   - Sleep: Sleep sessions with stages
   - Nutrition: Hydration, Nutrition records
   - Mindfulness: Meditation sessions (from apps like Waking Up, Headspace)
