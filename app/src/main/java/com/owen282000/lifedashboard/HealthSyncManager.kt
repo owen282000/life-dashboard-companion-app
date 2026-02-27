@@ -16,6 +16,39 @@ class HealthSyncManager(private val context: Context) {
     private val preferencesManager = PreferencesManager(context)
     private val healthConnectManager = HealthConnectManager(context)
 
+    suspend fun previewData(): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val enabledTypes = preferencesManager.getHealthEnabledDataTypes()
+            if (enabledTypes.isEmpty()) {
+                return@withContext Result.failure(Exception("No data types enabled"))
+            }
+
+            val lastSyncTimestamps = enabledTypes.associateWith { type ->
+                preferencesManager.getHealthLastSyncTimestamp(type)?.let { Instant.ofEpochMilli(it) }
+            }
+
+            val healthDataResult = healthConnectManager.readHealthData(enabledTypes, lastSyncTimestamps)
+            if (healthDataResult.isFailure) {
+                return@withContext Result.failure(healthDataResult.exceptionOrNull() ?: Exception("Failed to read health data"))
+            }
+
+            val healthData = healthDataResult.getOrThrow()
+            if (isHealthDataEmpty(healthData)) {
+                return@withContext Result.failure(Exception("No new data to preview"))
+            }
+
+            val json = Json { prettyPrint = true }
+            val payload = buildJsonPayload(healthData)
+            val prettyPayload = json.encodeToString(
+                kotlinx.serialization.json.JsonElement.serializer(),
+                Json.parseToJsonElement(payload)
+            )
+            Result.success(prettyPayload)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun performSync(): Result<HealthSyncResult> = withContext(Dispatchers.IO) {
         try {
             val webhookUrls = preferencesManager.getHealthWebhookUrls()

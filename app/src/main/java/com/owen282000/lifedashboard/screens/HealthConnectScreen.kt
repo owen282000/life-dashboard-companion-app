@@ -68,6 +68,8 @@ fun HealthConnectScreen(
     var selectedDataTypeForPermission by remember { mutableStateOf<HealthDataType?>(null) }
     var isDataTypesExpanded by remember { mutableStateOf(false) }
     var healthConnectUnavailableReason by remember { mutableStateOf<String?>(null) }
+    var isPreviewing by remember { mutableStateOf(false) }
+    var previewData by remember { mutableStateOf<String?>(null) }
 
     val hasChanges = remember(syncInterval, webhookUrls, enabledDataTypes, webhookHeaders, initialSyncInterval, initialWebhookUrls, initialEnabledDataTypes, initialWebhookHeaders) {
         val currentInterval = syncInterval.toIntOrNull() ?: initialSyncInterval
@@ -639,6 +641,45 @@ fun HealthConnectScreen(
                     Text(if (isSyncing) "Syncing..." else "Sync Now")
                 }
 
+                OutlinedButton(
+                    onClick = {
+                        if (isPreviewing) return@OutlinedButton
+                        scope.launch {
+                            isPreviewing = true
+                            try {
+                                preferencesManager.setHealthEnabledDataTypes(enabledDataTypes)
+                                val syncManager = HealthSyncManager(context)
+                                val result = syncManager.previewData()
+                                if (result.isSuccess) {
+                                    previewData = result.getOrThrow()
+                                } else {
+                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: "Preview failed", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Preview failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                            } finally {
+                                isPreviewing = false
+                            }
+                        }
+                    },
+                    enabled = !isPreviewing && enabledDataTypes.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = HealthPrimary)
+                ) {
+                    if (isPreviewing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = HealthPrimary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Icon(Icons.Outlined.Visibility, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (isPreviewing) "Loading..." else "Preview Data")
+                }
+
                 AnimatedVisibility(visible = syncMessage != null) {
                     syncMessage?.let { message ->
                         Text(
@@ -702,6 +743,48 @@ fun HealthConnectScreen(
             )
 
             Spacer(modifier = Modifier.height(80.dp))
+        }
+
+        // Preview Dialog
+        if (previewData != null) {
+            AlertDialog(
+                onDismissRequest = { previewData = null },
+                title = { Text("Data Preview") },
+                text = {
+                    Column {
+                        Text(
+                            "This is the JSON payload that will be sent:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 400.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            val previewScrollState = rememberScrollState()
+                            Text(
+                                text = previewData ?: "",
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .verticalScroll(previewScrollState),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { previewData = null }) {
+                        Text("Close", color = HealthPrimary)
+                    }
+                }
+            )
         }
 
         // Permission Modal

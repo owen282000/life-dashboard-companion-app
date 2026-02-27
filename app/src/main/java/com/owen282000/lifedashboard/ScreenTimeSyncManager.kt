@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
@@ -13,6 +14,34 @@ class ScreenTimeSyncManager(private val context: Context) {
 
     private val preferencesManager = PreferencesManager(context)
     private val screenTimeManager = ScreenTimeManager(context, preferencesManager)
+
+    suspend fun previewData(): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            if (!screenTimeManager.hasPermission()) {
+                return@withContext Result.failure(Exception("Usage stats permission not granted"))
+            }
+
+            val screenTimeResult = screenTimeManager.readScreenTimeData(lookbackDays = 7)
+            if (screenTimeResult.isFailure) {
+                return@withContext Result.failure(screenTimeResult.exceptionOrNull() ?: Exception("Failed to read screen time data"))
+            }
+
+            val screenTimeDataList = screenTimeResult.getOrThrow()
+            if (screenTimeDataList.isEmpty()) {
+                return@withContext Result.failure(Exception("No data to preview"))
+            }
+
+            val json = Json { prettyPrint = true }
+            val payload = buildJsonPayload(screenTimeDataList)
+            val prettyPayload = json.encodeToString(
+                kotlinx.serialization.json.JsonElement.serializer(),
+                Json.parseToJsonElement(payload)
+            )
+            Result.success(prettyPayload)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     suspend fun performSync(): Result<ScreenTimeSyncResult> = withContext(Dispatchers.IO) {
         try {

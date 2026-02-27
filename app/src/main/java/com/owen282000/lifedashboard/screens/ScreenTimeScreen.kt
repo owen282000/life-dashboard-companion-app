@@ -54,6 +54,8 @@ fun ScreenTimeScreen() {
     var isHeadersExpanded by remember { mutableStateOf(false) }
     var newUrl by remember { mutableStateOf("") }
     var isSyncing by remember { mutableStateOf(false) }
+    var isPreviewing by remember { mutableStateOf(false) }
+    var previewData by remember { mutableStateOf<String?>(null) }
     var dayBoundaryExpanded by remember { mutableStateOf(false) }
     var syncMessage by remember { mutableStateOf<String?>(null) }
     var hasPermission by remember { mutableStateOf(screenTimeManager.hasPermission()) }
@@ -532,6 +534,44 @@ fun ScreenTimeScreen() {
                     Text(if (isSyncing) "Syncing..." else "Sync Now")
                 }
 
+                OutlinedButton(
+                    onClick = {
+                        if (isPreviewing) return@OutlinedButton
+                        scope.launch {
+                            isPreviewing = true
+                            try {
+                                val syncManager = ScreenTimeSyncManager(context)
+                                val result = syncManager.previewData()
+                                if (result.isSuccess) {
+                                    previewData = result.getOrThrow()
+                                } else {
+                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: "Preview failed", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Preview failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                            } finally {
+                                isPreviewing = false
+                            }
+                        }
+                    },
+                    enabled = !isPreviewing && hasPermission,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ScreenTimePrimary)
+                ) {
+                    if (isPreviewing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = ScreenTimePrimary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Icon(Icons.Filled.Visibility, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (isPreviewing) "Loading..." else "Preview Data")
+                }
+
                 AnimatedVisibility(visible = syncMessage != null) {
                     syncMessage?.let { message ->
                         Text(
@@ -602,6 +642,48 @@ fun ScreenTimeScreen() {
             )
 
             Spacer(modifier = Modifier.height(80.dp))
+        }
+
+        // Preview Dialog
+        if (previewData != null) {
+            AlertDialog(
+                onDismissRequest = { previewData = null },
+                title = { Text("Data Preview") },
+                text = {
+                    Column {
+                        Text(
+                            "This is the JSON payload that will be sent:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 400.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ) {
+                            val previewScrollState = rememberScrollState()
+                            Text(
+                                text = previewData ?: "",
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .verticalScroll(previewScrollState),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { previewData = null }) {
+                        Text("Close", color = ScreenTimePrimary)
+                    }
+                }
+            )
         }
     }
 }
