@@ -41,10 +41,20 @@ A privacy-focused Android app that syncs your **Health Connect** and **Screen Ti
 - Syncs last 7 days of usage data
 - App names resolved from package names
 
+### Webhook Configuration
+- **Multiple webhook URLs** - Send to multiple endpoints simultaneously
+- **Custom headers** - Add auth tokens, API keys, or any custom HTTP headers per category
+- **Separate configuration** - Different URLs and headers for Health and Screen Time
+
+### Data Tools
+- **Data preview** - View the exact JSON payload before syncing
+- **Export as CSV/JSON** - Export sync logs via the Android share sheet
+- **Sync history dashboard** - Overview of success rates, record counts, and recent failures
+
 ### General
-- **Separate webhook URLs** - Different endpoints for Health and Screen Time
 - **Background sync** - Uses WorkManager for reliable background execution
 - **Webhook logs** - View recent sync attempts with payloads for debugging
+- **Health Connect install check** - Clear guidance when Health Connect is missing or outdated
 - **Modern UI** - Material 3 design with dark mode support
 
 ## Requirements
@@ -80,8 +90,9 @@ cd life-dashboard-companion-app
 2. **Grant Health Connect permissions** - Tap "Grant" and select the data types you want to sync
 3. **Grant Usage Access** (for Screen Time) - Go to Settings when prompted
 4. **Configure webhook URLs** - Enter your server endpoint(s)
-5. **Set sync intervals** - Minimum 15 minutes
-6. **Tap "Sync Now"** to test the connection
+5. **Add webhook headers** (optional) - Configure auth tokens or API keys
+6. **Set sync intervals** - Minimum 15 minutes
+7. **Tap "Preview Data"** to inspect the payload, then **"Sync Now"** to send
 
 ## Webhook Payload Format
 
