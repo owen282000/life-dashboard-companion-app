@@ -55,6 +55,9 @@ fun ScreenTimeScreen() {
     var newUrl by remember { mutableStateOf("") }
     var isSyncing by remember { mutableStateOf(false) }
     var isPreviewing by remember { mutableStateOf(false) }
+    var isExporting by remember { mutableStateOf(false) }
+    var showExportFormatDialog by remember { mutableStateOf(false) }
+    var exportJsonData by remember { mutableStateOf<String?>(null) }
     var previewData by remember { mutableStateOf<String?>(null) }
     var dayBoundaryExpanded by remember { mutableStateOf(false) }
     var syncMessage by remember { mutableStateOf<String?>(null) }
@@ -574,6 +577,47 @@ fun ScreenTimeScreen() {
                     Text(if (isPreviewing) "Loading..." else "Preview Data")
                 }
 
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        if (isExporting) return@OutlinedButton
+                        scope.launch {
+                            isExporting = true
+                            try {
+                                val syncManager = ScreenTimeSyncManager(context)
+                                val result = syncManager.previewData()
+                                if (result.isSuccess) {
+                                    exportJsonData = result.getOrThrow()
+                                    showExportFormatDialog = true
+                                } else {
+                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: "Export failed", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                            } finally {
+                                isExporting = false
+                            }
+                        }
+                    },
+                    enabled = !isExporting && hasPermission,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ScreenTimePrimary)
+                ) {
+                    if (isExporting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = ScreenTimePrimary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (isExporting) "Loading..." else "Export Data")
+                }
+
                 AnimatedVisibility(visible = syncMessage != null) {
                     syncMessage?.let { message ->
                         Text(
@@ -683,6 +727,42 @@ fun ScreenTimeScreen() {
                 confirmButton = {
                     TextButton(onClick = { previewData = null }) {
                         Text("Close", color = ScreenTimePrimary)
+                    }
+                }
+            )
+        }
+
+        // Export Format Dialog
+        if (showExportFormatDialog && exportJsonData != null) {
+            AlertDialog(
+                onDismissRequest = { showExportFormatDialog = false },
+                title = { Text("Export Data") },
+                text = {
+                    Text(
+                        "Export current screen time data as JSON or CSV.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showExportFormatDialog = false
+                        val exportManager = ExportManager(context)
+                        val timestamp = java.time.LocalDateTime.now()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                        exportManager.shareFile(exportJsonData!!, "screen_time_$timestamp.json", "application/json")
+                    }) {
+                        Text("JSON", color = ScreenTimePrimary)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showExportFormatDialog = false
+                        val exportManager = ExportManager(context)
+                        val timestamp = java.time.LocalDateTime.now()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                        exportManager.shareFile(exportJsonData!!, "screen_time_$timestamp.csv", "text/csv")
+                    }) {
+                        Text("CSV", color = ScreenTimePrimary)
                     }
                 }
             )

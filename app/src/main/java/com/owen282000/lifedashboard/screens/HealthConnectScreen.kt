@@ -69,6 +69,9 @@ fun HealthConnectScreen(
     var isDataTypesExpanded by remember { mutableStateOf(false) }
     var healthConnectUnavailableReason by remember { mutableStateOf<String?>(null) }
     var isPreviewing by remember { mutableStateOf(false) }
+    var isExporting by remember { mutableStateOf(false) }
+    var showExportFormatDialog by remember { mutableStateOf(false) }
+    var exportJsonData by remember { mutableStateOf<String?>(null) }
     var previewData by remember { mutableStateOf<String?>(null) }
 
     val hasChanges = remember(syncInterval, webhookUrls, enabledDataTypes, webhookHeaders, initialSyncInterval, initialWebhookUrls, initialEnabledDataTypes, initialWebhookHeaders) {
@@ -682,6 +685,48 @@ fun HealthConnectScreen(
                     Text(if (isPreviewing) "Loading..." else "Preview Data")
                 }
 
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        if (isExporting) return@OutlinedButton
+                        scope.launch {
+                            isExporting = true
+                            try {
+                                preferencesManager.setHealthEnabledDataTypes(enabledDataTypes)
+                                val syncManager = HealthSyncManager(context)
+                                val result = syncManager.previewData()
+                                if (result.isSuccess) {
+                                    exportJsonData = result.getOrThrow()
+                                    showExportFormatDialog = true
+                                } else {
+                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: "Export failed", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                            } finally {
+                                isExporting = false
+                            }
+                        }
+                    },
+                    enabled = !isExporting && enabledDataTypes.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = HealthPrimary)
+                ) {
+                    if (isExporting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = HealthPrimary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (isExporting) "Loading..." else "Export Data")
+                }
+
                 AnimatedVisibility(visible = syncMessage != null) {
                     syncMessage?.let { message ->
                         Text(
@@ -784,6 +829,42 @@ fun HealthConnectScreen(
                 confirmButton = {
                     TextButton(onClick = { previewData = null }) {
                         Text("Close", color = HealthPrimary)
+                    }
+                }
+            )
+        }
+
+        // Export Format Dialog
+        if (showExportFormatDialog && exportJsonData != null) {
+            AlertDialog(
+                onDismissRequest = { showExportFormatDialog = false },
+                title = { Text("Export Data") },
+                text = {
+                    Text(
+                        "Export current health data as JSON or CSV.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showExportFormatDialog = false
+                        val exportManager = ExportManager(context)
+                        val timestamp = java.time.LocalDateTime.now()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                        exportManager.shareFile(exportJsonData!!, "health_data_$timestamp.json", "application/json")
+                    }) {
+                        Text("JSON", color = HealthPrimary)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showExportFormatDialog = false
+                        val exportManager = ExportManager(context)
+                        val timestamp = java.time.LocalDateTime.now()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                        exportManager.shareFile(exportJsonData!!, "health_data_$timestamp.csv", "text/csv")
+                    }) {
+                        Text("CSV", color = HealthPrimary)
                     }
                 }
             )

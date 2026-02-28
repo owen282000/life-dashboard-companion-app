@@ -127,38 +127,40 @@ fun LogsScreen() {
             }
         }
 
-        if (logs.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "No webhook logs yet",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Sync History Dashboard - always visible
+            item {
+                SyncStatsDashboard(allLogs)
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Sync History Dashboard
-                item {
-                    SyncStatsDashboard(allLogs)
-                }
 
+            if (logs.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No webhook logs yet",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
                 items(logs) { log ->
                     LogItem(log)
                 }
+            }
 
-                item {
-                    Spacer(modifier = Modifier.height(80.dp))
-                }
+            item {
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }
@@ -204,8 +206,6 @@ fun LogsScreen() {
 
 @Composable
 private fun SyncStatsDashboard(logs: List<WebhookLog>) {
-    if (logs.isEmpty()) return
-
     val totalSyncs = logs.size
     val successfulSyncs = logs.count { it.success }
     val failedSyncs = totalSyncs - successfulSyncs
