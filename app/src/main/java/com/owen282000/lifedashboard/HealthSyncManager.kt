@@ -227,7 +227,7 @@ class HealthSyncManager(private val context: Context) {
     private fun buildJsonPayload(healthData: HealthData): String {
         val json = buildJsonObject {
             put("timestamp", Instant.now().toString())
-            put("app_version", "1.0")
+            put("app_version", "1.2.0")
             put("source", "health_connect")
 
             if (healthData.steps.isNotEmpty()) {

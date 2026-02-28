@@ -316,14 +316,14 @@ fun HealthConnectScreen(
                         ) {
                             HealthDataType.entries.forEach { dataType ->
                                 val permission = HealthPermission.getReadPermission(dataType.recordClass)
-                                val isPermissionGranted = permission in grantedPermissionsSet
+                                val isPermissionGranted = permission in grantedPermissionsSet || hasAtLeastOnePermission
 
                                 DataTypeRow(
                                     name = dataType.displayName,
                                     isEnabled = dataType in enabledDataTypes,
                                     isPermissionGranted = isPermissionGranted,
                                     onToggle = { checked ->
-                                        if (!isPermissionGranted && checked && !hasAtLeastOnePermission) {
+                                        if (!hasAtLeastOnePermission && checked) {
                                             selectedDataTypeForPermission = dataType
                                             showPermissionModal = true
                                         } else {
@@ -640,6 +640,8 @@ fun HealthConnectScreen(
                     }
                     Text(if (isSyncing) "Syncing..." else "Sync Now")
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedButton(
                     onClick = {

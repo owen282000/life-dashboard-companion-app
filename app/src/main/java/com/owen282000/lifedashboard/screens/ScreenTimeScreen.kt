@@ -534,6 +534,8 @@ fun ScreenTimeScreen() {
                     Text(if (isSyncing) "Syncing..." else "Sync Now")
                 }
 
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedButton(
                     onClick = {
                         if (isPreviewing) return@OutlinedButton
