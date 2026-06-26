@@ -1,6 +1,7 @@
 package com.owen282000.lifedashboard
 
 import android.content.Context
+import android.os.Build
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -9,6 +10,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.putJsonObject
 import java.time.Instant
 
 class HealthSyncManager(private val context: Context) {
@@ -227,7 +229,7 @@ class HealthSyncManager(private val context: Context) {
     private fun buildJsonPayload(healthData: HealthData): String {
         val json = buildJsonObject {
             put("timestamp", Instant.now().toString())
-            put("app_version", "1.2.1")
+            put("app_version", getAppVersion())
             put("source", "health_connect")
 
             if (healthData.steps.isNotEmpty()) {
@@ -464,8 +466,45 @@ class HealthSyncManager(private val context: Context) {
                     }) }
                 }
             }
+
+            // Per-data-type read diagnostics, so the receiving server can see exactly what
+            // Health Connect returned for each type (permission, pages read, record counts,
+            // min/max timestamps, lastSync, errors). Helps diagnose stale/missing data.
+            if (healthData.diagnostics.isNotEmpty()) {
+                putJsonObject("_diagnostics") {
+                    healthData.diagnostics.forEach { (type, diag) ->
+                        putJsonObject(type.name.lowercase()) {
+                            put("permission_granted", diag.permissionGranted)
+                            put("page_count", diag.pageCount)
+                            put("raw_record_count", diag.rawRecordCount)
+                            put("filtered_record_count", diag.filteredRecordCount)
+                            put("min_time", diag.minTime?.toString())
+                            put("max_time", diag.maxTime?.toString())
+                            put("last_sync", diag.lastSync?.toString())
+                            put("error", diag.error)
+                        }
+                    }
+                }
+            }
         }
 
         return json.toString()
+    }
+
+    private fun getAppVersion(): String {
+        return try {
+            val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(
+                    context.packageName,
+                    android.content.pm.PackageManager.PackageInfoFlags.of(0)
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0)
+            }
+            packageInfo.versionName ?: "1.0"
+        } catch (e: Exception) {
+            "1.0"
+        }
     }
 }
