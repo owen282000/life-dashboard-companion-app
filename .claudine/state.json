@@ -6,7 +6,7 @@
       "description": "Two separate problems. Priority?",
       "category": "bug",
       "status": "in-progress",
-      "lastMessage": "[...]  keystore, signs APK, cleans up after\nNext steps: Generate keystore locally, add GitHub Secrets, push tag to test.",
+      "lastMessage": "Generate keystore + secrets + release workflow:",
       "agents": [
         {
           "id": "claude-main",
@@ -15,19 +15,19 @@
           "isActive": true
         }
       ],
-      "gitBranch": "main",
+      "gitBranch": "release/v1.3.0",
       "hasError": false,
       "isInterrupted": false,
       "hasQuestion": false,
       "isRateLimited": false,
       "lastActivity": {
         "toolName": "Edit",
-        "summary": ".../app/build.gradle.kts",
-        "outputHint": "The file /home/sylvain/git/personal/life-dashboard-companion-app/app/build.gradle.kts has been updat...",
+        "summary": ".../workflows/release.yml",
+        "outputHint": "The file /home/sylvain/git/personal/life-dashboard-companion-app/.github/workflows/release.yml has b...",
         "status": "completed"
       },
       "createdAt": "2026-07-30T14:41:25.633Z",
-      "updatedAt": "2026-07-30T14:53:14.640Z",
+      "updatedAt": "2026-07-30T14:55:41.950Z",
       "filePath": "/home/sylvain/.claude/projects/-home-sylvain-git-personal-life-dashboard-companion-app/93c8b208-714a-4f75-9a2f-d8697f4b22ac.jsonl",
       "workspacePath": "/home/sylvain/git/personal/life-dashboard-companion-app",
       "provider": "claude-code",
@@ -35,5 +35,5 @@
       "previousStatus": "in-review"
     }
   ],
-  "lastUpdated": "2026-07-30T14:53:15.026Z"
+  "lastUpdated": "2026-07-30T14:55:42.333Z"
 }
