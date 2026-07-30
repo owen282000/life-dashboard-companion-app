@@ -1,8 +1,12 @@
 # Life Dashboard Companion
 
-[![Download APK](https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK)](https://github.com/owen282000/life-dashboard-companion-app/releases/latest)
+[![Build](https://github.com/malys/life-dashboard-companion-app/actions/workflows/build.yml/badge.svg)](https://github.com/malys/life-dashboard-companion-app/actions/workflows/build.yml)
+[![Security](https://github.com/malys/life-dashboard-companion-app/actions/workflows/security.yml/badge.svg)](https://github.com/malys/life-dashboard-companion-app/actions/workflows/security.yml)
+[![Release](https://github.com/malys/life-dashboard-companion-app/actions/workflows/release.yml/badge.svg)](https://github.com/malys/life-dashboard-companion-app/actions/workflows/release.yml)
+[![Download APK](https://img.shields.io/github/v/release/malys/life-dashboard-companion-app?label=Download%20APK&logo=android)](https://github.com/malys/life-dashboard-companion-app/releases/latest)
+[![Obtainium](https://img.shields.io/badge/Install-Obtainium-blue?logo=android)](https://obtainium.imranr.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Android](https://img.shields.io/badge/Android-14%2B-green.svg)](https://developer.android.com)
+[![Android](https://img.shields.io/badge/Android-26%2B-green.svg)](https://developer.android.com)
 
 <p align="center">
   <img src="docs/screenshots/health-connect.png" width="250" alt="Health Connect Screen">
@@ -66,13 +70,13 @@ A privacy-focused Android app that syncs your **Health Connect** and **Screen Ti
 ## Installation
 
 ### From Releases (Recommended)
-1. Download the latest APK from [Releases](https://github.com/owen282000/life-dashboard-companion-app/releases/latest)
+1. Download the latest APK from [Releases](https://github.com/malys/life-dashboard-companion-app/releases/latest)
 2. Install on your Android device (enable "Install from unknown sources" if needed)
 
 ### Build from Source
 ```bash
 # Clone the repository
-git clone https://github.com/owen282000/life-dashboard-companion-app.git
+git clone https://github.com/malys/life-dashboard-companion-app.git
 cd life-dashboard-companion-app
 
 # Build debug APK
