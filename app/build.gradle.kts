@@ -29,14 +29,14 @@ android {
             // Workflow decodes base64 → keystore.jks and sets KEYSTORE_PATH
             val keystorePath = System.getenv("KEYSTORE_PATH") ?: "keystore.jks"
             val keystorePass = System.getenv("KEYSTORE_PASSWORD")
-            val keyAlias = System.getenv("KEY_ALIAS")
-            val keyPass = System.getenv("KEY_PASSWORD")
+            val keyAliasFromEnv = System.getenv("KEY_ALIAS")
+            val keyPassFromEnv = System.getenv("KEY_PASSWORD")
 
-            if (keystorePass != null && keyAlias != null && keyPass != null) {
+            if (keystorePass != null && keyAliasFromEnv != null && keyPassFromEnv != null) {
                 storeFile = file(keystorePath)
                 storePassword = keystorePass
-                keyAlias = keyAlias
-                keyPassword = keyPass
+                keyAlias = keyAliasFromEnv
+                keyPassword = keyPassFromEnv
             }
         }
     }

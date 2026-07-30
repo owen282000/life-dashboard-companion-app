@@ -43,7 +43,7 @@ jobs:
           output: 'trivy-config-results.sarif'
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-fs-results.sarif,trivy-config-results.sarif'
@@ -62,7 +62,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload dependency check results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'build/reports/dependency-check-report.sarif'
