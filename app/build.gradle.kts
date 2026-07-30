@@ -21,6 +21,12 @@ android {
 
     signingConfigs {
         create("release") {
+            // GitHub Secrets (set in CI/CD):
+            // - KEYSTORE_FILE_BASE64: base64-encoded keystore
+            // - KEYSTORE_PASSWORD: keystore password
+            // - KEY_ALIAS: key alias name
+            // - KEY_PASSWORD: key password
+            // Workflow decodes base64 → keystore.jks and sets KEYSTORE_PATH
             val keystorePath = System.getenv("KEYSTORE_PATH") ?: "keystore.jks"
             val keystorePass = System.getenv("KEYSTORE_PASSWORD")
             val keyAlias = System.getenv("KEY_ALIAS")

@@ -14,12 +14,12 @@ Replace `YOUR_PASSWORD` with a strong password. Keep the keystore file secure.
 
 ## Configure GitHub Actions
 
-To sign release builds in CI/CD, add these GitHub Secrets:
+Add these GitHub Secrets for CI/CD signing:
 
-1. **KEYSTORE_PASSWORD**: Password for the keystore
-2. **KEY_ALIAS**: Key alias (e.g., `life-dashboard`)
-3. **KEY_PASSWORD**: Password for the key
-4. **KEYSTORE_FILE_BASE64**: Base64-encoded keystore file (for CI/CD)
+1. **KEYSTORE_FILE_BASE64**: Base64-encoded keystore (workflow decodes this)
+2. **KEYSTORE_PASSWORD**: Password for the keystore
+3. **KEY_ALIAS**: Key alias (e.g., `life-dashboard`)
+4. **KEY_PASSWORD**: Password for the key
 
 ### Export keystore as base64:
 
