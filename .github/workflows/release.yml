@@ -30,8 +30,22 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Decode and create keystore
+        if: secrets.KEYSTORE_FILE_BASE64 != ''
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE_BASE64 }}" | base64 --decode > keystore.jks
+
       - name: Build Release APK
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f keystore.jks
 
       - name: Run security scan (Trivy)
         uses: aquasecurity/trivy-action@master
