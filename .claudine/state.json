@@ -1,0 +1,39 @@
+{
+  "conversations": [
+    {
+      "id": "93c8b208-714a-4f75-9a2f-d8697f4b22ac",
+      "title": "Untitled Conversation",
+      "description": "Two separate problems. Priority?",
+      "category": "bug",
+      "status": "in-progress",
+      "lastMessage": "3. Add sync timeout/cancellation\nCrash symptoms? Force close / ANR (frozen) / system kill?",
+      "agents": [
+        {
+          "id": "claude-main",
+          "name": "Claude",
+          "avatar": "",
+          "isActive": true
+        }
+      ],
+      "gitBranch": "main",
+      "hasError": false,
+      "isInterrupted": false,
+      "hasQuestion": false,
+      "isRateLimited": false,
+      "lastActivity": {
+        "toolName": "Edit",
+        "summary": ".../lifedashboard/HealthSyncManager.kt",
+        "outputHint": "The file /home/sylvain/git/personal/life-dashboard-companion-app/app/src/main/java/com/owen282000/li...",
+        "status": "completed"
+      },
+      "createdAt": "2026-07-30T14:41:25.633Z",
+      "updatedAt": "2026-07-30T14:48:38.153Z",
+      "filePath": "/home/sylvain/.claude/projects/-home-sylvain-git-personal-life-dashboard-companion-app/93c8b208-714a-4f75-9a2f-d8697f4b22ac.jsonl",
+      "workspacePath": "/home/sylvain/git/personal/life-dashboard-companion-app",
+      "provider": "claude-code",
+      "shortId": "T-1827",
+      "previousStatus": "in-review"
+    }
+  ],
+  "lastUpdated": "2026-07-30T14:48:38.544Z"
+}

@@ -395,16 +395,18 @@ class HealthConnectManager(private val context: Context) {
         try {
             val paged = readAllRecords(recordType, startTime, endTime)
             val filtered = paged.records.filter { lastSync == null || timeOf(it) > lastSync }
-            val times = filtered.map(timeOf)
+            val maxLimit = getMaxRecordsForType(type)
+            val limited = if (filtered.size > maxLimit) filtered.takeLast(maxLimit) else filtered
+            val times = limited.map(timeOf)
             recordDiag(
                 type = type,
                 pageCount = paged.pageCount,
                 rawRecordCount = paged.records.size,
-                filteredRecordCount = filtered.size,
+                filteredRecordCount = limited.size,
                 minTime = times.minOrNull(),
                 maxTime = times.maxOrNull()
             )
-            return filtered
+            return limited
         } catch (e: Exception) {
             recordDiag(type = type, error = e.message ?: e.javaClass.simpleName)
             throw e
@@ -430,6 +432,12 @@ class HealthConnectManager(private val context: Context) {
             lastSync = null, // filled in later in readHealthData()
             error = error
         )
+    }
+
+    private fun getMaxRecordsForType(type: HealthDataType): Int = when (type) {
+        HealthDataType.HEART_RATE, HealthDataType.STEPS -> MAX_RECORDS_HIGH_VOLUME
+        HealthDataType.HEART_RATE_VARIABILITY, HealthDataType.RESPIRATORY_RATE -> MAX_RECORDS_MEDIUM_VOLUME
+        else -> MAX_RECORDS_LOW_VOLUME
     }
 
     private suspend fun readStepsData(
@@ -474,22 +482,22 @@ class HealthConnectManager(private val context: Context) {
     private suspend fun readHeartRateData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<HeartRateData> {
         try {
             val paged = readAllRecords(HeartRateRecord::class, startTime, endTime)
-            // Heart rate filters at the sample level (each record holds many samples), so the
-            // raw/filtered counts and min/max are computed over samples, not records.
             val rawSamples = paged.records.sumOf { it.samples.size }
             val filtered = paged.records.flatMap { record ->
                 record.samples.filter { lastSync == null || it.time > lastSync }
             }
-            val times = filtered.map { it.time }
+            val maxLimit = MAX_RECORDS_HIGH_VOLUME
+            val limited = if (filtered.size > maxLimit) filtered.takeLast(maxLimit) else filtered
+            val times = limited.map { it.time }
             recordDiag(
                 type = HealthDataType.HEART_RATE,
                 pageCount = paged.pageCount,
                 rawRecordCount = rawSamples,
-                filteredRecordCount = filtered.size,
+                filteredRecordCount = limited.size,
                 minTime = times.minOrNull(),
                 maxTime = times.maxOrNull()
             )
-            return filtered.map { HeartRateData(it.beatsPerMinute, it.time) }
+            return limited.map { HeartRateData(it.beatsPerMinute, it.time) }
         } catch (e: Exception) {
             recordDiag(type = HealthDataType.HEART_RATE, error = e.message ?: e.javaClass.simpleName)
             throw e
@@ -652,6 +660,9 @@ class HealthConnectManager(private val context: Context) {
 
     companion object {
         private const val LOOKBACK_HOURS = 168L  // 7 days
+        private const val MAX_RECORDS_HIGH_VOLUME = 1000  // HeartRate, Steps
+        private const val MAX_RECORDS_MEDIUM_VOLUME = 500  // Most types
+        private const val MAX_RECORDS_LOW_VOLUME = 200    // Weight, Height, etc.
 
         fun getPermissionsForTypes(types: Set<HealthDataType>): Set<String> {
             val permissions = types.map { HealthPermission.getReadPermission(it.recordClass) }.toMutableSet()

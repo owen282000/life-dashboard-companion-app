@@ -18,6 +18,10 @@ class HealthSyncManager(private val context: Context) {
     private val preferencesManager = PreferencesManager(context)
     private val healthConnectManager = HealthConnectManager(context)
 
+    companion object {
+        private const val CHUNK_SIZE = 500  // Records per chunk to keep payloads ~1-2MB
+    }
+
     suspend fun previewData(): Result<String> = withContext(Dispatchers.IO) {
         try {
             val enabledTypes = preferencesManager.getHealthEnabledDataTypes()
@@ -40,7 +44,7 @@ class HealthSyncManager(private val context: Context) {
             }
 
             val json = Json { prettyPrint = true }
-            val payload = buildJsonPayload(healthData)
+            val payload = buildJsonPayload(healthData, 0, 1)
             val prettyPayload = json.encodeToString(
                 kotlinx.serialization.json.JsonElement.serializer(),
                 Json.parseToJsonElement(payload)
@@ -101,13 +105,15 @@ class HealthSyncManager(private val context: Context) {
                 customHeaders = preferencesManager.getHealthWebhookHeaders()
             )
 
-            // Build JSON payload
-            val jsonPayload = buildJsonPayload(healthData)
+            // Chunk data into smaller payloads to avoid OOM/timeout
+            val chunks = chunkHealthData(healthData)
 
-            // Post to webhook
-            val postResult = webhookManager.postData(jsonPayload)
-            if (postResult.isFailure) {
-                return@withContext Result.failure(postResult.exceptionOrNull() ?: Exception("Failed to post to webhooks"))
+            for ((index, chunk) in chunks.withIndex()) {
+                val jsonPayload = buildJsonPayload(chunk, index, chunks.size)
+                val postResult = webhookManager.postData(jsonPayload)
+                if (postResult.isFailure) {
+                    return@withContext Result.failure(postResult.exceptionOrNull() ?: Exception("Failed to post chunk ${index + 1} to webhooks"))
+                }
             }
 
             // Update last sync timestamps
@@ -226,11 +232,124 @@ class HealthSyncManager(private val context: Context) {
         }
     }
 
-    private fun buildJsonPayload(healthData: HealthData): String {
+    private fun chunkHealthData(data: HealthData): List<HealthData> {
+        val totalRecords = data.steps.size + data.sleep.size + data.heartRate.size +
+                data.distance.size + data.activeCalories.size + data.totalCalories.size +
+                data.weight.size + data.height.size + data.bloodPressure.size +
+                data.bloodGlucose.size + data.oxygenSaturation.size + data.bodyTemperature.size +
+                data.respiratoryRate.size + data.restingHeartRate.size + data.exercise.size +
+                data.hydration.size + data.nutrition.size + data.mindfulness.size +
+                data.bodyFat.size + data.leanBodyMass.size + data.boneMass.size +
+                data.bodyWaterMass.size + data.hrv.size
+
+        if (totalRecords <= CHUNK_SIZE) {
+            return listOf(data)
+        }
+
+        val stepsPerType = CHUNK_SIZE / 23
+        val chunks = mutableListOf<HealthData>()
+
+        var si = 0
+        var sli = 0
+        var hi = 0
+        var di = 0
+        var aci = 0
+        var tci = 0
+        var wi = 0
+        var hei = 0
+        var bpi = 0
+        var bgi = 0
+        var osi = 0
+        var bti = 0
+        var rri = 0
+        var rhi = 0
+        var ei = 0
+        var hyi = 0
+        var ni = 0
+        var mi = 0
+        var bfi = 0
+        var lbmi = 0
+        var bmi = 0
+        var bwmi = 0
+        var hrvi = 0
+
+        while (si < data.steps.size || sli < data.sleep.size || hi < data.heartRate.size ||
+                di < data.distance.size || aci < data.activeCalories.size || tci < data.totalCalories.size ||
+                wi < data.weight.size || hei < data.height.size || bpi < data.bloodPressure.size ||
+                bgi < data.bloodGlucose.size || osi < data.oxygenSaturation.size || bti < data.bodyTemperature.size ||
+                rri < data.respiratoryRate.size || rhi < data.restingHeartRate.size || ei < data.exercise.size ||
+                hyi < data.hydration.size || ni < data.nutrition.size || mi < data.mindfulness.size ||
+                bfi < data.bodyFat.size || lbmi < data.leanBodyMass.size || bmi < data.boneMass.size ||
+                bwmi < data.bodyWaterMass.size || hrvi < data.hrv.size) {
+
+            val chunkSteps = data.steps.drop(si).take(stepsPerType)
+            val chunkSleep = data.sleep.drop(sli).take(stepsPerType)
+            val chunkHR = data.heartRate.drop(hi).take(stepsPerType)
+            val chunkDistance = data.distance.drop(di).take(stepsPerType)
+            val chunkActiveCalories = data.activeCalories.drop(aci).take(stepsPerType)
+            val chunkTotalCalories = data.totalCalories.drop(tci).take(stepsPerType)
+            val chunkWeight = data.weight.drop(wi).take(stepsPerType)
+            val chunkHeight = data.height.drop(hei).take(stepsPerType)
+            val chunkBP = data.bloodPressure.drop(bpi).take(stepsPerType)
+            val chunkBG = data.bloodGlucose.drop(bgi).take(stepsPerType)
+            val chunkOS = data.oxygenSaturation.drop(osi).take(stepsPerType)
+            val chunkBT = data.bodyTemperature.drop(bti).take(stepsPerType)
+            val chunkRR = data.respiratoryRate.drop(rri).take(stepsPerType)
+            val chunkRHR = data.restingHeartRate.drop(rhi).take(stepsPerType)
+            val chunkExercise = data.exercise.drop(ei).take(stepsPerType)
+            val chunkHydration = data.hydration.drop(hyi).take(stepsPerType)
+            val chunkNutrition = data.nutrition.drop(ni).take(stepsPerType)
+            val chunkMindfulness = data.mindfulness.drop(mi).take(stepsPerType)
+            val chunkBF = data.bodyFat.drop(bfi).take(stepsPerType)
+            val chunkLBM = data.leanBodyMass.drop(lbmi).take(stepsPerType)
+            val chunkBM = data.boneMass.drop(bmi).take(stepsPerType)
+            val chunkBWM = data.bodyWaterMass.drop(bwmi).take(stepsPerType)
+            val chunkHRV = data.hrv.drop(hrvi).take(stepsPerType)
+
+            chunks.add(HealthData(
+                chunkSteps, chunkSleep, chunkHR, chunkDistance, chunkActiveCalories, chunkTotalCalories,
+                chunkWeight, chunkHeight, chunkBP, chunkBG, chunkOS, chunkBT, chunkRR, chunkRHR,
+                chunkExercise, chunkHydration, chunkNutrition, chunkMindfulness, chunkBF, chunkLBM,
+                chunkBM, chunkBWM, chunkHRV, data.diagnostics
+            ))
+
+            si += stepsPerType
+            sli += stepsPerType
+            hi += stepsPerType
+            di += stepsPerType
+            aci += stepsPerType
+            tci += stepsPerType
+            wi += stepsPerType
+            hei += stepsPerType
+            bpi += stepsPerType
+            bgi += stepsPerType
+            osi += stepsPerType
+            bti += stepsPerType
+            rri += stepsPerType
+            rhi += stepsPerType
+            ei += stepsPerType
+            hyi += stepsPerType
+            ni += stepsPerType
+            mi += stepsPerType
+            bfi += stepsPerType
+            lbmi += stepsPerType
+            bmi += stepsPerType
+            bwmi += stepsPerType
+            hrvi += stepsPerType
+        }
+
+        return chunks
+    }
+
+    private fun buildJsonPayload(healthData: HealthData, chunkIndex: Int = 0, totalChunks: Int = 1): String {
         val json = buildJsonObject {
             put("timestamp", Instant.now().toString())
             put("app_version", getAppVersion())
             put("source", "health_connect")
+            if (totalChunks > 1) {
+                put("chunk", chunkIndex + 1)
+                put("total_chunks", totalChunks)
+            }
 
             if (healthData.steps.isNotEmpty()) {
                 putJsonArray("steps") {
