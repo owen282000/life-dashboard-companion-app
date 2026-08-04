@@ -42,11 +42,19 @@ jobs:
           format: 'sarif'
           output: 'trivy-config-results.sarif'
 
-      - name: Upload Trivy results
+      - name: Upload Trivy filesystem results
         uses: github/codeql-action/upload-sarif@d1ba80a13dd99fba24a470575428917156a28b43 # v4.37.5
         if: always()
         with:
-          sarif_file: 'trivy-fs-results.sarif,trivy-config-results.sarif'
+          sarif_file: 'trivy-fs-results.sarif'
+          category: 'trivy-filesystem'
+
+      - name: Upload Trivy config results
+        uses: github/codeql-action/upload-sarif@d1ba80a13dd99fba24a470575428917156a28b43 # v4.37.5
+        if: always()
+        with:
+          sarif_file: 'trivy-config-results.sarif'
+          category: 'trivy-config'
 
       - name: Detect secrets with TruffleHog
         uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11 # v3.96.0
