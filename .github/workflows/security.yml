@@ -1,0 +1,68 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 0'
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@d7793b545071e98d581d3bf084a51c3213318a07 # v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Run Trivy config scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-config-results.sarif'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3.37.5
+        if: always()
+        with:
+          sarif_file: 'trivy-fs-results.sarif,trivy-config-results.sarif'
+
+      - name: Detect secrets with TruffleHog
+        uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11 # v3.96.0
+        with:
+          path: ./
+          version: 3.96.0
+          extra_args: --debug --only-verified
+
+      - name: Check Gradle dependencies
+        run: |
+          ./gradlew dependencyCheckAnalyze || true
+        continue-on-error: true
+
+      - name: Upload dependency check results
+        uses: github/codeql-action/upload-sarif@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3.37.5
+        if: always()
+        with:
+          sarif_file: 'build/reports/dependency-check-report.sarif'
+        continue-on-error: true
