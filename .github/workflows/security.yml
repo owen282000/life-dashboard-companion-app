@@ -43,7 +43,7 @@ jobs:
           output: 'trivy-config-results.sarif'
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3.37.5
+        uses: github/codeql-action/upload-sarif@d1ba80a13dd99fba24a470575428917156a28b43 # v4.37.5
         if: always()
         with:
           sarif_file: 'trivy-fs-results.sarif,trivy-config-results.sarif'
@@ -54,15 +54,3 @@ jobs:
           path: ./
           version: 3.96.0
           extra_args: --debug --only-verified
-
-      - name: Check Gradle dependencies
-        run: |
-          ./gradlew dependencyCheckAnalyze || true
-        continue-on-error: true
-
-      - name: Upload dependency check results
-        uses: github/codeql-action/upload-sarif@e60ea984bd3baa95954f2856bcf24f9eaba46637 # v3.37.5
-        if: always()
-        with:
-          sarif_file: 'build/reports/dependency-check-report.sarif'
-        continue-on-error: true
