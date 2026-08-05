@@ -1,0 +1,25 @@
+#!/bin/sh
+# Rejects version tags that are not strict semver (X.Y.Z) or not higher than the
+# latest existing version tag. Enable once with: git config core.hooksPath .githooks
+
+while read local_ref local_sha remote_ref remote_sha; do
+    case "$remote_ref" in
+        refs/tags/*)
+            tag="${remote_ref#refs/tags/}"
+            if ! echo "$tag" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+                echo "pre-push: tag '$tag' is not strict semver (X.Y.Z). Push rejected." >&2
+                exit 1
+            fi
+            latest=$(git tag --list | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | grep -vx "$tag" | sort -V | tail -1)
+            if [ -n "$latest" ]; then
+                highest=$(printf '%s\n%s\n' "$latest" "$tag" | sort -V | tail -1)
+                if [ "$highest" != "$tag" ]; then
+                    echo "pre-push: tag '$tag' is not higher than the latest version '$latest'. Push rejected." >&2
+                    exit 1
+                fi
+            fi
+            ;;
+    esac
+done
+
+exit 0

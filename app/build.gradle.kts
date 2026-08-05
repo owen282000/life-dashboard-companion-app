@@ -5,6 +5,33 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// The latest semver git tag (X.Y.Z, no prefix) is the single source of truth for the app
+// version. Tagging a release is the only version bump needed; CI enforces tag validity.
+fun runGit(vararg args: String): String? = try {
+    val process = ProcessBuilder("git", *args).directory(rootDir).start()
+    val output = process.inputStream.bufferedReader().readText().trim()
+    if (process.waitFor() == 0 && output.isNotEmpty()) output else null
+} catch (e: Exception) {
+    null
+}
+
+val semverRegex = Regex("""^(\d+)\.(\d+)\.(\d+)$""")
+val baseVersionTag = runGit("describe", "--tags", "--match", "[0-9]*.[0-9]*.[0-9]*", "--abbrev=0")
+val describedVersion = runGit("describe", "--tags", "--match", "[0-9]*.[0-9]*.[0-9]*", "--dirty")
+val semverMatch = baseVersionTag?.let { semverRegex.find(it) }
+
+if (semverMatch == null && System.getenv("CI") != null) {
+    throw GradleException(
+        "No semver tag (X.Y.Z) reachable from HEAD. CI builds require full git history: " +
+        "use actions/checkout with fetch-depth: 0."
+    )
+}
+
+val appVersionName = describedVersion ?: "0.0.0-dev"
+val appVersionCode = semverMatch?.destructured?.let { (major, minor, patch) ->
+    major.toInt() * 10000 + minor.toInt() * 100 + patch.toInt()
+} ?: 1
+
 android {
     namespace = "com.owen282000.lifedashboard"
     compileSdk = 36
@@ -13,8 +40,8 @@ android {
         applicationId = "com.owen282000.lifedashboard"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.2.2"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -3,8 +3,7 @@ name: Release Build
 on:
   push:
     tags:
-      - 'v*'
-  workflow_dispatch:
+      - '[0-9]*.[0-9]*.[0-9]*'
 
 jobs:
   build-release:
@@ -13,6 +12,23 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0  # full history so Gradle can derive the version from git tags
+      - name: Validate semver tag
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          if ! echo "$TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Tag '$TAG' is not strict semver (X.Y.Z). Refusing to release."
+            exit 1
+          fi
+          LATEST=$(git tag --list | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | grep -vx "$TAG" | sort -V | tail -1)
+          if [ -n "$LATEST" ]; then
+            HIGHEST=$(printf '%s\n%s\n' "$LATEST" "$TAG" | sort -V | tail -1)
+            if [ "$HIGHEST" != "$TAG" ]; then
+              echo "Tag '$TAG' is not higher than the latest release '$LATEST'. Refusing to release."
+              exit 1
+            fi
+          fi
       - name: Check signing secrets are configured
         env:
           KEYSTORE_FILE_BASE64: ${{ secrets.KEYSTORE_FILE_BASE64 }}

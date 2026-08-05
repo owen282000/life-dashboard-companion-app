@@ -35,16 +35,20 @@ The base64 string is now on your clipboard; paste it into `KEYSTORE_FILE_BASE64`
 
 ## 3. Cut a release
 
-1. Bump `versionCode` and `versionName` in `app/build.gradle.kts`.
-2. Commit and push to main.
-3. Tag and push the tag:
+The git tag is the single source of truth for the version: Gradle derives `versionName` and `versionCode` from the latest semver tag, so there is nothing to bump in any file. Tags follow the existing convention without a `v` prefix (`1.3.0`, not `v1.3.0`).
 
 ```bash
-git tag v1.3.0
-git push origin v1.3.0
+git tag 1.3.0
+git push origin 1.3.0
 ```
 
-The workflow then builds the signed APK, uploads it as a workflow artifact, and creates a GitHub Release with the APK attached and auto-generated release notes. The "Download APK" badge in the README always points to the latest release.
+The workflow validates the tag (strict `X.Y.Z`, higher than the previous release), builds the signed APK, uploads it as a workflow artifact, and creates a GitHub Release with the APK attached and auto-generated release notes. The "Download APK" badge in the README always points to the latest release.
+
+To catch bad tags before they reach CI, enable the repo's pre-push hook once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 ## Local signed build (optional)
 
