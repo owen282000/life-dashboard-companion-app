@@ -1,0 +1,11 @@
+version: 2
+updates:
+  # Keeps the SHA-pinned workflow actions up to date (pins never move on their own)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
