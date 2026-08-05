@@ -3,6 +3,8 @@ name: Build APK
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -32,7 +34,10 @@ jobs:
       - name: Build APK
         run: ./gradlew assembleDebug
 
+      # Scans run on pushes only: PR runs (e.g. Dependabot) have a read-only token, which
+      # cannot upload SARIF; security.yml covers pull requests separately.
       - name: Run security scan (Trivy)
+        if: github.event_name != 'pull_request'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: 'fs'
@@ -42,11 +47,12 @@ jobs:
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@d1ba80a13dd99fba24a470575428917156a28b43 # v4.37.5
-        if: always()
+        if: always() && github.event_name != 'pull_request'
         with:
           sarif_file: 'trivy-results.sarif'
 
       - name: Check for secrets with TruffleHog
+        if: github.event_name != 'pull_request'
         uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11 # v3.96.0
         with:
           path: ./
