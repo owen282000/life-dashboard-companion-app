@@ -351,7 +351,43 @@ class HealthConnectManager(private val context: Context) {
      * stale. Looping until pageToken is null guarantees the full result set, including the most
      * recent records.
      */
-    private data class PagedResult<T : Record>(val records: List<T>, val pageCount: Int)
+    private data class PagedResult<T : Record>(
+        val records: List<T>,
+        val pageCount: Int,
+        val skippedWindows: Int = 0
+    )
+
+    /**
+     * Reads all records, falling back to recursive window bisection when Health Connect throws
+     * "startTime must be before endTime". Some source apps (e.g. Zepp for Amazfit devices) write
+     * interval records with startTime == endTime; the Jetpack client rejects such a record while
+     * materializing the read response, which would otherwise fail the entire type (issue #12).
+     * Only the smallest sub-window still containing a malformed record is dropped, so one bad
+     * record costs at most MIN_BISECT_WINDOW of data instead of the whole read.
+     */
+    private suspend fun <T : Record> readAllRecordsResilient(
+        recordType: KClass<T>,
+        startTime: Instant,
+        endTime: Instant
+    ): PagedResult<T> {
+        return try {
+            readAllRecords(recordType, startTime, endTime)
+        } catch (e: IllegalArgumentException) {
+            if (e.message?.contains("startTime must be before endTime") != true) throw e
+            if (Duration.between(startTime, endTime) <= MIN_BISECT_WINDOW) {
+                return PagedResult(emptyList(), 0, skippedWindows = 1)
+            }
+            val mid = startTime.plus(Duration.between(startTime, endTime).dividedBy(2))
+            val first = readAllRecordsResilient(recordType, startTime, mid)
+            val second = readAllRecordsResilient(recordType, mid, endTime)
+            PagedResult(
+                // Interval records overlapping the split point appear in both halves; dedupe by id.
+                records = (first.records + second.records).distinctBy { it.metadata.id },
+                pageCount = first.pageCount + second.pageCount,
+                skippedWindows = first.skippedWindows + second.skippedWindows
+            )
+        }
+    }
 
     private suspend fun <T : Record> readAllRecords(
         recordType: KClass<T>,
@@ -393,7 +429,7 @@ class HealthConnectManager(private val context: Context) {
         timeOf: (T) -> Instant
     ): List<T> {
         try {
-            val paged = readAllRecords(recordType, startTime, endTime)
+            val paged = readAllRecordsResilient(recordType, startTime, endTime)
             val filtered = paged.records.filter { lastSync == null || timeOf(it) > lastSync }
             val maxLimit = getMaxRecordsForType(type)
             // Send the oldest pending records first. Advancing lastSync to this batch's maximum
@@ -410,7 +446,8 @@ class HealthConnectManager(private val context: Context) {
                 rawRecordCount = paged.records.size,
                 filteredRecordCount = limited.size,
                 minTime = times.minOrNull(),
-                maxTime = times.maxOrNull()
+                maxTime = times.maxOrNull(),
+                error = skippedWindowsNote(paged.skippedWindows)
             )
             return limited
         } catch (e: Exception) {
@@ -487,7 +524,7 @@ class HealthConnectManager(private val context: Context) {
 
     private suspend fun readHeartRateData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<HeartRateData> {
         try {
-            val paged = readAllRecords(HeartRateRecord::class, startTime, endTime)
+            val paged = readAllRecordsResilient(HeartRateRecord::class, startTime, endTime)
             val rawSamples = paged.records.sumOf { it.samples.size }
             val filtered = paged.records.flatMap { record ->
                 record.samples.filter { lastSync == null || it.time > lastSync }
@@ -507,7 +544,8 @@ class HealthConnectManager(private val context: Context) {
                 rawRecordCount = rawSamples,
                 filteredRecordCount = limited.size,
                 minTime = times.minOrNull(),
-                maxTime = times.maxOrNull()
+                maxTime = times.maxOrNull(),
+                error = skippedWindowsNote(paged.skippedWindows)
             )
             return limited.map { HeartRateData(it.beatsPerMinute, it.time) }
         } catch (e: Exception) {
@@ -675,6 +713,15 @@ class HealthConnectManager(private val context: Context) {
         private const val MAX_RECORDS_HIGH_VOLUME = 1000  // HeartRate, Steps
         private const val MAX_RECORDS_MEDIUM_VOLUME = 500  // Most types
         private const val MAX_RECORDS_LOW_VOLUME = 200    // Weight, Height, etc.
+        private val MIN_BISECT_WINDOW: Duration = Duration.ofMinutes(5)
+
+        private fun skippedWindowsNote(skippedWindows: Int): String? =
+            if (skippedWindows > 0) {
+                "Skipped $skippedWindows unreadable window(s) of max ${MIN_BISECT_WINDOW.toMinutes()} min " +
+                    "containing malformed records from the source app"
+            } else {
+                null
+            }
 
         fun getPermissionsForTypes(types: Set<HealthDataType>): Set<String> {
             val permissions = types.map { HealthPermission.getReadPermission(it.recordClass) }.toMutableSet()
