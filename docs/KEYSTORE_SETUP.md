@@ -10,7 +10,7 @@ keytool -genkey -v -keystore keystore.jks \
   -alias life-dashboard
 ```
 
-You will be prompted for a keystore password and a key password. Use strong passwords and store them in a password manager. Keep `keystore.jks` somewhere safe outside the repository: losing it means you can never publish an update that existing installs accept.
+You will be prompted for a keystore password. Note: modern `keytool` creates a PKCS12 keystore, which does not support a key password that differs from the store password; a separate `-keypass` is silently ignored. Use the store password for both `KEYSTORE_PASSWORD` and `KEY_PASSWORD`. Use a strong password and store it in a password manager. Keep `keystore.jks` somewhere safe outside the repository: losing it means you can never publish an update that existing installs accept.
 
 `keystore.jks` and `*.jks` are gitignored, but double-check you never commit it.
 
