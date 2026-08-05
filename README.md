@@ -1,6 +1,9 @@
 # Life Dashboard Companion
 
 [![Download APK](https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK)](https://github.com/owen282000/life-dashboard-companion-app/releases/latest)
+[![Build](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml)
+[![Security](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml)
+[![Release](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Android](https://img.shields.io/badge/Android-14%2B-green.svg)](https://developer.android.com)
 
