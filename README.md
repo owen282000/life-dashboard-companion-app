@@ -48,7 +48,9 @@ A privacy-focused Android app that syncs your **Health Connect** and **Screen Ti
 ### Webhook Configuration
 - **Multiple webhook URLs** - Send to multiple endpoints simultaneously
 - **Custom headers** - Add auth tokens, API keys, or any custom HTTP headers per category
-- **Separate configuration** - Different URLs and headers for Health and Screen Time
+- **HMAC payload signing** - Optional `X-Signature` header so your server can verify the sender
+- **Retries with backoff** - Transient failures are retried automatically; permanent errors fail fast
+- **Separate configuration** - Different URLs, headers, and signing secrets for Health and Screen Time
 
 ### Data Tools
 - **Data preview** - View the exact JSON payload before syncing
@@ -320,6 +322,34 @@ The `flow` field is one of `light`, `medium`, `heavy`, or `unknown`.
       ]
     }
   ]
+}
+```
+
+### Delivery, Retries and Signing
+
+Every configured webhook URL receives each payload. A sync counts as delivered when at least one endpoint accepted it; per-URL results are visible in the in-app webhook logs.
+
+Failed posts are retried up to 3 times with exponential backoff (1s, 2s), but only for transient failures: network errors, timeouts, HTTP 408, 429, and 5xx. Permanent client errors (401, 404, ...) fail immediately without retrying. The logs distinguish "recovered after retry" from "failed after all attempts".
+
+When an HMAC signing secret is configured (under Webhook Headers in the app), every POST includes:
+
+```
+X-Signature: sha256=<hex of HMAC-SHA256(secret, raw request body)>
+```
+
+Verify it server-side by recomputing the HMAC over the raw body:
+
+```javascript
+const crypto = require('crypto');
+
+function verifySignature(req, secret) {
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', secret)
+    .update(req.rawBody) // the exact raw request body bytes
+    .digest('hex');
+  const actual = req.get('X-Signature') || '';
+  return actual.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(actual), Buffer.from(expected));
 }
 ```
 

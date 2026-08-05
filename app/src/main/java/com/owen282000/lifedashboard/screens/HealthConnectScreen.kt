@@ -51,10 +51,12 @@ fun HealthConnectScreen(
     var initialWebhookUrls by remember { mutableStateOf(preferencesManager.getHealthWebhookUrls()) }
     var initialEnabledDataTypes by remember { mutableStateOf(preferencesManager.getHealthEnabledDataTypes()) }
     var initialWebhookHeaders by remember { mutableStateOf(preferencesManager.getHealthWebhookHeaders()) }
+    var initialWebhookSecret by remember { mutableStateOf(preferencesManager.getHealthWebhookSecret() ?: "") }
 
     var syncInterval by remember { mutableStateOf(initialSyncInterval.toString()) }
     var webhookUrls by remember { mutableStateOf(initialWebhookUrls) }
     var webhookHeaders by remember { mutableStateOf(initialWebhookHeaders) }
+    var webhookSecret by remember { mutableStateOf(initialWebhookSecret) }
     var newHeaderKey by remember { mutableStateOf("") }
     var newHeaderValue by remember { mutableStateOf("") }
     var isHeadersExpanded by remember { mutableStateOf(false) }
@@ -74,9 +76,9 @@ fun HealthConnectScreen(
     var exportJsonData by remember { mutableStateOf<String?>(null) }
     var previewData by remember { mutableStateOf<String?>(null) }
 
-    val hasChanges = remember(syncInterval, webhookUrls, enabledDataTypes, webhookHeaders, initialSyncInterval, initialWebhookUrls, initialEnabledDataTypes, initialWebhookHeaders) {
+    val hasChanges = remember(syncInterval, webhookUrls, enabledDataTypes, webhookHeaders, webhookSecret, initialSyncInterval, initialWebhookUrls, initialEnabledDataTypes, initialWebhookHeaders, initialWebhookSecret) {
         val currentInterval = syncInterval.toIntOrNull() ?: initialSyncInterval
-        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || enabledDataTypes != initialEnabledDataTypes || webhookHeaders != initialWebhookHeaders
+        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || enabledDataTypes != initialEnabledDataTypes || webhookHeaders != initialWebhookHeaders || webhookSecret != initialWebhookSecret
     }
 
     val scrollState = rememberScrollState()
@@ -564,6 +566,30 @@ fun HealthConnectScreen(
                                     Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.White)
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "HMAC signing secret (optional)",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                "When set, every POST gets an X-Signature header (sha256=<hex>) computed as HMAC-SHA256 over the body, so your server can verify the sender.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            OutlinedTextField(
+                                value = webhookSecret,
+                                onValueChange = { webhookSecret = it },
+                                placeholder = { Text("Shared secret") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = HealthPrimary,
+                                    cursorColor = HealthPrimary
+                                )
+                            )
                         }
                     }
                 }
@@ -602,6 +628,7 @@ fun HealthConnectScreen(
                                 preferencesManager.setHealthWebhookUrls(webhookUrls)
                                 preferencesManager.setHealthEnabledDataTypes(enabledDataTypes)
                                 preferencesManager.setHealthWebhookHeaders(webhookHeaders)
+                                preferencesManager.setHealthWebhookSecret(webhookSecret.trim())
 
                                 val syncManager = HealthSyncManager(context)
                                 val result = syncManager.performSync()
@@ -621,6 +648,7 @@ fun HealthConnectScreen(
                                 initialWebhookUrls = webhookUrls
                                 initialEnabledDataTypes = enabledDataTypes
                                 initialWebhookHeaders = webhookHeaders
+                                initialWebhookSecret = webhookSecret
                             } catch (e: Exception) {
                                 syncMessage = "Failed: ${e.message}"
                             } finally {
@@ -762,12 +790,14 @@ fun HealthConnectScreen(
                             preferencesManager.setHealthWebhookUrls(webhookUrls)
                             preferencesManager.setHealthEnabledDataTypes(enabledDataTypes)
                             preferencesManager.setHealthWebhookHeaders(webhookHeaders)
+                            preferencesManager.setHealthWebhookSecret(webhookSecret.trim())
                             (context.applicationContext as? LifeDashboardApplication)?.scheduleHealthSyncWork()
 
                             initialSyncInterval = interval
                             initialWebhookUrls = webhookUrls
                             initialEnabledDataTypes = enabledDataTypes
                             initialWebhookHeaders = webhookHeaders
+                            initialWebhookSecret = webhookSecret
                             Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
                         }
                     },

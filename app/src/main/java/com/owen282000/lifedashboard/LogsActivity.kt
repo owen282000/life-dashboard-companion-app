@@ -244,6 +244,16 @@ class LogsActivity : ComponentActivity() {
                     )
                 }
 
+                // Delivery note (e.g. succeeded after retries)
+                if (log.note != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        log.note,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 // Raw payload dropdown
                 if (log.rawPayload != null) {
                     Spacer(modifier = Modifier.height(8.dp))

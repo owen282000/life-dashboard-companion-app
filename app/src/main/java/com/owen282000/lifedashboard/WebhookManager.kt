@@ -16,7 +16,8 @@ class WebhookManager(
     private val dataType: String? = null,
     private val recordCount: Int? = null,
     private val logType: LogType = LogType.HEALTH_CONNECT,
-    private val customHeaders: Map<String, String> = emptyMap()
+    private val customHeaders: Map<String, String> = emptyMap(),
+    private val signingSecret: String? = null
 ) {
 
     private val client = OkHttpClient.Builder()
@@ -27,31 +28,36 @@ class WebhookManager(
 
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
+    /**
+     * Posts the payload to EVERY configured webhook. The sync counts as delivered when at
+     * least one webhook accepted it; per-URL outcomes are visible in the webhook logs.
+     */
     suspend fun postData(jsonPayload: String): Result<Unit> {
         if (webhookUrls.isEmpty()) {
             return Result.failure(IllegalStateException("No webhook URLs configured"))
         }
 
+        var anySuccess = false
         var lastFailure: Exception? = null
 
-        // Try posting to all configured webhooks
         for (url in webhookUrls) {
             val result = postToUrl(url, jsonPayload)
             if (result.isSuccess) {
-                return result // Success if at least one webhook succeeds
+                anySuccess = true
             } else {
                 lastFailure = result.exceptionOrNull() as? Exception ?: Exception("Unknown error")
             }
         }
 
-        return Result.failure(lastFailure ?: IOException("All webhook posts failed"))
+        return if (anySuccess) {
+            Result.success(Unit)
+        } else {
+            Result.failure(lastFailure ?: IOException("All webhook posts failed"))
+        }
     }
 
     private suspend fun postToUrl(url: String, jsonPayload: String): Result<Unit> {
         val timestamp = System.currentTimeMillis()
-        var statusCode: Int? = null
-        var success = false
-        var errorMessage: String? = null
 
         return try {
             val requestBody = jsonPayload.toRequestBody(jsonMediaType)
@@ -59,34 +65,55 @@ class WebhookManager(
                 .url(url)
                 .post(requestBody)
             customHeaders.forEach { (key, value) -> requestBuilder.header(key, value) }
+            if (!signingSecret.isNullOrBlank()) {
+                requestBuilder.header(
+                    WebhookSupport.SIGNATURE_HEADER,
+                    WebhookSupport.signature(jsonPayload, signingSecret)
+                )
+            }
             val request = requestBuilder.build()
 
             var lastException: Exception? = null
+            var statusCode: Int? = null
+            var errorMessage: String? = null
             for (attempt in 1..MAX_RETRIES) {
                 try {
-                    val response = client.newCall(request).execute()
-                    statusCode = response.code
-                    if (response.isSuccessful) {
-                        success = true
-                        logWebhookCall(url, timestamp, statusCode, true, null, jsonPayload)
-                        return Result.success(Unit)
-                    } else {
+                    client.newCall(request).execute().use { response ->
+                        statusCode = response.code
+                        if (response.isSuccessful) {
+                            val note = if (attempt > 1) "Recovered on attempt $attempt of $MAX_RETRIES" else null
+                            logWebhookCall(url, timestamp, statusCode, true, null, jsonPayload, note)
+                            return Result.success(Unit)
+                        }
                         lastException = IOException("HTTP ${response.code}: ${response.message}")
                         errorMessage = "HTTP ${response.code}: ${response.message}"
                     }
+                    // Client errors (401, 404, ...) will not change on retry; fail fast so the
+                    // sync is not delayed by pointless backoff.
+                    if (!WebhookSupport.isRetryable(statusCode)) {
+                        logWebhookCall(
+                            url, timestamp, statusCode, false,
+                            "$errorMessage (permanent error, not retried)", jsonPayload
+                        )
+                        return Result.failure(lastException ?: IOException("Webhook post failed"))
+                    }
                 } catch (e: IOException) {
                     lastException = e
-                    errorMessage = e.message
+                    statusCode = null
+                    errorMessage = e.message ?: e.javaClass.simpleName
                 }
 
                 if (attempt < MAX_RETRIES) {
-                    // Exponential backoff
+                    // Exponential backoff between transient failures
                     val delayMs = INITIAL_RETRY_DELAY_MS * (2.0.pow(attempt - 1).toLong())
                     kotlinx.coroutines.delay(delayMs)
                 }
             }
 
-            logWebhookCall(url, timestamp, statusCode, false, errorMessage, jsonPayload)
+            logWebhookCall(
+                url, timestamp, statusCode, false,
+                "Failed after $MAX_RETRIES attempts (transient errors): $errorMessage", jsonPayload
+            )
             Result.failure(lastException ?: IOException("Max retries exceeded"))
         } catch (e: Exception) {
             logWebhookCall(url, timestamp, null, false, e.message, jsonPayload)
@@ -100,7 +127,8 @@ class WebhookManager(
         statusCode: Int?,
         success: Boolean,
         errorMessage: String?,
-        rawPayload: String?
+        rawPayload: String?,
+        note: String? = null
     ) {
         context?.let {
             val preferencesManager = PreferencesManager(it)
@@ -114,7 +142,8 @@ class WebhookManager(
                 dataType = dataType,
                 recordCount = recordCount,
                 rawPayload = rawPayload,
-                logType = logType.name
+                logType = logType.name,
+                note = note
             )
             preferencesManager.addWebhookLog(log)
         }

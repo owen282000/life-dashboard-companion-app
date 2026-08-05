@@ -18,5 +18,6 @@ data class WebhookLog(
     val dataType: String?,
     val recordCount: Int?,
     val rawPayload: String? = null,
-    val logType: String = LogType.HEALTH_CONNECT.name // "HEALTH_CONNECT" or "SCREEN_TIME"
+    val logType: String = LogType.HEALTH_CONNECT.name, // "HEALTH_CONNECT" or "SCREEN_TIME"
+    val note: String? = null // e.g. "Recovered on attempt 2 of 3" for successes after retries
 )

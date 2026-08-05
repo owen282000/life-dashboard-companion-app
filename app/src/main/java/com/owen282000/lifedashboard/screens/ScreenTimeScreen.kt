@@ -43,12 +43,14 @@ fun ScreenTimeScreen() {
     var initialDayBoundaryHour by remember { mutableStateOf(preferencesManager.getScreenTimeDayBoundaryHour()) }
     var initialUseDayBoundary by remember { mutableStateOf(preferencesManager.useScreenTimeDayBoundary()) }
     var initialWebhookHeaders by remember { mutableStateOf(preferencesManager.getScreenTimeWebhookHeaders()) }
+    var initialWebhookSecret by remember { mutableStateOf(preferencesManager.getScreenTimeWebhookSecret() ?: "") }
 
     var syncInterval by remember { mutableStateOf(initialSyncInterval.toString()) }
     var webhookUrls by remember { mutableStateOf(initialWebhookUrls) }
     var dayBoundaryHour by remember { mutableStateOf(initialDayBoundaryHour.toString()) }
     var useDayBoundary by remember { mutableStateOf(initialUseDayBoundary) }
     var webhookHeaders by remember { mutableStateOf(initialWebhookHeaders) }
+    var webhookSecret by remember { mutableStateOf(initialWebhookSecret) }
     var newHeaderKey by remember { mutableStateOf("") }
     var newHeaderValue by remember { mutableStateOf("") }
     var isHeadersExpanded by remember { mutableStateOf(false) }
@@ -67,10 +69,10 @@ fun ScreenTimeScreen() {
         hasPermission = screenTimeManager.hasPermission()
     }
 
-    val hasChanges = remember(syncInterval, webhookUrls, dayBoundaryHour, useDayBoundary, webhookHeaders, initialSyncInterval, initialWebhookUrls, initialDayBoundaryHour, initialUseDayBoundary, initialWebhookHeaders) {
+    val hasChanges = remember(syncInterval, webhookUrls, dayBoundaryHour, useDayBoundary, webhookHeaders, webhookSecret, initialSyncInterval, initialWebhookUrls, initialDayBoundaryHour, initialUseDayBoundary, initialWebhookHeaders, initialWebhookSecret) {
         val currentInterval = syncInterval.toIntOrNull() ?: initialSyncInterval
         val currentBoundaryHour = dayBoundaryHour.toIntOrNull() ?: initialDayBoundaryHour
-        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || currentBoundaryHour != initialDayBoundaryHour || useDayBoundary != initialUseDayBoundary || webhookHeaders != initialWebhookHeaders
+        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || currentBoundaryHour != initialDayBoundaryHour || useDayBoundary != initialUseDayBoundary || webhookHeaders != initialWebhookHeaders || webhookSecret != initialWebhookSecret
     }
 
     val scrollState = rememberScrollState()
@@ -475,6 +477,30 @@ fun ScreenTimeScreen() {
                                     Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.White)
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "HMAC signing secret (optional)",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                "When set, every POST gets an X-Signature header (sha256=<hex>) computed as HMAC-SHA256 over the body, so your server can verify the sender.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            OutlinedTextField(
+                                value = webhookSecret,
+                                onValueChange = { webhookSecret = it },
+                                placeholder = { Text("Shared secret") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = ScreenTimePrimary,
+                                    cursorColor = ScreenTimePrimary
+                                )
+                            )
                         }
                     }
                 }
@@ -659,6 +685,7 @@ fun ScreenTimeScreen() {
                             preferencesManager.setScreenTimeDayBoundaryHour(boundaryHour)
                             preferencesManager.setUseScreenTimeDayBoundary(useDayBoundary)
                             preferencesManager.setScreenTimeWebhookHeaders(webhookHeaders)
+                            preferencesManager.setScreenTimeWebhookSecret(webhookSecret.trim())
                             (context.applicationContext as? LifeDashboardApplication)?.scheduleScreenTimeSyncWork()
 
                             initialSyncInterval = interval
@@ -666,6 +693,7 @@ fun ScreenTimeScreen() {
                             initialDayBoundaryHour = boundaryHour
                             initialUseDayBoundary = useDayBoundary
                             initialWebhookHeaders = webhookHeaders
+                            initialWebhookSecret = webhookSecret
                             Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
                         }
                     },

@@ -28,6 +28,8 @@ class PreferencesManager(context: Context) {
         // Webhook header keys
         private const val KEY_HEALTH_WEBHOOK_HEADERS = "health_webhook_headers"
         private const val KEY_SCREENTIME_WEBHOOK_HEADERS = "screentime_webhook_headers"
+        private const val KEY_HEALTH_WEBHOOK_SECRET = "health_webhook_secret"
+        private const val KEY_SCREENTIME_WEBHOOK_SECRET = "screentime_webhook_secret"
 
         // Shared keys
         private const val KEY_WEBHOOK_LOGS = "webhook_logs"
@@ -97,6 +99,18 @@ class PreferencesManager(context: Context) {
         prefs.edit().putString(KEY_HEALTH_WEBHOOK_HEADERS, headersJson).apply()
     }
 
+    fun getHealthWebhookSecret(): String? {
+        return prefs.getString(KEY_HEALTH_WEBHOOK_SECRET, null)?.takeIf { it.isNotBlank() }
+    }
+
+    fun setHealthWebhookSecret(secret: String?) {
+        if (secret.isNullOrBlank()) {
+            prefs.edit().remove(KEY_HEALTH_WEBHOOK_SECRET).apply()
+        } else {
+            prefs.edit().putString(KEY_HEALTH_WEBHOOK_SECRET, secret).apply()
+        }
+    }
+
     // ==================== Screen Time Settings ====================
 
     fun getScreenTimeSyncIntervalMinutes(): Int {
@@ -129,6 +143,18 @@ class PreferencesManager(context: Context) {
     fun setScreenTimeWebhookHeaders(headers: Map<String, String>) {
         val headersJson = Json.encodeToString(headers)
         prefs.edit().putString(KEY_SCREENTIME_WEBHOOK_HEADERS, headersJson).apply()
+    }
+
+    fun getScreenTimeWebhookSecret(): String? {
+        return prefs.getString(KEY_SCREENTIME_WEBHOOK_SECRET, null)?.takeIf { it.isNotBlank() }
+    }
+
+    fun setScreenTimeWebhookSecret(secret: String?) {
+        if (secret.isNullOrBlank()) {
+            prefs.edit().remove(KEY_SCREENTIME_WEBHOOK_SECRET).apply()
+        } else {
+            prefs.edit().putString(KEY_SCREENTIME_WEBHOOK_SECRET, secret).apply()
+        }
     }
 
     fun getScreenTimeLastSyncTimestamp(): Long? {
