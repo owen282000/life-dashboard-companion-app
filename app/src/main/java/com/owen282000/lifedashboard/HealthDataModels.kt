@@ -1,0 +1,239 @@
+package com.owen282000.lifedashboard
+
+import androidx.health.connect.client.records.*
+import java.time.Duration
+import java.time.Instant
+import kotlin.reflect.KClass
+
+enum class HealthDataType(val displayName: String, val recordClass: KClass<out Record>) {
+    STEPS("Steps", StepsRecord::class),
+    SLEEP("Sleep", SleepSessionRecord::class),
+    HEART_RATE("Heart Rate", HeartRateRecord::class),
+    DISTANCE("Distance", DistanceRecord::class),
+    ACTIVE_CALORIES("Active Calories", ActiveCaloriesBurnedRecord::class),
+    TOTAL_CALORIES("Total Calories", TotalCaloriesBurnedRecord::class),
+    WEIGHT("Weight", WeightRecord::class),
+    HEIGHT("Height", HeightRecord::class),
+    BLOOD_PRESSURE("Blood Pressure", BloodPressureRecord::class),
+    BLOOD_GLUCOSE("Blood Glucose", BloodGlucoseRecord::class),
+    OXYGEN_SATURATION("Oxygen Saturation", OxygenSaturationRecord::class),
+    BODY_TEMPERATURE("Body Temperature", BodyTemperatureRecord::class),
+    RESPIRATORY_RATE("Respiratory Rate", RespiratoryRateRecord::class),
+    RESTING_HEART_RATE("Resting Heart Rate", RestingHeartRateRecord::class),
+    EXERCISE("Exercise Sessions", ExerciseSessionRecord::class),
+    HYDRATION("Hydration", HydrationRecord::class),
+    NUTRITION("Nutrition", NutritionRecord::class),
+    MINDFULNESS("Mindfulness", MindfulnessSessionRecord::class),
+    BODY_FAT("Body Fat", BodyFatRecord::class),
+    LEAN_BODY_MASS("Lean Body Mass", LeanBodyMassRecord::class),
+    BONE_MASS("Bone Mass", BoneMassRecord::class),
+    BODY_WATER_MASS("Body Water Mass", BodyWaterMassRecord::class),
+    HEART_RATE_VARIABILITY("Heart Rate Variability", HeartRateVariabilityRmssdRecord::class),
+    MENSTRUATION_PERIOD("Menstruation Period", MenstruationPeriodRecord::class),
+    MENSTRUATION_FLOW("Menstruation Flow", MenstruationFlowRecord::class)
+}
+
+data class HealthData(
+    val steps: List<StepsData>,
+    val sleep: List<SleepData>,
+    val heartRate: List<HeartRateData>,
+    val distance: List<DistanceData>,
+    val activeCalories: List<ActiveCaloriesData>,
+    val totalCalories: List<TotalCaloriesData>,
+    val weight: List<WeightData>,
+    val height: List<HeightData>,
+    val bloodPressure: List<BloodPressureData>,
+    val bloodGlucose: List<BloodGlucoseData>,
+    val oxygenSaturation: List<OxygenSaturationData>,
+    val bodyTemperature: List<BodyTemperatureData>,
+    val respiratoryRate: List<RespiratoryRateData>,
+    val restingHeartRate: List<RestingHeartRateData>,
+    val exercise: List<ExerciseData>,
+    val hydration: List<HydrationData>,
+    val nutrition: List<NutritionData>,
+    val mindfulness: List<MindfulnessData>,
+    val bodyFat: List<BodyFatData>,
+    val leanBodyMass: List<LeanBodyMassData>,
+    val boneMass: List<BoneMassData>,
+    val bodyWaterMass: List<BodyWaterMassData>,
+    val hrv: List<HrvData>,
+    val menstruationPeriod: List<MenstruationPeriodData>,
+    val menstruationFlow: List<MenstruationFlowData>,
+    val diagnostics: Map<HealthDataType, TypeDiagnostics> = emptyMap()
+)
+
+data class MenstruationPeriodData(
+    val startTime: Instant,
+    val endTime: Instant
+)
+
+data class MenstruationFlowData(
+    val flow: String,
+    val time: Instant
+)
+
+/**
+ * Per-data-type read diagnostics, surfaced in the webhook payload so users can see exactly
+ * what Health Connect returned for each type. Helps diagnose stale/missing data (e.g. the
+ * pagination bug where high-volume types lagged behind).
+ */
+data class TypeDiagnostics(
+    val permissionGranted: Boolean,
+    val pageCount: Int,
+    val rawRecordCount: Int,
+    val filteredRecordCount: Int,
+    val minTime: Instant?,
+    val maxTime: Instant?,
+    val lastSync: Instant?,
+    val error: String?
+)
+
+data class StepsData(
+    val count: Long,
+    val startTime: Instant,
+    val endTime: Instant
+)
+
+data class SleepData(
+    val sessionEndTime: Instant,
+    val duration: Duration,
+    val stages: List<SleepStage>
+)
+
+data class SleepStage(
+    val stage: String,
+    val startTime: Instant,
+    val endTime: Instant,
+    val duration: Duration
+)
+
+data class HeartRateData(
+    val bpm: Long,
+    val time: Instant
+)
+
+data class DistanceData(
+    val meters: Double,
+    val startTime: Instant,
+    val endTime: Instant
+)
+
+data class ActiveCaloriesData(
+    val calories: Double,
+    val startTime: Instant,
+    val endTime: Instant
+)
+
+data class TotalCaloriesData(
+    val calories: Double,
+    val startTime: Instant,
+    val endTime: Instant
+)
+
+data class WeightData(
+    val kilograms: Double,
+    val time: Instant
+)
+
+data class HeightData(
+    val meters: Double,
+    val time: Instant
+)
+
+data class BloodPressureData(
+    val systolic: Double,
+    val diastolic: Double,
+    val time: Instant
+)
+
+data class BloodGlucoseData(
+    val mmolPerLiter: Double,
+    val time: Instant
+)
+
+data class OxygenSaturationData(
+    val percentage: Double,
+    val time: Instant
+)
+
+data class BodyTemperatureData(
+    val celsius: Double,
+    val time: Instant
+)
+
+data class RespiratoryRateData(
+    val rate: Double,
+    val time: Instant
+)
+
+data class RestingHeartRateData(
+    val bpm: Long,
+    val time: Instant
+)
+
+data class ExerciseData(
+    val type: String,
+    val startTime: Instant,
+    val endTime: Instant,
+    val duration: Duration
+)
+
+data class HydrationData(
+    val liters: Double,
+    val startTime: Instant,
+    val endTime: Instant
+)
+
+data class NutritionData(
+    val calories: Double?,
+    val protein: Double?,
+    val carbs: Double?,
+    val fat: Double?,
+    val startTime: Instant,
+    val endTime: Instant
+)
+
+data class MindfulnessData(
+    val title: String?,
+    val startTime: Instant,
+    val endTime: Instant,
+    val duration: Duration
+)
+
+data class BodyFatData(
+    val percentage: Double,
+    val time: Instant
+)
+
+data class LeanBodyMassData(
+    val kilograms: Double,
+    val time: Instant
+)
+
+data class BoneMassData(
+    val kilograms: Double,
+    val time: Instant
+)
+
+data class BodyWaterMassData(
+    val kilograms: Double,
+    val time: Instant
+)
+
+data class HrvData(
+    val heartRateVariabilityMillis: Double,
+    val time: Instant
+)
+
+/**
+ * Max records delivered per sync for this type, to bound payload size and memory. The batch is
+ * capped oldest-first (see [ResilientReadLogic.capOldestFirst]) so later syncs catch up without
+ * skipping records.
+ */
+val HealthDataType.maxRecordsPerSync: Int
+    get() = when (this) {
+        HealthDataType.HEART_RATE, HealthDataType.STEPS -> 1000
+        HealthDataType.HEART_RATE_VARIABILITY, HealthDataType.RESPIRATORY_RATE -> 500
+        else -> 200
+    }
+

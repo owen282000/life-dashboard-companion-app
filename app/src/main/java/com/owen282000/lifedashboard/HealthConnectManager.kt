@@ -13,226 +13,6 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.reflect.KClass
 
-enum class HealthDataType(val displayName: String, val recordClass: KClass<out Record>) {
-    STEPS("Steps", StepsRecord::class),
-    SLEEP("Sleep", SleepSessionRecord::class),
-    HEART_RATE("Heart Rate", HeartRateRecord::class),
-    DISTANCE("Distance", DistanceRecord::class),
-    ACTIVE_CALORIES("Active Calories", ActiveCaloriesBurnedRecord::class),
-    TOTAL_CALORIES("Total Calories", TotalCaloriesBurnedRecord::class),
-    WEIGHT("Weight", WeightRecord::class),
-    HEIGHT("Height", HeightRecord::class),
-    BLOOD_PRESSURE("Blood Pressure", BloodPressureRecord::class),
-    BLOOD_GLUCOSE("Blood Glucose", BloodGlucoseRecord::class),
-    OXYGEN_SATURATION("Oxygen Saturation", OxygenSaturationRecord::class),
-    BODY_TEMPERATURE("Body Temperature", BodyTemperatureRecord::class),
-    RESPIRATORY_RATE("Respiratory Rate", RespiratoryRateRecord::class),
-    RESTING_HEART_RATE("Resting Heart Rate", RestingHeartRateRecord::class),
-    EXERCISE("Exercise Sessions", ExerciseSessionRecord::class),
-    HYDRATION("Hydration", HydrationRecord::class),
-    NUTRITION("Nutrition", NutritionRecord::class),
-    MINDFULNESS("Mindfulness", MindfulnessSessionRecord::class),
-    BODY_FAT("Body Fat", BodyFatRecord::class),
-    LEAN_BODY_MASS("Lean Body Mass", LeanBodyMassRecord::class),
-    BONE_MASS("Bone Mass", BoneMassRecord::class),
-    BODY_WATER_MASS("Body Water Mass", BodyWaterMassRecord::class),
-    HEART_RATE_VARIABILITY("Heart Rate Variability", HeartRateVariabilityRmssdRecord::class),
-    MENSTRUATION_PERIOD("Menstruation Period", MenstruationPeriodRecord::class),
-    MENSTRUATION_FLOW("Menstruation Flow", MenstruationFlowRecord::class)
-}
-
-data class HealthData(
-    val steps: List<StepsData>,
-    val sleep: List<SleepData>,
-    val heartRate: List<HeartRateData>,
-    val distance: List<DistanceData>,
-    val activeCalories: List<ActiveCaloriesData>,
-    val totalCalories: List<TotalCaloriesData>,
-    val weight: List<WeightData>,
-    val height: List<HeightData>,
-    val bloodPressure: List<BloodPressureData>,
-    val bloodGlucose: List<BloodGlucoseData>,
-    val oxygenSaturation: List<OxygenSaturationData>,
-    val bodyTemperature: List<BodyTemperatureData>,
-    val respiratoryRate: List<RespiratoryRateData>,
-    val restingHeartRate: List<RestingHeartRateData>,
-    val exercise: List<ExerciseData>,
-    val hydration: List<HydrationData>,
-    val nutrition: List<NutritionData>,
-    val mindfulness: List<MindfulnessData>,
-    val bodyFat: List<BodyFatData>,
-    val leanBodyMass: List<LeanBodyMassData>,
-    val boneMass: List<BoneMassData>,
-    val bodyWaterMass: List<BodyWaterMassData>,
-    val hrv: List<HrvData>,
-    val menstruationPeriod: List<MenstruationPeriodData>,
-    val menstruationFlow: List<MenstruationFlowData>,
-    val diagnostics: Map<HealthDataType, TypeDiagnostics> = emptyMap()
-)
-
-data class MenstruationPeriodData(
-    val startTime: Instant,
-    val endTime: Instant
-)
-
-data class MenstruationFlowData(
-    val flow: String,
-    val time: Instant
-)
-
-/**
- * Per-data-type read diagnostics, surfaced in the webhook payload so users can see exactly
- * what Health Connect returned for each type. Helps diagnose stale/missing data (e.g. the
- * pagination bug where high-volume types lagged behind).
- */
-data class TypeDiagnostics(
-    val permissionGranted: Boolean,
-    val pageCount: Int,
-    val rawRecordCount: Int,
-    val filteredRecordCount: Int,
-    val minTime: Instant?,
-    val maxTime: Instant?,
-    val lastSync: Instant?,
-    val error: String?
-)
-
-data class StepsData(
-    val count: Long,
-    val startTime: Instant,
-    val endTime: Instant
-)
-
-data class SleepData(
-    val sessionEndTime: Instant,
-    val duration: Duration,
-    val stages: List<SleepStage>
-)
-
-data class SleepStage(
-    val stage: String,
-    val startTime: Instant,
-    val endTime: Instant,
-    val duration: Duration
-)
-
-data class HeartRateData(
-    val bpm: Long,
-    val time: Instant
-)
-
-data class DistanceData(
-    val meters: Double,
-    val startTime: Instant,
-    val endTime: Instant
-)
-
-data class ActiveCaloriesData(
-    val calories: Double,
-    val startTime: Instant,
-    val endTime: Instant
-)
-
-data class TotalCaloriesData(
-    val calories: Double,
-    val startTime: Instant,
-    val endTime: Instant
-)
-
-data class WeightData(
-    val kilograms: Double,
-    val time: Instant
-)
-
-data class HeightData(
-    val meters: Double,
-    val time: Instant
-)
-
-data class BloodPressureData(
-    val systolic: Double,
-    val diastolic: Double,
-    val time: Instant
-)
-
-data class BloodGlucoseData(
-    val mmolPerLiter: Double,
-    val time: Instant
-)
-
-data class OxygenSaturationData(
-    val percentage: Double,
-    val time: Instant
-)
-
-data class BodyTemperatureData(
-    val celsius: Double,
-    val time: Instant
-)
-
-data class RespiratoryRateData(
-    val rate: Double,
-    val time: Instant
-)
-
-data class RestingHeartRateData(
-    val bpm: Long,
-    val time: Instant
-)
-
-data class ExerciseData(
-    val type: String,
-    val startTime: Instant,
-    val endTime: Instant,
-    val duration: Duration
-)
-
-data class HydrationData(
-    val liters: Double,
-    val startTime: Instant,
-    val endTime: Instant
-)
-
-data class NutritionData(
-    val calories: Double?,
-    val protein: Double?,
-    val carbs: Double?,
-    val fat: Double?,
-    val startTime: Instant,
-    val endTime: Instant
-)
-
-data class MindfulnessData(
-    val title: String?,
-    val startTime: Instant,
-    val endTime: Instant,
-    val duration: Duration
-)
-
-data class BodyFatData(
-    val percentage: Double,
-    val time: Instant
-)
-
-data class LeanBodyMassData(
-    val kilograms: Double,
-    val time: Instant
-)
-
-data class BoneMassData(
-    val kilograms: Double,
-    val time: Instant
-)
-
-data class BodyWaterMassData(
-    val kilograms: Double,
-    val time: Instant
-)
-
-data class HrvData(
-    val heartRateVariabilityMillis: Double,
-    val time: Instant
-)
-
 class HealthConnectManager(private val context: Context) {
 
     private val healthConnectClient by lazy {
@@ -364,6 +144,22 @@ class HealthConnectManager(private val context: Context) {
     }
 
     /**
+     * Reads all records with the bisection fallback from [ResilientReadLogic.readResilient],
+     * so a malformed record from a source app cannot fail the entire type (issue #12).
+     */
+    private suspend fun <T : Record> readAllRecordsResilient(
+        recordType: KClass<T>,
+        startTime: Instant,
+        endTime: Instant
+    ): PagedResult<T> {
+        return ResilientReadLogic.readResilient(
+            startTime = startTime,
+            endTime = endTime,
+            idOf = { record: T -> record.metadata.id }
+        ) { windowStart, windowEnd -> readAllRecords(recordType, windowStart, windowEnd) }
+    }
+
+    /**
      * Reads ALL records of the given type within the time range, following Health Connect's
      * pagination via pageToken. A single readRecords() call only returns the first page
      * (Health Connect caps pages, default ~1000 records), so high-volume types like Steps and
@@ -371,44 +167,6 @@ class HealthConnectManager(private val context: Context) {
      * stale. Looping until pageToken is null guarantees the full result set, including the most
      * recent records.
      */
-    private data class PagedResult<T : Record>(
-        val records: List<T>,
-        val pageCount: Int,
-        val skippedWindows: Int = 0
-    )
-
-    /**
-     * Reads all records, falling back to recursive window bisection when Health Connect throws
-     * "startTime must be before endTime". Some source apps (e.g. Zepp for Amazfit devices) write
-     * interval records with startTime == endTime; the Jetpack client rejects such a record while
-     * materializing the read response, which would otherwise fail the entire type (issue #12).
-     * Only the smallest sub-window still containing a malformed record is dropped, so one bad
-     * record costs at most MIN_BISECT_WINDOW of data instead of the whole read.
-     */
-    private suspend fun <T : Record> readAllRecordsResilient(
-        recordType: KClass<T>,
-        startTime: Instant,
-        endTime: Instant
-    ): PagedResult<T> {
-        return try {
-            readAllRecords(recordType, startTime, endTime)
-        } catch (e: IllegalArgumentException) {
-            if (e.message?.contains("startTime must be before endTime") != true) throw e
-            if (Duration.between(startTime, endTime) <= MIN_BISECT_WINDOW) {
-                return PagedResult(emptyList(), 0, skippedWindows = 1)
-            }
-            val mid = startTime.plus(Duration.between(startTime, endTime).dividedBy(2))
-            val first = readAllRecordsResilient(recordType, startTime, mid)
-            val second = readAllRecordsResilient(recordType, mid, endTime)
-            PagedResult(
-                // Interval records overlapping the split point appear in both halves; dedupe by id.
-                records = (first.records + second.records).distinctBy { it.metadata.id },
-                pageCount = first.pageCount + second.pageCount,
-                skippedWindows = first.skippedWindows + second.skippedWindows
-            )
-        }
-    }
-
     private suspend fun <T : Record> readAllRecords(
         recordType: KClass<T>,
         startTime: Instant,
@@ -451,14 +209,7 @@ class HealthConnectManager(private val context: Context) {
         try {
             val paged = readAllRecordsResilient(recordType, startTime, endTime)
             val filtered = paged.records.filter { lastSync == null || timeOf(it) > lastSync }
-            val maxLimit = getMaxRecordsForType(type)
-            // Send the oldest pending records first. Advancing lastSync to this batch's maximum
-            // then lets later syncs catch up without skipping records beyond the cap.
-            val limited = if (filtered.size > maxLimit) {
-                filtered.sortedBy(timeOf).take(maxLimit)
-            } else {
-                filtered
-            }
+            val limited = ResilientReadLogic.capOldestFirst(filtered, type.maxRecordsPerSync, timeOf)
             val times = limited.map(timeOf)
             recordDiag(
                 type = type,
@@ -495,12 +246,6 @@ class HealthConnectManager(private val context: Context) {
             lastSync = null, // filled in later in readHealthData()
             error = error
         )
-    }
-
-    private fun getMaxRecordsForType(type: HealthDataType): Int = when (type) {
-        HealthDataType.HEART_RATE, HealthDataType.STEPS -> MAX_RECORDS_HIGH_VOLUME
-        HealthDataType.HEART_RATE_VARIABILITY, HealthDataType.RESPIRATORY_RATE -> MAX_RECORDS_MEDIUM_VOLUME
-        else -> MAX_RECORDS_LOW_VOLUME
     }
 
     private suspend fun readStepsData(
@@ -549,14 +294,11 @@ class HealthConnectManager(private val context: Context) {
             val filtered = paged.records.flatMap { record ->
                 record.samples.filter { lastSync == null || it.time > lastSync }
             }
-            val maxLimit = MAX_RECORDS_HIGH_VOLUME
             // Heart-rate records can contain many samples. Keep the oldest pending samples so
             // lastSync advances in bounded batches without making newer samples unreachable.
-            val limited = if (filtered.size > maxLimit) {
-                filtered.sortedBy { it.time }.take(maxLimit)
-            } else {
-                filtered
-            }
+            val limited = ResilientReadLogic.capOldestFirst(
+                filtered, HealthDataType.HEART_RATE.maxRecordsPerSync
+            ) { it.time }
             val times = limited.map { it.time }
             recordDiag(
                 type = HealthDataType.HEART_RATE,
@@ -747,14 +489,10 @@ class HealthConnectManager(private val context: Context) {
 
     companion object {
         private const val LOOKBACK_HOURS = 168L  // 7 days
-        private const val MAX_RECORDS_HIGH_VOLUME = 1000  // HeartRate, Steps
-        private const val MAX_RECORDS_MEDIUM_VOLUME = 500  // Most types
-        private const val MAX_RECORDS_LOW_VOLUME = 200    // Weight, Height, etc.
-        private val MIN_BISECT_WINDOW: Duration = Duration.ofMinutes(5)
-
         private fun skippedWindowsNote(skippedWindows: Int): String? =
             if (skippedWindows > 0) {
-                "Skipped $skippedWindows unreadable window(s) of max ${MIN_BISECT_WINDOW.toMinutes()} min " +
+                "Skipped $skippedWindows unreadable window(s) of max " +
+                    "${ResilientReadLogic.MIN_BISECT_WINDOW.toMinutes()} min " +
                     "containing malformed records from the source app"
             } else {
                 null
