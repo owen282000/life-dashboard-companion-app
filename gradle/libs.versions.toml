@@ -12,7 +12,7 @@ healthConnect = "1.1.0-rc01"
 workManager = "2.9.0"
 okhttp = "4.12.0"
 kotlinxSerialization = "1.6.3"
-splashScreen = "1.0.1"
+splashScreen = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
