@@ -35,7 +35,7 @@ A privacy-focused Android app that syncs your **Health Connect** and **Screen Ti
   - Sleep: Sleep sessions with stages
   - Nutrition: Hydration, Nutrition records
   - Mindfulness: Meditation sessions (from apps like Waking Up, Headspace)
-  - Cycle Tracking: Menstruation Period, Menstruation Flow (logged data from apps like Samsung Health; predictions stay in the source app)
+  - Cycle Tracking: Menstruation Period, Menstruation Flow (logged data from cycle apps that write to Health Connect, such as Clue and Flo; note that Samsung Health does not share cycle data with Health Connect, and predictions stay in the source app)
 - Per-data-type toggle and permission management
 - Configurable sync interval (minimum 15 minutes)
 
