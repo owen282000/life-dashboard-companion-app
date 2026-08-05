@@ -36,7 +36,9 @@ enum class HealthDataType(val displayName: String, val recordClass: KClass<out R
     LEAN_BODY_MASS("Lean Body Mass", LeanBodyMassRecord::class),
     BONE_MASS("Bone Mass", BoneMassRecord::class),
     BODY_WATER_MASS("Body Water Mass", BodyWaterMassRecord::class),
-    HEART_RATE_VARIABILITY("Heart Rate Variability", HeartRateVariabilityRmssdRecord::class)
+    HEART_RATE_VARIABILITY("Heart Rate Variability", HeartRateVariabilityRmssdRecord::class),
+    MENSTRUATION_PERIOD("Menstruation Period", MenstruationPeriodRecord::class),
+    MENSTRUATION_FLOW("Menstruation Flow", MenstruationFlowRecord::class)
 }
 
 data class HealthData(
@@ -63,7 +65,19 @@ data class HealthData(
     val boneMass: List<BoneMassData>,
     val bodyWaterMass: List<BodyWaterMassData>,
     val hrv: List<HrvData>,
+    val menstruationPeriod: List<MenstruationPeriodData>,
+    val menstruationFlow: List<MenstruationFlowData>,
     val diagnostics: Map<HealthDataType, TypeDiagnostics> = emptyMap()
+)
+
+data class MenstruationPeriodData(
+    val startTime: Instant,
+    val endTime: Instant
+)
+
+data class MenstruationFlowData(
+    val flow: String,
+    val time: Instant
 )
 
 /**
@@ -290,6 +304,10 @@ class HealthConnectManager(private val context: Context) {
                 try { readBodyWaterMassData(startTime, endTime, lastSyncTimestamps[HealthDataType.BODY_WATER_MASS]) } catch (e: Exception) { emptyList() } else emptyList()
             val hrvData = if (HealthDataType.HEART_RATE_VARIABILITY in enabledTypes)
                 readHrvData(startTime, endTime, lastSyncTimestamps[HealthDataType.HEART_RATE_VARIABILITY]) else emptyList()
+            val menstruationPeriodData = if (HealthDataType.MENSTRUATION_PERIOD in enabledTypes)
+                try { readMenstruationPeriodData(startTime, endTime, lastSyncTimestamps[HealthDataType.MENSTRUATION_PERIOD]) } catch (e: Exception) { emptyList() } else emptyList()
+            val menstruationFlowData = if (HealthDataType.MENSTRUATION_FLOW in enabledTypes)
+                try { readMenstruationFlowData(startTime, endTime, lastSyncTimestamps[HealthDataType.MENSTRUATION_FLOW]) } catch (e: Exception) { emptyList() } else emptyList()
 
             // Ensure every enabled type has a diagnostics entry (even if it read 0 records or
             // its permission is missing) and enrich each with permission + lastSync info.
@@ -336,6 +354,8 @@ class HealthConnectManager(private val context: Context) {
                 boneMass = boneMassData,
                 bodyWaterMass = bodyWaterMassData,
                 hrv = hrvData,
+                menstruationPeriod = menstruationPeriodData,
+                menstruationFlow = menstruationFlowData,
                 diagnostics = diagnostics.toMap()
             ))
         } catch (e: Exception) {
@@ -695,6 +715,23 @@ class HealthConnectManager(private val context: Context) {
         }
         val contract = androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
         return contract.createIntent(context, permissions.toTypedArray())
+    }
+
+    private suspend fun readMenstruationPeriodData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<MenstruationPeriodData> {
+        return readFiltered(HealthDataType.MENSTRUATION_PERIOD, MenstruationPeriodRecord::class, startTime, endTime, lastSync) { it.endTime }
+            .map { MenstruationPeriodData(it.startTime, it.endTime) }
+    }
+
+    private suspend fun readMenstruationFlowData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<MenstruationFlowData> {
+        return readFiltered(HealthDataType.MENSTRUATION_FLOW, MenstruationFlowRecord::class, startTime, endTime, lastSync) { it.time }
+            .map { MenstruationFlowData(menstruationFlowToString(it.flow), it.time) }
+    }
+
+    private fun menstruationFlowToString(flow: Int): String = when (flow) {
+        MenstruationFlowRecord.FLOW_LIGHT -> "light"
+        MenstruationFlowRecord.FLOW_MEDIUM -> "medium"
+        MenstruationFlowRecord.FLOW_HEAVY -> "heavy"
+        else -> "unknown"
     }
 
     private fun sleepStageToString(stage: Int): String = when (stage) {

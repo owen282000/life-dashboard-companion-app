@@ -20,14 +20,14 @@ A privacy-focused Android app that syncs your **Health Connect** and **Screen Ti
 - **Own Your Data** - Send health data to your own server, not third-party clouds
 - **Flexible Webhooks** - Works with any backend that accepts JSON POST requests
 - **Combined App** - Health Connect + Screen Time in one app
-- **23 Health Data Types** - Supports all major Health Connect data types
+- **25 Health Data Types** - Supports all major Health Connect data types
 - **Modern UI** - Built with Jetpack Compose and Material 3
 
 ## Features
 
 ### Health Connect Integration
 - Syncs data from Google Health Connect to your webhook
-- **23 supported data types:**
+- **25 supported data types:**
   - Activity: Steps, Distance, Active Calories, Total Calories, Exercise Sessions
   - Body: Weight, Height, Body Temperature
   - Body Composition: Body Fat %, Lean Body Mass, Bone Mass, Body Water Mass
@@ -35,6 +35,7 @@ A privacy-focused Android app that syncs your **Health Connect** and **Screen Ti
   - Sleep: Sleep sessions with stages
   - Nutrition: Hydration, Nutrition records
   - Mindfulness: Meditation sessions (from apps like Waking Up, Headspace)
+  - Cycle Tracking: Menstruation Period, Menstruation Flow (logged data from apps like Samsung Health; predictions stay in the source app)
 - Per-data-type toggle and permission management
 - Configurable sync interval (minimum 15 minutes)
 
@@ -130,7 +131,9 @@ Every Health Connect payload has these top-level fields:
   "lean_body_mass": [],
   "bone_mass": [],
   "body_water_mass": [],
-  "heart_rate_variability": []
+  "heart_rate_variability": [],
+  "menstruation_period": [],
+  "menstruation_flow": []
 }
 ```
 
@@ -281,6 +284,20 @@ All nutrition fields (`calories`, `protein_grams`, `carbs_grams`, `fat_grams`) a
 ```
 
 The `title` field is optional and may be `null`.
+
+#### Cycle Tracking
+
+**Menstruation Period**
+```json
+{ "start_time": "2025-02-01T00:00:00Z", "end_time": "2025-02-05T00:00:00Z" }
+```
+
+**Menstruation Flow**
+```json
+{ "flow": "medium", "time": "2025-02-03T00:00:00Z" }
+```
+
+The `flow` field is one of `light`, `medium`, `heavy`, or `unknown`.
 
 ### Screen Time
 ```json
