@@ -33,7 +33,7 @@ val appVersionCode = semverMatch?.destructured?.let { (major, minor, patch) ->
 
 android {
     namespace = "com.owen282000.lifedashboard"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.owen282000.lifedashboard"
