@@ -11,7 +11,7 @@ composeBom = "2026.06.01"
 healthConnect = "1.1.0"
 workManager = "2.9.0"
 okhttp = "4.12.0"
-kotlinxSerialization = "1.6.3"
+kotlinxSerialization = "1.11.0"
 splashScreen = "1.2.0"
 
 [libraries]
