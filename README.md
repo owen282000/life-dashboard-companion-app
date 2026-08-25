@@ -5,7 +5,7 @@
 [![Security](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml)
 [![Release](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Android](https://img.shields.io/badge/Android-14%2B-green.svg)](https://developer.android.com)
+[![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://developer.android.com)
 
 <p align="center">
   <img src="docs/screenshots/health-connect.png" width="250" alt="Health Connect Screen">
@@ -67,7 +67,7 @@ Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/
 
 ## Requirements
 
-- Android 14+ (API 34)
+- Android 8.0+ (minSdk 26); some Health Connect features need a recent Android version
 - [Health Connect](https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata) app installed
 - Usage access permission (for Screen Time feature)
 
