@@ -141,13 +141,13 @@ Every Health Connect payload has these top-level fields:
 }
 ```
 
-Only enabled data types are included. Each array contains records with the following fields:
+Only enabled data types are included. Every record additionally carries a `source` field with the package name of the app that wrote it to Health Connect (e.g. `"source": "com.zepp.app"`), so backends receiving data from multiple sources (phone, watch, third-party apps) can tell records apart and deduplicate. Each array contains records with the following fields:
 
 #### Activity
 
 **Steps**
 ```json
-{ "count": 1234, "start_time": "2025-02-05T08:00:00Z", "end_time": "2025-02-05T09:00:00Z" }
+{ "count": 1234, "start_time": "2025-02-05T08:00:00Z", "end_time": "2025-02-05T09:00:00Z", "source": "com.zepp.app" }
 ```
 
 **Distance**
@@ -379,6 +379,18 @@ app.listen(3000);
 
 ### Home Assistant Webhook
 Use Home Assistant's webhook trigger to receive data and store it or trigger automations.
+
+## Troubleshooting
+
+### Background syncs stop after a while
+
+Many manufacturers (Samsung, Xiaomi, OnePlus, Huawei, and others) aggressively kill background work to save battery, which silently stops the WorkManager syncs this app relies on. If syncs only happen when you open the app:
+
+1. Go to **Settings > Apps > Life Dashboard > Battery** and set it to **Unrestricted** (naming varies per manufacturer).
+2. On heavily customized Android skins, also exempt the app from the manufacturer's own battery or startup manager. [dontkillmyapp.com](https://dontkillmyapp.com) has per-brand instructions.
+3. Keep in mind Android enforces a minimum interval of 15 minutes for periodic background work, and may delay syncs further in Doze mode.
+
+The webhook logs screen shows when the last sync attempts actually ran, which helps confirm whether syncs are being suppressed.
 
 ## Tech Stack
 

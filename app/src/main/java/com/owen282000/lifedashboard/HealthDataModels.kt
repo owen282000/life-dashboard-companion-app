@@ -64,12 +64,14 @@ data class HealthData(
 
 data class MenstruationPeriodData(
     val startTime: Instant,
-    val endTime: Instant
+    val endTime: Instant,
+    val source: String? = null
 )
 
 data class MenstruationFlowData(
     val flow: String,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 /**
@@ -91,13 +93,15 @@ data class TypeDiagnostics(
 data class StepsData(
     val count: Long,
     val startTime: Instant,
-    val endTime: Instant
+    val endTime: Instant,
+    val source: String? = null
 )
 
 data class SleepData(
     val sessionEndTime: Instant,
     val duration: Duration,
-    val stages: List<SleepStage>
+    val stages: List<SleepStage>,
+    val source: String? = null
 )
 
 data class SleepStage(
@@ -109,79 +113,93 @@ data class SleepStage(
 
 data class HeartRateData(
     val bpm: Long,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class DistanceData(
     val meters: Double,
     val startTime: Instant,
-    val endTime: Instant
+    val endTime: Instant,
+    val source: String? = null
 )
 
 data class ActiveCaloriesData(
     val calories: Double,
     val startTime: Instant,
-    val endTime: Instant
+    val endTime: Instant,
+    val source: String? = null
 )
 
 data class TotalCaloriesData(
     val calories: Double,
     val startTime: Instant,
-    val endTime: Instant
+    val endTime: Instant,
+    val source: String? = null
 )
 
 data class WeightData(
     val kilograms: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class HeightData(
     val meters: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class BloodPressureData(
     val systolic: Double,
     val diastolic: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class BloodGlucoseData(
     val mmolPerLiter: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class OxygenSaturationData(
     val percentage: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class BodyTemperatureData(
     val celsius: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class RespiratoryRateData(
     val rate: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class RestingHeartRateData(
     val bpm: Long,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class ExerciseData(
     val type: String,
     val startTime: Instant,
     val endTime: Instant,
-    val duration: Duration
+    val duration: Duration,
+    val source: String? = null
 )
 
 data class HydrationData(
     val liters: Double,
     val startTime: Instant,
-    val endTime: Instant
+    val endTime: Instant,
+    val source: String? = null
 )
 
 data class NutritionData(
@@ -190,39 +208,46 @@ data class NutritionData(
     val carbs: Double?,
     val fat: Double?,
     val startTime: Instant,
-    val endTime: Instant
+    val endTime: Instant,
+    val source: String? = null
 )
 
 data class MindfulnessData(
     val title: String?,
     val startTime: Instant,
     val endTime: Instant,
-    val duration: Duration
+    val duration: Duration,
+    val source: String? = null
 )
 
 data class BodyFatData(
     val percentage: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class LeanBodyMassData(
     val kilograms: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class BoneMassData(
     val kilograms: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class BodyWaterMassData(
     val kilograms: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 data class HrvData(
     val heartRateVariabilityMillis: Double,
-    val time: Instant
+    val time: Instant,
+    val source: String? = null
 )
 
 /**
