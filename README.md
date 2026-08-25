@@ -15,6 +15,8 @@
 
 A privacy-focused Android app that syncs your **Health Connect** and **Screen Time** data to your own server via webhooks. Perfect for self-hosted dashboards, Home Assistant integrations, or any quantified self setup.
 
+Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/owen282000/life-dashboard-companion-app-ios), which sends a compatible payload from Apple Health (HealthKit) so both apps can feed the same backend.
+
 ## Why This App?
 
 - **Own Your Data** - Send health data to your own server, not third-party clouds
