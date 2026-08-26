@@ -35,6 +35,9 @@
     <!-- Network Permission -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Sync failure notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Query for Health Connect -->
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
@@ -80,6 +83,39 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- Home screen widget -->
+        <receiver
+            android:name=".SyncStatusWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/sync_status_widget_info" />
+        </receiver>
+
+        <!-- Sync trigger for automation apps (Tasker, MacroDroid) via explicit intent -->
+        <receiver
+            android:name=".SyncBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.owen282000.lifedashboard.ACTION_SYNC" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Quick Settings tile -->
+        <service
+            android:name=".SyncTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_sync"
+            android:label="Sync Life Dashboard"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
         <!-- Health Connect Permission Activity -->
         <activity-alias

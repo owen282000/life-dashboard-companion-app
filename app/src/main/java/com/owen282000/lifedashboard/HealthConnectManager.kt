@@ -248,6 +248,22 @@ class HealthConnectManager(private val context: Context) {
         )
     }
 
+    /** Most recent heart rate sample of the past day, used by the About screen easter egg. */
+    suspend fun latestHeartRateBpm(): Long? = try {
+        val now = Instant.now()
+        val response = healthConnectClient.readRecords(
+            ReadRecordsRequest(
+                recordType = HeartRateRecord::class,
+                timeRangeFilter = TimeRangeFilter.between(now.minus(Duration.ofDays(1)), now),
+                ascendingOrder = false,
+                pageSize = 1
+            )
+        )
+        response.records.firstOrNull()?.samples?.maxByOrNull { it.time }?.beatsPerMinute
+    } catch (e: Exception) {
+        null
+    }
+
     private suspend fun readStepsData(
         startTime: Instant,
         endTime: Instant,
@@ -259,7 +275,8 @@ class HealthConnectManager(private val context: Context) {
                     count = record.count,
                     startTime = record.startTime,
                     endTime = record.endTime,
-                    source = record.metadata.dataOrigin.packageName
+                    source = record.metadata.dataOrigin.packageName,
+                    uuid = record.metadata.id
                 )
             }
     }
@@ -284,7 +301,8 @@ class HealthConnectManager(private val context: Context) {
                     sessionEndTime = record.endTime,
                     duration = Duration.between(record.startTime, record.endTime),
                     stages = stages,
-                    source = record.metadata.dataOrigin.packageName
+                    source = record.metadata.dataOrigin.packageName,
+                    uuid = record.metadata.id
                 )
             }
     }
@@ -297,7 +315,7 @@ class HealthConnectManager(private val context: Context) {
             // sample can carry its source app.
             val filtered = paged.records.flatMap { record ->
                 record.samples.filter { lastSync == null || it.time > lastSync }
-                    .map { sample -> sample to record.metadata.dataOrigin.packageName }
+                    .map { sample -> sample to record }
             }
             // Heart-rate records can contain many samples. Keep the oldest pending samples so
             // lastSync advances in bounded batches without making newer samples unreachable.
@@ -314,7 +332,16 @@ class HealthConnectManager(private val context: Context) {
                 maxTime = times.maxOrNull(),
                 error = skippedWindowsNote(paged.skippedWindows)
             )
-            return limited.map { (sample, source) -> HeartRateData(sample.beatsPerMinute, sample.time, source) }
+            // Samples within one record share the record id; suffix the sample time so the
+            // delivered uuid stays unique yet stable across re-sends.
+            return limited.map { (sample, record) ->
+                HeartRateData(
+                    sample.beatsPerMinute,
+                    sample.time,
+                    record.metadata.dataOrigin.packageName,
+                    "${record.metadata.id}#${sample.time.toEpochMilli()}"
+                )
+            }
         } catch (e: Exception) {
             recordDiag(type = HealthDataType.HEART_RATE, error = e.message ?: e.javaClass.simpleName)
             throw e
@@ -323,72 +350,72 @@ class HealthConnectManager(private val context: Context) {
 
     private suspend fun readDistanceData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<DistanceData> {
         return readFiltered(HealthDataType.DISTANCE, DistanceRecord::class, startTime, endTime, lastSync) { it.endTime }
-            .map { DistanceData(it.distance.inMeters, it.startTime, it.endTime, it.metadata.dataOrigin.packageName) }
+            .map { DistanceData(it.distance.inMeters, it.startTime, it.endTime, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readActiveCaloriesData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<ActiveCaloriesData> {
         return readFiltered(HealthDataType.ACTIVE_CALORIES, ActiveCaloriesBurnedRecord::class, startTime, endTime, lastSync) { it.endTime }
-            .map { ActiveCaloriesData(it.energy.inKilocalories, it.startTime, it.endTime, it.metadata.dataOrigin.packageName) }
+            .map { ActiveCaloriesData(it.energy.inKilocalories, it.startTime, it.endTime, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readTotalCaloriesData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<TotalCaloriesData> {
         return readFiltered(HealthDataType.TOTAL_CALORIES, TotalCaloriesBurnedRecord::class, startTime, endTime, lastSync) { it.endTime }
-            .map { TotalCaloriesData(it.energy.inKilocalories, it.startTime, it.endTime, it.metadata.dataOrigin.packageName) }
+            .map { TotalCaloriesData(it.energy.inKilocalories, it.startTime, it.endTime, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readWeightData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<WeightData> {
         return readFiltered(HealthDataType.WEIGHT, WeightRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { WeightData(it.weight.inKilograms, it.time, it.metadata.dataOrigin.packageName) }
+            .map { WeightData(it.weight.inKilograms, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readHeightData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<HeightData> {
         return readFiltered(HealthDataType.HEIGHT, HeightRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { HeightData(it.height.inMeters, it.time, it.metadata.dataOrigin.packageName) }
+            .map { HeightData(it.height.inMeters, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readBloodPressureData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BloodPressureData> {
         return readFiltered(HealthDataType.BLOOD_PRESSURE, BloodPressureRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { BloodPressureData(it.systolic.inMillimetersOfMercury, it.diastolic.inMillimetersOfMercury, it.time, it.metadata.dataOrigin.packageName) }
+            .map { BloodPressureData(it.systolic.inMillimetersOfMercury, it.diastolic.inMillimetersOfMercury, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readBloodGlucoseData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BloodGlucoseData> {
         return readFiltered(HealthDataType.BLOOD_GLUCOSE, BloodGlucoseRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { BloodGlucoseData(it.level.inMillimolesPerLiter, it.time, it.metadata.dataOrigin.packageName) }
+            .map { BloodGlucoseData(it.level.inMillimolesPerLiter, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readOxygenSaturationData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<OxygenSaturationData> {
         return readFiltered(HealthDataType.OXYGEN_SATURATION, OxygenSaturationRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { OxygenSaturationData(it.percentage.value, it.time, it.metadata.dataOrigin.packageName) }
+            .map { OxygenSaturationData(it.percentage.value, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readBodyTemperatureData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BodyTemperatureData> {
         return readFiltered(HealthDataType.BODY_TEMPERATURE, BodyTemperatureRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { BodyTemperatureData(it.temperature.inCelsius, it.time, it.metadata.dataOrigin.packageName) }
+            .map { BodyTemperatureData(it.temperature.inCelsius, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readRespiratoryRateData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<RespiratoryRateData> {
         return readFiltered(HealthDataType.RESPIRATORY_RATE, RespiratoryRateRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { RespiratoryRateData(it.rate, it.time, it.metadata.dataOrigin.packageName) }
+            .map { RespiratoryRateData(it.rate, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readRestingHeartRateData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<RestingHeartRateData> {
         return readFiltered(HealthDataType.RESTING_HEART_RATE, RestingHeartRateRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { RestingHeartRateData(it.beatsPerMinute, it.time, it.metadata.dataOrigin.packageName) }
+            .map { RestingHeartRateData(it.beatsPerMinute, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readExerciseData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<ExerciseData> {
         return readFiltered(HealthDataType.EXERCISE, ExerciseSessionRecord::class, startTime, endTime, lastSync) { it.endTime }
-            .map { ExerciseData(it.exerciseType.toString(), it.startTime, it.endTime, Duration.between(it.startTime, it.endTime), it.metadata.dataOrigin.packageName) }
+            .map { ExerciseData(it.exerciseType.toString(), it.startTime, it.endTime, Duration.between(it.startTime, it.endTime), it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readHydrationData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<HydrationData> {
         return readFiltered(HealthDataType.HYDRATION, HydrationRecord::class, startTime, endTime, lastSync) { it.endTime }
-            .map { HydrationData(it.volume.inLiters, it.startTime, it.endTime, it.metadata.dataOrigin.packageName) }
+            .map { HydrationData(it.volume.inLiters, it.startTime, it.endTime, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readNutritionData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<NutritionData> {
         return readFiltered(HealthDataType.NUTRITION, NutritionRecord::class, startTime, endTime, lastSync) { it.endTime }
-            .map { NutritionData(it.energy?.inKilocalories, it.protein?.inGrams, it.totalCarbohydrate?.inGrams, it.totalFat?.inGrams, it.startTime, it.endTime, it.metadata.dataOrigin.packageName) }
+            .map { NutritionData(it.energy?.inKilocalories, it.protein?.inGrams, it.totalCarbohydrate?.inGrams, it.totalFat?.inGrams, it.startTime, it.endTime, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readMindfulnessData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<MindfulnessData> {
@@ -401,7 +428,7 @@ class HealthConnectManager(private val context: Context) {
             }
 
             readFiltered(HealthDataType.MINDFULNESS, MindfulnessSessionRecord::class, startTime, endTime, lastSync) { it.endTime }
-                .map { MindfulnessData(it.title, it.startTime, it.endTime, Duration.between(it.startTime, it.endTime), it.metadata.dataOrigin.packageName) }
+                .map { MindfulnessData(it.title, it.startTime, it.endTime, Duration.between(it.startTime, it.endTime), it.metadata.dataOrigin.packageName, it.metadata.id) }
         } catch (e: Exception) {
             emptyList()
         }
@@ -409,28 +436,28 @@ class HealthConnectManager(private val context: Context) {
 
     private suspend fun readBodyFatData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BodyFatData> {
         return readFiltered(HealthDataType.BODY_FAT, BodyFatRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { BodyFatData(it.percentage.value, it.time, it.metadata.dataOrigin.packageName) }
+            .map { BodyFatData(it.percentage.value, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readLeanBodyMassData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<LeanBodyMassData> {
         return readFiltered(HealthDataType.LEAN_BODY_MASS, LeanBodyMassRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { LeanBodyMassData(it.mass.inKilograms, it.time, it.metadata.dataOrigin.packageName) }
+            .map { LeanBodyMassData(it.mass.inKilograms, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readBoneMassData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BoneMassData> {
         return readFiltered(HealthDataType.BONE_MASS, BoneMassRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { BoneMassData(it.mass.inKilograms, it.time, it.metadata.dataOrigin.packageName) }
+            .map { BoneMassData(it.mass.inKilograms, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readBodyWaterMassData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BodyWaterMassData> {
         return readFiltered(HealthDataType.BODY_WATER_MASS, BodyWaterMassRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { BodyWaterMassData(it.mass.inKilograms, it.time, it.metadata.dataOrigin.packageName) }
+            .map { BodyWaterMassData(it.mass.inKilograms, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readHrvData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<HrvData> {
         return try {
             readFiltered(HealthDataType.HEART_RATE_VARIABILITY, HeartRateVariabilityRmssdRecord::class, startTime, endTime, lastSync) { it.time }
-                .map { HrvData(it.heartRateVariabilityMillis, it.time, it.metadata.dataOrigin.packageName) }
+                .map { HrvData(it.heartRateVariabilityMillis, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
         } catch (e: Exception) {
             emptyList()
         }
@@ -466,12 +493,12 @@ class HealthConnectManager(private val context: Context) {
 
     private suspend fun readMenstruationPeriodData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<MenstruationPeriodData> {
         return readFiltered(HealthDataType.MENSTRUATION_PERIOD, MenstruationPeriodRecord::class, startTime, endTime, lastSync) { it.endTime }
-            .map { MenstruationPeriodData(it.startTime, it.endTime, it.metadata.dataOrigin.packageName) }
+            .map { MenstruationPeriodData(it.startTime, it.endTime, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private suspend fun readMenstruationFlowData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<MenstruationFlowData> {
         return readFiltered(HealthDataType.MENSTRUATION_FLOW, MenstruationFlowRecord::class, startTime, endTime, lastSync) { it.time }
-            .map { MenstruationFlowData(menstruationFlowToString(it.flow), it.time, it.metadata.dataOrigin.packageName) }
+            .map { MenstruationFlowData(menstruationFlowToString(it.flow), it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
     private fun menstruationFlowToString(flow: Int): String = when (flow) {

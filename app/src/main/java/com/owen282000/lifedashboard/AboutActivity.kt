@@ -9,6 +9,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -20,10 +22,11 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -49,6 +52,32 @@ class AboutActivity : ComponentActivity() {
     @Composable
     fun AboutScreen() {
         val context = LocalContext.current
+
+        // Easter eggs: tap the icon 7 times for a heart beating at your real heart rate,
+        // long-press the version pill for Nerd Stats
+        var heartTapCount by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0) }
+        var isBeating by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+        var bpm by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(72L) }
+        var showNerdStats by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+        val heartScale = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(1f) }
+        val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+
+        androidx.compose.runtime.LaunchedEffect(isBeating) {
+            if (!isBeating) {
+                heartScale.snapTo(1f)
+                return@LaunchedEffect
+            }
+            HealthConnectManager(context).latestHeartRateBpm()?.let { bpm = it.coerceIn(30, 200) }
+            while (isBeating) {
+                val cycleMs = 60_000L / bpm
+                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                heartScale.animateTo(1.18f, androidx.compose.animation.core.tween(120))
+                heartScale.animateTo(1f, androidx.compose.animation.core.tween(110))
+                heartScale.animateTo(1.10f, androidx.compose.animation.core.tween(100))
+                heartScale.animateTo(1f, androidx.compose.animation.core.tween(100))
+                kotlinx.coroutines.delay((cycleMs - 430).coerceAtLeast(50))
+            }
+        }
 
         val versionName = try {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
@@ -105,14 +134,23 @@ class AboutActivity : ComponentActivity() {
                             modifier = Modifier
                                 .size(80.dp)
                                 .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.2f)),
+                                .background(Color.White.copy(alpha = 0.2f))
+                                .clickable {
+                                    heartTapCount++
+                                    if (heartTapCount >= 7) {
+                                        heartTapCount = 0
+                                        isBeating = !isBeating
+                                    }
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Dashboard,
+                                imageVector = if (isBeating) Icons.Filled.Favorite else Icons.Filled.Dashboard,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(44.dp)
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .scale(heartScale.value)
                             )
                         }
                         Spacer(modifier = Modifier.height(16.dp))
@@ -130,10 +168,13 @@ class AboutActivity : ComponentActivity() {
                         Spacer(modifier = Modifier.height(8.dp))
                         Surface(
                             shape = RoundedCornerShape(16.dp),
-                            color = Color.White.copy(alpha = 0.2f)
+                            color = Color.White.copy(alpha = 0.2f),
+                            modifier = Modifier.pointerInput(Unit) {
+                                detectTapGestures(onLongPress = { showNerdStats = !showNerdStats })
+                            }
                         ) {
                             Text(
-                                "Version $versionName",
+                                if (isBeating) "$bpm BPM" else "Version $versionName",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = Color.White,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -146,6 +187,10 @@ class AboutActivity : ComponentActivity() {
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    if (showNerdStats) {
+                        NerdStatsCard(context)
+                    }
+
                     // Description
                     Text(
                         "Syncs Health Connect and Screen Time data to your custom webhook endpoints for automated life tracking.",
@@ -305,6 +350,81 @@ private fun FeatureItem(icon: ImageVector, text: String) {
             text,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun NerdStatsCard(context: android.content.Context) {
+    val stats = remember { LifetimeStats.read(context) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.AutoAwesome,
+                    contentDescription = null,
+                    tint = Color(0xFFF9A825),
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Nerd Stats",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    "You found the secret",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (stats.deliveries == 0) {
+                Text(
+                    "No syncs yet. Come back when your data has started flowing.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                NerdStatRow("Records delivered", "%,d".format(stats.records))
+                NerdStatRow("Successful deliveries", "%,d".format(stats.deliveries))
+                if (stats.largestPayloadBytes > 0) {
+                    NerdStatRow("Largest payload", android.text.format.Formatter.formatShortFileSize(context, stats.largestPayloadBytes.toLong()))
+                }
+                stats.firstSyncMillis?.let { first ->
+                    val days = ((System.currentTimeMillis() - first) / 86_400_000L).coerceAtLeast(1)
+                    NerdStatRow("Syncing since", java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(first)))
+                    NerdStatRow("That is", "$days day${if (days == 1L) "" else "s"} of quantified you")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NerdStatRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold
         )
     }
 }

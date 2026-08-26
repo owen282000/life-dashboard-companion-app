@@ -131,6 +131,9 @@ class WebhookManager(
         note: String? = null
     ) {
         context?.let {
+            if (success) {
+                LifetimeStats.recordDelivery(it, recordCount ?: 0, rawPayload?.length ?: 0)
+            }
             val preferencesManager = PreferencesManager(it)
             val log = WebhookLog(
                 id = UUID.randomUUID().toString(),

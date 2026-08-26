@@ -2,6 +2,7 @@ package com.owen282000.lifedashboard.screens
 
 import android.content.Intent
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -71,6 +72,12 @@ fun HealthConnectScreen(
     var isDataTypesExpanded by remember { mutableStateOf(false) }
     var healthConnectUnavailableReason by remember { mutableStateOf<String?>(null) }
     var isPreviewing by remember { mutableStateOf(false) }
+    var isPinging by remember { mutableStateOf(false) }
+    var failureNotificationsEnabled by remember { mutableStateOf(SyncFailureNotifier.isEnabled(context)) }
+    var failureThreshold by remember { mutableStateOf(SyncFailureNotifier.getThreshold(context)) }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { }
     var isExporting by remember { mutableStateOf(false) }
     var showExportFormatDialog by remember { mutableStateOf(false) }
     var exportJsonData by remember { mutableStateOf<String?>(null) }
@@ -595,6 +602,55 @@ fun HealthConnectScreen(
                 }
             }
 
+            // Failure notifications (shared across Health Connect and Screen Time)
+            SectionCard(
+                title = "Notifications",
+                subtitle = "Alert when syncs keep failing"
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Notify after failed syncs",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Switch(
+                        checked = failureNotificationsEnabled,
+                        onCheckedChange = { enabled ->
+                            failureNotificationsEnabled = enabled
+                            SyncFailureNotifier.setEnabled(context, enabled)
+                            if (enabled && android.os.Build.VERSION.SDK_INT >= 33) {
+                                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        }
+                    )
+                }
+                if (failureNotificationsEnabled) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "After consecutive failures",
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        listOf(3, 5, 10).forEach { value ->
+                            FilterChip(
+                                selected = failureThreshold == value,
+                                onClick = {
+                                    failureThreshold = value
+                                    SyncFailureNotifier.setThreshold(context, value)
+                                },
+                                label = { Text("$value") },
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
             // Manual Sync
             SectionCard(
                 title = "Manual Sync",
@@ -711,6 +767,46 @@ fun HealthConnectScreen(
                     Icon(Icons.Outlined.Visibility, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(if (isPreviewing) "Loading..." else "Preview Data")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        if (isPinging) return@OutlinedButton
+                        scope.launch {
+                            isPinging = true
+                            try {
+                                val payload = """{"test":true,"message":"Test ping from Life Dashboard Companion","timestamp":"${java.time.Instant.now()}","source":"health_connect"}"""
+                                val result = WebhookManager(
+                                    webhookUrls = webhookUrls,
+                                    context = context,
+                                    dataType = "test",
+                                    recordCount = 0,
+                                    logType = LogType.HEALTH_CONNECT,
+                                    customHeaders = webhookHeaders,
+                                    signingSecret = webhookSecret.trim().ifBlank { null }
+                                ).postData(payload)
+                                Toast.makeText(
+                                    context,
+                                    if (result.isSuccess) "Test ping delivered" else "Test ping failed, check the logs",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Test ping failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                            } finally {
+                                isPinging = false
+                            }
+                        }
+                    },
+                    enabled = !isPinging && webhookUrls.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = HealthPrimary)
+                ) {
+                    Icon(Icons.Outlined.NetworkPing, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (isPinging) "Pinging..." else "Send Test Ping")
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

@@ -89,6 +89,8 @@ class ScreenTimeSyncManager(private val context: Context) {
 
             // Post to webhook
             val postResult = webhookManager.postData(jsonPayload)
+            SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, postResult.isSuccess)
+            SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalApps else 0)
             if (postResult.isFailure) {
                 return@withContext Result.failure(
                     postResult.exceptionOrNull() ?: Exception("Failed to post to webhooks")

@@ -108,6 +108,8 @@ class HealthSyncManager(private val context: Context) {
 
             // Post to webhook
             val postResult = webhookManager.postData(jsonPayload)
+            SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
+            SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalRecords else 0)
             if (postResult.isFailure) {
                 return@withContext Result.failure(postResult.exceptionOrNull() ?: Exception("Failed to post to webhooks"))
             }
@@ -250,6 +252,7 @@ class HealthSyncManager(private val context: Context) {
                             put("count", step.count)
                             put("start_time", step.startTime.toString())
                             put("end_time", step.endTime.toString())
+                            step.uuid?.let { u -> put("uuid", u) }
                             step.source?.let { s -> put("source", s) }
                         })
                     }
@@ -262,6 +265,7 @@ class HealthSyncManager(private val context: Context) {
                         add(buildJsonObject {
                             put("session_end_time", sleep.sessionEndTime.toString())
                             put("duration_seconds", sleep.duration.seconds)
+                            sleep.uuid?.let { u -> put("uuid", u) }
                             sleep.source?.let { s -> put("source", s) }
                             putJsonArray("stages") {
                                 sleep.stages.forEach { stage ->
@@ -283,6 +287,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.heartRate.forEach { add(buildJsonObject {
                         put("bpm", it.bpm)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -294,6 +299,7 @@ class HealthSyncManager(private val context: Context) {
                         put("meters", it.meters)
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -305,6 +311,7 @@ class HealthSyncManager(private val context: Context) {
                         put("calories", it.calories)
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -316,6 +323,7 @@ class HealthSyncManager(private val context: Context) {
                         put("calories", it.calories)
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -326,6 +334,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.weight.forEach { add(buildJsonObject {
                         put("kilograms", it.kilograms)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -336,6 +345,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.height.forEach { add(buildJsonObject {
                         put("meters", it.meters)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -347,6 +357,7 @@ class HealthSyncManager(private val context: Context) {
                         put("systolic", it.systolic)
                         put("diastolic", it.diastolic)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -357,6 +368,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.bloodGlucose.forEach { add(buildJsonObject {
                         put("mmol_per_liter", it.mmolPerLiter)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -367,6 +379,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.oxygenSaturation.forEach { add(buildJsonObject {
                         put("percentage", it.percentage)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -377,6 +390,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.bodyTemperature.forEach { add(buildJsonObject {
                         put("celsius", it.celsius)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -387,6 +401,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.respiratoryRate.forEach { add(buildJsonObject {
                         put("rate", it.rate)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -397,6 +412,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.restingHeartRate.forEach { add(buildJsonObject {
                         put("bpm", it.bpm)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -409,6 +425,7 @@ class HealthSyncManager(private val context: Context) {
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
                         put("duration_seconds", it.duration.seconds)
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -420,6 +437,7 @@ class HealthSyncManager(private val context: Context) {
                         put("liters", it.liters)
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -434,6 +452,7 @@ class HealthSyncManager(private val context: Context) {
                         it.fat?.let { f -> put("fat_grams", f) }
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -446,6 +465,7 @@ class HealthSyncManager(private val context: Context) {
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
                         put("duration_seconds", it.duration.seconds)
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -456,6 +476,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.bodyFat.forEach { add(buildJsonObject {
                         put("percentage", it.percentage)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -466,6 +487,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.leanBodyMass.forEach { add(buildJsonObject {
                         put("kilograms", it.kilograms)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -476,6 +498,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.boneMass.forEach { add(buildJsonObject {
                         put("kilograms", it.kilograms)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -486,6 +509,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.bodyWaterMass.forEach { add(buildJsonObject {
                         put("kilograms", it.kilograms)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -496,6 +520,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.hrv.forEach { add(buildJsonObject {
                         put("heart_rate_variability_millis", it.heartRateVariabilityMillis)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -506,6 +531,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.menstruationPeriod.forEach { add(buildJsonObject {
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -516,6 +542,7 @@ class HealthSyncManager(private val context: Context) {
                     healthData.menstruationFlow.forEach { add(buildJsonObject {
                         put("flow", it.flow)
                         put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
