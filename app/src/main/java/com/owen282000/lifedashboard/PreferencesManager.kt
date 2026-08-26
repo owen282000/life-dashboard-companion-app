@@ -2,6 +2,8 @@ package com.owen282000.lifedashboard
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -9,8 +11,47 @@ class PreferencesManager(context: Context) {
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+    /** Keystore-backed storage for secrets (webhook headers with auth tokens, HMAC secrets). */
+    private val securePrefs: SharedPreferences = try {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        EncryptedSharedPreferences.create(
+            context,
+            SECURE_PREFS_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    } catch (e: Exception) {
+        // Keystore can be briefly unavailable right after boot; fall back to plain
+        // prefs rather than crash so background syncs keep working.
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
+
+    init {
+        migrateSecretsToEncryptedStorage()
+    }
+
+    /** One-time migration of secrets that older versions kept in plain SharedPreferences. */
+    private fun migrateSecretsToEncryptedStorage() {
+        if (securePrefs === prefs) return  // Keystore unavailable, nothing to migrate into
+        val secretKeys = listOf(
+            KEY_HEALTH_WEBHOOK_HEADERS, KEY_SCREENTIME_WEBHOOK_HEADERS,
+            KEY_HEALTH_WEBHOOK_SECRET, KEY_SCREENTIME_WEBHOOK_SECRET
+        )
+        for (key in secretKeys) {
+            val plainValue = prefs.getString(key, null) ?: continue
+            if (securePrefs.getString(key, null) == null) {
+                securePrefs.edit().putString(key, plainValue).apply()
+            }
+            prefs.edit().remove(key).apply()
+        }
+    }
+
     companion object {
         private const val PREFS_NAME = "life_dashboard_prefs"
+        private const val SECURE_PREFS_NAME = "life_dashboard_secure_prefs"
 
         // Health Connect keys
         private const val KEY_HEALTH_LAST_SYNC_TS_PREFIX = "health_last_sync_ts_"
@@ -86,7 +127,7 @@ class PreferencesManager(context: Context) {
     }
 
     fun getHealthWebhookHeaders(): Map<String, String> {
-        val headersJson = prefs.getString(KEY_HEALTH_WEBHOOK_HEADERS, null) ?: return emptyMap()
+        val headersJson = securePrefs.getString(KEY_HEALTH_WEBHOOK_HEADERS, null) ?: return emptyMap()
         return try {
             Json.decodeFromString<Map<String, String>>(headersJson)
         } catch (e: Exception) {
@@ -96,18 +137,18 @@ class PreferencesManager(context: Context) {
 
     fun setHealthWebhookHeaders(headers: Map<String, String>) {
         val headersJson = Json.encodeToString(headers)
-        prefs.edit().putString(KEY_HEALTH_WEBHOOK_HEADERS, headersJson).apply()
+        securePrefs.edit().putString(KEY_HEALTH_WEBHOOK_HEADERS, headersJson).apply()
     }
 
     fun getHealthWebhookSecret(): String? {
-        return prefs.getString(KEY_HEALTH_WEBHOOK_SECRET, null)?.takeIf { it.isNotBlank() }
+        return securePrefs.getString(KEY_HEALTH_WEBHOOK_SECRET, null)?.takeIf { it.isNotBlank() }
     }
 
     fun setHealthWebhookSecret(secret: String?) {
         if (secret.isNullOrBlank()) {
-            prefs.edit().remove(KEY_HEALTH_WEBHOOK_SECRET).apply()
+            securePrefs.edit().remove(KEY_HEALTH_WEBHOOK_SECRET).apply()
         } else {
-            prefs.edit().putString(KEY_HEALTH_WEBHOOK_SECRET, secret).apply()
+            securePrefs.edit().putString(KEY_HEALTH_WEBHOOK_SECRET, secret).apply()
         }
     }
 
@@ -132,7 +173,7 @@ class PreferencesManager(context: Context) {
     }
 
     fun getScreenTimeWebhookHeaders(): Map<String, String> {
-        val headersJson = prefs.getString(KEY_SCREENTIME_WEBHOOK_HEADERS, null) ?: return emptyMap()
+        val headersJson = securePrefs.getString(KEY_SCREENTIME_WEBHOOK_HEADERS, null) ?: return emptyMap()
         return try {
             Json.decodeFromString<Map<String, String>>(headersJson)
         } catch (e: Exception) {
@@ -142,18 +183,18 @@ class PreferencesManager(context: Context) {
 
     fun setScreenTimeWebhookHeaders(headers: Map<String, String>) {
         val headersJson = Json.encodeToString(headers)
-        prefs.edit().putString(KEY_SCREENTIME_WEBHOOK_HEADERS, headersJson).apply()
+        securePrefs.edit().putString(KEY_SCREENTIME_WEBHOOK_HEADERS, headersJson).apply()
     }
 
     fun getScreenTimeWebhookSecret(): String? {
-        return prefs.getString(KEY_SCREENTIME_WEBHOOK_SECRET, null)?.takeIf { it.isNotBlank() }
+        return securePrefs.getString(KEY_SCREENTIME_WEBHOOK_SECRET, null)?.takeIf { it.isNotBlank() }
     }
 
     fun setScreenTimeWebhookSecret(secret: String?) {
         if (secret.isNullOrBlank()) {
-            prefs.edit().remove(KEY_SCREENTIME_WEBHOOK_SECRET).apply()
+            securePrefs.edit().remove(KEY_SCREENTIME_WEBHOOK_SECRET).apply()
         } else {
-            prefs.edit().putString(KEY_SCREENTIME_WEBHOOK_SECRET, secret).apply()
+            securePrefs.edit().putString(KEY_SCREENTIME_WEBHOOK_SECRET, secret).apply()
         }
     }
 
