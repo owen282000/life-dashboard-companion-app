@@ -4,6 +4,7 @@
 [![Build](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml)
 [![Security](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml)
 [![Release](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/owen282000/life-dashboard-companion-app/badge)](https://scorecard.dev/viewer/?uri=github.com/owen282000/life-dashboard-companion-app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://developer.android.com)
 
@@ -51,6 +52,7 @@ Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/
 - **Multiple webhook URLs** - Send to multiple endpoints simultaneously
 - **Custom headers** - Add auth tokens, API keys, or any custom HTTP headers per category
 - **HMAC payload signing** - Optional `X-Signature` header so your server can verify the sender
+- **Test ping** - Send a small test payload to verify your server setup without waiting for real data
 - **Retries with backoff** - Transient failures are retried automatically; permanent errors fail fast
 - **Separate configuration** - Different URLs, headers, and signing secrets for Health and Screen Time
 
@@ -58,6 +60,12 @@ Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/
 - **Data preview** - View the exact JSON payload before syncing
 - **Export as CSV/JSON** - Export sync logs via the Android share sheet
 - **Sync history dashboard** - Overview of success rates, record counts, and recent failures
+
+### Automation
+- **Home screen widget** - Last sync result and records delivered today at a glance
+- **Quick Settings tile** - Trigger an immediate sync from the notification shade
+- **Tasker/MacroDroid support** - Trigger syncs with an explicit broadcast intent: `com.owen282000.lifedashboard.ACTION_SYNC`
+- **Failure notifications** - Local notification after repeated failed syncs, with a configurable threshold
 
 ### General
 - **Background sync** - Uses WorkManager for reliable background execution
@@ -141,7 +149,7 @@ Every Health Connect payload has these top-level fields:
 }
 ```
 
-Only enabled data types are included. Every record additionally carries a `source` field with the package name of the app that wrote it to Health Connect (e.g. `"source": "com.zepp.app"`), so backends receiving data from multiple sources (phone, watch, third-party apps) can tell records apart and deduplicate. Each array contains records with the following fields:
+Only enabled data types are included. Every record additionally carries a `uuid` (the stable Health Connect record id, useful for server-side deduplication since batches can be re-sent) and a `source` field with the package name of the app that wrote it to Health Connect (e.g. `"source": "com.zepp.app"`), so backends receiving data from multiple sources (phone, watch, third-party apps) can tell records apart. These are omitted from the examples below for brevity. Each array contains records with the following fields:
 
 #### Activity
 
