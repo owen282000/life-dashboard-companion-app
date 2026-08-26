@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write      # sigstore signing for build provenance
+      attestations: write  # store the provenance attestation
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -64,6 +66,13 @@ jobs:
       - name: Clean up keystore
         if: always()
         run: rm -f "$RUNNER_TEMP/keystore.jks"
+      - name: Attest build provenance
+        id: attest
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: app/build/outputs/apk/release/app-release.apk
+      - name: Prepare provenance bundle as release asset
+        run: cp "${{ steps.attest.outputs.bundle-path }}" app-release.apk.sigstore.json
       - name: Upload release APK as artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -74,5 +83,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
-          files: app/build/outputs/apk/release/app-release.apk
+          files: |
+            app/build/outputs/apk/release/app-release.apk
+            app-release.apk.sigstore.json
           generate_release_notes: true
