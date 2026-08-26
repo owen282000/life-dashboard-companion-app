@@ -26,6 +26,9 @@ jobs:
         with:
           fetch-depth: 0  # full history so Gradle can derive the version from git tags
 
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@67621b124fd2e251c5e8a0e6e3b91318f2287669 # v6.3.0
+
       - name: Set up JDK
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
