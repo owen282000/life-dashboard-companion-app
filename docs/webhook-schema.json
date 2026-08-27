@@ -1,0 +1,1082 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/owen282000/life-dashboard-companion-app/blob/main/docs/webhook-schema.json",
+  "title": "Life Dashboard Companion webhook payload",
+  "description": "Health Connect payload POSTed to configured webhooks. Only enabled data types with records appear; every record additionally carries optional source and uuid fields. The same schema is used by the iOS companion app (source: healthkit_ios).",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "app_version": {
+      "type": "string"
+    },
+    "source": {
+      "enum": [
+        "health_connect",
+        "healthkit_ios",
+        "screen_time"
+      ]
+    },
+    "_diagnostics": {
+      "type": "object",
+      "description": "Per-type read diagnostics; see README"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "count",
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "sleep": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "session_end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration_seconds": {
+            "type": "integer"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stage": {
+                  "type": "string"
+                },
+                "start_time": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "end_time": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "duration_seconds": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "stage",
+                "start_time",
+                "end_time"
+              ]
+            }
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "session_end_time",
+          "duration_seconds"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "heart_rate": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bpm": {
+            "type": "integer"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "bpm",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "distance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "meters": {
+            "type": "number"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "meters",
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "active_calories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "calories": {
+            "type": "number"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "calories",
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "total_calories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "calories": {
+            "type": "number"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "calories",
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "weight": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kilograms": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "kilograms",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "height": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "meters": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "meters",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "blood_pressure": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "systolic": {
+            "type": "number"
+          },
+          "diastolic": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "systolic",
+          "diastolic",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "blood_glucose": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mmol_per_liter": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "mmol_per_liter",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "oxygen_saturation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "percentage": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "percentage",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "body_temperature": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "celsius": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "celsius",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "respiratory_rate": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rate": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "rate",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "resting_heart_rate": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bpm": {
+            "type": "integer"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "bpm",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "exercise": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration_seconds": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "type",
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "hydration": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "liters": {
+            "type": "number"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "liters",
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "nutrition": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "calories": {
+            "type": "number"
+          },
+          "protein_grams": {
+            "type": "number"
+          },
+          "carbs_grams": {
+            "type": "number"
+          },
+          "fat_grams": {
+            "type": "number"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "mindfulness": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration_seconds": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "body_fat": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "percentage": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "percentage",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "lean_body_mass": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kilograms": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "kilograms",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "bone_mass": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kilograms": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "kilograms",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "body_water_mass": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kilograms": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "kilograms",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "heart_rate_variability": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "heart_rate_variability_millis": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "heart_rate_variability_millis",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "menstruation_period": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "menstruation_flow": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "flow": {
+            "enum": [
+              "light",
+              "medium",
+              "heavy",
+              "unknown"
+            ]
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "flow",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "basal_metabolic_rate": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kilocalories_per_day": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "kilocalories_per_day",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "vo2_max": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "vo2_ml_per_min_per_kg": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "vo2_ml_per_min_per_kg",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "skin_temperature": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "delta_celsius": {
+            "type": "number"
+          },
+          "baseline_celsius": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "delta_celsius",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "basal_body_temperature": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "celsius": {
+            "type": "number"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "celsius",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "intermenstrual_bleeding": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "ovulation_test": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "enum": [
+              "positive",
+              "high",
+              "negative",
+              "inconclusive",
+              "unknown"
+            ]
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "result",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "cervical_mucus": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "appearance": {
+            "type": "string"
+          },
+          "sensation": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "appearance",
+          "sensation",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "sexual_activity": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "protection_used": {
+            "enum": [
+              "protected",
+              "unprotected",
+              "unknown"
+            ]
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "description": "Package name of the app that wrote the record to Health Connect"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "Stable record id for server-side deduplication"
+          }
+        },
+        "required": [
+          "protection_used",
+          "time"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "screen_time": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "total_screen_time_minutes": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date"
+        ],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": [
+    "timestamp",
+    "app_version",
+    "source"
+  ],
+  "additionalProperties": true
+}

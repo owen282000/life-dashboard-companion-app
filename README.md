@@ -119,6 +119,8 @@ cd life-dashboard-companion-app
 
 ## Webhook Payload Format
 
+A machine-readable [JSON Schema](docs/webhook-schema.json) of the complete payload is published in the repository; validate your receiver against it.
+
 ### Health Connect
 
 Every Health Connect payload has these top-level fields:
