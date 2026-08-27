@@ -4,6 +4,41 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-08-27
+
+### Added
+
+- MQTT publishing with Home Assistant Discovery: every enabled data type appears automatically as a sensor in Home Assistant
+- Store-and-forward outbox: failed webhook deliveries are queued on disk and drained on the next sync, so no data is lost when the receiver is down
+- Historical backfill of up to a year of data (30/90/365 days) in small windows with progress feedback
+- Optional deduplicated daily totals (steps, distance, calories) in the payload via Health Connect's aggregate API
+- At-a-glance dashboard card on the Health screen: records today, lifetime records, last sync status, and a 7-day steps sparkline
+- Published JSON Schema for the webhook payload (`docs/webhook-schema.json`)
+- Ready-made self-hosted receiving stack (Postgres, receiver, Grafana) linked from the README
+
+### Fixed
+
+- Sync watermark now uses `lastModifiedTime` instead of the record timestamp, so records backfilled by watch apps are never skipped
+- Data preview now also shows the daily totals when enabled
+
+## [1.7.0] - 2026-08-27
+
+### Added
+
+- 8 new data types (33 total): basal metabolic rate, VO2 max, skin temperature, basal body temperature, intermenstrual bleeding, ovulation test, cervical mucus, and sexual activity
+- Fastlane metadata and privacy policy for F-Droid/IzzyOnDroid distribution
+- OpenSSF Best Practices passing badge
+
+## [1.6.1] - 2026-08-26
+
+### Added
+
+- Build provenance attestation published with every release (verifiable via `gh attestation verify`)
+
+### Changed
+
+- Gradle wrapper checksum validation in CI and dependency updates (AGP 9.3.2, OkHttp 5.5.0, Gradle 9.7.1)
+
 ## [1.6.0] - 2026-08-26
 
 ### Added
