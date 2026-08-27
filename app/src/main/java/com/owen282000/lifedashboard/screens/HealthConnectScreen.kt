@@ -677,7 +677,7 @@ fun HealthConnectScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "MQTT / Home Assistant",
+                                "MQTT",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
