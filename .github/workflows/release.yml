@@ -79,6 +79,16 @@ jobs:
           name: release-apk
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 90
+      - name: Extract changelog section for this tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          # Body of the "## [X.Y.Z]" section in CHANGELOG.md; empty when the tag has no
+          # section, in which case the release falls back to generated notes only.
+          awk -v tag="$GITHUB_REF_NAME" '
+            $0 ~ "^## \\[" tag "\\]" { found=1; next }
+            /^## \[/ { found=0 }
+            found { print }
+          ' CHANGELOG.md | sed -e '/./,$!d' > RELEASE_NOTES.md
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
@@ -86,4 +96,5 @@ jobs:
           files: |
             app/build/outputs/apk/release/app-release.apk
             app-release.apk.sigstore.json
+          body_path: RELEASE_NOTES.md
           generate_release_notes: true
