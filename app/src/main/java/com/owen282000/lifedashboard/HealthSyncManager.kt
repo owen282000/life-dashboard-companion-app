@@ -40,7 +40,10 @@ class HealthSyncManager(private val context: Context) {
             }
 
             val json = Json { prettyPrint = true }
-            val payload = buildJsonPayload(healthData)
+            // Preview must show exactly what a sync would send, including daily totals.
+            val dailyTotals = if (preferencesManager.includeDailyTotals())
+                healthConnectManager.readDailyTotals(days = 2, enabledTypes = enabledTypes) else emptyList()
+            val payload = buildJsonPayload(healthData, dailyTotals = dailyTotals)
             val prettyPayload = json.encodeToString(
                 kotlinx.serialization.json.JsonElement.serializer(),
                 Json.parseToJsonElement(payload)
