@@ -219,6 +219,8 @@ fun HealthConnectScreen(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            DashboardCard()
+
             // Health Connect Status
             if (hasPermissions == false) {
                 Surface(
