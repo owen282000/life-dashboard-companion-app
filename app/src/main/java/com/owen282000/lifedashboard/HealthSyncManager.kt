@@ -146,6 +146,98 @@ class HealthSyncManager(private val context: Context) {
         }
     }
 
+    /**
+     * One-time export of [days] of history to the configured webhooks, oldest window first.
+     * Runs in 3-day windows to keep payloads bounded and reduce per-type cap truncation.
+     * Deliberately independent of the sync watermarks: it never advances them, and regular
+     * incremental syncs continue unaffected. Payloads carry "backfill": true plus the window
+     * bounds so receivers can distinguish them; records still carry uuids, so re-received
+     * overlaps deduplicate server-side. Stops at the first failed delivery so a rerun can
+     * resume; [onProgress] reports (completedWindows, totalWindows).
+     */
+    suspend fun performBackfill(
+        days: Int,
+        onProgress: (Int, Int) -> Unit = { _, _ -> }
+    ): Result<Int> = withContext(Dispatchers.IO) {
+        val webhookUrls = preferencesManager.getHealthWebhookUrls()
+        if (webhookUrls.isEmpty()) {
+            return@withContext Result.failure(Exception("No webhook URLs configured"))
+        }
+        val enabledTypes = preferencesManager.getHealthEnabledDataTypes()
+        if (enabledTypes.isEmpty()) {
+            return@withContext Result.failure(Exception("No data types enabled"))
+        }
+
+        val windowDays = 3L
+        val end = Instant.now()
+        val start = end.minus(java.time.Duration.ofDays(days.toLong()))
+        val totalWindows = ((days + windowDays - 1) / windowDays).toInt()
+        var totalRecordsSent = 0
+
+        var windowStart = start
+        var completed = 0
+        while (windowStart < end) {
+            val windowEnd = minOf(windowStart.plus(java.time.Duration.ofDays(windowDays)), end)
+
+            val readResult = healthConnectManager.readHealthData(
+                enabledTypes,
+                lastSyncTimestamps = emptyMap(),
+                windowStart = windowStart,
+                windowEnd = windowEnd
+            )
+            val healthData = readResult.getOrElse {
+                return@withContext Result.failure(it)
+            }
+
+            if (!isHealthDataEmpty(healthData)) {
+                val recordCount = countRecords(healthData)
+                val payload = buildJsonPayload(
+                    healthData,
+                    extraFields = mapOf(
+                        "backfill" to JsonPrimitive(true),
+                        "window_start" to JsonPrimitive(windowStart.toString()),
+                        "window_end" to JsonPrimitive(windowEnd.toString())
+                    )
+                )
+                val webhookManager = WebhookManager(
+                    webhookUrls = webhookUrls,
+                    context = context,
+                    dataType = "health_connect_backfill",
+                    recordCount = recordCount,
+                    logType = LogType.HEALTH_CONNECT,
+                    customHeaders = preferencesManager.getHealthWebhookHeaders(),
+                    signingSecret = preferencesManager.getHealthWebhookSecret()
+                )
+                val postResult = webhookManager.postData(payload)
+                if (postResult.isFailure) {
+                    return@withContext Result.failure(
+                        Exception("Delivery failed after $completed of $totalWindows windows; rerun to resume")
+                    )
+                }
+                totalRecordsSent += recordCount
+            }
+
+            completed++
+            onProgress(completed, totalWindows)
+            windowStart = windowEnd
+        }
+        Result.success(totalRecordsSent)
+    }
+
+    private fun countRecords(data: HealthData): Int {
+        return data.steps.size + data.sleep.size + data.heartRate.size + data.distance.size +
+                data.activeCalories.size + data.totalCalories.size + data.weight.size +
+                data.height.size + data.bloodPressure.size + data.bloodGlucose.size +
+                data.oxygenSaturation.size + data.bodyTemperature.size + data.respiratoryRate.size +
+                data.restingHeartRate.size + data.exercise.size + data.hydration.size +
+                data.nutrition.size + data.mindfulness.size + data.bodyFat.size +
+                data.leanBodyMass.size + data.boneMass.size + data.bodyWaterMass.size +
+                data.hrv.size + data.menstruationPeriod.size + data.menstruationFlow.size +
+                data.basalMetabolicRate.size + data.vo2Max.size + data.skinTemperature.size +
+                data.basalBodyTemperature.size + data.intermenstrualBleeding.size +
+                data.ovulationTest.size + data.cervicalMucus.size + data.sexualActivity.size
+    }
+
     private fun isHealthDataEmpty(data: HealthData): Boolean {
         return data.steps.isEmpty() && data.sleep.isEmpty() && data.heartRate.isEmpty() &&
                 data.distance.isEmpty() && data.activeCalories.isEmpty() && data.totalCalories.isEmpty() &&
@@ -271,11 +363,15 @@ class HealthSyncManager(private val context: Context) {
         }
     }
 
-    private fun buildJsonPayload(healthData: HealthData): String {
+    private fun buildJsonPayload(
+        healthData: HealthData,
+        extraFields: Map<String, JsonPrimitive> = emptyMap()
+    ): String {
         val json = buildJsonObject {
             put("timestamp", Instant.now().toString())
             put("app_version", getAppVersion())
             put("source", "health_connect")
+            extraFields.forEach { (key, value) -> put(key, value) }
 
             if (healthData.steps.isNotEmpty()) {
                 putJsonArray("steps") {

@@ -34,16 +34,23 @@ class HealthConnectManager(private val context: Context) {
     // by the next sync instead of being skipped forever.
     private val watermarks = mutableMapOf<HealthDataType, Instant>()
 
+    /**
+     * Reads all enabled types. The default window is the trailing [LOOKBACK_HOURS]; backfill
+     * passes an explicit historical window (with empty lastSyncTimestamps so nothing is
+     * filtered against watermarks).
+     */
     suspend fun readHealthData(
         enabledTypes: Set<HealthDataType>,
-        lastSyncTimestamps: Map<HealthDataType, Instant?>
+        lastSyncTimestamps: Map<HealthDataType, Instant?>,
+        windowStart: Instant? = null,
+        windowEnd: Instant? = null
     ): Result<HealthData> {
         return try {
             diagnostics.clear()
             watermarks.clear()
             val grantedPermissions = getGrantedPermissions()
-            val endTime = Instant.now()
-            val startTime = endTime.minus(LOOKBACK_HOURS, ChronoUnit.HOURS)
+            val endTime = windowEnd ?: Instant.now()
+            val startTime = windowStart ?: endTime.minus(LOOKBACK_HOURS, ChronoUnit.HOURS)
 
             val stepsData = if (HealthDataType.STEPS in enabledTypes)
                 try { readStepsData(startTime, endTime, lastSyncTimestamps[HealthDataType.STEPS]) } catch (e: Exception) { emptyList() } else emptyList()

@@ -83,6 +83,8 @@ fun HealthConnectScreen(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
     ) { }
     var isExporting by remember { mutableStateOf(false) }
+    var showBackfillDialog by remember { mutableStateOf(false) }
+    var backfillProgress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var showExportFormatDialog by remember { mutableStateOf(false) }
     var exportJsonData by remember { mutableStateOf<String?>(null) }
     var previewData by remember { mutableStateOf<String?>(null) }
@@ -1009,6 +1011,26 @@ fun HealthConnectScreen(
                     Text(if (isExporting) "Loading..." else "Export Data")
                 }
 
+                OutlinedButton(
+                    onClick = { if (backfillProgress == null) showBackfillDialog = true },
+                    enabled = backfillProgress == null && enabledDataTypes.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = HealthPrimary)
+                ) {
+                    if (backfillProgress != null) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = HealthPrimary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Icon(Icons.Outlined.History, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(backfillProgress?.let { (done, total) -> "Backfilling $done/$total..." } ?: "Backfill History")
+                }
+
                 AnimatedVisibility(visible = syncMessage != null) {
                     syncMessage?.let { message ->
                         Text(
@@ -1019,6 +1041,39 @@ fun HealthConnectScreen(
                         )
                     }
                 }
+            }
+
+            if (showBackfillDialog) {
+                AlertDialog(
+                    onDismissRequest = { showBackfillDialog = false },
+                    title = { Text("Backfill history") },
+                    text = {
+                        Text("Sends historical data for all enabled types to your webhooks in 3-day chunks, oldest first. Regular syncing is unaffected; overlapping records deduplicate on their uuid. This can take a while and use mobile data.")
+                    },
+                    confirmButton = {
+                        Row {
+                            listOf(30, 90, 365).forEach { days ->
+                                TextButton(onClick = {
+                                    showBackfillDialog = false
+                                    scope.launch {
+                                        backfillProgress = 0 to 1
+                                        val result = HealthSyncManager(context).performBackfill(days) { done, total ->
+                                            backfillProgress = done to total
+                                        }
+                                        backfillProgress = null
+                                        syncMessage = result.fold(
+                                            onSuccess = { "Backfill complete: $it records sent" },
+                                            onFailure = { "Failed: ${it.message}" }
+                                        )
+                                    }
+                                }) { Text("${days}d") }
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showBackfillDialog = false }) { Text("Cancel") }
+                    }
+                )
             }
 
             // Save Button

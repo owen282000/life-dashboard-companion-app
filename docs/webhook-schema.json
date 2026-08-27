@@ -1071,6 +1071,18 @@
         ],
         "additionalProperties": true
       }
+    },
+    "backfill": {
+      "type": "boolean",
+      "description": "Present and true on historical backfill payloads"
+    },
+    "window_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "window_end": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
