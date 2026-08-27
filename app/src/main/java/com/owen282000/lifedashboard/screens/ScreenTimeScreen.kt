@@ -536,6 +536,7 @@ fun ScreenTimeScreen() {
                                         when (val syncResult = result.getOrThrow()) {
                                             is ScreenTimeSyncResult.NoData -> "No new data"
                                             is ScreenTimeSyncResult.Success -> "Synced ${syncResult.appCount} apps"
+                                            is ScreenTimeSyncResult.Queued -> "Server unreachable - ${syncResult.appCount} apps queued for retry"
                                         }
                                     }
                                     else -> "Failed: ${result.exceptionOrNull()?.message}"

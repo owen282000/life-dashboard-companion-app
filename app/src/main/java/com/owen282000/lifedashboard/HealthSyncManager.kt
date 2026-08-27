@@ -53,6 +53,9 @@ class HealthSyncManager(private val context: Context) {
 
     suspend fun performSync(): Result<HealthSyncResult> = withContext(Dispatchers.IO) {
         try {
+            // Deliver any queued payloads from earlier failed syncs first, preserving order.
+            PendingDrainer.drain(context)
+
             val webhookUrls = preferencesManager.getHealthWebhookUrls()
 
             if (webhookUrls.isEmpty()) {
@@ -119,13 +122,23 @@ class HealthSyncManager(private val context: Context) {
             val postResult = webhookManager.postData(jsonPayload)
             SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
             SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalRecords else 0)
-            if (postResult.isFailure) {
-                return@withContext Result.failure(postResult.exceptionOrNull() ?: Exception("Failed to post to webhooks"))
-            }
 
-            // Update last sync timestamps
+            // Watermarks advance regardless of delivery outcome: a failed payload goes to the
+            // outbox and is guaranteed to be delivered by a later drain, so re-reading (and
+            // potentially double-sending) the same records is unnecessary.
             val syncCounts = mutableMapOf<HealthDataType, Int>()
             updateSyncTimestamps(healthData, syncCounts)
+
+            if (postResult.isFailure) {
+                PendingSyncStore.forContext(context).enqueue(
+                    payload = jsonPayload,
+                    dataType = "health_connect",
+                    logType = LogType.HEALTH_CONNECT.name,
+                    recordCount = totalRecords,
+                    nowMillis = System.currentTimeMillis()
+                )
+                return@withContext Result.success(HealthSyncResult.Queued(totalRecords))
+            }
 
             Result.success(HealthSyncResult.Success(syncCounts))
         } catch (e: Exception) {

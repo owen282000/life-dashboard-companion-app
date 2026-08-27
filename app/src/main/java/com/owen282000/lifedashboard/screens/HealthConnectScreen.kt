@@ -850,6 +850,7 @@ fun HealthConnectScreen(
                                         when (val syncResult = result.getOrThrow()) {
                                             is HealthSyncResult.NoData -> "No new data"
                                             is HealthSyncResult.Success -> "Synced ${syncResult.syncCounts.values.sum()} records"
+                                            is HealthSyncResult.Queued -> "Server unreachable - ${syncResult.recordCount} records queued for retry"
                                         }
                                     }
                                     else -> "Failed: ${result.exceptionOrNull()?.message}"

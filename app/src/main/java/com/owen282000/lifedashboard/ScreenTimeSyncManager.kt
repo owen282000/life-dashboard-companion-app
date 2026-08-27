@@ -45,6 +45,9 @@ class ScreenTimeSyncManager(private val context: Context) {
 
     suspend fun performSync(): Result<ScreenTimeSyncResult> = withContext(Dispatchers.IO) {
         try {
+            // Deliver any queued payloads from earlier failed syncs first, preserving order.
+            PendingDrainer.drain(context)
+
             val webhookUrls = preferencesManager.getScreenTimeWebhookUrls()
 
             if (webhookUrls.isEmpty()) {
@@ -91,14 +94,20 @@ class ScreenTimeSyncManager(private val context: Context) {
             val postResult = webhookManager.postData(jsonPayload)
             SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, postResult.isSuccess)
             SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalApps else 0)
-            if (postResult.isFailure) {
-                return@withContext Result.failure(
-                    postResult.exceptionOrNull() ?: Exception("Failed to post to webhooks")
-                )
-            }
-
-            // Update last sync timestamp
+            // Watermark advances regardless of delivery outcome: a failed payload goes to the
+            // outbox and is guaranteed to be delivered by a later drain.
             preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis())
+
+            if (postResult.isFailure) {
+                PendingSyncStore.forContext(context).enqueue(
+                    payload = jsonPayload,
+                    dataType = "screen_time",
+                    logType = LogType.SCREEN_TIME.name,
+                    recordCount = totalApps,
+                    nowMillis = System.currentTimeMillis()
+                )
+                return@withContext Result.success(ScreenTimeSyncResult.Queued(totalApps))
+            }
 
             Result.success(ScreenTimeSyncResult.Success(totalApps, screenTimeDataList.size))
         } catch (e: Exception) {
