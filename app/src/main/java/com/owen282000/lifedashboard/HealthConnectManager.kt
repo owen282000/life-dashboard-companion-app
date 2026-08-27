@@ -295,6 +295,47 @@ class HealthConnectManager(private val context: Context) {
         )
     }
 
+    /**
+     * Deduplicated per-day totals for the last [days] full days plus today, computed with the
+     * aggregate API: Health Connect merges overlapping records from multiple sources (phone
+     * plus watch), so these totals never double count the way raw record sums can. Only
+     * metrics whose type is enabled are requested, to stay within granted permissions.
+     */
+    suspend fun readDailyTotals(days: Int, enabledTypes: Set<HealthDataType>): List<DailyTotals> {
+        val metrics = buildSet {
+            if (HealthDataType.STEPS in enabledTypes) add(StepsRecord.COUNT_TOTAL)
+            if (HealthDataType.DISTANCE in enabledTypes) add(DistanceRecord.DISTANCE_TOTAL)
+            if (HealthDataType.ACTIVE_CALORIES in enabledTypes) add(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)
+            if (HealthDataType.TOTAL_CALORIES in enabledTypes) add(TotalCaloriesBurnedRecord.ENERGY_TOTAL)
+        }
+        if (metrics.isEmpty()) return emptyList()
+
+        return try {
+            val today = java.time.LocalDate.now()
+            val response = healthConnectClient.aggregateGroupByPeriod(
+                androidx.health.connect.client.request.AggregateGroupByPeriodRequest(
+                    metrics = metrics,
+                    timeRangeFilter = TimeRangeFilter.between(
+                        today.minusDays(days.toLong()).atStartOfDay(),
+                        java.time.LocalDateTime.now()
+                    ),
+                    timeRangeSlicer = java.time.Period.ofDays(1)
+                )
+            )
+            response.map { bucket ->
+                DailyTotals(
+                    date = bucket.startTime.toLocalDate().toString(),
+                    steps = bucket.result[StepsRecord.COUNT_TOTAL],
+                    distanceMeters = bucket.result[DistanceRecord.DISTANCE_TOTAL]?.inMeters,
+                    activeCalories = bucket.result[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories,
+                    totalCalories = bucket.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories
+                )
+            }.filter { it.steps != null || it.distanceMeters != null || it.activeCalories != null || it.totalCalories != null }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     /** Most recent heart rate sample of the past day, used by the About screen easter egg. */
     suspend fun latestHeartRateBpm(): Long? = try {
         val now = Instant.now()

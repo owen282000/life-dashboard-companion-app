@@ -85,6 +85,7 @@ class PreferencesManager(context: Context) {
         private const val SECURE_PREFS_NAME = "life_dashboard_secure_prefs"
 
         // MQTT keys (username/password live in securePrefs)
+        private const val KEY_INCLUDE_DAILY_TOTALS = "include_daily_totals"
         private const val KEY_MQTT_ENABLED = "mqtt_enabled"
         private const val KEY_MQTT_HOST = "mqtt_host"
         private const val KEY_MQTT_PORT = "mqtt_port"
@@ -179,6 +180,13 @@ class PreferencesManager(context: Context) {
     fun setHealthWebhookHeaders(headers: Map<String, String>) {
         val headersJson = Json.encodeToString(headers)
         securePrefs.edit().putString(KEY_HEALTH_WEBHOOK_HEADERS, headersJson).apply()
+    }
+
+    /** Daily deduplicated totals in the payload (aggregate API merges phone + watch). */
+    fun includeDailyTotals(): Boolean = prefs.getBoolean(KEY_INCLUDE_DAILY_TOTALS, true)
+
+    fun setIncludeDailyTotals(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_INCLUDE_DAILY_TOTALS, enabled).apply()
     }
 
     fun getHealthWebhookSecret(): String? {

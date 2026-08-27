@@ -351,6 +351,18 @@ data class HrvData(
 )
 
 /**
+ * One day of deduplicated totals from Health Connect's aggregate API, which merges
+ * overlapping records from multiple sources (phone plus watch) instead of double counting.
+ */
+data class DailyTotals(
+    val date: String,
+    val steps: Long? = null,
+    val distanceMeters: Double? = null,
+    val activeCalories: Double? = null,
+    val totalCalories: Double? = null
+)
+
+/**
  * Max records delivered per sync for this type, to bound payload size and memory. The batch is
  * capped oldest-first (see [ResilientReadLogic.capOldestFirst]) so later syncs catch up without
  * skipping records.

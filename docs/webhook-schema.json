@@ -1083,6 +1083,35 @@
     "window_end": {
       "type": "string",
       "format": "date-time"
+    },
+    "daily_totals": {
+      "type": "array",
+      "description": "Optional per-day totals computed with Health Connect's aggregate API, which deduplicates overlapping sources (phone plus watch)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "steps": {
+            "type": "integer"
+          },
+          "distance_meters": {
+            "type": "number"
+          },
+          "active_calories": {
+            "type": "number"
+          },
+          "total_calories": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [

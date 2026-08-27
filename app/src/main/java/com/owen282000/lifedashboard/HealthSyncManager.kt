@@ -115,8 +115,10 @@ class HealthSyncManager(private val context: Context) {
                 signingSecret = preferencesManager.getHealthWebhookSecret()
             )
 
-            // Build JSON payload
-            val jsonPayload = buildJsonPayload(healthData)
+            // Build JSON payload, with deduplicated daily totals when enabled
+            val dailyTotals = if (preferencesManager.includeDailyTotals())
+                healthConnectManager.readDailyTotals(days = 2, enabledTypes = enabledTypes) else emptyList()
+            val jsonPayload = buildJsonPayload(healthData, dailyTotals = dailyTotals)
 
             // Post to webhook
             val postResult = webhookManager.postData(jsonPayload)
@@ -365,13 +367,26 @@ class HealthSyncManager(private val context: Context) {
 
     private fun buildJsonPayload(
         healthData: HealthData,
-        extraFields: Map<String, JsonPrimitive> = emptyMap()
+        extraFields: Map<String, JsonPrimitive> = emptyMap(),
+        dailyTotals: List<DailyTotals> = emptyList()
     ): String {
         val json = buildJsonObject {
             put("timestamp", Instant.now().toString())
             put("app_version", getAppVersion())
             put("source", "health_connect")
             extraFields.forEach { (key, value) -> put(key, value) }
+
+            if (dailyTotals.isNotEmpty()) {
+                putJsonArray("daily_totals") {
+                    dailyTotals.forEach { day -> add(buildJsonObject {
+                        put("date", day.date)
+                        day.steps?.let { put("steps", it) }
+                        day.distanceMeters?.let { put("distance_meters", it) }
+                        day.activeCalories?.let { put("active_calories", it) }
+                        day.totalCalories?.let { put("total_calories", it) }
+                    }) }
+                }
+            }
 
             if (healthData.steps.isNotEmpty()) {
                 putJsonArray("steps") {

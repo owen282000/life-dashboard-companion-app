@@ -78,6 +78,7 @@ fun HealthConnectScreen(
     var isPreviewing by remember { mutableStateOf(false) }
     var isPinging by remember { mutableStateOf(false) }
     var failureNotificationsEnabled by remember { mutableStateOf(SyncFailureNotifier.isEnabled(context)) }
+    var includeDailyTotals by remember { mutableStateOf(preferencesManager.includeDailyTotals()) }
     var failureThreshold by remember { mutableStateOf(SyncFailureNotifier.getThreshold(context)) }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
@@ -613,6 +614,28 @@ fun HealthConnectScreen(
                 title = "Notifications",
                 subtitle = "Alert when syncs keep failing"
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Daily totals in payload", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "Deduplicated per-day totals (steps, distance, calories) via the aggregate API; merges phone and watch data",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = includeDailyTotals,
+                        onCheckedChange = {
+                            includeDailyTotals = it
+                            preferencesManager.setIncludeDailyTotals(it)
+                        }
+                    )
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
