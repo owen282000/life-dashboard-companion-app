@@ -28,12 +28,19 @@ class HealthConnectManager(private val context: Context) {
     // count + min/max), then enriched with permission + lastSync info before being returned.
     private val diagnostics = mutableMapOf<HealthDataType, TypeDiagnostics>()
 
+    // Per-run sync watermarks: the max metadata.lastModifiedTime of each type's DELIVERED
+    // batch. Stored by HealthSyncManager after the payload is read, so late backfills (whose
+    // modification time is recent even when their record timestamps are old) are picked up
+    // by the next sync instead of being skipped forever.
+    private val watermarks = mutableMapOf<HealthDataType, Instant>()
+
     suspend fun readHealthData(
         enabledTypes: Set<HealthDataType>,
         lastSyncTimestamps: Map<HealthDataType, Instant?>
     ): Result<HealthData> {
         return try {
             diagnostics.clear()
+            watermarks.clear()
             val grantedPermissions = getGrantedPermissions()
             val endTime = Instant.now()
             val startTime = endTime.minus(LOOKBACK_HOURS, ChronoUnit.HOURS)
@@ -160,7 +167,8 @@ class HealthConnectManager(private val context: Context) {
                 ovulationTest = ovulationTestData,
                 cervicalMucus = cervicalMucusData,
                 sexualActivity = sexualActivityData,
-                diagnostics = diagnostics.toMap()
+                diagnostics = diagnostics.toMap(),
+                watermarks = watermarks.toMap()
             ))
         } catch (e: Exception) {
             Result.failure(e)
@@ -214,13 +222,16 @@ class HealthConnectManager(private val context: Context) {
     }
 
     /**
-     * Reads all pages for a record type, filters out records at/before lastSync (using `>` so the
-     * exact boundary record is not re-sent), records per-type diagnostics (page/raw/filtered counts
-     * and the min/max timestamp of the filtered set), and returns the filtered records ready to map.
-     * Any read error is captured into diagnostics and rethrown so the caller's catch keeps the
-     * existing "empty list on failure" behavior.
+     * Reads all pages for a record type and filters against the per-type watermark using
+     * metadata.lastModifiedTime rather than the record's own timestamp. Source apps like Zepp
+     * and Garmin upload watch data with the ORIGINAL timestamps hours later; a time-based
+     * watermark would skip those backfilled records forever, while their modification time is
+     * recent and picks them up on the next sync. Edited records re-sync the same way (servers
+     * can deduplicate on the record uuid). The advanced watermark per type is collected in
+     * [watermarks] as the max modification time of the DELIVERED batch, so records dropped by
+     * the oldest-first cap stay above the watermark and catch up in later syncs.
      *
-     * [timeOf] selects the record timestamp to compare against lastSync and to compute min/max from.
+     * [timeOf] selects the record timestamp used for the diagnostics min/max display.
      */
     private suspend fun <T : Record> readFiltered(
         type: HealthDataType,
@@ -232,8 +243,13 @@ class HealthConnectManager(private val context: Context) {
     ): List<T> {
         try {
             val paged = readAllRecordsResilient(recordType, startTime, endTime)
-            val filtered = paged.records.filter { lastSync == null || timeOf(it) > lastSync }
-            val limited = ResilientReadLogic.capOldestFirst(filtered, type.maxRecordsPerSync, timeOf)
+            val filtered = paged.records.filter {
+                lastSync == null || it.metadata.lastModifiedTime > lastSync
+            }
+            val limited = ResilientReadLogic.capOldestFirst(filtered, type.maxRecordsPerSync) {
+                it.metadata.lastModifiedTime
+            }
+            limited.maxOfOrNull { it.metadata.lastModifiedTime }?.let { watermarks[type] = it }
             val times = limited.map(timeOf)
             recordDiag(
                 type = type,
@@ -335,17 +351,24 @@ class HealthConnectManager(private val context: Context) {
         try {
             val paged = readAllRecordsResilient(HeartRateRecord::class, startTime, endTime)
             val rawSamples = paged.records.sumOf { it.samples.size }
-            // Samples are paired with their parent record's data origin so each delivered
-            // sample can carry its source app.
-            val filtered = paged.records.flatMap { record ->
-                record.samples.filter { lastSync == null || it.time > lastSync }
-                    .map { sample -> sample to record }
+            // Sample-carrying records are filtered and capped at RECORD granularity on their
+            // modification time: a record is either fully delivered or fully deferred, so the
+            // watermark (max delivered modification time) never splits a record.
+            val newRecords = paged.records
+                .filter { lastSync == null || it.metadata.lastModifiedTime > lastSync }
+                .sortedBy { it.metadata.lastModifiedTime }
+            val includedRecords = mutableListOf<HeartRateRecord>()
+            var sampleCount = 0
+            for (record in newRecords) {
+                if (sampleCount >= HealthDataType.HEART_RATE.maxRecordsPerSync) break
+                includedRecords += record
+                sampleCount += record.samples.size
             }
-            // Heart-rate records can contain many samples. Keep the oldest pending samples so
-            // lastSync advances in bounded batches without making newer samples unreachable.
-            val limited = ResilientReadLogic.capOldestFirst(
-                filtered, HealthDataType.HEART_RATE.maxRecordsPerSync
-            ) { it.first.time }
+            includedRecords.maxOfOrNull { it.metadata.lastModifiedTime }
+                ?.let { watermarks[HealthDataType.HEART_RATE] = it }
+            val limited = includedRecords.flatMap { record ->
+                record.samples.map { sample -> sample to record }
+            }
             val times = limited.map { it.first.time }
             recordDiag(
                 type = HealthDataType.HEART_RATE,
@@ -544,20 +567,28 @@ class HealthConnectManager(private val context: Context) {
 
     /**
      * Skin temperature records hold many delta samples (e.g. one per few minutes overnight), so
-     * like heart rate this filters and caps at the sample level; samples inherit the parent
-     * record's baseline and data origin.
+     * like heart rate this filters and caps at RECORD granularity on modification time; samples
+     * inherit the parent record's baseline and data origin.
      */
     private suspend fun readSkinTemperatureData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<SkinTemperatureData> {
         try {
             val paged = readAllRecordsResilient(SkinTemperatureRecord::class, startTime, endTime)
             val rawSamples = paged.records.sumOf { it.deltas.size }
-            val filtered = paged.records.flatMap { record ->
-                record.deltas.filter { lastSync == null || it.time > lastSync }
-                    .map { SkinSample(it, record.baseline, record.metadata.dataOrigin.packageName, "${record.metadata.id}#${it.time.toEpochMilli()}") }
+            val newRecords = paged.records
+                .filter { lastSync == null || it.metadata.lastModifiedTime > lastSync }
+                .sortedBy { it.metadata.lastModifiedTime }
+            val includedRecords = mutableListOf<SkinTemperatureRecord>()
+            var sampleCount = 0
+            for (record in newRecords) {
+                if (sampleCount >= HealthDataType.SKIN_TEMPERATURE.maxRecordsPerSync) break
+                includedRecords += record
+                sampleCount += record.deltas.size
             }
-            val limited = ResilientReadLogic.capOldestFirst(
-                filtered, HealthDataType.SKIN_TEMPERATURE.maxRecordsPerSync
-            ) { it.delta.time }
+            includedRecords.maxOfOrNull { it.metadata.lastModifiedTime }
+                ?.let { watermarks[HealthDataType.SKIN_TEMPERATURE] = it }
+            val limited = includedRecords.flatMap { record ->
+                record.deltas.map { SkinSample(it, record.baseline, record.metadata.dataOrigin.packageName, "${record.metadata.id}#${it.time.toEpochMilli()}") }
+            }
             val times = limited.map { it.delta.time }
             recordDiag(
                 type = HealthDataType.SKIN_TEMPERATURE,

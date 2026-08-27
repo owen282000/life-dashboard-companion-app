@@ -163,136 +163,110 @@ class HealthSyncManager(private val context: Context) {
     }
 
     private fun updateSyncTimestamps(data: HealthData, syncCounts: MutableMap<HealthDataType, Int>) {
+        // Watermarks are the max metadata.lastModifiedTime of each delivered batch, so late
+        // backfills and edits (old record timestamps, recent modification) are caught by the
+        // next sync instead of being skipped forever.
+        data.watermarks.forEach { (type, watermark) ->
+            preferencesManager.setHealthLastSyncTimestamp(type, watermark.toEpochMilli())
+        }
+
         if (data.steps.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.STEPS, data.steps.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.STEPS] = data.steps.size
         }
         if (data.sleep.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.SLEEP, data.sleep.maxOf { it.sessionEndTime }.toEpochMilli())
             syncCounts[HealthDataType.SLEEP] = data.sleep.size
         }
         if (data.heartRate.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.HEART_RATE, data.heartRate.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.HEART_RATE] = data.heartRate.size
         }
         if (data.distance.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.DISTANCE, data.distance.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.DISTANCE] = data.distance.size
         }
         if (data.activeCalories.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.ACTIVE_CALORIES, data.activeCalories.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.ACTIVE_CALORIES] = data.activeCalories.size
         }
         if (data.totalCalories.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.TOTAL_CALORIES, data.totalCalories.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.TOTAL_CALORIES] = data.totalCalories.size
         }
         if (data.weight.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.WEIGHT, data.weight.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.WEIGHT] = data.weight.size
         }
         if (data.height.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.HEIGHT, data.height.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.HEIGHT] = data.height.size
         }
         if (data.bloodPressure.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BLOOD_PRESSURE, data.bloodPressure.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.BLOOD_PRESSURE] = data.bloodPressure.size
         }
         if (data.bloodGlucose.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BLOOD_GLUCOSE, data.bloodGlucose.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.BLOOD_GLUCOSE] = data.bloodGlucose.size
         }
         if (data.oxygenSaturation.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.OXYGEN_SATURATION, data.oxygenSaturation.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.OXYGEN_SATURATION] = data.oxygenSaturation.size
         }
         if (data.bodyTemperature.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BODY_TEMPERATURE, data.bodyTemperature.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.BODY_TEMPERATURE] = data.bodyTemperature.size
         }
         if (data.respiratoryRate.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.RESPIRATORY_RATE, data.respiratoryRate.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.RESPIRATORY_RATE] = data.respiratoryRate.size
         }
         if (data.restingHeartRate.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.RESTING_HEART_RATE, data.restingHeartRate.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.RESTING_HEART_RATE] = data.restingHeartRate.size
         }
         if (data.exercise.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.EXERCISE, data.exercise.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.EXERCISE] = data.exercise.size
         }
         if (data.hydration.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.HYDRATION, data.hydration.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.HYDRATION] = data.hydration.size
         }
         if (data.nutrition.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.NUTRITION, data.nutrition.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.NUTRITION] = data.nutrition.size
         }
         if (data.mindfulness.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.MINDFULNESS, data.mindfulness.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.MINDFULNESS] = data.mindfulness.size
         }
         if (data.bodyFat.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BODY_FAT, data.bodyFat.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.BODY_FAT] = data.bodyFat.size
         }
         if (data.leanBodyMass.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.LEAN_BODY_MASS, data.leanBodyMass.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.LEAN_BODY_MASS] = data.leanBodyMass.size
         }
         if (data.boneMass.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BONE_MASS, data.boneMass.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.BONE_MASS] = data.boneMass.size
         }
         if (data.bodyWaterMass.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BODY_WATER_MASS, data.bodyWaterMass.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.BODY_WATER_MASS] = data.bodyWaterMass.size
         }
         if (data.hrv.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.HEART_RATE_VARIABILITY, data.hrv.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.HEART_RATE_VARIABILITY] = data.hrv.size
         }
         if (data.menstruationPeriod.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.MENSTRUATION_PERIOD, data.menstruationPeriod.maxOf { it.endTime }.toEpochMilli())
             syncCounts[HealthDataType.MENSTRUATION_PERIOD] = data.menstruationPeriod.size
         }
         if (data.menstruationFlow.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.MENSTRUATION_FLOW, data.menstruationFlow.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.MENSTRUATION_FLOW] = data.menstruationFlow.size
         }
         if (data.basalMetabolicRate.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BASAL_METABOLIC_RATE, data.basalMetabolicRate.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.BASAL_METABOLIC_RATE] = data.basalMetabolicRate.size
         }
         if (data.vo2Max.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.VO2_MAX, data.vo2Max.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.VO2_MAX] = data.vo2Max.size
         }
         if (data.skinTemperature.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.SKIN_TEMPERATURE, data.skinTemperature.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.SKIN_TEMPERATURE] = data.skinTemperature.size
         }
         if (data.basalBodyTemperature.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BASAL_BODY_TEMPERATURE, data.basalBodyTemperature.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.BASAL_BODY_TEMPERATURE] = data.basalBodyTemperature.size
         }
         if (data.intermenstrualBleeding.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.INTERMENSTRUAL_BLEEDING, data.intermenstrualBleeding.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.INTERMENSTRUAL_BLEEDING] = data.intermenstrualBleeding.size
         }
         if (data.ovulationTest.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.OVULATION_TEST, data.ovulationTest.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.OVULATION_TEST] = data.ovulationTest.size
         }
         if (data.cervicalMucus.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.CERVICAL_MUCUS, data.cervicalMucus.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.CERVICAL_MUCUS] = data.cervicalMucus.size
         }
         if (data.sexualActivity.isNotEmpty()) {
-            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.SEXUAL_ACTIVITY, data.sexualActivity.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.SEXUAL_ACTIVITY] = data.sexualActivity.size
         }
     }

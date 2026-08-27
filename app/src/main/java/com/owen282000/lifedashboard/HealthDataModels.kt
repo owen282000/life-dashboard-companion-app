@@ -75,7 +75,9 @@ data class HealthData(
     val ovulationTest: List<OvulationTestData>,
     val cervicalMucus: List<CervicalMucusData>,
     val sexualActivity: List<SexualActivityData>,
-    val diagnostics: Map<HealthDataType, TypeDiagnostics> = emptyMap()
+    val diagnostics: Map<HealthDataType, TypeDiagnostics> = emptyMap(),
+    /** Max metadata.lastModifiedTime per type of the delivered batch; the sync watermark. */
+    val watermarks: Map<HealthDataType, Instant> = emptyMap()
 )
 
 data class BasalMetabolicRateData(
