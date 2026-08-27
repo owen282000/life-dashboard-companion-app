@@ -1,0 +1,1 @@
+Sync Health Connect and Screen Time data to your own webhooks. No cloud.

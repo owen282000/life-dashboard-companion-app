@@ -24,22 +24,22 @@ Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/
 - **Own Your Data** - Send health data to your own server, not third-party clouds
 - **Flexible Webhooks** - Works with any backend that accepts JSON POST requests
 - **Combined App** - Health Connect + Screen Time in one app
-- **25 Health Data Types** - Supports all major Health Connect data types
+- **33 Health Data Types** - Supports all major Health Connect data types
 - **Modern UI** - Built with Jetpack Compose and Material 3
 
 ## Features
 
 ### Health Connect Integration
 - Syncs data from Google Health Connect to your webhook
-- **25 supported data types:**
+- **33 supported data types:**
   - Activity: Steps, Distance, Active Calories, Total Calories, Exercise Sessions
-  - Body: Weight, Height, Body Temperature
+  - Body: Weight, Height, Body Temperature, Skin Temperature, Basal Body Temperature
   - Body Composition: Body Fat %, Lean Body Mass, Bone Mass, Body Water Mass
-  - Vitals: Heart Rate, Resting Heart Rate, Heart Rate Variability (HRV), Blood Pressure, Blood Glucose, Oxygen Saturation, Respiratory Rate
+  - Vitals: Heart Rate, Resting Heart Rate, Heart Rate Variability (HRV), Blood Pressure, Blood Glucose, Oxygen Saturation, Respiratory Rate, Basal Metabolic Rate, VO2 Max
   - Sleep: Sleep sessions with stages
   - Nutrition: Hydration, Nutrition records
   - Mindfulness: Meditation sessions (from apps like Waking Up, Headspace)
-  - Cycle Tracking: Menstruation Period, Menstruation Flow (logged data from cycle apps that write to Health Connect, such as Clue and Flo; note that Samsung Health does not share cycle data with Health Connect, and predictions stay in the source app)
+  - Cycle Tracking: Menstruation Period, Menstruation Flow, Intermenstrual Bleeding, Ovulation Test, Cervical Mucus, Sexual Activity, Basal Body Temperature (logged data from cycle apps that write to Health Connect, such as Clue and Flo; note that Samsung Health does not share cycle data with Health Connect, and predictions stay in the source app)
 - Per-data-type toggle and permission management
 - Configurable sync interval (minimum 15 minutes)
 
@@ -146,7 +146,15 @@ Every Health Connect payload has these top-level fields:
   "body_water_mass": [],
   "heart_rate_variability": [],
   "menstruation_period": [],
-  "menstruation_flow": []
+  "menstruation_flow": [],
+  "basal_metabolic_rate": [],
+  "vo2_max": [],
+  "skin_temperature": [],
+  "basal_body_temperature": [],
+  "intermenstrual_bleeding": [],
+  "ovulation_test": [],
+  "cervical_mucus": [],
+  "sexual_activity": []
 }
 ```
 
@@ -311,6 +319,50 @@ The `title` field is optional and may be `null`.
 ```
 
 The `flow` field is one of `light`, `medium`, `heavy`, or `unknown`.
+
+**Intermenstrual Bleeding**
+```json
+{ "time": "2025-02-10T00:00:00Z", "source": "com.example.cycleapp" }
+```
+
+**Ovulation Test**
+```json
+{ "result": "positive", "time": "2025-02-12T08:00:00Z" }
+```
+The `result` field is one of `positive`, `high`, `negative`, `inconclusive`, or `unknown`.
+
+**Cervical Mucus**
+```json
+{ "appearance": "egg_white", "sensation": "medium", "time": "2025-02-12T08:00:00Z" }
+```
+
+**Sexual Activity**
+```json
+{ "protection_used": "protected", "time": "2025-02-11T00:00:00Z" }
+```
+
+**Basal Body Temperature**
+```json
+{ "celsius": 36.4, "time": "2025-02-12T06:30:00Z" }
+```
+
+#### Metabolic and Fitness
+
+**Basal Metabolic Rate**
+```json
+{ "kilocalories_per_day": 1650.0, "time": "2025-02-05T00:00:00Z" }
+```
+
+**VO2 Max**
+```json
+{ "vo2_ml_per_min_per_kg": 42.5, "time": "2025-02-05T09:00:00Z" }
+```
+
+**Skin Temperature**
+```json
+{ "delta_celsius": -0.3, "baseline_celsius": 33.5, "time": "2025-02-05T03:00:00Z" }
+```
+Skin temperature is reported as deltas from a per-record baseline, matching how wearables write it to Health Connect; `baseline_celsius` is omitted when the source app provides none.
 
 ### Screen Time
 ```json

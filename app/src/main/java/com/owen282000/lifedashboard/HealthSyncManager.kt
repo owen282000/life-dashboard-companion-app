@@ -91,7 +91,11 @@ class HealthSyncManager(private val context: Context) {
                     healthData.hydration.size + healthData.nutrition.size + healthData.mindfulness.size +
                     healthData.bodyFat.size + healthData.leanBodyMass.size + healthData.boneMass.size +
                     healthData.bodyWaterMass.size + healthData.hrv.size +
-                    healthData.menstruationPeriod.size + healthData.menstruationFlow.size
+                    healthData.menstruationPeriod.size + healthData.menstruationFlow.size +
+                    healthData.basalMetabolicRate.size + healthData.vo2Max.size +
+                    healthData.skinTemperature.size + healthData.basalBodyTemperature.size +
+                    healthData.intermenstrualBleeding.size + healthData.ovulationTest.size +
+                    healthData.cervicalMucus.size + healthData.sexualActivity.size
 
             val webhookManager = WebhookManager(
                 webhookUrls = webhookUrls,
@@ -133,7 +137,11 @@ class HealthSyncManager(private val context: Context) {
                 data.hydration.isEmpty() && data.nutrition.isEmpty() && data.mindfulness.isEmpty() &&
                 data.bodyFat.isEmpty() && data.leanBodyMass.isEmpty() && data.boneMass.isEmpty() &&
                 data.bodyWaterMass.isEmpty() && data.hrv.isEmpty() &&
-                data.menstruationPeriod.isEmpty() && data.menstruationFlow.isEmpty()
+                data.menstruationPeriod.isEmpty() && data.menstruationFlow.isEmpty() &&
+                data.basalMetabolicRate.isEmpty() && data.vo2Max.isEmpty() &&
+                data.skinTemperature.isEmpty() && data.basalBodyTemperature.isEmpty() &&
+                data.intermenstrualBleeding.isEmpty() && data.ovulationTest.isEmpty() &&
+                data.cervicalMucus.isEmpty() && data.sexualActivity.isEmpty()
     }
 
     private fun updateSyncTimestamps(data: HealthData, syncCounts: MutableMap<HealthDataType, Int>) {
@@ -236,6 +244,38 @@ class HealthSyncManager(private val context: Context) {
         if (data.menstruationFlow.isNotEmpty()) {
             preferencesManager.setHealthLastSyncTimestamp(HealthDataType.MENSTRUATION_FLOW, data.menstruationFlow.maxOf { it.time }.toEpochMilli())
             syncCounts[HealthDataType.MENSTRUATION_FLOW] = data.menstruationFlow.size
+        }
+        if (data.basalMetabolicRate.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BASAL_METABOLIC_RATE, data.basalMetabolicRate.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.BASAL_METABOLIC_RATE] = data.basalMetabolicRate.size
+        }
+        if (data.vo2Max.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.VO2_MAX, data.vo2Max.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.VO2_MAX] = data.vo2Max.size
+        }
+        if (data.skinTemperature.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.SKIN_TEMPERATURE, data.skinTemperature.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.SKIN_TEMPERATURE] = data.skinTemperature.size
+        }
+        if (data.basalBodyTemperature.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.BASAL_BODY_TEMPERATURE, data.basalBodyTemperature.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.BASAL_BODY_TEMPERATURE] = data.basalBodyTemperature.size
+        }
+        if (data.intermenstrualBleeding.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.INTERMENSTRUAL_BLEEDING, data.intermenstrualBleeding.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.INTERMENSTRUAL_BLEEDING] = data.intermenstrualBleeding.size
+        }
+        if (data.ovulationTest.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.OVULATION_TEST, data.ovulationTest.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.OVULATION_TEST] = data.ovulationTest.size
+        }
+        if (data.cervicalMucus.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.CERVICAL_MUCUS, data.cervicalMucus.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.CERVICAL_MUCUS] = data.cervicalMucus.size
+        }
+        if (data.sexualActivity.isNotEmpty()) {
+            preferencesManager.setHealthLastSyncTimestamp(HealthDataType.SEXUAL_ACTIVITY, data.sexualActivity.maxOf { it.time }.toEpochMilli())
+            syncCounts[HealthDataType.SEXUAL_ACTIVITY] = data.sexualActivity.size
         }
     }
 
@@ -541,6 +581,95 @@ class HealthSyncManager(private val context: Context) {
                 putJsonArray("menstruation_flow") {
                     healthData.menstruationFlow.forEach { add(buildJsonObject {
                         put("flow", it.flow)
+                        put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
+                        it.source?.let { s -> put("source", s) }
+                    }) }
+                }
+            }
+
+            if (healthData.basalMetabolicRate.isNotEmpty()) {
+                putJsonArray("basal_metabolic_rate") {
+                    healthData.basalMetabolicRate.forEach { add(buildJsonObject {
+                        put("kilocalories_per_day", it.kilocaloriesPerDay)
+                        put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
+                        it.source?.let { s -> put("source", s) }
+                    }) }
+                }
+            }
+
+            if (healthData.vo2Max.isNotEmpty()) {
+                putJsonArray("vo2_max") {
+                    healthData.vo2Max.forEach { add(buildJsonObject {
+                        put("vo2_ml_per_min_per_kg", it.vo2MillilitersPerMinuteKilogram)
+                        put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
+                        it.source?.let { s -> put("source", s) }
+                    }) }
+                }
+            }
+
+            if (healthData.skinTemperature.isNotEmpty()) {
+                putJsonArray("skin_temperature") {
+                    healthData.skinTemperature.forEach { add(buildJsonObject {
+                        put("delta_celsius", it.deltaCelsius)
+                        it.baselineCelsius?.let { b -> put("baseline_celsius", b) }
+                        put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
+                        it.source?.let { s -> put("source", s) }
+                    }) }
+                }
+            }
+
+            if (healthData.basalBodyTemperature.isNotEmpty()) {
+                putJsonArray("basal_body_temperature") {
+                    healthData.basalBodyTemperature.forEach { add(buildJsonObject {
+                        put("celsius", it.celsius)
+                        put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
+                        it.source?.let { s -> put("source", s) }
+                    }) }
+                }
+            }
+
+            if (healthData.intermenstrualBleeding.isNotEmpty()) {
+                putJsonArray("intermenstrual_bleeding") {
+                    healthData.intermenstrualBleeding.forEach { add(buildJsonObject {
+                        put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
+                        it.source?.let { s -> put("source", s) }
+                    }) }
+                }
+            }
+
+            if (healthData.ovulationTest.isNotEmpty()) {
+                putJsonArray("ovulation_test") {
+                    healthData.ovulationTest.forEach { add(buildJsonObject {
+                        put("result", it.result)
+                        put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
+                        it.source?.let { s -> put("source", s) }
+                    }) }
+                }
+            }
+
+            if (healthData.cervicalMucus.isNotEmpty()) {
+                putJsonArray("cervical_mucus") {
+                    healthData.cervicalMucus.forEach { add(buildJsonObject {
+                        put("appearance", it.appearance)
+                        put("sensation", it.sensation)
+                        put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u) }
+                        it.source?.let { s -> put("source", s) }
+                    }) }
+                }
+            }
+
+            if (healthData.sexualActivity.isNotEmpty()) {
+                putJsonArray("sexual_activity") {
+                    healthData.sexualActivity.forEach { add(buildJsonObject {
+                        put("protection_used", it.protectionUsed)
                         put("time", it.time.toString())
                         it.uuid?.let { u -> put("uuid", u) }
                         it.source?.let { s -> put("source", s) }

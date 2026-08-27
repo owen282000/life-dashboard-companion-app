@@ -30,7 +30,15 @@ enum class HealthDataType(val displayName: String, val recordClass: KClass<out R
     BODY_WATER_MASS("Body Water Mass", BodyWaterMassRecord::class),
     HEART_RATE_VARIABILITY("Heart Rate Variability", HeartRateVariabilityRmssdRecord::class),
     MENSTRUATION_PERIOD("Menstruation Period", MenstruationPeriodRecord::class),
-    MENSTRUATION_FLOW("Menstruation Flow", MenstruationFlowRecord::class)
+    MENSTRUATION_FLOW("Menstruation Flow", MenstruationFlowRecord::class),
+    BASAL_METABOLIC_RATE("Basal Metabolic Rate", BasalMetabolicRateRecord::class),
+    VO2_MAX("VO2 Max", Vo2MaxRecord::class),
+    SKIN_TEMPERATURE("Skin Temperature", SkinTemperatureRecord::class),
+    BASAL_BODY_TEMPERATURE("Basal Body Temperature", BasalBodyTemperatureRecord::class),
+    INTERMENSTRUAL_BLEEDING("Intermenstrual Bleeding", IntermenstrualBleedingRecord::class),
+    OVULATION_TEST("Ovulation Test", OvulationTestRecord::class),
+    CERVICAL_MUCUS("Cervical Mucus", CervicalMucusRecord::class),
+    SEXUAL_ACTIVITY("Sexual Activity", SexualActivityRecord::class)
 }
 
 data class HealthData(
@@ -59,7 +67,72 @@ data class HealthData(
     val hrv: List<HrvData>,
     val menstruationPeriod: List<MenstruationPeriodData>,
     val menstruationFlow: List<MenstruationFlowData>,
+    val basalMetabolicRate: List<BasalMetabolicRateData>,
+    val vo2Max: List<Vo2MaxData>,
+    val skinTemperature: List<SkinTemperatureData>,
+    val basalBodyTemperature: List<BasalBodyTemperatureData>,
+    val intermenstrualBleeding: List<IntermenstrualBleedingData>,
+    val ovulationTest: List<OvulationTestData>,
+    val cervicalMucus: List<CervicalMucusData>,
+    val sexualActivity: List<SexualActivityData>,
     val diagnostics: Map<HealthDataType, TypeDiagnostics> = emptyMap()
+)
+
+data class BasalMetabolicRateData(
+    val kilocaloriesPerDay: Double,
+    val time: Instant,
+    val source: String? = null,
+    val uuid: String? = null
+)
+
+data class Vo2MaxData(
+    val vo2MillilitersPerMinuteKilogram: Double,
+    val time: Instant,
+    val source: String? = null,
+    val uuid: String? = null
+)
+
+data class SkinTemperatureData(
+    val deltaCelsius: Double,
+    val baselineCelsius: Double?,
+    val time: Instant,
+    val source: String? = null,
+    val uuid: String? = null
+)
+
+data class BasalBodyTemperatureData(
+    val celsius: Double,
+    val time: Instant,
+    val source: String? = null,
+    val uuid: String? = null
+)
+
+data class IntermenstrualBleedingData(
+    val time: Instant,
+    val source: String? = null,
+    val uuid: String? = null
+)
+
+data class OvulationTestData(
+    val result: String,
+    val time: Instant,
+    val source: String? = null,
+    val uuid: String? = null
+)
+
+data class CervicalMucusData(
+    val appearance: String,
+    val sensation: String,
+    val time: Instant,
+    val source: String? = null,
+    val uuid: String? = null
+)
+
+data class SexualActivityData(
+    val protectionUsed: String,
+    val time: Instant,
+    val source: String? = null,
+    val uuid: String? = null
 )
 
 data class MenstruationPeriodData(
@@ -283,7 +356,8 @@ data class HrvData(
 val HealthDataType.maxRecordsPerSync: Int
     get() = when (this) {
         HealthDataType.HEART_RATE, HealthDataType.STEPS -> 1000
-        HealthDataType.HEART_RATE_VARIABILITY, HealthDataType.RESPIRATORY_RATE -> 500
+        HealthDataType.HEART_RATE_VARIABILITY, HealthDataType.RESPIRATORY_RATE,
+        HealthDataType.SKIN_TEMPERATURE -> 500
         else -> 200
     }
 

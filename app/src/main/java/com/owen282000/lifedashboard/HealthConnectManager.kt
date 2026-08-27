@@ -88,6 +88,22 @@ class HealthConnectManager(private val context: Context) {
                 try { readMenstruationPeriodData(startTime, endTime, lastSyncTimestamps[HealthDataType.MENSTRUATION_PERIOD]) } catch (e: Exception) { emptyList() } else emptyList()
             val menstruationFlowData = if (HealthDataType.MENSTRUATION_FLOW in enabledTypes)
                 try { readMenstruationFlowData(startTime, endTime, lastSyncTimestamps[HealthDataType.MENSTRUATION_FLOW]) } catch (e: Exception) { emptyList() } else emptyList()
+            val basalMetabolicRateData = if (HealthDataType.BASAL_METABOLIC_RATE in enabledTypes)
+                try { readBasalMetabolicRateData(startTime, endTime, lastSyncTimestamps[HealthDataType.BASAL_METABOLIC_RATE]) } catch (e: Exception) { emptyList() } else emptyList()
+            val vo2MaxData = if (HealthDataType.VO2_MAX in enabledTypes)
+                try { readVo2MaxData(startTime, endTime, lastSyncTimestamps[HealthDataType.VO2_MAX]) } catch (e: Exception) { emptyList() } else emptyList()
+            val skinTemperatureData = if (HealthDataType.SKIN_TEMPERATURE in enabledTypes)
+                try { readSkinTemperatureData(startTime, endTime, lastSyncTimestamps[HealthDataType.SKIN_TEMPERATURE]) } catch (e: Exception) { emptyList() } else emptyList()
+            val basalBodyTemperatureData = if (HealthDataType.BASAL_BODY_TEMPERATURE in enabledTypes)
+                try { readBasalBodyTemperatureData(startTime, endTime, lastSyncTimestamps[HealthDataType.BASAL_BODY_TEMPERATURE]) } catch (e: Exception) { emptyList() } else emptyList()
+            val intermenstrualBleedingData = if (HealthDataType.INTERMENSTRUAL_BLEEDING in enabledTypes)
+                try { readIntermenstrualBleedingData(startTime, endTime, lastSyncTimestamps[HealthDataType.INTERMENSTRUAL_BLEEDING]) } catch (e: Exception) { emptyList() } else emptyList()
+            val ovulationTestData = if (HealthDataType.OVULATION_TEST in enabledTypes)
+                try { readOvulationTestData(startTime, endTime, lastSyncTimestamps[HealthDataType.OVULATION_TEST]) } catch (e: Exception) { emptyList() } else emptyList()
+            val cervicalMucusData = if (HealthDataType.CERVICAL_MUCUS in enabledTypes)
+                try { readCervicalMucusData(startTime, endTime, lastSyncTimestamps[HealthDataType.CERVICAL_MUCUS]) } catch (e: Exception) { emptyList() } else emptyList()
+            val sexualActivityData = if (HealthDataType.SEXUAL_ACTIVITY in enabledTypes)
+                try { readSexualActivityData(startTime, endTime, lastSyncTimestamps[HealthDataType.SEXUAL_ACTIVITY]) } catch (e: Exception) { emptyList() } else emptyList()
 
             // Ensure every enabled type has a diagnostics entry (even if it read 0 records or
             // its permission is missing) and enrich each with permission + lastSync info.
@@ -136,6 +152,14 @@ class HealthConnectManager(private val context: Context) {
                 hrv = hrvData,
                 menstruationPeriod = menstruationPeriodData,
                 menstruationFlow = menstruationFlowData,
+                basalMetabolicRate = basalMetabolicRateData,
+                vo2Max = vo2MaxData,
+                skinTemperature = skinTemperatureData,
+                basalBodyTemperature = basalBodyTemperatureData,
+                intermenstrualBleeding = intermenstrualBleedingData,
+                ovulationTest = ovulationTestData,
+                cervicalMucus = cervicalMucusData,
+                sexualActivity = sexualActivityData,
                 diagnostics = diagnostics.toMap()
             ))
         } catch (e: Exception) {
@@ -505,6 +529,114 @@ class HealthConnectManager(private val context: Context) {
         MenstruationFlowRecord.FLOW_LIGHT -> "light"
         MenstruationFlowRecord.FLOW_MEDIUM -> "medium"
         MenstruationFlowRecord.FLOW_HEAVY -> "heavy"
+        else -> "unknown"
+    }
+
+    private suspend fun readBasalMetabolicRateData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BasalMetabolicRateData> {
+        return readFiltered(HealthDataType.BASAL_METABOLIC_RATE, BasalMetabolicRateRecord::class, startTime, endTime, lastSync) { it.time }
+            .map { BasalMetabolicRateData(it.basalMetabolicRate.inKilocaloriesPerDay, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
+    }
+
+    private suspend fun readVo2MaxData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<Vo2MaxData> {
+        return readFiltered(HealthDataType.VO2_MAX, Vo2MaxRecord::class, startTime, endTime, lastSync) { it.time }
+            .map { Vo2MaxData(it.vo2MillilitersPerMinuteKilogram, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
+    }
+
+    /**
+     * Skin temperature records hold many delta samples (e.g. one per few minutes overnight), so
+     * like heart rate this filters and caps at the sample level; samples inherit the parent
+     * record's baseline and data origin.
+     */
+    private suspend fun readSkinTemperatureData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<SkinTemperatureData> {
+        try {
+            val paged = readAllRecordsResilient(SkinTemperatureRecord::class, startTime, endTime)
+            val rawSamples = paged.records.sumOf { it.deltas.size }
+            val filtered = paged.records.flatMap { record ->
+                record.deltas.filter { lastSync == null || it.time > lastSync }
+                    .map { SkinSample(it, record.baseline, record.metadata.dataOrigin.packageName, "${record.metadata.id}#${it.time.toEpochMilli()}") }
+            }
+            val limited = ResilientReadLogic.capOldestFirst(
+                filtered, HealthDataType.SKIN_TEMPERATURE.maxRecordsPerSync
+            ) { it.delta.time }
+            val times = limited.map { it.delta.time }
+            recordDiag(
+                type = HealthDataType.SKIN_TEMPERATURE,
+                pageCount = paged.pageCount,
+                rawRecordCount = rawSamples,
+                filteredRecordCount = limited.size,
+                minTime = times.minOrNull(),
+                maxTime = times.maxOrNull(),
+                error = skippedWindowsNote(paged.skippedWindows)
+            )
+            return limited.map { s ->
+                SkinTemperatureData(s.delta.delta.inCelsius, s.baseline?.inCelsius, s.delta.time, s.source, s.uuid)
+            }
+        } catch (e: Exception) {
+            recordDiag(type = HealthDataType.SKIN_TEMPERATURE, error = e.message ?: e.javaClass.simpleName)
+            throw e
+        }
+    }
+
+    private suspend fun readBasalBodyTemperatureData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<BasalBodyTemperatureData> {
+        return readFiltered(HealthDataType.BASAL_BODY_TEMPERATURE, BasalBodyTemperatureRecord::class, startTime, endTime, lastSync) { it.time }
+            .map { BasalBodyTemperatureData(it.temperature.inCelsius, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
+    }
+
+    private suspend fun readIntermenstrualBleedingData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<IntermenstrualBleedingData> {
+        return readFiltered(HealthDataType.INTERMENSTRUAL_BLEEDING, IntermenstrualBleedingRecord::class, startTime, endTime, lastSync) { it.time }
+            .map { IntermenstrualBleedingData(it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
+    }
+
+    private suspend fun readOvulationTestData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<OvulationTestData> {
+        return readFiltered(HealthDataType.OVULATION_TEST, OvulationTestRecord::class, startTime, endTime, lastSync) { it.time }
+            .map { OvulationTestData(ovulationTestResultToString(it.result), it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
+    }
+
+    private suspend fun readCervicalMucusData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<CervicalMucusData> {
+        return readFiltered(HealthDataType.CERVICAL_MUCUS, CervicalMucusRecord::class, startTime, endTime, lastSync) { it.time }
+            .map { CervicalMucusData(cervicalMucusAppearanceToString(it.appearance), cervicalMucusSensationToString(it.sensation), it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
+    }
+
+    private suspend fun readSexualActivityData(startTime: Instant, endTime: Instant, lastSync: Instant?): List<SexualActivityData> {
+        return readFiltered(HealthDataType.SEXUAL_ACTIVITY, SexualActivityRecord::class, startTime, endTime, lastSync) { it.time }
+            .map { SexualActivityData(sexualActivityProtectionToString(it.protectionUsed), it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
+    }
+
+    private data class SkinSample(
+        val delta: SkinTemperatureRecord.Delta,
+        val baseline: androidx.health.connect.client.units.Temperature?,
+        val source: String,
+        val uuid: String
+    )
+
+    private fun ovulationTestResultToString(result: Int): String = when (result) {
+        OvulationTestRecord.RESULT_POSITIVE -> "positive"
+        OvulationTestRecord.RESULT_HIGH -> "high"
+        OvulationTestRecord.RESULT_NEGATIVE -> "negative"
+        OvulationTestRecord.RESULT_INCONCLUSIVE -> "inconclusive"
+        else -> "unknown"
+    }
+
+    private fun cervicalMucusAppearanceToString(appearance: Int): String = when (appearance) {
+        CervicalMucusRecord.APPEARANCE_DRY -> "dry"
+        CervicalMucusRecord.APPEARANCE_STICKY -> "sticky"
+        CervicalMucusRecord.APPEARANCE_CREAMY -> "creamy"
+        CervicalMucusRecord.APPEARANCE_WATERY -> "watery"
+        CervicalMucusRecord.APPEARANCE_EGG_WHITE -> "egg_white"
+        CervicalMucusRecord.APPEARANCE_UNUSUAL -> "unusual"
+        else -> "unknown"
+    }
+
+    private fun cervicalMucusSensationToString(sensation: Int): String = when (sensation) {
+        CervicalMucusRecord.SENSATION_LIGHT -> "light"
+        CervicalMucusRecord.SENSATION_MEDIUM -> "medium"
+        CervicalMucusRecord.SENSATION_HEAVY -> "heavy"
+        else -> "unknown"
+    }
+
+    private fun sexualActivityProtectionToString(protection: Int): String = when (protection) {
+        SexualActivityRecord.PROTECTION_USED_PROTECTED -> "protected"
+        SexualActivityRecord.PROTECTION_USED_UNPROTECTED -> "unprotected"
         else -> "unknown"
     }
 

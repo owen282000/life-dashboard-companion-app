@@ -1,0 +1,25 @@
+Life Dashboard Companion syncs your Health Connect and Screen Time data to your own server via webhooks. Built for self-hosted dashboards, Home Assistant setups, and quantified-self projects that refuse third-party clouds.
+
+Your data goes to YOUR endpoints and nowhere else. The app contains no analytics, no trackers, and no third-party SDKs.
+
+Health Connect:
+- 33 data types: steps, sleep with stages, heart rate, HRV, blood pressure, blood glucose, VO2 max, skin temperature, full cycle tracking, and more
+- Per-record source app and stable record id, so multi-source setups (phone plus watch) can deduplicate server-side
+- Incremental sync with per-type watermarks; resilient against malformed records from source apps
+
+Screen Time:
+- App usage statistics with a configurable day boundary (night-owl friendly)
+
+Webhooks:
+- Multiple URLs, custom headers, and optional HMAC-SHA256 payload signing so your server can verify the sender
+- Automatic retries with exponential backoff for transient failures
+- Detailed delivery logs with payload inspection in the app
+
+Automation:
+- Home screen widget and Quick Settings tile
+- Tasker/MacroDroid trigger via broadcast intent
+- Failure notifications with a configurable threshold
+
+Supply-chain transparency: releases are built by public CI, signed, and carry verifiable sigstore build provenance. The project holds an OpenSSF Best Practices badge.
+
+Requires the Google Health Connect app. An iOS companion app with a compatible payload is available for mixed households.
