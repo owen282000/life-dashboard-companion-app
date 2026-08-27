@@ -119,6 +119,8 @@ cd life-dashboard-companion-app
 
 ## Webhook Payload Format
 
+Want a ready-made backend? [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is a docker-compose with an HMAC-verifying receiver, Postgres, and a provisioned Grafana dashboard: from phone to Grafana in 10 minutes.
+
 A machine-readable [JSON Schema](docs/webhook-schema.json) of the complete payload is published in the repository; validate your receiver against it.
 
 ### Health Connect
