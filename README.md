@@ -5,6 +5,7 @@
 [![Security](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml)
 [![Release](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/owen282000/life-dashboard-companion-app/badge)](https://scorecard.dev/viewer/?uri=github.com/owen282000/life-dashboard-companion-app)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14258/badge)](https://www.bestpractices.dev/projects/14258)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://developer.android.com)
 
