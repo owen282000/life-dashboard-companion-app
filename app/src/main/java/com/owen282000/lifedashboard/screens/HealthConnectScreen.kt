@@ -53,11 +53,15 @@ fun HealthConnectScreen(
     var initialEnabledDataTypes by remember { mutableStateOf(preferencesManager.getHealthEnabledDataTypes()) }
     var initialWebhookHeaders by remember { mutableStateOf(preferencesManager.getHealthWebhookHeaders()) }
     var initialWebhookSecret by remember { mutableStateOf(preferencesManager.getHealthWebhookSecret() ?: "") }
+    var initialMqttSettings by remember { mutableStateOf(preferencesManager.getMqttSettings()) }
 
     var syncInterval by remember { mutableStateOf(initialSyncInterval.toString()) }
     var webhookUrls by remember { mutableStateOf(initialWebhookUrls) }
     var webhookHeaders by remember { mutableStateOf(initialWebhookHeaders) }
     var webhookSecret by remember { mutableStateOf(initialWebhookSecret) }
+    var mqttSettings by remember { mutableStateOf(initialMqttSettings) }
+    var mqttPortText by remember { mutableStateOf(initialMqttSettings.port.toString()) }
+    var isMqttExpanded by remember { mutableStateOf(false) }
     var newHeaderKey by remember { mutableStateOf("") }
     var newHeaderValue by remember { mutableStateOf("") }
     var isHeadersExpanded by remember { mutableStateOf(false) }
@@ -83,9 +87,9 @@ fun HealthConnectScreen(
     var exportJsonData by remember { mutableStateOf<String?>(null) }
     var previewData by remember { mutableStateOf<String?>(null) }
 
-    val hasChanges = remember(syncInterval, webhookUrls, enabledDataTypes, webhookHeaders, webhookSecret, initialSyncInterval, initialWebhookUrls, initialEnabledDataTypes, initialWebhookHeaders, initialWebhookSecret) {
+    val hasChanges = remember(syncInterval, webhookUrls, enabledDataTypes, webhookHeaders, webhookSecret, mqttSettings, mqttPortText, initialSyncInterval, initialWebhookUrls, initialEnabledDataTypes, initialWebhookHeaders, initialWebhookSecret, initialMqttSettings) {
         val currentInterval = syncInterval.toIntOrNull() ?: initialSyncInterval
-        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || enabledDataTypes != initialEnabledDataTypes || webhookHeaders != initialWebhookHeaders || webhookSecret != initialWebhookSecret
+        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || enabledDataTypes != initialEnabledDataTypes || webhookHeaders != initialWebhookHeaders || webhookSecret != initialWebhookSecret || mqttSettings.copy(port = mqttPortText.toIntOrNull() ?: mqttSettings.port) != initialMqttSettings
     }
 
     val scrollState = rememberScrollState()
@@ -651,6 +655,156 @@ fun HealthConnectScreen(
                 }
             }
 
+            // MQTT / Home Assistant Discovery - collapsible
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 1.dp
+            ) {
+                val mqttChevronRotation by animateFloatAsState(
+                    targetValue = if (isMqttExpanded) 180f else 0f,
+                    label = "mqttChevron"
+                )
+
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isMqttExpanded = !isMqttExpanded },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "MQTT / Home Assistant",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                if (mqttSettings.enabled) "Enabled: ${mqttSettings.host.ifBlank { "no broker set" }}" else "Disabled",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (mqttSettings.enabled) HealthPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.ExpandMore,
+                            contentDescription = if (isMqttExpanded) "Collapse" else "Expand",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .rotate(mqttChevronRotation),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    AnimatedVisibility(
+                        visible = isMqttExpanded,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(top = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                "Publishes the latest value of each synced data type to your MQTT broker with Home Assistant Discovery: sensors appear in Home Assistant automatically, no server-side setup needed.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Enable MQTT publishing", style = MaterialTheme.typography.bodyMedium)
+                                Switch(
+                                    checked = mqttSettings.enabled,
+                                    onCheckedChange = { mqttSettings = mqttSettings.copy(enabled = it) }
+                                )
+                            }
+                            OutlinedTextField(
+                                value = mqttSettings.host,
+                                onValueChange = { mqttSettings = mqttSettings.copy(host = it) },
+                                placeholder = { Text("Broker host, e.g. 192.168.1.10") },
+                                label = { Text("Broker host") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = HealthPrimary,
+                                    cursorColor = HealthPrimary
+                                )
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedTextField(
+                                    value = mqttPortText,
+                                    onValueChange = { mqttPortText = it.filter { c -> c.isDigit() }.take(5) },
+                                    label = { Text("Port") },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = HealthPrimary,
+                                        cursorColor = HealthPrimary
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("TLS", style = MaterialTheme.typography.bodyMedium)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Switch(
+                                    checked = mqttSettings.useTls,
+                                    onCheckedChange = { mqttSettings = mqttSettings.copy(useTls = it) }
+                                )
+                            }
+                            OutlinedTextField(
+                                value = mqttSettings.username ?: "",
+                                onValueChange = { mqttSettings = mqttSettings.copy(username = it.ifBlank { null }) },
+                                label = { Text("Username (optional)") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = HealthPrimary,
+                                    cursorColor = HealthPrimary
+                                )
+                            )
+                            OutlinedTextField(
+                                value = mqttSettings.password ?: "",
+                                onValueChange = { mqttSettings = mqttSettings.copy(password = it.ifBlank { null }) },
+                                label = { Text("Password (optional)") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = HealthPrimary,
+                                    cursorColor = HealthPrimary
+                                )
+                            )
+                            OutlinedTextField(
+                                value = mqttSettings.baseTopic,
+                                onValueChange = { mqttSettings = mqttSettings.copy(baseTopic = it) },
+                                label = { Text("Base topic") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = HealthPrimary,
+                                    cursorColor = HealthPrimary
+                                )
+                            )
+                            preferencesManager.getLastMqttStatus()?.let { status ->
+                                Text(
+                                    status,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (status.startsWith("OK")) HealthPrimary else MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Manual Sync
             SectionCard(
                 title = "Manual Sync",
@@ -685,6 +839,8 @@ fun HealthConnectScreen(
                                 preferencesManager.setHealthEnabledDataTypes(enabledDataTypes)
                                 preferencesManager.setHealthWebhookHeaders(webhookHeaders)
                                 preferencesManager.setHealthWebhookSecret(webhookSecret.trim())
+                                mqttSettings = mqttSettings.copy(port = mqttPortText.toIntOrNull() ?: 1883)
+                                preferencesManager.setMqttSettings(mqttSettings)
 
                                 val syncManager = HealthSyncManager(context)
                                 val result = syncManager.performSync()
@@ -705,6 +861,7 @@ fun HealthConnectScreen(
                                 initialEnabledDataTypes = enabledDataTypes
                                 initialWebhookHeaders = webhookHeaders
                                 initialWebhookSecret = webhookSecret
+                                initialMqttSettings = mqttSettings
                             } catch (e: Exception) {
                                 syncMessage = "Failed: ${e.message}"
                             } finally {
@@ -887,6 +1044,8 @@ fun HealthConnectScreen(
                             preferencesManager.setHealthEnabledDataTypes(enabledDataTypes)
                             preferencesManager.setHealthWebhookHeaders(webhookHeaders)
                             preferencesManager.setHealthWebhookSecret(webhookSecret.trim())
+                            mqttSettings = mqttSettings.copy(port = mqttPortText.toIntOrNull() ?: 1883)
+                            preferencesManager.setMqttSettings(mqttSettings)
                             (context.applicationContext as? LifeDashboardApplication)?.scheduleHealthSyncWork()
 
                             initialSyncInterval = interval
@@ -894,6 +1053,7 @@ fun HealthConnectScreen(
                             initialEnabledDataTypes = enabledDataTypes
                             initialWebhookHeaders = webhookHeaders
                             initialWebhookSecret = webhookSecret
+                            initialMqttSettings = mqttSettings
                             Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
                         }
                     },

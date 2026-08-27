@@ -82,6 +82,11 @@ class HealthSyncManager(private val context: Context) {
                 return@withContext Result.success(HealthSyncResult.NoData)
             }
 
+            // Publish latest values to the user's MQTT broker (Home Assistant Discovery) when
+            // configured. Failures never block the webhook sync; the outcome is stored and
+            // shown in the MQTT settings section.
+            MqttPublisher(context).publishHealthData(healthData)
+
             // Calculate total record count
             val totalRecords = healthData.steps.size + healthData.sleep.size + healthData.heartRate.size +
                     healthData.distance.size + healthData.activeCalories.size + healthData.totalCalories.size +

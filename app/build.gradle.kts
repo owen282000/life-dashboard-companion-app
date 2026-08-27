@@ -83,6 +83,9 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // The HiveMQ MQTT client bundles Netty, whose jars ship duplicate metadata files
+            excludes += "META-INF/INDEX.LIST"
+            excludes += "META-INF/io.netty.versions.properties"
         }
     }
 }
@@ -114,6 +117,7 @@ dependencies {
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.okhttp)
+    implementation(libs.hivemq.mqtt)
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)

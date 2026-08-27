@@ -62,6 +62,12 @@ Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/
 - **Export as CSV/JSON** - Export sync logs via the Android share sheet
 - **Sync history dashboard** - Overview of success rates, record counts, and recent failures
 
+### Home Assistant / MQTT
+- **MQTT publishing with Home Assistant Discovery** - Point the app at your MQTT broker and the latest value of every synced data type appears in Home Assistant automatically as sensors (steps, heart rate, sleep duration, weight, blood pressure, and more), grouped under one device. No server-side configuration needed.
+- States and discovery configs are published retained, so values survive Home Assistant restarts
+- Optional TLS and username/password authentication; credentials are stored encrypted on-device
+- Event-like types (exercise, nutrition, cycle tracking) remain webhook-only; MQTT sensors represent the most recent record per type
+
 ### Automation
 - **Home screen widget** - Last sync result and records delivered today at a glance
 - **Quick Settings tile** - Trigger an immediate sync from the notification shade

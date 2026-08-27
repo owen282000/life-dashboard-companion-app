@@ -10,6 +10,7 @@ activityCompose = "1.13.0"
 composeBom = "2026.08.00"
 healthConnect = "1.1.0"
 workManager = "2.9.0"
+hivemqMqtt = "1.3.6"
 okhttp = "5.5.0"
 kotlinxSerialization = "1.11.0"
 splashScreen = "1.2.0"
@@ -37,6 +38,7 @@ androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx"
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 androidx-glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
+hivemq-mqtt = { group = "com.hivemq", name = "hivemq-mqtt-client", version.ref = "hivemqMqtt" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 

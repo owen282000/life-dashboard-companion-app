@@ -49,9 +49,50 @@ class PreferencesManager(context: Context) {
         }
     }
 
+    fun getMqttSettings(): MqttSettings = MqttSettings(
+        enabled = prefs.getBoolean(KEY_MQTT_ENABLED, false),
+        host = prefs.getString(KEY_MQTT_HOST, "") ?: "",
+        port = prefs.getInt(KEY_MQTT_PORT, 1883),
+        useTls = prefs.getBoolean(KEY_MQTT_TLS, false),
+        username = securePrefs.getString(KEY_MQTT_USERNAME, null)?.takeIf { it.isNotBlank() },
+        password = securePrefs.getString(KEY_MQTT_PASSWORD, null)?.takeIf { it.isNotBlank() },
+        baseTopic = prefs.getString(KEY_MQTT_BASE_TOPIC, MqttSupport.DEFAULT_BASE_TOPIC)
+            ?.takeIf { it.isNotBlank() } ?: MqttSupport.DEFAULT_BASE_TOPIC
+    )
+
+    fun setMqttSettings(settings: MqttSettings) {
+        prefs.edit()
+            .putBoolean(KEY_MQTT_ENABLED, settings.enabled)
+            .putString(KEY_MQTT_HOST, settings.host.trim())
+            .putInt(KEY_MQTT_PORT, settings.port)
+            .putBoolean(KEY_MQTT_TLS, settings.useTls)
+            .putString(KEY_MQTT_BASE_TOPIC, settings.baseTopic.trim())
+            .apply()
+        securePrefs.edit()
+            .putString(KEY_MQTT_USERNAME, settings.username ?: "")
+            .putString(KEY_MQTT_PASSWORD, settings.password ?: "")
+            .apply()
+    }
+
+    fun getLastMqttStatus(): String? = prefs.getString(KEY_MQTT_LAST_STATUS, null)
+
+    fun setLastMqttStatus(status: String) {
+        prefs.edit().putString(KEY_MQTT_LAST_STATUS, status).apply()
+    }
+
     companion object {
         private const val PREFS_NAME = "life_dashboard_prefs"
         private const val SECURE_PREFS_NAME = "life_dashboard_secure_prefs"
+
+        // MQTT keys (username/password live in securePrefs)
+        private const val KEY_MQTT_ENABLED = "mqtt_enabled"
+        private const val KEY_MQTT_HOST = "mqtt_host"
+        private const val KEY_MQTT_PORT = "mqtt_port"
+        private const val KEY_MQTT_TLS = "mqtt_tls"
+        private const val KEY_MQTT_USERNAME = "mqtt_username"
+        private const val KEY_MQTT_PASSWORD = "mqtt_password"
+        private const val KEY_MQTT_BASE_TOPIC = "mqtt_base_topic"
+        private const val KEY_MQTT_LAST_STATUS = "mqtt_last_status"
 
         // Health Connect keys
         private const val KEY_HEALTH_LAST_SYNC_TS_PREFIX = "health_last_sync_ts_"
