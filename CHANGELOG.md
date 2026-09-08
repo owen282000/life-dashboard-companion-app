@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-09-08
+
+### Fixed
+
+- Heart Rate Variability could never be granted: the manifest declared a nonexistent permission name (#40); the permission request list is now derived from the data type enum, which also restores the 10 newest types that had silently dropped out of the permission dialog
+- Heart-rate backlogs no longer grow faster than they drain: a sync run now delivers up to 8 capped batches instead of one (#38)
+- Records sharing the cap-boundary modification time are no longer skipped: the oldest-first cap extends across timestamp ties, keeping the strict watermark filter safe (#38)
+- Backfill drains each 3-day window until exhausted instead of dropping dense data past the per-type cap (#39)
+- The pagination loop treats an empty page token as completion, matching Health Connect behavior (#38)
+
+### Added
+
+- `READ_HEALTH_DATA_HISTORY` permission, requested with the normal flow and surfaced in the backfill dialog: without it Health Connect caps reads at 30 days before the first grant, so long backfills silently returned only recent data (#39)
+
 ## [1.8.0] - 2026-08-27
 
 ### Added
