@@ -34,6 +34,10 @@ class HealthConnectManager(private val context: Context) {
     // by the next sync instead of being skipped forever.
     private val watermarks = mutableMapOf<HealthDataType, Instant>()
 
+    // Types whose eligible records exceeded the per-sync cap in the current read; the sync
+    // loop uses this to keep draining the backlog instead of waiting for the next scheduled run.
+    private val cappedTypes = mutableSetOf<HealthDataType>()
+
     /**
      * Reads all enabled types. The default window is the trailing [LOOKBACK_HOURS]; backfill
      * passes an explicit historical window (with empty lastSyncTimestamps so nothing is
@@ -48,6 +52,7 @@ class HealthConnectManager(private val context: Context) {
         return try {
             diagnostics.clear()
             watermarks.clear()
+            cappedTypes.clear()
             val grantedPermissions = getGrantedPermissions()
             val endTime = windowEnd ?: Instant.now()
             val startTime = windowStart ?: endTime.minus(LOOKBACK_HOURS, ChronoUnit.HOURS)
@@ -175,7 +180,8 @@ class HealthConnectManager(private val context: Context) {
                 cervicalMucus = cervicalMucusData,
                 sexualActivity = sexualActivityData,
                 diagnostics = diagnostics.toMap(),
-                watermarks = watermarks.toMap()
+                watermarks = watermarks.toMap(),
+                cappedTypes = cappedTypes.toSet()
             ))
         } catch (e: Exception) {
             Result.failure(e)
@@ -223,8 +229,9 @@ class HealthConnectManager(private val context: Context) {
             val response = healthConnectClient.readRecords(request)
             records.addAll(response.records)
             pageCount++
+            // Health Connect can signal completion with an empty token as well as null.
             pageToken = response.pageToken
-        } while (pageToken != null)
+        } while (!pageToken.isNullOrEmpty())
         return PagedResult(records, pageCount)
     }
 
@@ -256,6 +263,7 @@ class HealthConnectManager(private val context: Context) {
             val limited = ResilientReadLogic.capOldestFirst(filtered, type.maxRecordsPerSync) {
                 it.metadata.lastModifiedTime
             }
+            if (limited.size < filtered.size) cappedTypes += type
             limited.maxOfOrNull { it.metadata.lastModifiedTime }?.let { watermarks[type] = it }
             val times = limited.map(timeOf)
             recordDiag(
@@ -400,18 +408,17 @@ class HealthConnectManager(private val context: Context) {
             val paged = readAllRecordsResilient(HeartRateRecord::class, startTime, endTime)
             val rawSamples = paged.records.sumOf { it.samples.size }
             // Sample-carrying records are filtered and capped at RECORD granularity on their
-            // modification time: a record is either fully delivered or fully deferred, so the
-            // watermark (max delivered modification time) never splits a record.
+            // modification time: a record is either fully delivered or fully deferred, ties at
+            // the cap boundary are included, so the strict '>' watermark filter never skips one.
             val newRecords = paged.records
                 .filter { lastSync == null || it.metadata.lastModifiedTime > lastSync }
-                .sortedBy { it.metadata.lastModifiedTime }
-            val includedRecords = mutableListOf<HeartRateRecord>()
-            var sampleCount = 0
-            for (record in newRecords) {
-                if (sampleCount >= HealthDataType.HEART_RATE.maxRecordsPerSync) break
-                includedRecords += record
-                sampleCount += record.samples.size
-            }
+            val includedRecords = ResilientReadLogic.capRecordsBySamples(
+                newRecords,
+                HealthDataType.HEART_RATE.maxRecordsPerSync,
+                samplesOf = { it.samples.size },
+                timeOf = { it.metadata.lastModifiedTime }
+            )
+            if (includedRecords.size < newRecords.size) cappedTypes += HealthDataType.HEART_RATE
             includedRecords.maxOfOrNull { it.metadata.lastModifiedTime }
                 ?.let { watermarks[HealthDataType.HEART_RATE] = it }
             val limited = includedRecords.flatMap { record ->
@@ -624,14 +631,13 @@ class HealthConnectManager(private val context: Context) {
             val rawSamples = paged.records.sumOf { it.deltas.size }
             val newRecords = paged.records
                 .filter { lastSync == null || it.metadata.lastModifiedTime > lastSync }
-                .sortedBy { it.metadata.lastModifiedTime }
-            val includedRecords = mutableListOf<SkinTemperatureRecord>()
-            var sampleCount = 0
-            for (record in newRecords) {
-                if (sampleCount >= HealthDataType.SKIN_TEMPERATURE.maxRecordsPerSync) break
-                includedRecords += record
-                sampleCount += record.deltas.size
-            }
+            val includedRecords = ResilientReadLogic.capRecordsBySamples(
+                newRecords,
+                HealthDataType.SKIN_TEMPERATURE.maxRecordsPerSync,
+                samplesOf = { it.deltas.size },
+                timeOf = { it.metadata.lastModifiedTime }
+            )
+            if (includedRecords.size < newRecords.size) cappedTypes += HealthDataType.SKIN_TEMPERATURE
             includedRecords.maxOfOrNull { it.metadata.lastModifiedTime }
                 ?.let { watermarks[HealthDataType.SKIN_TEMPERATURE] = it }
             val limited = includedRecords.flatMap { record ->
@@ -741,37 +747,25 @@ class HealthConnectManager(private val context: Context) {
                 null
             }
 
+        const val BACKGROUND_PERMISSION = "android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND"
+
+        /**
+         * Lets reads reach further back than the default 30 days before the first permission
+         * grant; without it a 90 or 365 day backfill silently returns only recent data (#39).
+         */
+        const val HISTORY_PERMISSION = "android.permission.health.READ_HEALTH_DATA_HISTORY"
+
         fun getPermissionsForTypes(types: Set<HealthDataType>): Set<String> {
             val permissions = types.map { HealthPermission.getReadPermission(it.recordClass) }.toMutableSet()
-            permissions.add("android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND")
+            permissions.add(BACKGROUND_PERMISSION)
+            permissions.add(HISTORY_PERMISSION)
             return permissions
         }
 
-        val ALL_PERMISSIONS = setOf(
-            HealthPermission.getReadPermission(StepsRecord::class),
-            HealthPermission.getReadPermission(SleepSessionRecord::class),
-            HealthPermission.getReadPermission(HeartRateRecord::class),
-            HealthPermission.getReadPermission(DistanceRecord::class),
-            HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
-            HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
-            HealthPermission.getReadPermission(WeightRecord::class),
-            HealthPermission.getReadPermission(HeightRecord::class),
-            HealthPermission.getReadPermission(BloodPressureRecord::class),
-            HealthPermission.getReadPermission(BloodGlucoseRecord::class),
-            HealthPermission.getReadPermission(OxygenSaturationRecord::class),
-            HealthPermission.getReadPermission(BodyTemperatureRecord::class),
-            HealthPermission.getReadPermission(RespiratoryRateRecord::class),
-            HealthPermission.getReadPermission(RestingHeartRateRecord::class),
-            HealthPermission.getReadPermission(ExerciseSessionRecord::class),
-            HealthPermission.getReadPermission(HydrationRecord::class),
-            HealthPermission.getReadPermission(NutritionRecord::class),
-            HealthPermission.getReadPermission(MindfulnessSessionRecord::class),
-            HealthPermission.getReadPermission(BodyFatRecord::class),
-            HealthPermission.getReadPermission(LeanBodyMassRecord::class),
-            HealthPermission.getReadPermission(BoneMassRecord::class),
-            HealthPermission.getReadPermission(BodyWaterMassRecord::class),
-            HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class),
-            "android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND"
-        )
+        // Derived from the enum so newly added data types can never be missing from the
+        // permission request (a hand-maintained list had drifted to 23 of 33 types).
+        val ALL_PERMISSIONS: Set<String> =
+            HealthDataType.entries.map { HealthPermission.getReadPermission(it.recordClass) }.toSet() +
+                setOf(BACKGROUND_PERMISSION, HISTORY_PERMISSION)
     }
 }

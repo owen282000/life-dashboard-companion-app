@@ -65,6 +65,81 @@ class SyncCapTest {
     }
 
     /**
+     * Records sharing the boundary timestamp must all be included (issue #38): with a hard
+     * take(max), a tie group split by the cap left records that were above the cap but not
+     * above the watermark, and the strict '>' filter then skipped them forever.
+     */
+    @Test
+    fun tiesAtTheCapBoundaryAreIncluded() {
+        val tied = (1..5).map { Rec(10 + it, base.plusSeconds(600)) }
+        val records = listOf(rec(1), rec(2)) + tied + listOf(rec(20))
+        val result = ResilientReadLogic.capOldestFirst(records, maxLimit = 4) { it.time }
+        // 2 older + the full 5-record tie group; only the newer record is deferred.
+        assertEquals(7, result.size)
+        assertTrue(tied.all { it in result })
+    }
+
+    @Test
+    fun repeatedSyncsWithTiedTimestampsStillDeliverEverythingExactlyOnce() {
+        // 30 records across only 3 distinct timestamps, capped at 8 per batch.
+        val all = (0 until 30).map { Rec(it, base.plusSeconds((it % 3) * 60L)) }
+        val delivered = mutableListOf<Rec>()
+        var lastSync: Instant? = null
+        var rounds = 0
+        while (rounds < 20) {
+            val filtered = all.filter { lastSync == null || it.time > lastSync }
+            if (filtered.isEmpty()) break
+            val batch = ResilientReadLogic.capOldestFirst(filtered, maxLimit = 8) { it.time }
+            delivered += batch
+            lastSync = batch.maxOf { it.time }
+            rounds++
+        }
+        assertEquals(30, delivered.size)
+        assertEquals(all.map { it.id }.sorted(), delivered.map { it.id }.sorted())
+    }
+
+    @Test
+    fun sampleRecordCapKeepsWholeRecordsAndIncludesBoundaryTies() {
+        data class HrRec(val id: Int, val samples: Int, val modified: Instant)
+
+        val records = listOf(
+            HrRec(1, samples = 400, modified = base.plusSeconds(60)),
+            HrRec(2, samples = 400, modified = base.plusSeconds(120)),
+            // These two share the boundary modification time; both must be included even
+            // though the sample budget is already exceeded after the first.
+            HrRec(3, samples = 400, modified = base.plusSeconds(180)),
+            HrRec(4, samples = 400, modified = base.plusSeconds(180)),
+            HrRec(5, samples = 400, modified = base.plusSeconds(240))
+        )
+        val included = ResilientReadLogic.capRecordsBySamples(
+            records, maxSamples = 1000, samplesOf = { it.samples }, timeOf = { it.modified }
+        )
+        assertEquals(listOf(1, 2, 3, 4), included.map { it.id })
+    }
+
+    @Test
+    fun repeatedSampleRecordSyncsDeliverEverythingExactlyOnce() {
+        data class HrRec(val id: Int, val samples: Int, val modified: Instant)
+
+        val all = (0 until 40).map { HrRec(it, samples = 300, modified = base.plusSeconds((it / 4) * 60L)) }
+        val delivered = mutableListOf<HrRec>()
+        var lastSync: Instant? = null
+        var rounds = 0
+        while (rounds < 50) {
+            val fresh = all.filter { lastSync == null || it.modified > lastSync }
+            if (fresh.isEmpty()) break
+            val batch = ResilientReadLogic.capRecordsBySamples(
+                fresh, maxSamples = 1000, samplesOf = { it.samples }, timeOf = { it.modified }
+            )
+            delivered += batch
+            lastSync = batch.maxOf { it.modified }
+            rounds++
+        }
+        assertEquals(40, delivered.size)
+        assertEquals(all.map { it.id }.sorted(), delivered.map { it.id }.sorted())
+    }
+
+    /**
      * Watch apps (Zepp, Garmin) upload data hours later with the ORIGINAL record timestamps.
      * The sync watermark therefore runs on modification time, not record time: a backfilled
      * record has an old record time but a recent modification time and must still sync.

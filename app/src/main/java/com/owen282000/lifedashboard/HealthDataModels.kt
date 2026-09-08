@@ -77,7 +77,12 @@ data class HealthData(
     val sexualActivity: List<SexualActivityData>,
     val diagnostics: Map<HealthDataType, TypeDiagnostics> = emptyMap(),
     /** Max metadata.lastModifiedTime per type of the delivered batch; the sync watermark. */
-    val watermarks: Map<HealthDataType, Instant> = emptyMap()
+    val watermarks: Map<HealthDataType, Instant> = emptyMap(),
+    /**
+     * Types whose eligible records exceeded maxRecordsPerSync in this read, meaning a backlog
+     * remains beyond the delivered batch. The sync loop keeps draining until this is empty.
+     */
+    val cappedTypes: Set<HealthDataType> = emptySet()
 )
 
 data class BasalMetabolicRateData(

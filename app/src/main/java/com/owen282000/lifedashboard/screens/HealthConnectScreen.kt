@@ -1069,11 +1069,33 @@ fun HealthConnectScreen(
             }
 
             if (showBackfillDialog) {
+                // Without READ_HEALTH_DATA_HISTORY Health Connect only exposes the 30 days
+                // before the first permission grant, so a 90/365 day backfill would silently
+                // return recent data only (#39). Checked on every open; granting happens via
+                // the normal permission flow.
+                var hasHistoryPermission by remember { mutableStateOf(true) }
+                LaunchedEffect(showBackfillDialog) {
+                    hasHistoryPermission = HealthConnectManager.HISTORY_PERMISSION in
+                        HealthConnectManager(context).getGrantedPermissions()
+                }
                 AlertDialog(
                     onDismissRequest = { showBackfillDialog = false },
                     title = { Text("Backfill history") },
                     text = {
-                        Text("Sends historical data for all enabled types to your webhooks in 3-day chunks, oldest first. Regular syncing is unaffected; overlapping records deduplicate on their uuid. This can take a while and use mobile data.")
+                        Column {
+                            Text("Sends historical data for all enabled types to your webhooks in 3-day chunks, oldest first. Regular syncing is unaffected; overlapping records deduplicate on their uuid. This can take a while and use mobile data.")
+                            if (!hasHistoryPermission) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "Health Connect limits reads to the last 30 days until you grant history access.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Error
+                                )
+                                TextButton(onClick = {
+                                    permissionLauncher.launch(HealthConnectManager.ALL_PERMISSIONS)
+                                }) { Text("Grant history access") }
+                            }
+                        }
                     },
                     confirmButton = {
                         Row {

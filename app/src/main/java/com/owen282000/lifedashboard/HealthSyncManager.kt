@@ -13,6 +13,15 @@ import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import java.time.Instant
 
+/** Max read+deliver passes per sync run, bounding worker time while draining a backlog (#38). */
+private const val MAX_SYNC_PASSES = 8
+
+/**
+ * Max read+deliver passes per backfill window. Generous: a 3-day window of 5-second heart rate
+ * samples is ~52 batches of 1000; the bound only guards against a cursor that stops advancing.
+ */
+private const val MAX_PASSES_PER_BACKFILL_WINDOW = 100
+
 class HealthSyncManager(private val context: Context) {
 
     private val preferencesManager = PreferencesManager(context)
@@ -70,81 +79,87 @@ class HealthSyncManager(private val context: Context) {
                 return@withContext Result.failure(Exception("No data types enabled"))
             }
 
-            // Get last sync timestamps for all enabled types
-            val lastSyncTimestamps = enabledTypes.associateWith { type ->
-                preferencesManager.getHealthLastSyncTimestamp(type)?.let { Instant.ofEpochMilli(it) }
+            // Dense types (heart rate) can hold a backlog many times the per-sync cap. A single
+            // capped batch per run lets the backlog grow faster than it drains (issue #38), so
+            // this loops read+deliver until no type was capped, bounded to keep worker runs short.
+            val syncCounts = mutableMapOf<HealthDataType, Int>()
+            var lastDelivered: HealthData? = null
+            var queuedRecords: Int? = null
+            var anyData = false
+
+            for (pass in 1..MAX_SYNC_PASSES) {
+                // Re-read watermarks each pass; the previous pass advanced them.
+                val lastSyncTimestamps = enabledTypes.associateWith { type ->
+                    preferencesManager.getHealthLastSyncTimestamp(type)?.let { Instant.ofEpochMilli(it) }
+                }
+
+                val healthDataResult = healthConnectManager.readHealthData(enabledTypes, lastSyncTimestamps)
+                if (healthDataResult.isFailure) {
+                    if (anyData) break
+                    return@withContext Result.failure(
+                        healthDataResult.exceptionOrNull() ?: Exception("Failed to read health data")
+                    )
+                }
+                val healthData = healthDataResult.getOrThrow()
+                if (isHealthDataEmpty(healthData)) break
+                anyData = true
+                lastDelivered = healthData
+
+                val totalRecords = countRecords(healthData)
+                val webhookManager = WebhookManager(
+                    webhookUrls = webhookUrls,
+                    context = context,
+                    dataType = "health_connect",
+                    recordCount = totalRecords,
+                    logType = LogType.HEALTH_CONNECT,
+                    customHeaders = preferencesManager.getHealthWebhookHeaders(),
+                    signingSecret = preferencesManager.getHealthWebhookSecret()
+                )
+
+                // Build JSON payload, with deduplicated daily totals when enabled
+                val dailyTotals = if (preferencesManager.includeDailyTotals())
+                    healthConnectManager.readDailyTotals(days = 2, enabledTypes = enabledTypes) else emptyList()
+                val jsonPayload = buildJsonPayload(healthData, dailyTotals = dailyTotals)
+
+                val postResult = webhookManager.postData(jsonPayload)
+                SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
+                SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalRecords else 0)
+
+                // Watermarks advance regardless of delivery outcome: a failed payload goes to the
+                // outbox and is guaranteed to be delivered by a later drain, so re-reading (and
+                // potentially double-sending) the same records is unnecessary.
+                val passCounts = mutableMapOf<HealthDataType, Int>()
+                updateSyncTimestamps(healthData, passCounts)
+                passCounts.forEach { (type, count) -> syncCounts.merge(type, count, Int::plus) }
+
+                if (postResult.isFailure) {
+                    PendingSyncStore.forContext(context).enqueue(
+                        payload = jsonPayload,
+                        dataType = "health_connect",
+                        logType = LogType.HEALTH_CONNECT.name,
+                        recordCount = totalRecords,
+                        nowMillis = System.currentTimeMillis()
+                    )
+                    queuedRecords = totalRecords
+                    break
+                }
+
+                if (healthData.cappedTypes.isEmpty()) break
             }
 
-            // Read health data
-            val healthDataResult = healthConnectManager.readHealthData(enabledTypes, lastSyncTimestamps)
-            if (healthDataResult.isFailure) {
-                return@withContext Result.failure(healthDataResult.exceptionOrNull() ?: Exception("Failed to read health data"))
-            }
-
-            val healthData = healthDataResult.getOrThrow()
-
-            // Check if there's any new data
-            if (isHealthDataEmpty(healthData)) {
+            if (!anyData) {
                 return@withContext Result.success(HealthSyncResult.NoData)
             }
 
-            // Publish latest values to the user's MQTT broker (Home Assistant Discovery) when
-            // configured. Failures never block the webhook sync; the outcome is stored and
-            // shown in the MQTT settings section.
-            MqttPublisher(context).publishHealthData(healthData)
+            // Publish the newest values to the user's MQTT broker (Home Assistant Discovery)
+            // once per run, after draining: the last batch is the newest thanks to the
+            // oldest-first cap. Failures never block the webhook sync; the outcome is stored
+            // and shown in the MQTT settings section.
+            lastDelivered?.let { MqttPublisher(context).publishHealthData(it) }
 
-            // Calculate total record count
-            val totalRecords = healthData.steps.size + healthData.sleep.size + healthData.heartRate.size +
-                    healthData.distance.size + healthData.activeCalories.size + healthData.totalCalories.size +
-                    healthData.weight.size + healthData.height.size + healthData.bloodPressure.size +
-                    healthData.bloodGlucose.size + healthData.oxygenSaturation.size + healthData.bodyTemperature.size +
-                    healthData.respiratoryRate.size + healthData.restingHeartRate.size + healthData.exercise.size +
-                    healthData.hydration.size + healthData.nutrition.size + healthData.mindfulness.size +
-                    healthData.bodyFat.size + healthData.leanBodyMass.size + healthData.boneMass.size +
-                    healthData.bodyWaterMass.size + healthData.hrv.size +
-                    healthData.menstruationPeriod.size + healthData.menstruationFlow.size +
-                    healthData.basalMetabolicRate.size + healthData.vo2Max.size +
-                    healthData.skinTemperature.size + healthData.basalBodyTemperature.size +
-                    healthData.intermenstrualBleeding.size + healthData.ovulationTest.size +
-                    healthData.cervicalMucus.size + healthData.sexualActivity.size
-
-            val webhookManager = WebhookManager(
-                webhookUrls = webhookUrls,
-                context = context,
-                dataType = "health_connect",
-                recordCount = totalRecords,
-                logType = LogType.HEALTH_CONNECT,
-                customHeaders = preferencesManager.getHealthWebhookHeaders(),
-                signingSecret = preferencesManager.getHealthWebhookSecret()
-            )
-
-            // Build JSON payload, with deduplicated daily totals when enabled
-            val dailyTotals = if (preferencesManager.includeDailyTotals())
-                healthConnectManager.readDailyTotals(days = 2, enabledTypes = enabledTypes) else emptyList()
-            val jsonPayload = buildJsonPayload(healthData, dailyTotals = dailyTotals)
-
-            // Post to webhook
-            val postResult = webhookManager.postData(jsonPayload)
-            SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
-            SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalRecords else 0)
-
-            // Watermarks advance regardless of delivery outcome: a failed payload goes to the
-            // outbox and is guaranteed to be delivered by a later drain, so re-reading (and
-            // potentially double-sending) the same records is unnecessary.
-            val syncCounts = mutableMapOf<HealthDataType, Int>()
-            updateSyncTimestamps(healthData, syncCounts)
-
-            if (postResult.isFailure) {
-                PendingSyncStore.forContext(context).enqueue(
-                    payload = jsonPayload,
-                    dataType = "health_connect",
-                    logType = LogType.HEALTH_CONNECT.name,
-                    recordCount = totalRecords,
-                    nowMillis = System.currentTimeMillis()
-                )
-                return@withContext Result.success(HealthSyncResult.Queued(totalRecords))
+            queuedRecords?.let {
+                return@withContext Result.success(HealthSyncResult.Queued(it))
             }
-
             Result.success(HealthSyncResult.Success(syncCounts))
         } catch (e: Exception) {
             Result.failure(e)
@@ -153,7 +168,8 @@ class HealthSyncManager(private val context: Context) {
 
     /**
      * One-time export of [days] of history to the configured webhooks, oldest window first.
-     * Runs in 3-day windows to keep payloads bounded and reduce per-type cap truncation.
+     * Runs in 3-day windows, each drained in capped chunks until exhausted, so payloads stay
+     * bounded without silently dropping dense data past the per-type cap.
      * Deliberately independent of the sync watermarks: it never advances them, and regular
      * incremental syncs continue unaffected. Payloads carry "backfill": true plus the window
      * bounds so receivers can distinguish them; records still carry uuids, so re-received
@@ -184,17 +200,23 @@ class HealthSyncManager(private val context: Context) {
         while (windowStart < end) {
             val windowEnd = minOf(windowStart.plus(java.time.Duration.ofDays(windowDays)), end)
 
-            val readResult = healthConnectManager.readHealthData(
-                enabledTypes,
-                lastSyncTimestamps = emptyMap(),
-                windowStart = windowStart,
-                windowEnd = windowEnd
-            )
-            val healthData = readResult.getOrElse {
-                return@withContext Result.failure(it)
-            }
+            // Exhaust the window before advancing (issue #39): one capped read per window
+            // silently dropped everything past the cap for dense types. The cursor is a local
+            // per-type lastModifiedTime watermark; the tie-inclusive cap makes its strict '>'
+            // filter safe, so repeated reads walk the window chunk by chunk.
+            var cursor: Map<HealthDataType, Instant?> = enabledTypes.associateWith { null }
+            for (pass in 1..MAX_PASSES_PER_BACKFILL_WINDOW) {
+                val readResult = healthConnectManager.readHealthData(
+                    enabledTypes,
+                    lastSyncTimestamps = cursor,
+                    windowStart = windowStart,
+                    windowEnd = windowEnd
+                )
+                val healthData = readResult.getOrElse {
+                    return@withContext Result.failure(it)
+                }
+                if (isHealthDataEmpty(healthData)) break
 
-            if (!isHealthDataEmpty(healthData)) {
                 val recordCount = countRecords(healthData)
                 val payload = buildJsonPayload(
                     healthData,
@@ -220,6 +242,9 @@ class HealthSyncManager(private val context: Context) {
                     )
                 }
                 totalRecordsSent += recordCount
+
+                if (healthData.cappedTypes.isEmpty()) break
+                cursor = cursor + healthData.watermarks
             }
 
             completed++

@@ -18,12 +18,45 @@ object ResilientReadLogic {
     val MIN_BISECT_WINDOW: Duration = Duration.ofMinutes(5)
 
     /**
-     * Caps [records] to at most [maxLimit], keeping the OLDEST records. This guarantees that
-     * every dropped record is newer than every kept one, so advancing lastSync to the kept
-     * batch's maximum timestamp never skips a dropped record; later syncs catch up in batches.
+     * Caps [records] to [maxLimit], keeping the OLDEST records, then extends the batch with
+     * every record sharing the boundary timestamp. This guarantees that every dropped record is
+     * strictly newer than every kept one, so advancing lastSync to the kept batch's maximum
+     * timestamp and filtering with a strict '>' never skips a dropped record (issue #38: without
+     * the tie extension, records sharing the boundary lastModifiedTime that fell just past the
+     * cap were above the cap but not above the watermark, and were skipped forever).
      */
-    fun <T> capOldestFirst(records: List<T>, maxLimit: Int, timeOf: (T) -> Instant): List<T> =
-        if (records.size > maxLimit) records.sortedBy(timeOf).take(maxLimit) else records
+    fun <T> capOldestFirst(records: List<T>, maxLimit: Int, timeOf: (T) -> Instant): List<T> {
+        if (records.size <= maxLimit) return records
+        val sorted = records.sortedBy(timeOf)
+        val boundary = timeOf(sorted[maxLimit - 1])
+        var end = maxLimit
+        while (end < sorted.size && timeOf(sorted[end]) == boundary) end++
+        return sorted.take(end)
+    }
+
+    /**
+     * Caps sample-carrying records (heart rate, skin temperature) oldest-first at RECORD
+     * granularity: whole records are included until the running sample count reaches
+     * [maxSamples], then the batch is extended with every record sharing the boundary
+     * timestamp. A record is either fully delivered or fully deferred, and the same
+     * strict-'>' watermark guarantee as [capOldestFirst] holds.
+     */
+    fun <T> capRecordsBySamples(
+        records: List<T>,
+        maxSamples: Int,
+        samplesOf: (T) -> Int,
+        timeOf: (T) -> Instant
+    ): List<T> {
+        val sorted = records.sortedBy(timeOf)
+        val included = mutableListOf<T>()
+        var sampleCount = 0
+        for (record in sorted) {
+            if (sampleCount >= maxSamples && timeOf(record) != timeOf(included.last())) break
+            included += record
+            sampleCount += samplesOf(record)
+        }
+        return included
+    }
 
     /**
      * Reads a window via [read], falling back to recursive bisection when the reader throws
