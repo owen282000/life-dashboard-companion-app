@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Full `NutritionRecord` export: food name, meal type and all 38 further nutrients Health Connect exposes (fibre, sugars, fat subtypes, cholesterol, minerals, vitamins, caffeine), with units in the key suffix; the four original keys are unchanged and every new field is optional (#50)
+
 ## [1.9.0] - 2026-09-08
 
 ### Fixed

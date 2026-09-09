@@ -302,10 +302,17 @@ Possible `stage` values: `unknown`, `awake`, `sleeping`, `out_of_bed`, `light`, 
 
 **Nutrition**
 ```json
-{ "calories": 450.0, "protein_grams": 25.0, "carbs_grams": 60.0, "fat_grams": 12.0, "start_time": "2025-02-05T12:00:00Z", "end_time": "2025-02-05T12:30:00Z" }
+{
+  "calories": 450.0, "protein_grams": 25.0, "carbs_grams": 60.0, "fat_grams": 12.0,
+  "name": "Oatmeal with berries", "meal_type": "breakfast",
+  "dietary_fibre_g": 6.2, "sugars_g": 9.1, "saturated_fat_g": 2.0, "trans_fat_g": 0.0,
+  "sodium_mg": 180.0, "potassium_mg": 320.0, "iron_mg": 1.8,
+  "vitamin_c_mg": 8.0, "vitamin_d_mcg": 2.5, "vitamin_b12_mcg": 1.2,
+  "start_time": "2025-02-05T12:00:00Z", "end_time": "2025-02-05T12:30:00Z"
+}
 ```
 
-All nutrition fields (`calories`, `protein_grams`, `carbs_grams`, `fat_grams`) are optional and omitted when not available.
+Every nutrient Health Connect's `NutritionRecord` exposes is exported: energy from fat, fibre, sugars, the fat subtypes, cholesterol, 14 minerals and trace elements, 14 vitamins and related nutrients, and caffeine. Units are in the key suffix (`_g`, `_mg`, `_mcg`, `_kcal`). All fields are optional and omitted when the source app did not write them; a real zero (for example `trans_fat_g: 0.0`) is kept. `meal_type` is one of `breakfast`, `lunch`, `dinner`, `snack`, `unknown`. The full key list is in [docs/webhook-schema.json](docs/webhook-schema.json).
 
 #### Mindfulness
 

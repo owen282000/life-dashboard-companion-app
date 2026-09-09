@@ -552,6 +552,210 @@
           "fat_grams": {
             "type": "number"
           },
+          "name": {
+            "type": "string",
+            "description": "Food or drink name as written by the source app"
+          },
+          "meal_type": {
+            "type": "string",
+            "enum": [
+              "breakfast",
+              "lunch",
+              "dinner",
+              "snack",
+              "unknown"
+            ]
+          },
+          "energy_from_fat_kcal": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Energy from fat in kilocalories; omitted when the source app did not write it"
+          },
+          "dietary_fibre_g": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Dietary fibre in grams; omitted when the source app did not write it"
+          },
+          "sugars_g": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Sugars in grams; omitted when the source app did not write it"
+          },
+          "saturated_fat_g": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Saturated fat in grams; omitted when the source app did not write it"
+          },
+          "monounsaturated_fat_g": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Monounsaturated fat in grams; omitted when the source app did not write it"
+          },
+          "polyunsaturated_fat_g": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Polyunsaturated fat in grams; omitted when the source app did not write it"
+          },
+          "unsaturated_fat_g": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Unsaturated fat in grams; omitted when the source app did not write it"
+          },
+          "trans_fat_g": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Trans fat in grams; omitted when the source app did not write it"
+          },
+          "cholesterol_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Cholesterol in milligrams; omitted when the source app did not write it"
+          },
+          "sodium_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Sodium in milligrams; omitted when the source app did not write it"
+          },
+          "potassium_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Potassium in milligrams; omitted when the source app did not write it"
+          },
+          "calcium_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Calcium in milligrams; omitted when the source app did not write it"
+          },
+          "chloride_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Chloride in milligrams; omitted when the source app did not write it"
+          },
+          "chromium_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Chromium in micrograms; omitted when the source app did not write it"
+          },
+          "copper_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Copper in milligrams; omitted when the source app did not write it"
+          },
+          "iodine_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Iodine in micrograms; omitted when the source app did not write it"
+          },
+          "iron_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Iron in milligrams; omitted when the source app did not write it"
+          },
+          "magnesium_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Magnesium in milligrams; omitted when the source app did not write it"
+          },
+          "manganese_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Manganese in milligrams; omitted when the source app did not write it"
+          },
+          "molybdenum_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Molybdenum in micrograms; omitted when the source app did not write it"
+          },
+          "phosphorus_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Phosphorus in milligrams; omitted when the source app did not write it"
+          },
+          "selenium_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Selenium in micrograms; omitted when the source app did not write it"
+          },
+          "zinc_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Zinc in milligrams; omitted when the source app did not write it"
+          },
+          "vitamin_a_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Vitamin a in micrograms; omitted when the source app did not write it"
+          },
+          "vitamin_b6_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Vitamin b6 in milligrams; omitted when the source app did not write it"
+          },
+          "vitamin_b12_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Vitamin b12 in micrograms; omitted when the source app did not write it"
+          },
+          "vitamin_c_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Vitamin c in milligrams; omitted when the source app did not write it"
+          },
+          "vitamin_d_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Vitamin d in micrograms; omitted when the source app did not write it"
+          },
+          "vitamin_e_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Vitamin e in milligrams; omitted when the source app did not write it"
+          },
+          "vitamin_k_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Vitamin k in micrograms; omitted when the source app did not write it"
+          },
+          "thiamin_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Thiamin in milligrams; omitted when the source app did not write it"
+          },
+          "riboflavin_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Riboflavin in milligrams; omitted when the source app did not write it"
+          },
+          "niacin_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Niacin in milligrams; omitted when the source app did not write it"
+          },
+          "pantothenic_acid_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Pantothenic acid in milligrams; omitted when the source app did not write it"
+          },
+          "biotin_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Biotin in micrograms; omitted when the source app did not write it"
+          },
+          "folate_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Folate in micrograms; omitted when the source app did not write it"
+          },
+          "folic_acid_mcg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Folic acid in micrograms; omitted when the source app did not write it"
+          },
+          "caffeine_mg": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Caffeine in milligrams; omitted when the source app did not write it"
+          },
           "start_time": {
             "type": "string",
             "format": "date-time"

@@ -2,6 +2,7 @@ package com.owen282000.lifedashboard
 
 import android.content.Context
 import android.os.Build
+import com.owen282000.lifedashboard.NutritionSupport.putNutrition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -616,16 +617,7 @@ class HealthSyncManager(private val context: Context) {
 
             if (healthData.nutrition.isNotEmpty()) {
                 putJsonArray("nutrition") {
-                    healthData.nutrition.forEach { add(buildJsonObject {
-                        it.calories?.let { cal -> put("calories", cal) }
-                        it.protein?.let { prot -> put("protein_grams", prot) }
-                        it.carbs?.let { carb -> put("carbs_grams", carb) }
-                        it.fat?.let { f -> put("fat_grams", f) }
-                        put("start_time", it.startTime.toString())
-                        put("end_time", it.endTime.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
-                        it.source?.let { s -> put("source", s) }
-                    }) }
+                    healthData.nutrition.forEach { add(buildJsonObject { putNutrition(it) }) }
                 }
             }
 

@@ -308,8 +308,108 @@ data class NutritionData(
     val startTime: Instant,
     val endTime: Instant,
     val source: String? = null,
-    val uuid: String? = null
+    val uuid: String? = null,
+    /** Food or drink name as written by the source app, e.g. Cronometer. */
+    val name: String? = null,
+    /** "breakfast", "lunch", "dinner", "snack" or "unknown"; null when not set. */
+    val mealType: String? = null,
+    val details: NutritionDetails = NutritionDetails()
 )
+
+/**
+ * Every further nutrient Health Connect's NutritionRecord exposes (issue #50). Units are in the
+ * property names; null means the source app did not write the nutrient, while a real zero (for
+ * example trans fat 0 g) is preserved as a value. [fields] is the single ordered source of truth
+ * for the webhook keys, shared by the JSON writer and the schema lockstep test.
+ */
+data class NutritionDetails(
+    val energyFromFatKcal: Double? = null,
+    val dietaryFibreG: Double? = null,
+    val sugarsG: Double? = null,
+    val saturatedFatG: Double? = null,
+    val monounsaturatedFatG: Double? = null,
+    val polyunsaturatedFatG: Double? = null,
+    val unsaturatedFatG: Double? = null,
+    val transFatG: Double? = null,
+    val cholesterolMg: Double? = null,
+    val sodiumMg: Double? = null,
+    val potassiumMg: Double? = null,
+    val calciumMg: Double? = null,
+    val chlorideMg: Double? = null,
+    val chromiumMcg: Double? = null,
+    val copperMg: Double? = null,
+    val iodineMcg: Double? = null,
+    val ironMg: Double? = null,
+    val magnesiumMg: Double? = null,
+    val manganeseMg: Double? = null,
+    val molybdenumMcg: Double? = null,
+    val phosphorusMg: Double? = null,
+    val seleniumMcg: Double? = null,
+    val zincMg: Double? = null,
+    val vitaminAMcg: Double? = null,
+    val vitaminB6Mg: Double? = null,
+    val vitaminB12Mcg: Double? = null,
+    val vitaminCMg: Double? = null,
+    val vitaminDMcg: Double? = null,
+    val vitaminEMg: Double? = null,
+    val vitaminKMcg: Double? = null,
+    val thiaminMg: Double? = null,
+    val riboflavinMg: Double? = null,
+    val niacinMg: Double? = null,
+    val pantothenicAcidMg: Double? = null,
+    val biotinMcg: Double? = null,
+    val folateMcg: Double? = null,
+    val folicAcidMcg: Double? = null,
+    val caffeineMg: Double? = null
+) {
+    /** Webhook key to value, in payload order. */
+    val fields: List<Pair<String, Double?>>
+        get() = listOf(
+            "energy_from_fat_kcal" to energyFromFatKcal,
+            "dietary_fibre_g" to dietaryFibreG,
+            "sugars_g" to sugarsG,
+            "saturated_fat_g" to saturatedFatG,
+            "monounsaturated_fat_g" to monounsaturatedFatG,
+            "polyunsaturated_fat_g" to polyunsaturatedFatG,
+            "unsaturated_fat_g" to unsaturatedFatG,
+            "trans_fat_g" to transFatG,
+            "cholesterol_mg" to cholesterolMg,
+            "sodium_mg" to sodiumMg,
+            "potassium_mg" to potassiumMg,
+            "calcium_mg" to calciumMg,
+            "chloride_mg" to chlorideMg,
+            "chromium_mcg" to chromiumMcg,
+            "copper_mg" to copperMg,
+            "iodine_mcg" to iodineMcg,
+            "iron_mg" to ironMg,
+            "magnesium_mg" to magnesiumMg,
+            "manganese_mg" to manganeseMg,
+            "molybdenum_mcg" to molybdenumMcg,
+            "phosphorus_mg" to phosphorusMg,
+            "selenium_mcg" to seleniumMcg,
+            "zinc_mg" to zincMg,
+            "vitamin_a_mcg" to vitaminAMcg,
+            "vitamin_b6_mg" to vitaminB6Mg,
+            "vitamin_b12_mcg" to vitaminB12Mcg,
+            "vitamin_c_mg" to vitaminCMg,
+            "vitamin_d_mcg" to vitaminDMcg,
+            "vitamin_e_mg" to vitaminEMg,
+            "vitamin_k_mcg" to vitaminKMcg,
+            "thiamin_mg" to thiaminMg,
+            "riboflavin_mg" to riboflavinMg,
+            "niacin_mg" to niacinMg,
+            "pantothenic_acid_mg" to pantothenicAcidMg,
+            "biotin_mcg" to biotinMcg,
+            "folate_mcg" to folateMcg,
+            "folic_acid_mcg" to folicAcidMcg,
+            "caffeine_mg" to caffeineMg
+        )
+
+    companion object {
+        /** All webhook keys this class can emit, for the schema lockstep test. */
+        val JSON_KEYS: List<String> = NutritionDetails().fields.map { it.first }
+    }
+}
 
 data class MindfulnessData(
     val title: String?,
