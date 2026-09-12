@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.10.2] - 2026-09-12
+
 ### Fixed
 
 - Screen time per-app minutes could run far above Digital Wellbeing (a weather app at 15 hours on a 4-hour day): a session whose ACTIVITY_PAUSED was never recorded was counted until the end of the day, and activities of the same app overwrote each other's start time. Sessions are now tracked per activity and also closed by ACTIVITY_STOPPED, screen off, keyguard and shutdown events, and System UI and the launcher are excluded as Digital Wellbeing does
