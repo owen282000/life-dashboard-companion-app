@@ -103,6 +103,28 @@ class NutritionPayloadTest {
     }
 
     @Test
+    fun rarelyWrittenNutrientsSurviveTheFullMapperAndWriterPath() {
+        // Regression guard for the four fields a user reported as absent: they must reach the
+        // JSON whenever Health Connect actually carries them.
+        val record = NutritionRecord(
+            startTime = start,
+            startZoneOffset = ZoneOffset.UTC,
+            endTime = end,
+            endZoneOffset = ZoneOffset.UTC,
+            metadata = Metadata.manualEntry(Device(manufacturer = "Test", model = "Unit", type = Device.TYPE_PHONE)),
+            energyFromFat = Energy.kilocalories(90.0),
+            chloride = Mass.grams(1.2),
+            thiamin = Mass.grams(0.0011),
+            folicAcid = Mass.grams(0.0002)
+        )
+        val obj = json(record.toNutritionData())
+        assertEquals(90.0, obj.getValue("energy_from_fat_kcal").jsonPrimitive.double, 1e-6)
+        assertEquals(1200.0, obj.getValue("chloride_mg").jsonPrimitive.double, 1e-6)
+        assertEquals(1.1, obj.getValue("thiamin_mg").jsonPrimitive.double, 1e-6)
+        assertEquals(200.0, obj.getValue("folic_acid_mcg").jsonPrimitive.double, 1e-6)
+    }
+
+    @Test
     fun everyNutritionKeyIsDeclaredInThePublishedSchema() {
         val schema = Json.parseToJsonElement(File("../docs/webhook-schema.json").readText()).jsonObject
         val declared = schema.getValue("properties").jsonObject
