@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-09-12
+
+### Added
+
+- Regression test that pins chloride, energy from fat, folic acid and thiamin through the full `NutritionRecord` to JSON path, after a user report showed them absent from an export: the fields were never written by the source app, and the test guarantees they appear as soon as Health Connect carries them
+
 ## [1.10.0] - 2026-09-09
 
 ### Added
