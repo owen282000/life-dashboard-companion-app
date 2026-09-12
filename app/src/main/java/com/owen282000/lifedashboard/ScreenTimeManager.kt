@@ -2,9 +2,9 @@ package com.owen282000.lifedashboard
 
 import android.app.AppOpsManager
 import android.app.usage.UsageEvents
-import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
@@ -39,6 +39,25 @@ class ScreenTimeManager(
 
     private val packageManager: PackageManager by lazy {
         context.packageManager
+    }
+
+    /** System UI and the launcher are hidden, as Digital Wellbeing does. */
+    private val excludedPackages: Set<String> by lazy {
+        val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        val launchers = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.queryIntentActivities(
+                    home,
+                    PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong())
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.queryIntentActivities(home, PackageManager.MATCH_DEFAULT_ONLY)
+            }.map { it.activityInfo.packageName }
+        } catch (e: Exception) {
+            emptyList()
+        }
+        (launchers + ScreenTimeSessions.SYSTEM_UI_PACKAGE).toSet()
     }
 
     /**
@@ -127,65 +146,25 @@ class ScreenTimeManager(
                 val dayStart = getDayStartMs(targetDate, zone)
                 val dayEnd = getDayEndMs(targetDate, zone)
 
-                // Track foreground time per app
-                val appForegroundTime = mutableMapOf<String, Long>()
-                val appLastUsed = mutableMapOf<String, Long>()
-                val foregroundStartTimes = mutableMapOf<String, Long>()
-
-                // Process today's events only - don't check previous day as it causes issues
+                // Pair resume and pause events per activity; see ScreenTimeSessions for the rules.
+                val events = mutableListOf<UsageEventSnapshot>()
                 val usageEvents = usageStatsManager.queryEvents(dayStart, dayEnd)
                 val event = UsageEvents.Event()
-
                 while (usageEvents.hasNextEvent()) {
                     usageEvents.getNextEvent(event)
                     val packageName = event.packageName ?: continue
-
-                    when (event.eventType) {
-                        UsageEvents.Event.ACTIVITY_RESUMED,
-                        UsageEvents.Event.MOVE_TO_FOREGROUND -> {
-                            // App moved to foreground
-                            foregroundStartTimes[packageName] = event.timeStamp
-                            appLastUsed[packageName] = event.timeStamp
-                        }
-                        UsageEvents.Event.ACTIVITY_PAUSED,
-                        UsageEvents.Event.MOVE_TO_BACKGROUND -> {
-                            // App moved to background - calculate duration
-                            val startTime = foregroundStartTimes.remove(packageName)
-                            if (startTime != null) {
-                                // Use max of startTime and dayStart to avoid counting previous day
-                                val effectiveStart = maxOf(startTime, dayStart)
-                                val duration = event.timeStamp - effectiveStart
-                                if (duration > 0) {
-                                    appForegroundTime[packageName] =
-                                        (appForegroundTime[packageName] ?: 0L) + duration
-                                }
-                            }
-                            appLastUsed[packageName] = event.timeStamp
-                        }
-                    }
+                    events.add(UsageEventSnapshot(packageName, event.className, event.eventType, event.timeStamp))
                 }
+                val perPackage = ScreenTimeSessions.aggregate(events, dayStart, dayEnd, now, excludedPackages)
 
-                // Handle apps still in foreground at end of day
-                val currentTime = System.currentTimeMillis()
-                for ((packageName, startTime) in foregroundStartTimes) {
-                    val endTime = minOf(dayEnd, currentTime)
-                    val effectiveStart = maxOf(startTime, dayStart)
-                    if (effectiveStart < endTime) {
-                        val duration = endTime - effectiveStart
-                        appForegroundTime[packageName] =
-                            (appForegroundTime[packageName] ?: 0L) + duration
-                    }
-                }
-
-                // Convert to AppUsageData list
-                val appUsageList = appForegroundTime
-                    .filter { it.value > 60000 } // > 1 minute
-                    .map { (packageName, totalTime) ->
+                val appUsageList = perPackage
+                    .filter { it.value.foregroundMs > 60000 } // > 1 minute
+                    .map { (packageName, usage) ->
                         AppUsageData(
                             packageName = packageName,
                             appName = getAppName(packageName),
-                            totalTimeMs = totalTime,
-                            lastUsed = Instant.ofEpochMilli(appLastUsed[packageName] ?: dayEnd)
+                            totalTimeMs = usage.foregroundMs,
+                            lastUsed = Instant.ofEpochMilli(usage.lastUsedMs)
                         )
                     }
                     .sortedByDescending { it.totalTimeMs }
@@ -203,63 +182,6 @@ class ScreenTimeManager(
             }
 
             Result.success(result.sortedByDescending { it.date })
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    fun readTodayScreenTime(): Result<ScreenTimeData> {
-        return try {
-            if (!hasPermission()) {
-                return Result.failure(Exception("Usage stats permission not granted"))
-            }
-
-            val now = System.currentTimeMillis()
-            val zone = ZoneId.systemDefault()
-            val today = getLogicalDate(now, zone)
-            val todayStart = getDayStartMs(today, zone)
-
-            val usageStatsList = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                todayStart,
-                now
-            )
-
-            if (usageStatsList.isNullOrEmpty()) {
-                return Result.success(
-                    ScreenTimeData(
-                        date = today,
-                        totalScreenTimeMs = 0,
-                        apps = emptyList()
-                    )
-                )
-            }
-
-            // Aggregate all stats for today
-            val aggregatedStats = usageStatsList
-                .filter { it.totalTimeInForeground > 0 }
-                .groupBy { it.packageName }
-                .map { (packageName, statsList) ->
-                    val totalTime = statsList.sumOf { it.totalTimeInForeground }
-                    val lastUsed = statsList.maxOf { it.lastTimeUsed }
-                    AppUsageData(
-                        packageName = packageName,
-                        appName = getAppName(packageName),
-                        totalTimeMs = totalTime,
-                        lastUsed = Instant.ofEpochMilli(lastUsed)
-                    )
-                }
-                .sortedByDescending { it.totalTimeMs }
-
-            val totalScreenTime = aggregatedStats.sumOf { it.totalTimeMs }
-
-            Result.success(
-                ScreenTimeData(
-                    date = today,
-                    totalScreenTimeMs = totalScreenTime,
-                    apps = aggregatedStats
-                )
-            )
         } catch (e: Exception) {
             Result.failure(e)
         }
