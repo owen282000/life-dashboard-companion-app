@@ -577,6 +577,7 @@ If you find this project useful, please consider:
 - Starring the repository
 - Sharing it with others who might benefit
 - Contributing improvements
+- [Buying me a coffee on Ko-fi](https://ko-fi.com/owen282000) - the app stays free and open source; a coffee helps keep releases and bug hunts quick
 
 ---
 
