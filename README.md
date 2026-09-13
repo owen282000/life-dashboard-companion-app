@@ -31,12 +31,10 @@
   <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iOS version</a>
 </p>
 
-<p align="center">
-  <img src="docs/screenshots/health-connect.png" width="200" alt="Health Connect screen">
-  <img src="docs/screenshots/screen-time.png" width="200" alt="Screen Time screen">
-  <img src="docs/screenshots/mqtt.png" width="200" alt="MQTT and sync actions">
-  <img src="docs/screenshots/logs.png" width="200" alt="Webhook logs screen">
-</p>
+| Health Connect | Screen Time | MQTT / Home Assistant | Delivery logs |
+|:--:|:--:|:--:|:--:|
+| <img src="docs/screenshots/health-connect.png" alt="Health Connect screen"> | <img src="docs/screenshots/screen-time.png" alt="Screen Time screen"> | <img src="docs/screenshots/mqtt.png" alt="MQTT and sync actions"> | <img src="docs/screenshots/logs.png" alt="Webhook logs screen"> |
+| 33 data types, per-type toggles, incremental sync | Foreground time per app, with a custom day boundary | Sensors appear in Home Assistant automatically | Every delivery logged, payloads inspectable |
 
 ## Why this app?
 
