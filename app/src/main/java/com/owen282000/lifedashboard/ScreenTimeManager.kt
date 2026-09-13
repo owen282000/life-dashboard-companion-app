@@ -187,6 +187,19 @@ class ScreenTimeManager(
         }
     }
 
+    /**
+     * Resolves a display name for a package that UsageStatsManager already reported.
+     *
+     * Do NOT add `QUERY_ALL_PACKAGES` or widen the manifest's `<queries>` to make this easier.
+     * Google Play's permitted uses for broad package visibility are limited to device search,
+     * antivirus, file managers and browsers; usage tracking is not among them, so declaring it
+     * risks removal from the store. Looking up only packages that already came back from
+     * PACKAGE_USAGE_STATS needs no extra visibility.
+     *
+     * When a label cannot be resolved (a package the app cannot see, or one uninstalled since
+     * the event was recorded), fall back to the package name. Never widen visibility instead.
+     * ManifestPermissionsTest enforces this.
+     */
     private fun getAppName(packageName: String): String {
         return try {
             val appInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

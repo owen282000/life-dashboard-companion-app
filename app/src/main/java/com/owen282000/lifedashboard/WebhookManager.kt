@@ -1,6 +1,8 @@
 package com.owen282000.lifedashboard
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -32,9 +34,11 @@ class WebhookManager(
      * Posts the payload to EVERY configured webhook. The sync counts as delivered when at
      * least one webhook accepted it; per-URL outcomes are visible in the webhook logs.
      */
-    suspend fun postData(jsonPayload: String): Result<Unit> {
+    suspend fun postData(jsonPayload: String): Result<Unit> = withContext(Dispatchers.IO) {
         if (webhookUrls.isEmpty()) {
-            return Result.failure(IllegalStateException("No webhook URLs configured"))
+            return@withContext Result.failure<Unit>(
+                IllegalStateException("No webhook URLs configured")
+            )
         }
 
         var anySuccess = false
@@ -49,7 +53,7 @@ class WebhookManager(
             }
         }
 
-        return if (anySuccess) {
+        if (anySuccess) {
             Result.success(Unit)
         } else {
             Result.failure(lastFailure ?: IOException("All webhook posts failed"))

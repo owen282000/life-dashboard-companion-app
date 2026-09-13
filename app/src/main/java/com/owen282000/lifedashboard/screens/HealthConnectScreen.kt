@@ -233,6 +233,12 @@ fun HealthConnectScreen(
         ) {
             DashboardCard()
 
+            // Keystore outage: secrets cannot be read or saved, so say so rather than let
+            // syncs fail with unexplained auth errors.
+            if (preferencesManager.secretsUnavailable) {
+                SecretsUnavailableBanner()
+            }
+
             // Health Connect Status
             if (hasPermissions == false) {
                 Surface(

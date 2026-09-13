@@ -174,6 +174,12 @@ fun ScreenTimeScreen() {
             // At-a-glance stats, consistent with the Health Connect dashboard card
             if (hasPermission) {
                 ScreenTimeDashboardCard(refreshKey = syncMessage)
+
+                // Keystore outage: secrets cannot be read or saved, so say so rather than let
+                // syncs fail with unexplained auth errors.
+                if (preferencesManager.secretsUnavailable) {
+                    SecretsUnavailableBanner()
+                }
             }
 
             // Day Boundary - collapsible settings

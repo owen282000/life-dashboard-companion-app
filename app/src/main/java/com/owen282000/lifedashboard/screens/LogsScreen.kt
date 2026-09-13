@@ -42,6 +42,7 @@ fun LogsScreen() {
     var allLogs by remember { mutableStateOf(preferencesManager.getWebhookLogs(null)) }
     var logs by remember { mutableStateOf(allLogs) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var keepFullPayloads by remember { mutableStateOf(preferencesManager.keepFullPayloads()) }
 
     // Update logs when filter changes
     LaunchedEffect(selectedFilter) {
@@ -125,6 +126,35 @@ fun LogsScreen() {
                     )
                 }
             }
+        }
+
+        // Payloads are raw health data and are the bulk of what the log store keeps, so they
+        // are truncated unless the user wants them whole for debugging.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Keep full payloads", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    if (keepFullPayloads) {
+                        "Whole payloads are stored, capped by total size"
+                    } else {
+                        "Payloads are truncated to keep storage small"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = keepFullPayloads,
+                onCheckedChange = {
+                    keepFullPayloads = it
+                    preferencesManager.setKeepFullPayloads(it)
+                }
+            )
         }
 
         LazyColumn(

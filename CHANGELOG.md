@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Security
+
+- Webhook auth headers, HMAC signing secrets and MQTT credentials are excluded from Android cloud backup and device transfer. They are stored with a key that never leaves the device, so a restored copy could not be decrypted anyway; excluding them also removes any chance of a keystore outage shipping them off-device
+- A keystore outage no longer falls back to plain, backup-eligible storage. Secrets are now kept in memory for that process only, so they are never written unencrypted; the affected screens show a banner explaining why saved credentials are temporarily unavailable
+
+### Changed
+
+- Webhook logs moved out of the main settings file into their own store, with raw payloads kept as separate files. Retention is now capped by total size (5 MB) as well as entry count, so a run of large payloads can no longer grow storage without bound; previously 100 busy syncs could retain roughly 25 MB in a single value that was rewritten on every delivery
+- Raw payloads are truncated to 16 KB by default, with a "Keep full payloads" switch on the logs screen for debugging. Payloads are raw health data, so they are also excluded from backup
+- Webhook delivery and log writing now run on the IO dispatcher; the test ping previously did both on the main thread
+- `targetSdk` raised to 36 (Android 16), which Google Play requires for new apps and updates from 31 August 2026
+
+### Notes
+
+- Existing webhook logs are carried over, but their stored payloads are dropped on first launch after the update. New syncs store payloads as usual
+
 ## [1.11.0] - 2026-09-13
 
 ### Added

@@ -11,7 +11,19 @@ class PreferencesManager(context: Context) {
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    /** Keystore-backed storage for secrets (webhook headers with auth tokens, HMAC secrets). */
+    /**
+     * Keystore-backed storage for secrets (webhook headers with auth tokens, HMAC secrets,
+     * MQTT credentials).
+     *
+     * The keystore can be briefly unavailable right after boot, before the user has unlocked
+     * the device for the first time. Falling back to plain SharedPreferences there would keep
+     * background syncs working, but it would silently write secrets in cleartext into a file
+     * that is eligible for cloud backup. Instead the fallback is [InMemoryPrefs]: reads return
+     * nothing and writes are dropped, so a sync during the outage fails loudly (missing auth)
+     * rather than quietly downgrading the user's security.
+     *
+     * [secretsUnavailable] reports this state so the UI can explain it.
+     */
     private val securePrefs: SharedPreferences = try {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -24,18 +36,25 @@ class PreferencesManager(context: Context) {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
     } catch (e: Exception) {
-        // Keystore can be briefly unavailable right after boot; fall back to plain
-        // prefs rather than crash so background syncs keep working.
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        InMemoryPrefs()
     }
+
+    /**
+     * True when encrypted storage could not be opened, so secrets cannot be read or saved in
+     * this process. Transient: it normally resolves once the device has been unlocked.
+     */
+    val secretsUnavailable: Boolean get() = securePrefs is InMemoryPrefs
+
+    private val logStore = WebhookLogStore(context)
 
     init {
         migrateSecretsToEncryptedStorage()
+        logStore.migrateFromLegacyPrefs(prefs)
     }
 
     /** One-time migration of secrets that older versions kept in plain SharedPreferences. */
     private fun migrateSecretsToEncryptedStorage() {
-        if (securePrefs === prefs) return  // Keystore unavailable, nothing to migrate into
+        if (secretsUnavailable) return  // Keystore unavailable, nothing to migrate into
         val secretKeys = listOf(
             KEY_HEALTH_WEBHOOK_HEADERS, KEY_SCREENTIME_WEBHOOK_HEADERS,
             KEY_HEALTH_WEBHOOK_SECRET, KEY_SCREENTIME_WEBHOOK_SECRET
@@ -145,12 +164,11 @@ class PreferencesManager(context: Context) {
         private const val KEY_SCREENTIME_WEBHOOK_SECRET = "screentime_webhook_secret"
 
         // Shared keys
-        private const val KEY_WEBHOOK_LOGS = "webhook_logs"
+        private const val KEY_KEEP_FULL_PAYLOADS = "keep_full_payloads"
 
         // Defaults
         private const val DEFAULT_SYNC_INTERVAL_MINUTES = 60
         private const val DEFAULT_DAY_BOUNDARY_HOUR = 4
-        private const val MAX_LOGS = 100
     }
 
     // ==================== Health Connect Settings ====================
@@ -313,40 +331,24 @@ class PreferencesManager(context: Context) {
     }
 
     // ==================== Webhook Logs (Shared) ====================
+    // Backed by WebhookLogStore: metadata in its own prefs file, payloads as separate files
+    // capped by total bytes. Both are excluded from backup (res/xml/backup_rules.xml).
 
-    fun getWebhookLogs(filterType: LogType? = null): List<WebhookLog> {
-        val logsJson = prefs.getString(KEY_WEBHOOK_LOGS, null) ?: return emptyList()
-        return try {
-            val allLogs = Json.decodeFromString<List<WebhookLog>>(logsJson)
-            if (filterType != null) {
-                allLogs.filter { it.logType == filterType.name }
-            } else {
-                allLogs
-            }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
+    fun getWebhookLogs(filterType: LogType? = null): List<WebhookLog> =
+        logStore.getAll(filterType)
 
     fun addWebhookLog(log: WebhookLog) {
-        val currentLogs = getWebhookLogs().toMutableList()
-        currentLogs.add(0, log) // Add to beginning
-
-        // Keep only the most recent MAX_LOGS entries
-        val trimmedLogs = currentLogs.take(MAX_LOGS)
-
-        val logsJson = Json.encodeToString(trimmedLogs)
-        prefs.edit().putString(KEY_WEBHOOK_LOGS, logsJson).apply()
+        logStore.add(log, keepFullPayloads = keepFullPayloads())
     }
 
     fun clearWebhookLogs(filterType: LogType? = null) {
-        if (filterType == null) {
-            prefs.edit().remove(KEY_WEBHOOK_LOGS).apply()
-        } else {
-            val currentLogs = getWebhookLogs().toMutableList()
-            val filteredLogs = currentLogs.filter { it.logType != filterType.name }
-            val logsJson = Json.encodeToString(filteredLogs)
-            prefs.edit().putString(KEY_WEBHOOK_LOGS, logsJson).apply()
-        }
+        logStore.clear(filterType)
+    }
+
+    /** Whether raw payloads are kept in full; off by default, they are raw health data. */
+    fun keepFullPayloads(): Boolean = prefs.getBoolean(KEY_KEEP_FULL_PAYLOADS, false)
+
+    fun setKeepFullPayloads(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_KEEP_FULL_PAYLOADS, enabled).apply()
     }
 }
