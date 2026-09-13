@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Gedeeld / algemeen -->
+    <string name="common_add">Toevoegen</string>
+    <string name="common_back">Terug</string>
+    <string name="common_cancel">Annuleren</string>
+    <string name="common_close">Sluiten</string>
+    <string name="common_collapse">Inklappen</string>
+    <string name="common_csv">CSV</string>
+    <string name="common_expand">Uitklappen</string>
+    <string name="common_grant">Toestaan</string>
+    <string name="common_json">JSON</string>
+    <string name="common_never">nooit</string>
+    <string name="common_none_configured">Niets ingesteld</string>
+    <string name="common_permissions_required">Rechten vereist</string>
+    <string name="common_remove">Verwijderen</string>
+    <string name="common_saved">Opgeslagen!</string>
+
+    <!-- Gedeelde webhook- en synchronisatie-instellingen, gebruikt door Health Connect en Schermtijd -->
+    <string name="webhook_add_a_url">Voeg een webhook-URL toe</string>
+    <string name="webhook_allow_plain_http">Sta webhooks via plain HTTP toe</string>
+    <string name="webhook_allow_plain_http_description">Alleen voor endpoints op een privé-LAN of VPN; HTTPS blijft de standaard. Geldt voor Health Connect en Schermtijd</string>
+    <string name="webhook_enter_header_name_and_value">Vul een headernaam en waarde in</string>
+    <string name="webhook_enter_valid_url">Vul een geldige URL in</string>
+    <string name="webhook_header_name">Headernaam</string>
+    <string name="webhook_header_value">Headerwaarde</string>
+    <string name="webhook_headers_title">Webhook-headers</string>
+    <string name="webhook_hmac_secret_description">Als dit is ingesteld, krijgt elke POST een X-Signature header (sha256=&lt;hex&gt;) die als HMAC-SHA256 over de body wordt berekend, zodat je server de afzender kan verifiëren.</string>
+    <string name="webhook_hmac_secret_title">HMAC-ondertekeningssleutel (optioneel)</string>
+    <plurals name="webhook_headers_count">
+        <item quantity="one">%1$d header</item>
+        <item quantity="other">%1$d headers</item>
+    </plurals>
+    <string name="webhook_min_interval">Minimaal 15 minuten</string>
+    <string name="webhook_shared_secret">Gedeeld geheim</string>
+    <plurals name="webhook_status_syncing">
+        <item quantity="one">Synchroniseert elke %1$smin naar %2$d webhook</item>
+        <item quantity="other">Synchroniseert elke %1$smin naar %2$d webhooks</item>
+    </plurals>
+    <string name="webhook_url_placeholder">https://...</string>
+    <string name="webhook_urls_configured">%1$d ingesteld</string>
+    <string name="webhook_urls_title">Webhook-URL\'s</string>
+
+    <!-- Gedeelde synchronisatiesectie, gebruikt door Health Connect en Schermtijd -->
+    <string name="sync_advanced_https_only">Alleen HTTPS</string>
+    <string name="sync_advanced_plain_http_allowed">Plain HTTP toegestaan</string>
+    <string name="sync_advanced_title">Geavanceerd</string>
+    <string name="sync_data_preview_title">Voorbeeld van data</string>
+    <string name="sync_export_data">Data exporteren</string>
+    <string name="sync_export_failed">Export mislukt</string>
+    <string name="sync_export_failed_with_reason">Export mislukt: %1$s</string>
+    <string name="sync_failed_with_reason">Mislukt: %1$s</string>
+    <string name="sync_failed_prefix">Mislukt</string>
+    <string name="sync_interval_placeholder">60</string>
+    <string name="sync_interval_subtitle">Minuten tussen synchronisaties</string>
+    <string name="sync_interval_title">Synchronisatie-interval</string>
+    <string name="sync_loading">Laden...</string>
+    <string name="sync_manual_subtitle">Nu synchroniseren</string>
+    <string name="sync_manual_title">Handmatige synchronisatie</string>
+    <string name="sync_no_new_data">Geen nieuwe data</string>
+    <string name="sync_now">Nu synchroniseren</string>
+    <string name="sync_preview_data">Voorbeeld bekijken</string>
+    <string name="sync_preview_failed">Voorbeeld mislukt</string>
+    <string name="sync_preview_failed_with_reason">Voorbeeld mislukt: %1$s</string>
+    <string name="sync_preview_payload_description">Dit is de JSON-payload die wordt verstuurd:</string>
+    <string name="sync_save_changes">Wijzigingen opslaan</string>
+    <string name="sync_syncing">Synchroniseren...</string>
+
+    <!-- Health Connect-scherm -->
+    <string name="health_backfill_dialog_description">Verstuurt historische data van alle ingeschakelde types naar je webhooks in blokken van 3 dagen, oudste eerst. Gewone synchronisatie gaat gewoon door; overlappende records worden ontdubbeld op hun uuid. Dit kan even duren en mobiele data verbruiken.</string>
+    <string name="health_backfill_days">%1$dd</string>
+    <plurals name="health_backfill_complete">
+        <item quantity="one">Backfill klaar: %1$d record verstuurd</item>
+        <item quantity="other">Backfill klaar: %1$d records verstuurd</item>
+    </plurals>
+    <string name="health_backfill_grant_history">Toegang tot geschiedenis geven</string>
+    <string name="health_backfill_history">Geschiedenis backfillen</string>
+    <string name="health_backfill_history_permission_warning">Health Connect leest alleen de laatste 30 dagen totdat je toegang tot de geschiedenis geeft.</string>
+    <string name="health_backfill_progress">Backfillen %1$d/%2$d...</string>
+    <string name="health_backfill_title">Geschiedenis backfillen</string>
+    <string name="health_connect_not_available">Health Connect is niet beschikbaar</string>
+    <string name="health_connect_not_available_short">Health Connect niet beschikbaar</string>
+    <string name="health_connect_not_installed">Health Connect is niet geïnstalleerd</string>
+    <string name="health_connect_needs_update">Health Connect moet worden bijgewerkt</string>
+    <string name="health_could_not_open">Kon Health Connect niet openen</string>
+    <plurals name="health_data_types_selected">
+        <item quantity="one">%1$d datatype geselecteerd</item>
+        <item quantity="other">%1$d datatypes geselecteerd</item>
+    </plurals>
+    <string name="health_data_types_selected_of">%1$d van %2$d geselecteerd</string>
+    <string name="health_data_types_title">Datatypes</string>
+    <string name="health_daily_totals">Dagtotalen</string>
+    <string name="health_daily_totals_description">Ontdubbelde totalen per dag (stappen, afstand, calorieën) via de aggregate-API; voegt data van telefoon en horloge samen</string>
+    <string name="health_daily_totals_title">Dagtotalen in payload</string>
+    <string name="health_error_with_reason">Fout: %1$s</string>
+    <string name="health_export_dialog_description">Exporteer de huidige gezondheidsdata als JSON of CSV.</string>
+    <string name="health_install">Installeren</string>
+    <string name="health_no_daily_totals">Geen dagtotalen</string>
+    <string name="health_notifications_after_failures">Na opeenvolgende mislukkingen</string>
+    <string name="health_notifications_notify_after_failed">Melden na mislukte synchronisaties</string>
+    <string name="health_notifications_off">Uit</string>
+    <plurals name="health_notifications_on">
+        <item quantity="one">Aan, na %1$d mislukte synchronisatie</item>
+        <item quantity="other">Aan, na %1$d mislukte synchronisaties</item>
+    </plurals>
+    <string name="health_notifications_title">Meldingen</string>
+    <string name="health_open_app">App openen</string>
+    <string name="health_permission_needed">Geef toestemming om %1$s te synchroniseren.</string>
+    <string name="health_permission_required_title">Toestemming vereist</string>
+    <string name="health_mqtt_description">Publiceert de laatste waarde van elk gesynchroniseerd datatype naar je MQTT-broker met Home Assistant Discovery: sensors verschijnen automatisch in Home Assistant, zonder installatie aan de serverkant.</string>
+    <plurals name="health_synced_records">
+        <item quantity="one">%1$d record gesynchroniseerd</item>
+        <item quantity="other">%1$d records gesynchroniseerd</item>
+    </plurals>
+    <plurals name="health_queued_records">
+        <item quantity="one">Server onbereikbaar - %1$d record in wachtrij voor nieuwe poging</item>
+        <item quantity="other">Server onbereikbaar - %1$d records in wachtrij voor nieuwe poging</item>
+    </plurals>
+    <string name="health_test_ping">Testping versturen</string>
+    <string name="health_test_ping_delivered">Testping afgeleverd</string>
+    <string name="health_test_ping_failed">Testping mislukt, bekijk de logs</string>
+    <string name="health_test_ping_failed_with_reason">Testping mislukt: %1$s</string>
+    <string name="health_test_pinging">Pingen...</string>
+    <string name="health_update">Bijwerken</string>
+
+    <!-- Dashboardkaarten op de Health Connect- en Schermtijd-schermen -->
+    <string name="dashboard_last_sync">Laatste synchronisatie</string>
+    <string name="dashboard_lifetime">Totaal</string>
+    <string name="dashboard_min">min</string>
+    <string name="dashboard_minutes_unit">%1$d min</string>
+    <string name="dashboard_minutes_per_day_last_days">Minuten per dag, laatste %1$d dagen</string>
+    <string name="dashboard_none">geen</string>
+    <string name="dashboard_records">records</string>
+    <string name="dashboard_steps_last_days">Stappen, laatste %1$d dagen</string>
+    <string name="dashboard_today">Vandaag</string>
+    <string name="dashboard_top_app">Topapp</string>
+
+    <!-- MQTT-instellingenkaart -->
+    <string name="mqtt_base_topic">Basistopic</string>
+    <string name="mqtt_broker_host">Brokerhost</string>
+    <string name="mqtt_broker_host_placeholder">Brokerhost, bijv. 192.168.1.10</string>
+    <string name="mqtt_broker_host_shared">Brokerhost (gedeeld)</string>
+    <string name="mqtt_disabled">Uitgeschakeld</string>
+    <string name="mqtt_enable_publishing">MQTT-publicatie inschakelen</string>
+    <string name="mqtt_enabled_no_broker">Ingeschakeld: geen broker ingesteld</string>
+    <string name="mqtt_enabled_own_broker">Ingeschakeld: %1$s (eigen broker)</string>
+    <string name="mqtt_enabled_shared_broker">Ingeschakeld: %1$s (gedeelde broker)</string>
+    <string name="mqtt_password">Wachtwoord (optioneel)</string>
+    <string name="mqtt_port">Poort</string>
+    <string name="mqtt_title">MQTT</string>
+    <string name="mqtt_tls">TLS</string>
+    <string name="mqtt_use_shared_broker">Gebruik de gedeelde broker</string>
+    <string name="mqtt_use_shared_broker_off">Deze sectie verbindt met een eigen broker; %1$s houdt de gedeelde</string>
+    <string name="mqtt_use_shared_broker_on">Eén verbinding voor Health Connect en Schermtijd; de velden hieronder passen hem voor beide aan</string>
+    <string name="mqtt_username">Gebruikersnaam (optioneel)</string>
+
+    <!-- Logsscherm -->
+    <string name="logs_clear">Wissen</string>
+    <string name="logs_clear_logs">Logs wissen</string>
+    <plurals name="logs_export_dialog_description">
+        <item quantity="one">Exporteer %1$d log als JSON of CSV via het deelmenu.</item>
+        <item quantity="other">Exporteer %1$d logs als JSON of CSV via het deelmenu.</item>
+    </plurals>
+    <string name="logs_export_logs">Logs exporteren</string>
+    <string name="logs_export_title">Logs exporteren</string>
+    <string name="logs_empty">Nog geen webhook-logs</string>
+    <string name="logs_error">Fout</string>
+    <string name="logs_failed_with_status">Mislukt - %1$s</string>
+    <string name="logs_failure_line">%1$s: %2$s</string>
+    <string name="logs_filter_all">Alles</string>
+    <string name="logs_filter_health">Gezondheid</string>
+    <string name="logs_filter_screen_time">Schermtijd</string>
+    <string name="logs_filter_unknown">Onbekend</string>
+    <string name="logs_keep_full_payloads">Volledige payloads bewaren</string>
+    <string name="logs_keep_full_payloads_off">Payloads worden ingekort om opslag klein te houden</string>
+    <string name="logs_keep_full_payloads_on">Hele payloads worden bewaard, begrensd door totale grootte</string>
+    <string name="logs_last_success">Laatst gelukt: %1$s</string>
+    <string name="logs_ok">OK</string>
+    <string name="logs_payload">Payload</string>
+    <string name="logs_raw_payload">Ruwe payload</string>
+    <string name="logs_record_count">%1$s: %2$d</string>
+    <string name="logs_recent_failures">Recente mislukkingen:</string>
+    <string name="logs_stat_records">Records</string>
+    <string name="logs_stat_success">Gelukt</string>
+    <string name="logs_stat_success_rate">%1$d%%</string>
+    <string name="logs_stat_total">Totaal</string>
+    <string name="logs_status_failure">✗ %1$s</string>
+    <string name="logs_status_success">✓ %1$s</string>
+    <string name="logs_success_with_status">Gelukt - %1$s</string>
+    <string name="logs_sync_overview">Synchronisatieoverzicht</string>
+    <string name="logs_type_ratio">%1$d / %2$d</string>
+    <string name="logs_unknown_error">Onbekende fout</string>
+    <string name="logs_unknown_status">?</string>
+
+    <!-- Hoofdactivity: bovenbalk en onderste navigatie -->
+    <string name="main_about">Over</string>
+    <string name="main_tab_health">Gezondheid</string>
+    <string name="main_tab_logs">Logs</string>
+    <string name="main_title_health_connect">Health Connect</string>
+    <string name="main_title_screen_time">Schermtijd</string>
+    <string name="main_title_webhook_logs">Webhook-logs</string>
+
+    <!-- Schermtijd-scherm -->
+    <plurals name="screentime_apps_queued">
+        <item quantity="one">Server onbereikbaar - %1$d app in wachtrij voor nieuwe poging</item>
+        <item quantity="other">Server onbereikbaar - %1$d apps in wachtrij voor nieuwe poging</item>
+    </plurals>
+    <plurals name="screentime_apps_synced">
+        <item quantity="one">%1$d app gesynchroniseerd</item>
+        <item quantity="other">%1$d apps gesynchroniseerd</item>
+    </plurals>
+    <string name="screentime_day_boundary_description">Activiteit voor dit uur telt mee bij de vorige dag</string>
+    <string name="screentime_day_boundary_disabled">Uitgeschakeld</string>
+    <string name="screentime_day_boundary_enable">Daggrens inschakelen</string>
+    <string name="screentime_day_boundary_enabled">Ingeschakeld · %1$s:00</string>
+    <string name="screentime_day_boundary_hour_label">Uur (0-23)</string>
+    <string name="screentime_day_boundary_hour_placeholder">4</string>
+    <string name="screentime_day_boundary_hour_invalid">Uur moet 0-23 zijn</string>
+    <string name="screentime_day_boundary_title">Daggrens</string>
+    <string name="screentime_export_dialog_description">Exporteer de huidige schermtijddata als JSON of CSV.</string>
+    <string name="screentime_header">Houd je app-gebruik bij</string>
+    <string name="screentime_mqtt_description">Publiceert de schermtijd van vandaag en gisteren en de meest gebruikte app van vandaag naar je MQTT-broker met Home Assistant Discovery, onder hetzelfde apparaat als Health Connect.</string>
+    <string name="screentime_permission_not_granted">Toestemming niet verleend</string>
+</resources>

@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Gemeinsam / allgemein -->
+    <string name="common_add">Hinzufügen</string>
+    <string name="common_back">Zurück</string>
+    <string name="common_cancel">Abbrechen</string>
+    <string name="common_close">Schließen</string>
+    <string name="common_collapse">Einklappen</string>
+    <string name="common_csv">CSV</string>
+    <string name="common_expand">Ausklappen</string>
+    <string name="common_grant">Erteilen</string>
+    <string name="common_json">JSON</string>
+    <string name="common_never">nie</string>
+    <string name="common_none_configured">Nichts konfiguriert</string>
+    <string name="common_permissions_required">Berechtigungen erforderlich</string>
+    <string name="common_remove">Entfernen</string>
+    <string name="common_saved">Gespeichert!</string>
+
+    <!-- Gemeinsame Webhook- und Synchronisierungseinstellungen, genutzt von Health Connect und Bildschirmzeit -->
+    <string name="webhook_add_a_url">Webhook-URL hinzufügen</string>
+    <string name="webhook_allow_plain_http">Unverschlüsselte HTTP-Webhooks erlauben</string>
+    <string name="webhook_allow_plain_http_description">Nur für Endpunkte im privaten LAN oder VPN; HTTPS bleibt der Standard. Gilt für Health Connect und Bildschirmzeit</string>
+    <string name="webhook_enter_header_name_and_value">Header-Name und -Wert eingeben</string>
+    <string name="webhook_enter_valid_url">Gib eine gültige URL ein</string>
+    <string name="webhook_header_name">Header-Name</string>
+    <string name="webhook_header_value">Header-Wert</string>
+    <string name="webhook_headers_title">Webhook-Header</string>
+    <string name="webhook_hmac_secret_description">Wenn gesetzt, bekommt jeder POST einen X-Signature-Header (sha256=&lt;hex&gt;), berechnet als HMAC-SHA256 über den Body, damit dein Server den Absender prüfen kann.</string>
+    <string name="webhook_hmac_secret_title">HMAC-Signaturschlüssel (optional)</string>
+    <plurals name="webhook_headers_count">
+        <item quantity="one">%1$d Header</item>
+        <item quantity="other">%1$d Header</item>
+    </plurals>
+    <string name="webhook_min_interval">Mindestens 15 Minuten</string>
+    <string name="webhook_shared_secret">Gemeinsamer Schlüssel</string>
+    <plurals name="webhook_status_syncing">
+        <item quantity="one">Synchronisiert alle %1$s Min. zu %2$d Webhook</item>
+        <item quantity="other">Synchronisiert alle %1$s Min. zu %2$d Webhooks</item>
+    </plurals>
+    <string name="webhook_url_placeholder">https://...</string>
+    <string name="webhook_urls_configured">%1$d konfiguriert</string>
+    <string name="webhook_urls_title">Webhook-URLs</string>
+
+    <!-- Gemeinsamer Synchronisierungsbereich, genutzt von Health Connect und Bildschirmzeit -->
+    <string name="sync_advanced_https_only">Nur HTTPS</string>
+    <string name="sync_advanced_plain_http_allowed">Unverschlüsseltes HTTP erlaubt</string>
+    <string name="sync_advanced_title">Erweitert</string>
+    <string name="sync_data_preview_title">Datenvorschau</string>
+    <string name="sync_export_data">Daten exportieren</string>
+    <string name="sync_export_failed">Export fehlgeschlagen</string>
+    <string name="sync_export_failed_with_reason">Export fehlgeschlagen: %1$s</string>
+    <string name="sync_failed_with_reason">Fehlgeschlagen: %1$s</string>
+    <string name="sync_failed_prefix">Fehlgeschlagen</string>
+    <string name="sync_interval_placeholder">60</string>
+    <string name="sync_interval_subtitle">Minuten zwischen den Synchronisierungen</string>
+    <string name="sync_interval_title">Synchronisierungsintervall</string>
+    <string name="sync_loading">Wird geladen...</string>
+    <string name="sync_manual_subtitle">Jetzt synchronisieren</string>
+    <string name="sync_manual_title">Manuelle Synchronisierung</string>
+    <string name="sync_no_new_data">Keine neuen Daten</string>
+    <string name="sync_now">Jetzt synchronisieren</string>
+    <string name="sync_preview_data">Daten-Vorschau</string>
+    <string name="sync_preview_failed">Vorschau fehlgeschlagen</string>
+    <string name="sync_preview_failed_with_reason">Vorschau fehlgeschlagen: %1$s</string>
+    <string name="sync_preview_payload_description">Das ist der JSON-Payload, der gesendet wird:</string>
+    <string name="sync_save_changes">Änderungen speichern</string>
+    <string name="sync_syncing">Wird synchronisiert...</string>
+
+    <!-- Health-Connect-Bildschirm -->
+    <string name="health_backfill_dialog_description">Sendet historische Daten aller aktivierten Typen in 3-Tage-Blöcken an deine Webhooks, älteste zuerst. Die reguläre Synchronisierung bleibt unberührt; überlappende Datensätze werden anhand ihrer uuid entdoppelt. Das kann eine Weile dauern und mobile Daten verbrauchen.</string>
+    <string name="health_backfill_days">%1$d T</string>
+    <plurals name="health_backfill_complete">
+        <item quantity="one">Nachtrag abgeschlossen: %1$d Datensatz gesendet</item>
+        <item quantity="other">Nachtrag abgeschlossen: %1$d Datensätze gesendet</item>
+    </plurals>
+    <string name="health_backfill_grant_history">Verlaufszugriff erteilen</string>
+    <string name="health_backfill_history">Verlauf nachtragen</string>
+    <string name="health_backfill_history_permission_warning">Health Connect liest nur die letzten 30 Tage, bis du den Verlaufszugriff erteilst.</string>
+    <string name="health_backfill_progress">Nachtragen %1$d/%2$d...</string>
+    <string name="health_backfill_title">Verlauf nachtragen</string>
+    <string name="health_connect_not_available">Health Connect ist nicht verfügbar</string>
+    <string name="health_connect_not_available_short">Health Connect nicht verfügbar</string>
+    <string name="health_connect_not_installed">Health Connect ist nicht installiert</string>
+    <string name="health_connect_needs_update">Health Connect muss aktualisiert werden</string>
+    <string name="health_could_not_open">Health Connect konnte nicht geöffnet werden</string>
+    <plurals name="health_data_types_selected">
+        <item quantity="one">%1$d Datentyp ausgewählt</item>
+        <item quantity="other">%1$d Datentypen ausgewählt</item>
+    </plurals>
+    <string name="health_data_types_selected_of">%1$d von %2$d ausgewählt</string>
+    <string name="health_data_types_title">Datentypen</string>
+    <string name="health_daily_totals">Tagessummen</string>
+    <string name="health_daily_totals_description">Entdoppelte Tagessummen (Schritte, Distanz, Kalorien) über die Aggregat-API; führt Handy- und Uhrdaten zusammen</string>
+    <string name="health_daily_totals_title">Tagessummen im Payload</string>
+    <string name="health_error_with_reason">Fehler: %1$s</string>
+    <string name="health_export_dialog_description">Aktuelle Gesundheitsdaten als JSON oder CSV exportieren.</string>
+    <string name="health_install">Installieren</string>
+    <string name="health_no_daily_totals">Keine Tagessummen</string>
+    <string name="health_notifications_after_failures">Nach aufeinanderfolgenden Fehlern</string>
+    <string name="health_notifications_notify_after_failed">Bei fehlgeschlagenen Synchronisierungen benachrichtigen</string>
+    <string name="health_notifications_off">Aus</string>
+    <plurals name="health_notifications_on">
+        <item quantity="one">An, nach %1$d fehlgeschlagenen Synchronisierung</item>
+        <item quantity="other">An, nach %1$d fehlgeschlagenen Synchronisierungen</item>
+    </plurals>
+    <string name="health_notifications_title">Benachrichtigungen</string>
+    <string name="health_open_app">App öffnen</string>
+    <string name="health_permission_needed">Erteile die Berechtigung, um %1$s zu synchronisieren.</string>
+    <string name="health_permission_required_title">Berechtigung erforderlich</string>
+    <string name="health_mqtt_description">Veröffentlicht den letzten Wert jedes synchronisierten Datentyps über Home Assistant Discovery auf deinem MQTT-Broker: Sensoren erscheinen automatisch in Home Assistant, ohne Einrichtung auf dem Server.</string>
+    <plurals name="health_synced_records">
+        <item quantity="one">%1$d Datensatz synchronisiert</item>
+        <item quantity="other">%1$d Datensätze synchronisiert</item>
+    </plurals>
+    <plurals name="health_queued_records">
+        <item quantity="one">Server nicht erreichbar - %1$d Datensatz für einen erneuten Versuch eingereiht</item>
+        <item quantity="other">Server nicht erreichbar - %1$d Datensätze für einen erneuten Versuch eingereiht</item>
+    </plurals>
+    <string name="health_test_ping">Test-Ping senden</string>
+    <string name="health_test_ping_delivered">Test-Ping zugestellt</string>
+    <string name="health_test_ping_failed">Test-Ping fehlgeschlagen, prüfe die Logs</string>
+    <string name="health_test_ping_failed_with_reason">Test-Ping fehlgeschlagen: %1$s</string>
+    <string name="health_test_pinging">Ping läuft...</string>
+    <string name="health_update">Aktualisieren</string>
+
+    <!-- Dashboard-Karten auf den Health-Connect- und Bildschirmzeit-Bildschirmen -->
+    <string name="dashboard_last_sync">Letzte Synchronisierung</string>
+    <string name="dashboard_lifetime">Gesamt</string>
+    <string name="dashboard_min">Min.</string>
+    <string name="dashboard_minutes_unit">%1$d Min.</string>
+    <string name="dashboard_minutes_per_day_last_days">Minuten pro Tag, letzte %1$d Tage</string>
+    <string name="dashboard_none">keine</string>
+    <string name="dashboard_records">Datensätze</string>
+    <string name="dashboard_steps_last_days">Schritte, letzte %1$d Tage</string>
+    <string name="dashboard_today">Heute</string>
+    <string name="dashboard_top_app">Top-App</string>
+
+    <!-- MQTT-Einstellungskarte -->
+    <string name="mqtt_base_topic">Basis-Topic</string>
+    <string name="mqtt_broker_host">Broker-Host</string>
+    <string name="mqtt_broker_host_placeholder">Broker-Host, z. B. 192.168.1.10</string>
+    <string name="mqtt_broker_host_shared">Broker-Host (gemeinsam)</string>
+    <string name="mqtt_disabled">Deaktiviert</string>
+    <string name="mqtt_enable_publishing">MQTT-Veröffentlichung aktivieren</string>
+    <string name="mqtt_enabled_no_broker">Aktiviert: kein Broker gesetzt</string>
+    <string name="mqtt_enabled_own_broker">Aktiviert: %1$s (eigener Broker)</string>
+    <string name="mqtt_enabled_shared_broker">Aktiviert: %1$s (gemeinsamer Broker)</string>
+    <string name="mqtt_password">Passwort (optional)</string>
+    <string name="mqtt_port">Port</string>
+    <string name="mqtt_title">MQTT</string>
+    <string name="mqtt_tls">TLS</string>
+    <string name="mqtt_use_shared_broker">Gemeinsamen Broker verwenden</string>
+    <string name="mqtt_use_shared_broker_off">Dieser Bereich verbindet sich mit einem eigenen Broker; %1$s behält den gemeinsamen</string>
+    <string name="mqtt_use_shared_broker_on">Eine Verbindung für Health Connect und Bildschirmzeit; die Felder unten ändern sie für beide</string>
+    <string name="mqtt_username">Benutzername (optional)</string>
+
+    <!-- Log-Bildschirm -->
+    <string name="logs_clear">Leeren</string>
+    <string name="logs_clear_logs">Logs leeren</string>
+    <plurals name="logs_export_dialog_description">
+        <item quantity="one">%1$d Log als JSON oder CSV über das Teilen-Menü exportieren.</item>
+        <item quantity="other">%1$d Logs als JSON oder CSV über das Teilen-Menü exportieren.</item>
+    </plurals>
+    <string name="logs_export_logs">Logs exportieren</string>
+    <string name="logs_export_title">Logs exportieren</string>
+    <string name="logs_empty">Noch keine Webhook-Logs</string>
+    <string name="logs_error">Fehler</string>
+    <string name="logs_failed_with_status">Fehlgeschlagen - %1$s</string>
+    <string name="logs_failure_line">%1$s: %2$s</string>
+    <string name="logs_filter_all">Alle</string>
+    <string name="logs_filter_health">Gesundheit</string>
+    <string name="logs_filter_screen_time">Bildschirmzeit</string>
+    <string name="logs_filter_unknown">Unbekannt</string>
+    <string name="logs_keep_full_payloads">Vollständige Payloads behalten</string>
+    <string name="logs_keep_full_payloads_off">Payloads werden gekürzt, um Speicher zu sparen</string>
+    <string name="logs_keep_full_payloads_on">Vollständige Payloads werden gespeichert, begrenzt durch die Gesamtgröße</string>
+    <string name="logs_last_success">Letzter Erfolg: %1$s</string>
+    <string name="logs_ok">OK</string>
+    <string name="logs_payload">Payload</string>
+    <string name="logs_raw_payload">Roher Payload</string>
+    <string name="logs_record_count">%1$s: %2$d</string>
+    <string name="logs_recent_failures">Letzte Fehler:</string>
+    <string name="logs_stat_records">Datensätze</string>
+    <string name="logs_stat_success">Erfolgreich</string>
+    <string name="logs_stat_success_rate">%1$d%%</string>
+    <string name="logs_stat_total">Gesamt</string>
+    <string name="logs_status_failure">✗ %1$s</string>
+    <string name="logs_status_success">✓ %1$s</string>
+    <string name="logs_success_with_status">Erfolgreich - %1$s</string>
+    <string name="logs_sync_overview">Synchronisierungsübersicht</string>
+    <string name="logs_type_ratio">%1$d / %2$d</string>
+    <string name="logs_unknown_error">Unbekannter Fehler</string>
+    <string name="logs_unknown_status">?</string>
+
+    <!-- Hauptaktivität: obere Leiste und untere Navigation -->
+    <string name="main_about">Über</string>
+    <string name="main_tab_health">Gesundheit</string>
+    <string name="main_tab_logs">Logs</string>
+    <string name="main_title_health_connect">Health Connect</string>
+    <string name="main_title_screen_time">Bildschirmzeit</string>
+    <string name="main_title_webhook_logs">Webhook-Logs</string>
+
+    <!-- Bildschirmzeit-Bildschirm -->
+    <plurals name="screentime_apps_queued">
+        <item quantity="one">Server nicht erreichbar - %1$d App für einen erneuten Versuch eingereiht</item>
+        <item quantity="other">Server nicht erreichbar - %1$d Apps für einen erneuten Versuch eingereiht</item>
+    </plurals>
+    <plurals name="screentime_apps_synced">
+        <item quantity="one">%1$d App synchronisiert</item>
+        <item quantity="other">%1$d Apps synchronisiert</item>
+    </plurals>
+    <string name="screentime_day_boundary_description">Aktivität vor dieser Stunde zählt zum Vortag</string>
+    <string name="screentime_day_boundary_disabled">Deaktiviert</string>
+    <string name="screentime_day_boundary_enable">Tagesgrenze aktivieren</string>
+    <string name="screentime_day_boundary_enabled">Aktiviert · %1$s:00</string>
+    <string name="screentime_day_boundary_hour_label">Stunde (0-23)</string>
+    <string name="screentime_day_boundary_hour_placeholder">4</string>
+    <string name="screentime_day_boundary_hour_invalid">Die Stunde muss zwischen 0 und 23 liegen</string>
+    <string name="screentime_day_boundary_title">Tagesgrenze</string>
+    <string name="screentime_export_dialog_description">Aktuelle Bildschirmzeit-Daten als JSON oder CSV exportieren.</string>
+    <string name="screentime_header">Verfolge deine App-Nutzung</string>
+    <string name="screentime_mqtt_description">Veröffentlicht die Bildschirmzeit von heute und gestern sowie die heute meistgenutzte App über Home Assistant Discovery auf deinem MQTT-Broker, unter demselben Gerät wie Health Connect.</string>
+    <string name="screentime_permission_not_granted">Berechtigung nicht erteilt</string>
+</resources>

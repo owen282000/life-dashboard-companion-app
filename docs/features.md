@@ -70,6 +70,7 @@ Delivery details, retry rules and signature verification are described in [webho
 - **Webhook logs** - recent sync attempts with payloads, for debugging
 - **Health Connect install check** - clear guidance when Health Connect is missing or outdated
 - **Modern UI** - Material 3 design with dark mode support
+- **Languages** - English, Dutch and German, following the system language
 
 ## Tech stack
 

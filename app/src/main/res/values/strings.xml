@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Life Dashboard</string>
+    <!-- Proper noun: the app name is identical in every locale, so it is never translated. -->
+    <string name="app_name" translatable="false">Life Dashboard</string>
 
     <!-- Shared / common -->
     <string name="common_add">Add</string>

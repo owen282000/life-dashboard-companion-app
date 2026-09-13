@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Changed
 
+- Dutch and German translations of the whole interface. Android picks them up from the system language; other locales fall back to English, and translations for more are welcome as a pull request
 - Every user-facing string on the Health Connect, Screen Time, Logs and MQTT screens now lives in `strings.xml`, so the app can be translated. Counts use plurals rather than a hardcoded "(s)", and sentences are built with format arguments instead of concatenation. MQTT sensor names stay English on purpose: they are published to Home Assistant. A CI check fails the build on new hardcoded UI text, since Android's own lint only inspects XML layouts and cannot see Compose
 
 ### Security
