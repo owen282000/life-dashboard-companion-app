@@ -2,13 +2,6 @@
   <img src="docs/social-preview.png" alt="Life Dashboard Companion - your health data, your server, no cloud" width="100%">
 </p>
 
-<h1 align="center">Life Dashboard Companion</h1>
-
-<p align="center">
-  A privacy-focused Android app that syncs your <b>Health Connect</b> and <b>Screen Time</b> data to your own server via webhooks or MQTT.<br>
-  Built for self-hosted dashboards, Home Assistant, and any quantified self setup.
-</p>
-
 <p align="center">
   <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK" alt="Download APK"></a>
   <a href="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml"><img src="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml/badge.svg" alt="Build"></a>
@@ -65,7 +58,12 @@ No backend yet? [life-dashboard-stack](https://github.com/owen282000/life-dashbo
   "app_version": "1.2.0",
   "source": "health_connect",
   "steps": [
-    { "count": 1234, "start_time": "2025-02-05T08:00:00Z", "end_time": "2025-02-05T09:00:00Z", "source": "com.zepp.app" }
+    {
+      "count": 1234,
+      "start_time": "2025-02-05T08:00:00Z",
+      "end_time": "2025-02-05T09:00:00Z",
+      "source": "com.zepp.app"
+    }
   ],
   "daily_totals": [
     { "date": "2025-02-05", "steps": 8421, "distance_meters": 6210.4 }
