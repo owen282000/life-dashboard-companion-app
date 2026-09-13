@@ -49,8 +49,10 @@ class ScreenTimeSyncManager(private val context: Context) {
             PendingDrainer.drain(context)
 
             val webhookUrls = preferencesManager.getScreenTimeWebhookUrls()
+            val mqttSettings = preferencesManager.resolvedMqttSettings(MqttSection.SCREEN_TIME)
+            val publishToMqtt = mqttSettings.enabled && mqttSettings.host.isNotBlank()
 
-            if (webhookUrls.isEmpty()) {
+            if (webhookUrls.isEmpty() && !publishToMqtt) {
                 return@withContext Result.failure(Exception("No webhook URLs configured"))
             }
 
@@ -76,6 +78,20 @@ class ScreenTimeSyncManager(private val context: Context) {
 
             // Calculate total apps synced
             val totalApps = screenTimeDataList.sumOf { it.apps.size }
+
+            // Same broker and Home Assistant device as Health Connect (issue #52). Failures
+            // never block the webhook delivery; the outcome shows in the MQTT settings section.
+            if (publishToMqtt) {
+                MqttPublisher(context).publishScreenTime(screenTimeDataList)
+            }
+
+            // MQTT-only setup: nothing to post, nothing to queue.
+            if (webhookUrls.isEmpty()) {
+                SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, true)
+                SyncStatusStore.record(context, true, totalApps)
+                preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis())
+                return@withContext Result.success(ScreenTimeSyncResult.Success(totalApps, screenTimeDataList.size))
+            }
 
             val webhookManager = WebhookManager(
                 webhookUrls = webhookUrls,

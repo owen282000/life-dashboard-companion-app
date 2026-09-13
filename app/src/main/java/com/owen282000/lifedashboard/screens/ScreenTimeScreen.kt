@@ -55,6 +55,21 @@ fun ScreenTimeScreen() {
     var newHeaderValue by remember { mutableStateOf("") }
     var isHeadersExpanded by remember { mutableStateOf(false) }
     var newUrl by remember { mutableStateOf("") }
+    var allowHttpWebhooks by remember { mutableStateOf(preferencesManager.allowHttpWebhooks()) }
+    var initialMqttSection by remember { mutableStateOf(preferencesManager.getMqttSection(MqttSection.SCREEN_TIME)) }
+    var initialSharedBroker by remember { mutableStateOf(preferencesManager.getSharedMqttBroker()) }
+    var mqttSection by remember { mutableStateOf(initialMqttSection) }
+    var sharedBroker by remember { mutableStateOf(initialSharedBroker) }
+    var mqttPortText by remember { mutableStateOf((if (initialMqttSection.useSharedBroker) initialSharedBroker.port else initialMqttSection.ownBroker.port).toString()) }
+    var isMqttExpanded by remember { mutableStateOf(false) }
+
+    // Port lives in its own text field; fold it into whichever broker is active before comparing or saving.
+    fun mqttWithPort(): Pair<MqttSectionSettings, MqttBroker> {
+        val port = mqttPortText.toIntOrNull()
+        return if (mqttSection.useSharedBroker) mqttSection to sharedBroker.copy(port = port ?: sharedBroker.port)
+        else mqttSection.copy(ownBroker = mqttSection.ownBroker.copy(port = port ?: mqttSection.ownBroker.port)) to sharedBroker
+    }
+    var isAdvancedExpanded by remember { mutableStateOf(false) }
     var isSyncing by remember { mutableStateOf(false) }
     var isPreviewing by remember { mutableStateOf(false) }
     var isExporting by remember { mutableStateOf(false) }
@@ -69,10 +84,10 @@ fun ScreenTimeScreen() {
         hasPermission = screenTimeManager.hasPermission()
     }
 
-    val hasChanges = remember(syncInterval, webhookUrls, dayBoundaryHour, useDayBoundary, webhookHeaders, webhookSecret, initialSyncInterval, initialWebhookUrls, initialDayBoundaryHour, initialUseDayBoundary, initialWebhookHeaders, initialWebhookSecret) {
+    val hasChanges = remember(syncInterval, webhookUrls, dayBoundaryHour, useDayBoundary, webhookHeaders, webhookSecret, mqttSection, sharedBroker, mqttPortText, initialSyncInterval, initialWebhookUrls, initialDayBoundaryHour, initialUseDayBoundary, initialWebhookHeaders, initialWebhookSecret, initialMqttSection, initialSharedBroker) {
         val currentInterval = syncInterval.toIntOrNull() ?: initialSyncInterval
         val currentBoundaryHour = dayBoundaryHour.toIntOrNull() ?: initialDayBoundaryHour
-        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || currentBoundaryHour != initialDayBoundaryHour || useDayBoundary != initialUseDayBoundary || webhookHeaders != initialWebhookHeaders || webhookSecret != initialWebhookSecret
+        currentInterval != initialSyncInterval || webhookUrls != initialWebhookUrls || currentBoundaryHour != initialDayBoundaryHour || useDayBoundary != initialUseDayBoundary || webhookHeaders != initialWebhookHeaders || webhookSecret != initialWebhookSecret || mqttWithPort() != (initialMqttSection to initialSharedBroker)
     }
 
     val scrollState = rememberScrollState()
@@ -154,6 +169,11 @@ fun ScreenTimeScreen() {
                         }
                     }
                 }
+            }
+
+            // At-a-glance stats, consistent with the Health Connect dashboard card
+            if (hasPermission) {
+                ScreenTimeDashboardCard(refreshKey = syncMessage)
             }
 
             // Day Boundary - collapsible settings
@@ -507,6 +527,52 @@ fun ScreenTimeScreen() {
             }
 
             // Manual Sync
+            // MQTT / Home Assistant Discovery (shared card with Health Connect)
+            MqttSectionCard(
+                description = "Publishes today's and yesterday's screen time and today's most used app to your MQTT broker with Home Assistant Discovery, under the same device as Health Connect.",
+                otherSection = "Health Connect",
+                accent = ScreenTimePrimary,
+                section = mqttSection,
+                onSectionChange = { mqttSection = it },
+                sharedBroker = sharedBroker,
+                onSharedBrokerChange = { sharedBroker = it },
+                portText = mqttPortText,
+                onPortTextChange = { mqttPortText = it },
+                lastStatus = preferencesManager.getLastMqttStatus(MqttSection.SCREEN_TIME),
+                expanded = isMqttExpanded,
+                onToggle = { isMqttExpanded = !isMqttExpanded }
+            )
+
+            // Advanced - collapsible
+            CollapsibleCard(
+                title = "Advanced",
+                subtitle = if (allowHttpWebhooks) "Plain HTTP allowed" else "HTTPS only",
+                expanded = isAdvancedExpanded,
+                onToggle = { isAdvancedExpanded = !isAdvancedExpanded }
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Allow plain HTTP webhooks", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            "Only for endpoints on a private LAN or VPN; HTTPS stays the default. Applies to Health Connect and Screen Time",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = allowHttpWebhooks,
+                        onCheckedChange = {
+                            allowHttpWebhooks = it
+                            preferencesManager.setAllowHttpWebhooks(it)
+                        }
+                    )
+                }
+            }
+
             SectionCard(
                 title = "Manual Sync",
                 subtitle = "Sync now"
@@ -687,6 +753,11 @@ fun ScreenTimeScreen() {
                             preferencesManager.setUseScreenTimeDayBoundary(useDayBoundary)
                             preferencesManager.setScreenTimeWebhookHeaders(webhookHeaders)
                             preferencesManager.setScreenTimeWebhookSecret(webhookSecret.trim())
+                            val (savedMqttSection, savedSharedBroker) = mqttWithPort()
+                            mqttSection = savedMqttSection
+                            sharedBroker = savedSharedBroker
+                            preferencesManager.setMqttSection(MqttSection.SCREEN_TIME, savedMqttSection)
+                            preferencesManager.setSharedMqttBroker(savedSharedBroker)
                             (context.applicationContext as? LifeDashboardApplication)?.scheduleScreenTimeSyncWork()
 
                             initialSyncInterval = interval
@@ -695,6 +766,8 @@ fun ScreenTimeScreen() {
                             initialUseDayBoundary = useDayBoundary
                             initialWebhookHeaders = webhookHeaders
                             initialWebhookSecret = webhookSecret
+                            initialMqttSection = mqttSection
+                            initialSharedBroker = sharedBroker
                             Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
                         }
                     },

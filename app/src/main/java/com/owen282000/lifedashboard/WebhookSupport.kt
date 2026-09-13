@@ -29,4 +29,17 @@ object WebhookSupport {
         if (statusCode == null) return true
         return statusCode == 408 || statusCode == 429 || statusCode in 500..599
     }
+
+    const val CLEARTEXT_BLOCKED_MESSAGE =
+        "Plain HTTP is blocked. Enable \"Allow plain HTTP webhooks\" in the app for endpoints on a private LAN or VPN, or use HTTPS."
+
+    /**
+     * Why a URL must not be posted to, or null when it may. Cleartext is permitted at the
+     * platform level (see network_security_config.xml) so the decision lives here, where it
+     * is testable: http:// is only allowed after the user opted in (issue #51).
+     */
+    fun cleartextBlockReason(url: String, allowHttp: Boolean): String? {
+        val isHttp = url.trim().startsWith("http://", ignoreCase = true)
+        return if (isHttp && !allowHttp) CLEARTEXT_BLOCKED_MESSAGE else null
+    }
 }

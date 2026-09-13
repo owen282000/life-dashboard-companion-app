@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext is permitted at the platform level so a user can opt in to plain HTTP webhooks for
+  endpoints that are only reachable over a private LAN or VPN (issue #51). The app itself still
+  refuses http:// URLs unless "Allow plain HTTP webhooks" is enabled in its settings, so HTTPS
+  remains the default and the decision is visible and testable in WebhookSupport.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

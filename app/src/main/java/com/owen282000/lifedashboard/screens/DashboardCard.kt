@@ -19,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.owen282000.lifedashboard.*
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
+import com.owen282000.lifedashboard.ui.theme.ScreenTimePrimary
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
 
@@ -102,13 +105,93 @@ fun DashboardCard() {
     }
 }
 
+/**
+ * Screen time counterpart of [DashboardCard]: today's minutes, today's most used app, the last
+ * screen time sync, and a 7-day minutes sparkline. Reads the usage events off the main thread;
+ * [refreshKey] reloads after a manual sync.
+ */
+@Composable
+fun ScreenTimeDashboardCard(refreshKey: Any?) {
+    val context = LocalContext.current
+    val preferencesManager = remember { PreferencesManager(context) }
+    var days by remember { mutableStateOf<List<ScreenTimeData>>(emptyList()) }
+    var lastSyncMillis by remember { mutableStateOf<Long?>(null) }
+
+    LaunchedEffect(refreshKey) {
+        lastSyncMillis = preferencesManager.getScreenTimeLastSyncTimestamp()
+        days = withContext(Dispatchers.IO) {
+            ScreenTimeManager(context, preferencesManager).readScreenTimeData(lookbackDays = 7)
+                .getOrDefault(emptyList())
+        }
+    }
+
+    val today = days.maxByOrNull { it.date }
+    val topApp = today?.apps?.maxByOrNull { it.totalTimeMs }
+    val minutesPerDay = days.sortedBy { it.date }.map { it.totalScreenTimeMs / 60000 }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                StatTile("Today", "${(today?.totalScreenTimeMs ?: 0L) / 60000}", "min")
+                StatTile("Top app", topApp?.appName ?: "none", topApp?.let { "${it.totalTimeMs / 60000} min" } ?: "")
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("Last sync", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(if (lastSyncMillis != null) ScreenTimePrimary else MaterialTheme.colorScheme.outline)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            lastSyncMillis?.let {
+                                DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it))
+                            } ?: "never",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+
+            if (minutesPerDay.size >= 2) {
+                Column {
+                    Text(
+                        "Minutes per day, last ${minutesPerDay.size} days",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Sparkline(
+                        values = minutesPerDay,
+                        color = ScreenTimePrimary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(36.dp)
+                            .padding(top = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun StatTile(label: String, value: String, unit: String) {
     Column {
         Text(label, style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1)
             Spacer(modifier = Modifier.width(4.dp))
             Text(unit, style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -118,8 +201,7 @@ private fun StatTile(label: String, value: String, unit: String) {
 }
 
 @Composable
-private fun Sparkline(values: List<Long>, modifier: Modifier = Modifier) {
-    val color = HealthPrimary
+private fun Sparkline(values: List<Long>, modifier: Modifier = Modifier, color: androidx.compose.ui.graphics.Color = HealthPrimary) {
     Canvas(modifier = modifier) {
         val min = values.min()
         val max = values.max()

@@ -13,7 +13,9 @@ data class MqttSensor(
     val state: String,
     val unit: String? = null,
     val deviceClass: String? = null,
-    val attributes: Map<String, String> = emptyMap()
+    val attributes: Map<String, String> = emptyMap(),
+    /** Home Assistant state_class; null for text sensors, which must not declare one. */
+    val stateClass: String? = "measurement"
 )
 
 /**
@@ -150,6 +152,40 @@ object MqttSupport {
         return sensors
     }
 
+    /**
+     * Screen time sensors (issue #52): today's and yesterday's total minutes plus today's most
+     * used app. "Today" is the newest day in the list, which follows the configured day
+     * boundary. Per-app detail travels as attributes; the top app is a text sensor.
+     */
+    fun sensorsFromScreenTime(days: List<ScreenTimeData>): List<MqttSensor> {
+        val today = days.maxByOrNull { it.date } ?: return emptyList()
+        val yesterday = days.firstOrNull { it.date == today.date.minusDays(1) }
+
+        fun dayAttrs(day: ScreenTimeData): Map<String, String> = buildMap {
+            put("date", day.date.toString())
+            put("app_count", day.apps.size.toString())
+            put("top_apps", day.apps.sortedByDescending { it.totalTimeMs }.take(5)
+                .joinToString(", ") { "${it.appName} (${it.totalTimeMs / 60000} min)" })
+        }
+
+        val sensors = mutableListOf<MqttSensor>()
+        sensors += MqttSensor("screen_time_today", "Screen Time Today",
+            (today.totalScreenTimeMs / 60000).toString(), "min", "duration", dayAttrs(today))
+        yesterday?.let {
+            sensors += MqttSensor("screen_time_yesterday", "Screen Time Yesterday",
+                (it.totalScreenTimeMs / 60000).toString(), "min", "duration", dayAttrs(it))
+        }
+        today.apps.maxByOrNull { it.totalTimeMs }?.let {
+            sensors += MqttSensor("screen_time_top_app", "Screen Time Top App Today", it.appName,
+                null, null, mapOf(
+                    "package" to it.packageName,
+                    "minutes" to (it.totalTimeMs / 60000).toString(),
+                    "date" to today.date.toString()
+                ), stateClass = null)
+        }
+        return sensors
+    }
+
     /** Home Assistant MQTT Discovery config payload for a sensor (published retained). */
     fun discoveryConfigJson(sensor: MqttSensor, baseTopic: String, appVersion: String): String {
         return buildJsonObject {
@@ -159,7 +195,7 @@ object MqttSupport {
             put("json_attributes_topic", attributesTopic(baseTopic, sensor.key))
             sensor.unit?.let { put("unit_of_measurement", it) }
             sensor.deviceClass?.let { put("device_class", it) }
-            put("state_class", "measurement")
+            sensor.stateClass?.let { put("state_class", it) }
             putJsonObject("device") {
                 putJsonArray("identifiers") { add(kotlinx.serialization.json.JsonPrimitive(DEVICE_ID)) }
                 put("name", "Life Dashboard Companion")

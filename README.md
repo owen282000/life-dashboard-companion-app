@@ -57,6 +57,8 @@ Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/
 - **Retries with backoff** - Transient failures are retried automatically; permanent errors fail fast
 - **Separate configuration** - Different URLs, headers, and signing secrets for Health and Screen Time
 
+- **HTTPS by default, plain HTTP on request** - `http://` URLs are refused unless "Allow plain HTTP webhooks" is switched on, for Home Assistant or receivers only reachable over a private LAN or VPN
+
 ### Data Tools
 - **Data preview** - View the exact JSON payload before syncing
 - **Export as CSV/JSON** - Export sync logs via the Android share sheet
@@ -67,6 +69,7 @@ Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/
 - States and discovery configs are published retained, so values survive Home Assistant restarts
 - Optional TLS and username/password authentication; credentials are stored encrypted on-device
 - Event-like types (exercise, nutrition, cycle tracking) remain webhook-only; MQTT sensors represent the most recent record per type
+- Screen Time publishes too: today's and yesterday's total minutes and today's most used app (top five apps as attributes), under the same Home Assistant device. Health Connect and Screen Time each have their own switch and base topic and share one broker connection by default; either section can switch to its own broker
 
 ### Automation
 - **Home screen widget** - Last sync result and records delivered today at a glance
@@ -507,6 +510,10 @@ Many manufacturers (Samsung, Xiaomi, OnePlus, Huawei, and others) aggressively k
 3. Keep in mind Android enforces a minimum interval of 15 minutes for periodic background work, and may delay syncs further in Doze mode.
 
 The webhook logs screen shows when the last sync attempts actually ran, which helps confirm whether syncs are being suppressed.
+
+### "CLEARTEXT communication not permitted" or "Plain HTTP is blocked"
+
+Webhook URLs must use HTTPS unless you opt in. For a receiver that is only reachable over your LAN or a VPN and has no certificate, switch on **Allow plain HTTP webhooks** (in the Health Connect or Screen Time settings; it applies to both). Keep in mind that the payload, headers and signature then travel unencrypted on that network.
 
 ### Step, distance or calorie totals are far too high
 

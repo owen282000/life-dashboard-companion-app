@@ -1,6 +1,8 @@
 package com.owen282000.lifedashboard
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -45,5 +47,21 @@ class WebhookSupportTest {
         assertFalse(WebhookSupport.isRetryable(403))
         assertFalse(WebhookSupport.isRetryable(404))
         assertFalse(WebhookSupport.isRetryable(410))
+    }
+
+    // Plain HTTP opt-in (issue #51)
+
+    @Test
+    fun httpIsBlockedUnlessTheUserOptedIn() {
+        assertEquals(WebhookSupport.CLEARTEXT_BLOCKED_MESSAGE,
+            WebhookSupport.cleartextBlockReason("http://homeassistant.local:8123/api/webhook/x", allowHttp = false))
+        assertNotNull(WebhookSupport.cleartextBlockReason("HTTP://192.168.1.10/hook", allowHttp = false))
+        assertNull(WebhookSupport.cleartextBlockReason("http://192.168.1.10/hook", allowHttp = true))
+    }
+
+    @Test
+    fun httpsIsNeverBlocked() {
+        assertNull(WebhookSupport.cleartextBlockReason("https://example.com/hook", allowHttp = false))
+        assertNull(WebhookSupport.cleartextBlockReason("https://example.com/hook", allowHttp = true))
     }
 }

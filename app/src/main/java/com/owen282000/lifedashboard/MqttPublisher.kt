@@ -19,34 +19,73 @@ data class MqttSettings(
     val baseTopic: String
 )
 
+/** Connection details of one broker; username and password are stored encrypted. */
+data class MqttBroker(
+    val host: String,
+    val port: Int,
+    val useTls: Boolean,
+    val username: String?,
+    val password: String?
+)
+
+/**
+ * MQTT settings of one section (issue #52). Each section has its own switch and base topic and
+ * uses the shared broker connection by default; switching [useSharedBroker] off makes it
+ * connect to [ownBroker] instead. Either section can be set up first, the other joins later.
+ */
+data class MqttSectionSettings(
+    val enabled: Boolean,
+    val useSharedBroker: Boolean,
+    val ownBroker: MqttBroker,
+    val baseTopic: String
+)
+
+/** The two publishers, with their preference keys. HEALTH keeps the original key names. */
+enum class MqttSection(val prefix: String, val enabledKey: String, val baseTopicKey: String, val statusKey: String) {
+    HEALTH("health_mqtt_", "mqtt_enabled", "mqtt_base_topic", "mqtt_last_status"),
+    SCREEN_TIME("screentime_mqtt_", "screentime_mqtt_enabled", "screentime_mqtt_base_topic", "screentime_mqtt_last_status")
+}
+
 /**
  * Publishes the latest synced values to the user's MQTT broker with Home Assistant MQTT
  * Discovery, so sensors appear in Home Assistant automatically without any server-side setup.
  * Connect-publish-disconnect per sync; states and discovery configs are published retained so
  * Home Assistant keeps the last values across restarts. Failures never block the webhook sync;
- * the outcome is stored for display in the MQTT settings section.
+ * the outcome is stored for display in the MQTT settings section. Health Connect and screen
+ * time share the broker settings and the Home Assistant device (issue #52).
  */
 class MqttPublisher(private val context: Context) {
 
-    suspend fun publishHealthData(healthData: HealthData): Result<Int> = withContext(Dispatchers.IO) {
+    suspend fun publishHealthData(healthData: HealthData): Result<Int> =
+        publish(MqttSupport.sensorsFrom(healthData), MqttSection.HEALTH)
+
+    suspend fun publishScreenTime(days: List<ScreenTimeData>): Result<Int> =
+        publish(MqttSupport.sensorsFromScreenTime(days), MqttSection.SCREEN_TIME)
+
+    private suspend fun publish(sensors: List<MqttSensor>, section: MqttSection): Result<Int> {
         val preferencesManager = PreferencesManager(context)
-        val settings = preferencesManager.getMqttSettings()
+        return publish(sensors, preferencesManager.resolvedMqttSettings(section)) {
+            preferencesManager.setLastMqttStatus(section, it)
+        }
+    }
+
+    private suspend fun publish(
+        sensors: List<MqttSensor>,
+        settings: MqttSettings,
+        setStatus: (String) -> Unit
+    ): Result<Int> = withContext(Dispatchers.IO) {
         if (!settings.enabled || settings.host.isBlank()) {
             return@withContext Result.success(0)
         }
+        if (sensors.isEmpty()) return@withContext Result.success(0)
 
         try {
-            val sensors = MqttSupport.sensorsFrom(healthData)
-            if (sensors.isEmpty()) return@withContext Result.success(0)
-
             val clientBuilder = MqttClient.builder()
                 .useMqttVersion3()
                 .identifier("lifedashboard-" + UUID.randomUUID().toString().take(8))
                 .serverHost(settings.host)
                 .serverPort(settings.port)
-            if (settings.useTls) {
-                clientBuilder.sslWithDefaultConfig()
-            }
+                .let { if (settings.useTls) it.sslWithDefaultConfig() else it }
             val client = clientBuilder.buildBlocking()
 
             val connect = client.connectWith().cleanSession(true)
@@ -81,10 +120,10 @@ class MqttPublisher(private val context: Context) {
             } finally {
                 client.disconnect()
             }
-            preferencesManager.setLastMqttStatus("OK: ${sensors.size} sensors published at ${Instant.now()}")
+            setStatus("OK: ${sensors.size} sensors published at ${Instant.now()}")
             Result.success(sensors.size)
         } catch (e: Exception) {
-            preferencesManager.setLastMqttStatus("Error: ${e.message ?: e.javaClass.simpleName}")
+            setStatus("Error: ${e.message ?: e.javaClass.simpleName}")
             Result.failure(e)
         }
     }

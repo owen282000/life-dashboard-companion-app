@@ -4,8 +4,15 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-09-13
+
 ### Added
 
+- Plain HTTP webhooks for private LAN/VPN receivers, behind an explicit "Allow plain HTTP webhooks" switch; `http://` URLs stay refused with a clear log message until it is on, and HTTPS remains the default (#51)
+- MQTT publishing for Screen Time: today's and yesterday's total minutes and today's most used app, with the top five apps as attributes, under the same Home Assistant device; screen time syncs also run with MQTT alone and no webhook configured (#52)
+- MQTT settings are now symmetric: Health Connect and Screen Time each have their own switch and base topic, share one broker connection by default (existing settings carry over), and either section can switch to its own broker
+- Collapsible "Advanced" and "Notifications" cards, with the daily totals and plain HTTP switches under Advanced
+- At-a-glance card at the top of the Screen Time tab: today's minutes, today's most used app, last sync, and a 7-day minutes sparkline, matching the Health Connect dashboard card
 - `raw_min_time`, `raw_max_time` and `raw_latest_modified_time` in `_diagnostics`, describing everything Health Connect returned before the incremental filter, so a receiver can tell "the source app has not written it yet" from "the filter dropped it" (#53)
 - `docs/DATA_SOURCES.md`: what individual source apps (Fitbit, Cronometer, Health Sync, Zepp, Garmin) do and do not write, and how screen time is measured
 

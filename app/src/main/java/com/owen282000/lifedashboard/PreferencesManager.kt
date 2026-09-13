@@ -49,51 +49,81 @@ class PreferencesManager(context: Context) {
         }
     }
 
-    fun getMqttSettings(): MqttSettings = MqttSettings(
-        enabled = prefs.getBoolean(KEY_MQTT_ENABLED, false),
-        host = prefs.getString(KEY_MQTT_HOST, "") ?: "",
-        port = prefs.getInt(KEY_MQTT_PORT, 1883),
-        useTls = prefs.getBoolean(KEY_MQTT_TLS, false),
-        username = securePrefs.getString(KEY_MQTT_USERNAME, null)?.takeIf { it.isNotBlank() },
-        password = securePrefs.getString(KEY_MQTT_PASSWORD, null)?.takeIf { it.isNotBlank() },
-        baseTopic = prefs.getString(KEY_MQTT_BASE_TOPIC, MqttSupport.DEFAULT_BASE_TOPIC)
+    // ==================== MQTT ====================
+    // One shared broker connection (the original mqtt_* keys, so existing setups keep working)
+    // that both sections use by default; each section has its own switch, base topic and, when
+    // it opts out of the shared connection, its own broker (issue #52).
+
+    fun getSharedMqttBroker(): MqttBroker = readBroker(SHARED_MQTT_PREFIX)
+
+    fun setSharedMqttBroker(broker: MqttBroker) = writeBroker(SHARED_MQTT_PREFIX, broker)
+
+    fun getMqttSection(section: MqttSection): MqttSectionSettings = MqttSectionSettings(
+        enabled = prefs.getBoolean(section.enabledKey, false),
+        useSharedBroker = prefs.getBoolean(section.prefix + "use_shared", true),
+        ownBroker = readBroker(section.prefix),
+        baseTopic = prefs.getString(section.baseTopicKey, MqttSupport.DEFAULT_BASE_TOPIC)
             ?.takeIf { it.isNotBlank() } ?: MqttSupport.DEFAULT_BASE_TOPIC
     )
 
-    fun setMqttSettings(settings: MqttSettings) {
+    fun setMqttSection(section: MqttSection, settings: MqttSectionSettings) {
         prefs.edit()
-            .putBoolean(KEY_MQTT_ENABLED, settings.enabled)
-            .putString(KEY_MQTT_HOST, settings.host.trim())
-            .putInt(KEY_MQTT_PORT, settings.port)
-            .putBoolean(KEY_MQTT_TLS, settings.useTls)
-            .putString(KEY_MQTT_BASE_TOPIC, settings.baseTopic.trim())
+            .putBoolean(section.enabledKey, settings.enabled)
+            .putBoolean(section.prefix + "use_shared", settings.useSharedBroker)
+            .putString(section.baseTopicKey, settings.baseTopic.trim())
             .apply()
-        securePrefs.edit()
-            .putString(KEY_MQTT_USERNAME, settings.username ?: "")
-            .putString(KEY_MQTT_PASSWORD, settings.password ?: "")
-            .apply()
+        writeBroker(section.prefix, settings.ownBroker)
     }
 
-    fun getLastMqttStatus(): String? = prefs.getString(KEY_MQTT_LAST_STATUS, null)
+    /** What the publisher of [section] connects to: its own switch and topic plus the broker it uses. */
+    fun resolvedMqttSettings(section: MqttSection): MqttSettings {
+        val settings = getMqttSection(section)
+        val broker = if (settings.useSharedBroker) getSharedMqttBroker() else settings.ownBroker
+        return MqttSettings(
+            enabled = settings.enabled,
+            host = broker.host,
+            port = broker.port,
+            useTls = broker.useTls,
+            username = broker.username,
+            password = broker.password,
+            baseTopic = settings.baseTopic
+        )
+    }
 
-    fun setLastMqttStatus(status: String) {
-        prefs.edit().putString(KEY_MQTT_LAST_STATUS, status).apply()
+    fun getLastMqttStatus(section: MqttSection): String? = prefs.getString(section.statusKey, null)
+
+    fun setLastMqttStatus(section: MqttSection, status: String) {
+        prefs.edit().putString(section.statusKey, status).apply()
+    }
+
+    private fun readBroker(prefix: String): MqttBroker = MqttBroker(
+        host = prefs.getString(prefix + "host", "") ?: "",
+        port = prefs.getInt(prefix + "port", 1883),
+        useTls = prefs.getBoolean(prefix + "tls", false),
+        username = securePrefs.getString(prefix + "username", null)?.takeIf { it.isNotBlank() },
+        password = securePrefs.getString(prefix + "password", null)?.takeIf { it.isNotBlank() }
+    )
+
+    private fun writeBroker(prefix: String, broker: MqttBroker) {
+        prefs.edit()
+            .putString(prefix + "host", broker.host.trim())
+            .putInt(prefix + "port", broker.port)
+            .putBoolean(prefix + "tls", broker.useTls)
+            .apply()
+        securePrefs.edit()
+            .putString(prefix + "username", broker.username ?: "")
+            .putString(prefix + "password", broker.password ?: "")
+            .apply()
     }
 
     companion object {
         private const val PREFS_NAME = "life_dashboard_prefs"
         private const val SECURE_PREFS_NAME = "life_dashboard_secure_prefs"
 
-        // MQTT keys (username/password live in securePrefs)
         private const val KEY_INCLUDE_DAILY_TOTALS = "include_daily_totals"
-        private const val KEY_MQTT_ENABLED = "mqtt_enabled"
-        private const val KEY_MQTT_HOST = "mqtt_host"
-        private const val KEY_MQTT_PORT = "mqtt_port"
-        private const val KEY_MQTT_TLS = "mqtt_tls"
-        private const val KEY_MQTT_USERNAME = "mqtt_username"
-        private const val KEY_MQTT_PASSWORD = "mqtt_password"
-        private const val KEY_MQTT_BASE_TOPIC = "mqtt_base_topic"
-        private const val KEY_MQTT_LAST_STATUS = "mqtt_last_status"
+        private const val KEY_ALLOW_HTTP_WEBHOOKS = "allow_http_webhooks"
+        /** Shared MQTT broker keys: mqtt_host, mqtt_port, mqtt_tls, mqtt_username, mqtt_password (securePrefs). */
+        private const val SHARED_MQTT_PREFIX = "mqtt_"
 
         // Health Connect keys
         private const val KEY_HEALTH_LAST_SYNC_TS_PREFIX = "health_last_sync_ts_"
@@ -184,6 +214,16 @@ class PreferencesManager(context: Context) {
 
     /** Daily deduplicated totals in the payload (aggregate API merges phone + watch). */
     fun includeDailyTotals(): Boolean = prefs.getBoolean(KEY_INCLUDE_DAILY_TOTALS, true)
+
+    /**
+     * Plain http:// webhook URLs are refused unless the user opts in, for endpoints only
+     * reachable over a private LAN or VPN (issue #51). Applies to both webhook sections.
+     */
+    fun allowHttpWebhooks(): Boolean = prefs.getBoolean(KEY_ALLOW_HTTP_WEBHOOKS, false)
+
+    fun setAllowHttpWebhooks(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_ALLOW_HTTP_WEBHOOKS, enabled).apply()
+    }
 
     fun setIncludeDailyTotals(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_INCLUDE_DAILY_TOTALS, enabled).apply()

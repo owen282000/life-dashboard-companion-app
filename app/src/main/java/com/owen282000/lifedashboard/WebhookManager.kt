@@ -59,6 +59,13 @@ class WebhookManager(
     private suspend fun postToUrl(url: String, jsonPayload: String): Result<Unit> {
         val timestamp = System.currentTimeMillis()
 
+        // HTTPS by default; plain HTTP only after the user opted in for private networks.
+        val allowHttp = context?.let { PreferencesManager(it).allowHttpWebhooks() } ?: false
+        WebhookSupport.cleartextBlockReason(url, allowHttp)?.let { reason ->
+            logWebhookCall(url, timestamp, null, false, reason, jsonPayload)
+            return Result.failure(IOException(reason))
+        }
+
         return try {
             val requestBody = jsonPayload.toRequestBody(jsonMediaType)
             val requestBuilder = Request.Builder()
