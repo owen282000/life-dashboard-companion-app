@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file. The format is b
 
 - The launcher icon is now the brand's heartbeat mark on the dark ground from the banner, replacing the Android Studio template robot that had shipped since the first commit. The adaptive icon carries a monochrome layer for themed icons, and the legacy density PNGs are rendered from the same source
 - The README shows four screenshots instead of three, adding the MQTT and sync-actions view
+- The store description now leads with MQTT and Home Assistant Discovery, which it previously did not mention at all, and covers the outbox, settings backup, backfill and the three interface languages
 
 ## [1.12.0] - 2026-09-13
 
