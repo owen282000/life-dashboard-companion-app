@@ -39,6 +39,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Check for hardcoded UI strings
+        run: |
+          # Android's HardcodedText lint only inspects XML layouts, so it sees nothing in a
+          # Compose UI. This is the equivalent guard; it keeps new screens translatable.
+          chmod +x scripts/check-hardcoded-strings.sh
+          ./scripts/check-hardcoded-strings.sh
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
 

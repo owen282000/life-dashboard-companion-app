@@ -23,6 +23,7 @@ Thanks for your interest in improving Life Dashboard Companion!
   ```
 
 - **Payload compatibility matters.** The JSON payload format is shared with the [iOS companion app](https://github.com/owen282000/life-dashboard-companion-app-ios); both apps feed the same backends. Changes to payload keys or value formats need a very good reason and matching updates to [docs/webhook.md](docs/webhook.md) and [docs/webhook-schema.json](docs/webhook-schema.json).
+- **UI text belongs in `strings.xml`.** Use `stringResource(R.string.…)` and positional format arguments rather than concatenating sentences; `scripts/check-hardcoded-strings.sh` runs in CI and fails on hardcoded text. Translations are welcome as a new `values-<locale>/strings.xml`.
 - **Keep pure logic testable.** Sync logic that does not need Health Connect lives in small, dependency-free types (see `ResilientReadLogic`, `WebhookSupport`); follow that pattern so it stays unit-testable on the JVM.
 - **Commit messages** follow the conventional style used in the history: `feat:`, `fix:`, `docs:`, `ci:`, `build:`, `test:`, `chore:`.
 

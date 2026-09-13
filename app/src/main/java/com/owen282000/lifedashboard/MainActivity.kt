@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -91,9 +92,9 @@ class MainActivity : ComponentActivity() {
                     title = {
                         Text(
                             when (selectedTab) {
-                                AppTab.HealthConnect -> "Health Connect"
-                                AppTab.ScreenTime -> "Screen Time"
-                                AppTab.Logs -> "Webhook Logs"
+                                AppTab.HealthConnect -> stringResource(R.string.main_title_health_connect)
+                                AppTab.ScreenTime -> stringResource(R.string.main_title_screen_time)
+                                AppTab.Logs -> stringResource(R.string.main_title_webhook_logs)
                             },
                             fontWeight = FontWeight.SemiBold
                         )
@@ -107,7 +108,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             Icon(
                                 Icons.Outlined.Info,
-                                contentDescription = "About",
+                                contentDescription = stringResource(R.string.main_about),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -137,7 +138,7 @@ class MainActivity : ComponentActivity() {
                             onClick = { selectedTab = AppTab.HealthConnect },
                             icon = if (selectedTab == AppTab.HealthConnect)
                                 Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                            label = "Health",
+                            label = stringResource(R.string.main_tab_health),
                             selectedColor = HealthPrimary,
                             modifier = Modifier.weight(1f)
                         )
@@ -148,7 +149,7 @@ class MainActivity : ComponentActivity() {
                             onClick = { selectedTab = AppTab.ScreenTime },
                             icon = if (selectedTab == AppTab.ScreenTime)
                                 Icons.Filled.PhoneAndroid else Icons.Outlined.PhoneAndroid,
-                            label = "Screen Time",
+                            label = stringResource(R.string.main_title_screen_time),
                             selectedColor = ScreenTimePrimary,
                             modifier = Modifier.weight(1f)
                         )
@@ -159,7 +160,7 @@ class MainActivity : ComponentActivity() {
                             onClick = { selectedTab = AppTab.Logs },
                             icon = if (selectedTab == AppTab.Logs)
                                 Icons.Filled.History else Icons.Outlined.History,
-                            label = "Logs",
+                            label = stringResource(R.string.main_tab_logs),
                             selectedColor = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f)
                         )

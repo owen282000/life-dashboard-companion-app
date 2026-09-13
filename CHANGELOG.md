@@ -9,6 +9,10 @@ All notable changes to this project are documented in this file. The format is b
 - Settings backup and restore under About: export every webhook URL, header, signing secret, MQTT broker and toggle as a JSON file and import it on another device. Exports that carry secrets are encrypted with a password (AES-256-GCM, PBKDF2-HMAC-SHA256); a secret-free export can be shared without handing over access. Importing shows a preview of what will be replaced first, and sync watermarks and logs are deliberately left out. Documented in `docs/settings-backup.md`
 - Per-version release notes for F-Droid, IzzyOnDroid and Play under `fastlane/metadata/android/en-US/changelogs/`, generated from `CHANGELOG.md` by `scripts/generate-fastlane-changelogs.sh`. The release workflow fails when the file for the tag being released is missing or stale, so store notes cannot drift from the changelog
 
+### Changed
+
+- Every user-facing string on the Health Connect, Screen Time, Logs and MQTT screens now lives in `strings.xml`, so the app can be translated. Counts use plurals rather than a hardcoded "(s)", and sentences are built with format arguments instead of concatenation. MQTT sensor names stay English on purpose: they are published to Home Assistant. A CI check fails the build on new hardcoded UI text, since Android's own lint only inspects XML layouts and cannot see Compose
+
 ### Security
 
 - Webhook auth headers, HMAC signing secrets and MQTT credentials are excluded from Android cloud backup and device transfer. They are stored with a key that never leaves the device, so a restored copy could not be decrypted anyway; excluding them also removes any chance of a keystore outage shipping them off-device

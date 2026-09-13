@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,12 +61,12 @@ class LogsActivity : ComponentActivity() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Webhook Logs") },
+                    title = { Text(stringResource(R.string.main_title_webhook_logs)) },
                     navigationIcon = {
                         IconButton(onClick = { finish() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
+                                contentDescription = stringResource(R.string.common_back)
                             )
                         }
                     },
@@ -75,7 +76,7 @@ class LogsActivity : ComponentActivity() {
                                 preferencesManager.clearWebhookLogs(selectedFilter)
                                 logs = emptyList()
                             }) {
-                                Text("Clear")
+                                Text(stringResource(R.string.logs_clear))
                             }
                         }
                     }
@@ -100,7 +101,7 @@ class LogsActivity : ComponentActivity() {
                             selectedFilter = null
                             logs = preferencesManager.getWebhookLogs(null)
                         },
-                        label = { Text("All") }
+                        label = { Text(stringResource(R.string.logs_filter_all)) }
                     )
                     FilterChip(
                         selected = selectedFilter == LogType.HEALTH_CONNECT,
@@ -108,7 +109,7 @@ class LogsActivity : ComponentActivity() {
                             selectedFilter = LogType.HEALTH_CONNECT
                             logs = preferencesManager.getWebhookLogs(LogType.HEALTH_CONNECT)
                         },
-                        label = { Text("Health") }
+                        label = { Text(stringResource(R.string.logs_filter_health)) }
                     )
                     FilterChip(
                         selected = selectedFilter == LogType.SCREEN_TIME,
@@ -116,7 +117,7 @@ class LogsActivity : ComponentActivity() {
                             selectedFilter = LogType.SCREEN_TIME
                             logs = preferencesManager.getWebhookLogs(LogType.SCREEN_TIME)
                         },
-                        label = { Text("Screen Time") }
+                        label = { Text(stringResource(R.string.logs_filter_screen_time)) }
                     )
                 }
 
@@ -128,7 +129,7 @@ class LogsActivity : ComponentActivity() {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "No webhook logs yet",
+                            stringResource(R.string.logs_empty),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -167,9 +168,9 @@ class LogsActivity : ComponentActivity() {
         }
 
         val logTypeLabel = when (log.logType) {
-            LogType.HEALTH_CONNECT.name -> "Health"
-            LogType.SCREEN_TIME.name -> "Screen Time"
-            else -> "Unknown"
+            LogType.HEALTH_CONNECT.name -> stringResource(R.string.logs_filter_health)
+            LogType.SCREEN_TIME.name -> stringResource(R.string.logs_filter_screen_time)
+            else -> stringResource(R.string.logs_filter_unknown)
         }
 
         Card(
@@ -217,9 +218,9 @@ class LogsActivity : ComponentActivity() {
                 ) {
                     Text(
                         if (log.success) {
-                            "Success - ${log.statusCode ?: "?"}"
+                            stringResource(R.string.logs_success_with_status, log.statusCode?.toString() ?: stringResource(R.string.logs_unknown_status))
                         } else {
-                            "Failed - ${log.statusCode ?: "Error"}"
+                            stringResource(R.string.logs_failed_with_status, log.statusCode?.toString() ?: stringResource(R.string.logs_error))
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = textColor
@@ -227,7 +228,7 @@ class LogsActivity : ComponentActivity() {
 
                     if (log.dataType != null && log.recordCount != null) {
                         Text(
-                            "${log.dataType}: ${log.recordCount}",
+                            stringResource(R.string.logs_record_count, log.dataType, log.recordCount),
                             style = MaterialTheme.typography.bodySmall,
                             color = textColor
                         )
@@ -271,13 +272,13 @@ class LogsActivity : ComponentActivity() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Raw Payload",
+                            stringResource(R.string.logs_raw_payload),
                             style = MaterialTheme.typography.labelMedium,
                             color = textColor
                         )
                         Icon(
                             imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                            contentDescription = if (expanded) "Collapse" else "Expand",
+                            contentDescription = if (expanded) stringResource(R.string.common_collapse) else stringResource(R.string.common_expand),
                             tint = textColor
                         )
                     }

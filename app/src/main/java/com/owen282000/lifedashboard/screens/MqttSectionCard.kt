@@ -8,9 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.owen282000.lifedashboard.MqttBroker
+import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.MqttSectionSettings
 
 /**
@@ -42,12 +44,12 @@ internal fun MqttSectionCard(
     val fieldColors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, cursorColor = accent)
 
     CollapsibleCard(
-        title = "MQTT",
+        title = stringResource(R.string.mqtt_title),
         subtitle = when {
-            !section.enabled -> "Disabled"
-            broker.host.isBlank() -> "Enabled: no broker set"
-            section.useSharedBroker -> "Enabled: ${broker.host} (shared broker)"
-            else -> "Enabled: ${broker.host} (own broker)"
+            !section.enabled -> stringResource(R.string.mqtt_disabled)
+            broker.host.isBlank() -> stringResource(R.string.mqtt_enabled_no_broker)
+            section.useSharedBroker -> stringResource(R.string.mqtt_enabled_shared_broker, broker.host)
+            else -> stringResource(R.string.mqtt_enabled_own_broker, broker.host)
         },
         subtitleColor = if (section.enabled) accent else MaterialTheme.colorScheme.onSurfaceVariant,
         expanded = expanded,
@@ -59,7 +61,7 @@ internal fun MqttSectionCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Enable MQTT publishing", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.mqtt_enable_publishing), style = MaterialTheme.typography.bodyMedium)
             Switch(
                 checked = section.enabled,
                 onCheckedChange = { onSectionChange(section.copy(enabled = it)) }
@@ -71,10 +73,10 @@ internal fun MqttSectionCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Use the shared broker", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.mqtt_use_shared_broker), style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    if (section.useSharedBroker) "One connection for Health Connect and Screen Time; the fields below edit it for both"
-                    else "This section connects to its own broker; $otherSection keeps the shared one",
+                    if (section.useSharedBroker) stringResource(R.string.mqtt_use_shared_broker_on)
+                    else stringResource(R.string.mqtt_use_shared_broker_off, otherSection),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -90,8 +92,8 @@ internal fun MqttSectionCard(
         OutlinedTextField(
             value = broker.host,
             onValueChange = { onBrokerChange(broker.copy(host = it)) },
-            placeholder = { Text("Broker host, e.g. 192.168.1.10") },
-            label = { Text(if (section.useSharedBroker) "Broker host (shared)" else "Broker host") },
+            placeholder = { Text(stringResource(R.string.mqtt_broker_host_placeholder)) },
+            label = { Text(if (section.useSharedBroker) stringResource(R.string.mqtt_broker_host_shared) else stringResource(R.string.mqtt_broker_host)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             singleLine = true,
@@ -101,7 +103,7 @@ internal fun MqttSectionCard(
             OutlinedTextField(
                 value = portText,
                 onValueChange = { onPortTextChange(it.filter { c -> c.isDigit() }.take(5)) },
-                label = { Text("Port") },
+                label = { Text(stringResource(R.string.mqtt_port)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp),
@@ -109,7 +111,7 @@ internal fun MqttSectionCard(
                 colors = fieldColors
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Text("TLS", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.mqtt_tls), style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.width(6.dp))
             Switch(
                 checked = broker.useTls,
@@ -119,7 +121,7 @@ internal fun MqttSectionCard(
         OutlinedTextField(
             value = broker.username ?: "",
             onValueChange = { onBrokerChange(broker.copy(username = it.ifBlank { null })) },
-            label = { Text("Username (optional)") },
+            label = { Text(stringResource(R.string.mqtt_username)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             singleLine = true,
@@ -128,7 +130,7 @@ internal fun MqttSectionCard(
         OutlinedTextField(
             value = broker.password ?: "",
             onValueChange = { onBrokerChange(broker.copy(password = it.ifBlank { null })) },
-            label = { Text("Password (optional)") },
+            label = { Text(stringResource(R.string.mqtt_password)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             singleLine = true,
@@ -137,7 +139,7 @@ internal fun MqttSectionCard(
         OutlinedTextField(
             value = section.baseTopic,
             onValueChange = { onSectionChange(section.copy(baseTopic = it)) },
-            label = { Text("Base topic") },
+            label = { Text(stringResource(R.string.mqtt_base_topic)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             singleLine = true,

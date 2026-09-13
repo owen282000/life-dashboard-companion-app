@@ -24,17 +24,22 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import com.owen282000.lifedashboard.*
+import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ui.theme.*
 
 @Composable
 fun ScreenTimeScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val resources = LocalResources.current
     val preferencesManager = remember { PreferencesManager(context) }
     val screenTimeManager = remember { ScreenTimeManager(context, preferencesManager) }
 
@@ -125,7 +130,7 @@ fun ScreenTimeScreen() {
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
-                "Track your app usage",
+                stringResource(R.string.screentime_header),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White
             )
@@ -154,7 +159,7 @@ fun ScreenTimeScreen() {
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            "Permissions required",
+                            stringResource(R.string.common_permissions_required),
                             style = MaterialTheme.typography.bodyMedium,
                             color = OnErrorContainer,
                             modifier = Modifier.weight(1f)
@@ -165,7 +170,7 @@ fun ScreenTimeScreen() {
                                 context.startActivity(intent)
                             }
                         ) {
-                            Text("Grant", color = Error, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.common_grant), color = Error, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -205,19 +210,20 @@ fun ScreenTimeScreen() {
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Day Boundary",
+                                stringResource(R.string.screentime_day_boundary_title),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                if (useDayBoundary) "Enabled · ${dayBoundaryHour}:00" else "Disabled",
+                                if (useDayBoundary) stringResource(R.string.screentime_day_boundary_enabled, dayBoundaryHour)
+                                else stringResource(R.string.screentime_day_boundary_disabled),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (useDayBoundary) ScreenTimePrimary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Icon(
                             imageVector = Icons.Filled.ExpandMore,
-                            contentDescription = if (dayBoundaryExpanded) "Collapse" else "Expand",
+                            contentDescription = if (dayBoundaryExpanded) stringResource(R.string.common_collapse) else stringResource(R.string.common_expand),
                             modifier = Modifier
                                 .size(24.dp)
                                 .rotate(chevronRotation),
@@ -239,7 +245,7 @@ fun ScreenTimeScreen() {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "Enable day boundary",
+                                    stringResource(R.string.screentime_day_boundary_enable),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                                 Switch(
@@ -256,15 +262,15 @@ fun ScreenTimeScreen() {
                             AnimatedVisibility(visible = useDayBoundary) {
                                 Column(modifier = Modifier.padding(top = 8.dp)) {
                                     Text(
-                                        "Activity before this hour counts as previous day",
+                                        stringResource(R.string.screentime_day_boundary_description),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     OutlinedTextField(
                                         value = dayBoundaryHour,
                                         onValueChange = { dayBoundaryHour = it },
-                                        placeholder = { Text("4") },
-                                        label = { Text("Hour (0-23)") },
+                                        placeholder = { Text(stringResource(R.string.screentime_day_boundary_hour_placeholder)) },
+                                        label = { Text(stringResource(R.string.screentime_day_boundary_hour_label)) },
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -285,13 +291,13 @@ fun ScreenTimeScreen() {
 
             // Sync Interval
             SectionCard(
-                title = "Sync Interval",
-                subtitle = "Minutes between syncs"
+                title = stringResource(R.string.sync_interval_title),
+                subtitle = stringResource(R.string.sync_interval_subtitle)
             ) {
                 OutlinedTextField(
                     value = syncInterval,
                     onValueChange = { syncInterval = it },
-                    placeholder = { Text("60") },
+                    placeholder = { Text(stringResource(R.string.sync_interval_placeholder)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
@@ -305,8 +311,8 @@ fun ScreenTimeScreen() {
 
             // Webhook URLs
             SectionCard(
-                title = "Webhook URLs",
-                subtitle = "${webhookUrls.size} configured"
+                title = stringResource(R.string.webhook_urls_title),
+                subtitle = stringResource(R.string.webhook_urls_configured, webhookUrls.size)
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     webhookUrls.forEachIndexed { index, url ->
@@ -333,7 +339,7 @@ fun ScreenTimeScreen() {
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
-                                    contentDescription = "Remove",
+                                    contentDescription = stringResource(R.string.common_remove),
                                     tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(16.dp)
                                 )
@@ -345,7 +351,7 @@ fun ScreenTimeScreen() {
                         OutlinedTextField(
                             value = newUrl,
                             onValueChange = { newUrl = it },
-                            placeholder = { Text("https://...") },
+                            placeholder = { Text(stringResource(R.string.webhook_url_placeholder)) },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(8.dp),
                             singleLine = true,
@@ -361,12 +367,12 @@ fun ScreenTimeScreen() {
                                     webhookUrls = webhookUrls + newUrl
                                     newUrl = ""
                                 } else {
-                                    Toast.makeText(context, "Enter a valid URL", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, resources.getString(R.string.webhook_enter_valid_url), Toast.LENGTH_SHORT).show()
                                 }
                             },
                             colors = IconButtonDefaults.filledIconButtonColors(containerColor = ScreenTimePrimary)
                         ) {
-                            Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.White)
+                            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.common_add), tint = Color.White)
                         }
                     }
                 }
@@ -394,19 +400,20 @@ fun ScreenTimeScreen() {
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Webhook Headers",
+                                stringResource(R.string.webhook_headers_title),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                if (webhookHeaders.isEmpty()) "None configured" else "${webhookHeaders.size} header(s)",
+                                if (webhookHeaders.isEmpty()) stringResource(R.string.common_none_configured)
+                                else pluralStringResource(R.plurals.webhook_headers_count, webhookHeaders.size, webhookHeaders.size),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (webhookHeaders.isNotEmpty()) ScreenTimePrimary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Icon(
                             imageVector = Icons.Filled.ExpandMore,
-                            contentDescription = if (isHeadersExpanded) "Collapse" else "Expand",
+                            contentDescription = if (isHeadersExpanded) stringResource(R.string.common_collapse) else stringResource(R.string.common_expand),
                             modifier = Modifier
                                 .size(24.dp)
                                 .rotate(headersChevronRotation),
@@ -454,7 +461,7 @@ fun ScreenTimeScreen() {
                                     ) {
                                         Icon(
                                             imageVector = Icons.Filled.Close,
-                                            contentDescription = "Remove",
+                                            contentDescription = stringResource(R.string.common_remove),
                                             tint = MaterialTheme.colorScheme.error,
                                             modifier = Modifier.size(16.dp)
                                         )
@@ -465,7 +472,7 @@ fun ScreenTimeScreen() {
                             OutlinedTextField(
                                 value = newHeaderKey,
                                 onValueChange = { newHeaderKey = it },
-                                placeholder = { Text("Header name") },
+                                placeholder = { Text(stringResource(R.string.webhook_header_name)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(8.dp),
                                 singleLine = true,
@@ -478,7 +485,7 @@ fun ScreenTimeScreen() {
                                 OutlinedTextField(
                                     value = newHeaderValue,
                                     onValueChange = { newHeaderValue = it },
-                                    placeholder = { Text("Header value") },
+                                    placeholder = { Text(stringResource(R.string.webhook_header_value)) },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(8.dp),
                                     singleLine = true,
@@ -495,30 +502,30 @@ fun ScreenTimeScreen() {
                                             newHeaderKey = ""
                                             newHeaderValue = ""
                                         } else {
-                                            Toast.makeText(context, "Enter header name and value", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, resources.getString(R.string.webhook_enter_header_name_and_value), Toast.LENGTH_SHORT).show()
                                         }
                                     },
                                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = ScreenTimePrimary)
                                 ) {
-                                    Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.White)
+                                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.common_add), tint = Color.White)
                                 }
                             }
 
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                "HMAC signing secret (optional)",
+                                stringResource(R.string.webhook_hmac_secret_title),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "When set, every POST gets an X-Signature header (sha256=<hex>) computed as HMAC-SHA256 over the body, so your server can verify the sender.",
+                                stringResource(R.string.webhook_hmac_secret_description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             OutlinedTextField(
                                 value = webhookSecret,
                                 onValueChange = { webhookSecret = it },
-                                placeholder = { Text("Shared secret") },
+                                placeholder = { Text(stringResource(R.string.webhook_shared_secret)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(8.dp),
                                 singleLine = true,
@@ -535,8 +542,8 @@ fun ScreenTimeScreen() {
             // Manual Sync
             // MQTT / Home Assistant Discovery (shared card with Health Connect)
             MqttSectionCard(
-                description = "Publishes today's and yesterday's screen time and today's most used app to your MQTT broker with Home Assistant Discovery, under the same device as Health Connect.",
-                otherSection = "Health Connect",
+                description = stringResource(R.string.screentime_mqtt_description),
+                otherSection = stringResource(R.string.main_title_health_connect),
                 accent = ScreenTimePrimary,
                 section = mqttSection,
                 onSectionChange = { mqttSection = it },
@@ -551,8 +558,8 @@ fun ScreenTimeScreen() {
 
             // Advanced - collapsible
             CollapsibleCard(
-                title = "Advanced",
-                subtitle = if (allowHttpWebhooks) "Plain HTTP allowed" else "HTTPS only",
+                title = stringResource(R.string.sync_advanced_title),
+                subtitle = if (allowHttpWebhooks) stringResource(R.string.sync_advanced_plain_http_allowed) else stringResource(R.string.sync_advanced_https_only),
                 expanded = isAdvancedExpanded,
                 onToggle = { isAdvancedExpanded = !isAdvancedExpanded }
             ) {
@@ -562,9 +569,9 @@ fun ScreenTimeScreen() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Allow plain HTTP webhooks", style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.webhook_allow_plain_http), style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            "Only for endpoints on a private LAN or VPN; HTTPS stays the default. Applies to Health Connect and Screen Time",
+                            stringResource(R.string.webhook_allow_plain_http_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -580,8 +587,8 @@ fun ScreenTimeScreen() {
             }
 
             SectionCard(
-                title = "Manual Sync",
-                subtitle = "Sync now"
+                title = stringResource(R.string.sync_manual_title),
+                subtitle = stringResource(R.string.sync_manual_subtitle)
             ) {
                 Button(
                     onClick = {
@@ -593,7 +600,7 @@ fun ScreenTimeScreen() {
 
                             try {
                                 if (!screenTimeManager.hasPermission()) {
-                                    syncMessage = "Permission not granted"
+                                    syncMessage = resources.getString(R.string.screentime_permission_not_granted)
                                     val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
                                     context.startActivity(intent)
                                     isSyncing = false
@@ -606,15 +613,19 @@ fun ScreenTimeScreen() {
                                 syncMessage = when {
                                     result.isSuccess -> {
                                         when (val syncResult = result.getOrThrow()) {
-                                            is ScreenTimeSyncResult.NoData -> "No new data"
-                                            is ScreenTimeSyncResult.Success -> "Synced ${syncResult.appCount} apps"
-                                            is ScreenTimeSyncResult.Queued -> "Server unreachable - ${syncResult.appCount} apps queued for retry"
+                                            is ScreenTimeSyncResult.NoData -> resources.getString(R.string.sync_no_new_data)
+                                            is ScreenTimeSyncResult.Success -> context.resources.getQuantityString(
+                                                R.plurals.screentime_apps_synced, syncResult.appCount, syncResult.appCount
+                                            )
+                                            is ScreenTimeSyncResult.Queued -> context.resources.getQuantityString(
+                                                R.plurals.screentime_apps_queued, syncResult.appCount, syncResult.appCount
+                                            )
                                         }
                                     }
-                                    else -> "Failed: ${result.exceptionOrNull()?.message}"
+                                    else -> resources.getString(R.string.sync_failed_with_reason, result.exceptionOrNull()?.message ?: "")
                                 }
                             } catch (e: Exception) {
-                                syncMessage = "Failed: ${e.message}"
+                                syncMessage = resources.getString(R.string.sync_failed_with_reason, e.message ?: "")
                             } finally {
                                 isSyncing = false
                             }
@@ -633,7 +644,7 @@ fun ScreenTimeScreen() {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Text(if (isSyncing) "Syncing..." else "Sync Now")
+                    Text(if (isSyncing) stringResource(R.string.sync_syncing) else stringResource(R.string.sync_now))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -649,10 +660,10 @@ fun ScreenTimeScreen() {
                                 if (result.isSuccess) {
                                     previewData = result.getOrThrow()
                                 } else {
-                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: "Preview failed", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: resources.getString(R.string.sync_preview_failed), Toast.LENGTH_SHORT).show()
                                 }
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Preview failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.sync_preview_failed_with_reason, e.message ?: ""), Toast.LENGTH_SHORT).show()
                             } finally {
                                 isPreviewing = false
                             }
@@ -673,7 +684,7 @@ fun ScreenTimeScreen() {
                     }
                     Icon(Icons.Filled.Visibility, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (isPreviewing) "Loading..." else "Preview Data")
+                    Text(if (isPreviewing) stringResource(R.string.sync_loading) else stringResource(R.string.sync_preview_data))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -690,10 +701,10 @@ fun ScreenTimeScreen() {
                                     exportJsonData = result.getOrThrow()
                                     showExportFormatDialog = true
                                 } else {
-                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: "Export failed", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: resources.getString(R.string.sync_export_failed), Toast.LENGTH_SHORT).show()
                                 }
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.sync_export_failed_with_reason, e.message ?: ""), Toast.LENGTH_SHORT).show()
                             } finally {
                                 isExporting = false
                             }
@@ -714,7 +725,7 @@ fun ScreenTimeScreen() {
                     }
                     Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (isExporting) "Loading..." else "Export Data")
+                    Text(if (isExporting) stringResource(R.string.sync_loading) else stringResource(R.string.sync_export_data))
                 }
 
                 AnimatedVisibility(visible = syncMessage != null) {
@@ -723,7 +734,7 @@ fun ScreenTimeScreen() {
                             message,
                             modifier = Modifier.padding(top = 8.dp),
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (message.startsWith("Failed")) Error else ScreenTimePrimary
+                            color = if (message.startsWith(stringResource(R.string.sync_failed_prefix))) Error else ScreenTimePrimary
                         )
                     }
                 }
@@ -740,16 +751,16 @@ fun ScreenTimeScreen() {
                         scope.launch {
                             val interval = syncInterval.toIntOrNull()
                             if (interval == null || interval < 15) {
-                                Toast.makeText(context, "Min 15 minutes", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.webhook_min_interval), Toast.LENGTH_SHORT).show()
                                 return@launch
                             }
                             if (webhookUrls.isEmpty()) {
-                                Toast.makeText(context, "Add a webhook URL", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.webhook_add_a_url), Toast.LENGTH_SHORT).show()
                                 return@launch
                             }
                             val boundaryHour = dayBoundaryHour.toIntOrNull()
                             if (boundaryHour == null || boundaryHour < 0 || boundaryHour > 23) {
-                                Toast.makeText(context, "Hour must be 0-23", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.screentime_day_boundary_hour_invalid), Toast.LENGTH_SHORT).show()
                                 return@launch
                             }
 
@@ -774,7 +785,7 @@ fun ScreenTimeScreen() {
                             initialWebhookSecret = webhookSecret
                             initialMqttSection = mqttSection
                             initialSharedBroker = sharedBroker
-                            Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, resources.getString(R.string.common_saved), Toast.LENGTH_SHORT).show()
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -783,13 +794,13 @@ fun ScreenTimeScreen() {
                 ) {
                     Icon(Icons.Filled.Check, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Save Changes", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.sync_save_changes), fontWeight = FontWeight.SemiBold)
                 }
             }
 
             // Status
             Text(
-                "Syncing every ${syncInterval}min to ${webhookUrls.size} webhook(s)",
+                pluralStringResource(R.plurals.webhook_status_syncing, webhookUrls.size, syncInterval, webhookUrls.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 4.dp)
@@ -802,11 +813,11 @@ fun ScreenTimeScreen() {
         if (previewData != null) {
             AlertDialog(
                 onDismissRequest = { previewData = null },
-                title = { Text("Data Preview") },
+                title = { Text(stringResource(R.string.sync_data_preview_title)) },
                 text = {
                     Column {
                         Text(
-                            "This is the JSON payload that will be sent:",
+                            stringResource(R.string.sync_preview_payload_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -834,7 +845,7 @@ fun ScreenTimeScreen() {
                 },
                 confirmButton = {
                     TextButton(onClick = { previewData = null }) {
-                        Text("Close", color = ScreenTimePrimary)
+                        Text(stringResource(R.string.common_close), color = ScreenTimePrimary)
                     }
                 }
             )
@@ -844,10 +855,10 @@ fun ScreenTimeScreen() {
         if (showExportFormatDialog && exportJsonData != null) {
             AlertDialog(
                 onDismissRequest = { showExportFormatDialog = false },
-                title = { Text("Export Data") },
+                title = { Text(stringResource(R.string.sync_export_data)) },
                 text = {
                     Text(
-                        "Export current screen time data as JSON or CSV.",
+                        stringResource(R.string.screentime_export_dialog_description),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 },
@@ -859,7 +870,7 @@ fun ScreenTimeScreen() {
                             .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
                         exportManager.shareFile(exportJsonData!!, "screen_time_$timestamp.json", "application/json")
                     }) {
-                        Text("JSON", color = ScreenTimePrimary)
+                        Text(stringResource(R.string.common_json), color = ScreenTimePrimary)
                     }
                 },
                 dismissButton = {
@@ -870,7 +881,7 @@ fun ScreenTimeScreen() {
                             .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
                         exportManager.shareFile(exportJsonData!!, "screen_time_$timestamp.csv", "text/csv")
                     }) {
-                        Text("CSV", color = ScreenTimePrimary)
+                        Text(stringResource(R.string.common_csv), color = ScreenTimePrimary)
                     }
                 }
             )

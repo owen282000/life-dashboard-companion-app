@@ -30,6 +30,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -37,6 +40,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import kotlinx.coroutines.launch
 import com.owen282000.lifedashboard.*
+import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ui.theme.*
 
 @Composable
@@ -46,6 +50,7 @@ fun HealthConnectScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val resources = LocalResources.current
     val preferencesManager = remember { PreferencesManager(context) }
 
     var initialSyncInterval by remember { mutableStateOf(preferencesManager.getHealthSyncIntervalMinutes()) }
@@ -178,7 +183,7 @@ fun HealthConnectScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "${enabledDataTypes.size} data types selected",
+                    pluralStringResource(R.plurals.health_data_types_selected, enabledDataTypes.size, enabledDataTypes.size),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White
                 )
@@ -200,7 +205,7 @@ fun HealthConnectScreen(
                                 }
                             }
                         } catch (e: Exception) {
-                            Toast.makeText(context, "Could not open Health Connect", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, resources.getString(R.string.health_could_not_open), Toast.LENGTH_SHORT).show()
                         }
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -211,7 +216,7 @@ fun HealthConnectScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Open App",
+                            stringResource(R.string.health_open_app),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White
                         )
@@ -259,10 +264,10 @@ fun HealthConnectScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             when (healthConnectUnavailableReason) {
-                                "not_installed" -> "Health Connect is not installed"
-                                "needs_update" -> "Health Connect needs to be updated"
-                                "unavailable" -> "Health Connect is not available"
-                                else -> "Permissions required"
+                                "not_installed" -> stringResource(R.string.health_connect_not_installed)
+                                "needs_update" -> stringResource(R.string.health_connect_needs_update)
+                                "unavailable" -> stringResource(R.string.health_connect_not_available)
+                                else -> stringResource(R.string.common_permissions_required)
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = OnErrorContainer,
@@ -278,7 +283,7 @@ fun HealthConnectScreen(
                                 }
                             ) {
                                 Text(
-                                    if (healthConnectUnavailableReason == "needs_update") "Update" else "Install",
+                                    if (healthConnectUnavailableReason == "needs_update") stringResource(R.string.health_update) else stringResource(R.string.health_install),
                                     color = Error,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -289,11 +294,11 @@ fun HealthConnectScreen(
                                     try {
                                         permissionLauncher.launch(HealthConnectManager.ALL_PERMISSIONS)
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, resources.getString(R.string.health_error_with_reason, e.message ?: ""), Toast.LENGTH_LONG).show()
                                     }
                                 }
                             ) {
-                                Text("Grant", color = Error, fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(R.string.common_grant), color = Error, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -323,19 +328,19 @@ fun HealthConnectScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Data Types",
+                                stringResource(R.string.health_data_types_title),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "${enabledDataTypes.size} of ${HealthDataType.entries.size} selected",
+                                stringResource(R.string.health_data_types_selected_of, enabledDataTypes.size, HealthDataType.entries.size),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (enabledDataTypes.isNotEmpty()) HealthPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Icon(
                             imageVector = Icons.Filled.ExpandMore,
-                            contentDescription = if (isDataTypesExpanded) "Collapse" else "Expand",
+                            contentDescription = if (isDataTypesExpanded) stringResource(R.string.common_collapse) else stringResource(R.string.common_expand),
                             modifier = Modifier
                                 .size(24.dp)
                                 .rotate(chevronRotation),
@@ -382,13 +387,13 @@ fun HealthConnectScreen(
 
             // Sync Interval
             SectionCard(
-                title = "Sync Interval",
-                subtitle = "Minutes between syncs"
+                title = stringResource(R.string.sync_interval_title),
+                subtitle = stringResource(R.string.sync_interval_subtitle)
             ) {
                 OutlinedTextField(
                     value = syncInterval,
                     onValueChange = { syncInterval = it },
-                    placeholder = { Text("60") },
+                    placeholder = { Text(stringResource(R.string.sync_interval_placeholder)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
@@ -402,8 +407,8 @@ fun HealthConnectScreen(
 
             // Webhook URLs
             SectionCard(
-                title = "Webhook URLs",
-                subtitle = "${webhookUrls.size} configured"
+                title = stringResource(R.string.webhook_urls_title),
+                subtitle = stringResource(R.string.webhook_urls_configured, webhookUrls.size)
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     webhookUrls.forEachIndexed { index, url ->
@@ -430,7 +435,7 @@ fun HealthConnectScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
-                                    contentDescription = "Remove",
+                                    contentDescription = stringResource(R.string.common_remove),
                                     tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(16.dp)
                                 )
@@ -442,7 +447,7 @@ fun HealthConnectScreen(
                         OutlinedTextField(
                             value = newUrl,
                             onValueChange = { newUrl = it },
-                            placeholder = { Text("https://...") },
+                            placeholder = { Text(stringResource(R.string.webhook_url_placeholder)) },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(8.dp),
                             singleLine = true,
@@ -458,12 +463,12 @@ fun HealthConnectScreen(
                                     webhookUrls = webhookUrls + newUrl
                                     newUrl = ""
                                 } else {
-                                    Toast.makeText(context, "Enter a valid URL", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, resources.getString(R.string.webhook_enter_valid_url), Toast.LENGTH_SHORT).show()
                                 }
                             },
                             colors = IconButtonDefaults.filledIconButtonColors(containerColor = HealthPrimary)
                         ) {
-                            Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.White)
+                            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.common_add), tint = Color.White)
                         }
                     }
                 }
@@ -491,19 +496,20 @@ fun HealthConnectScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Webhook Headers",
+                                stringResource(R.string.webhook_headers_title),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                if (webhookHeaders.isEmpty()) "None configured" else "${webhookHeaders.size} header(s)",
+                                if (webhookHeaders.isEmpty()) stringResource(R.string.common_none_configured)
+                                else pluralStringResource(R.plurals.webhook_headers_count, webhookHeaders.size, webhookHeaders.size),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (webhookHeaders.isNotEmpty()) HealthPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Icon(
                             imageVector = Icons.Filled.ExpandMore,
-                            contentDescription = if (isHeadersExpanded) "Collapse" else "Expand",
+                            contentDescription = if (isHeadersExpanded) stringResource(R.string.common_collapse) else stringResource(R.string.common_expand),
                             modifier = Modifier
                                 .size(24.dp)
                                 .rotate(headersChevronRotation),
@@ -551,7 +557,7 @@ fun HealthConnectScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Filled.Close,
-                                            contentDescription = "Remove",
+                                            contentDescription = stringResource(R.string.common_remove),
                                             tint = MaterialTheme.colorScheme.error,
                                             modifier = Modifier.size(16.dp)
                                         )
@@ -562,7 +568,7 @@ fun HealthConnectScreen(
                             OutlinedTextField(
                                 value = newHeaderKey,
                                 onValueChange = { newHeaderKey = it },
-                                placeholder = { Text("Header name") },
+                                placeholder = { Text(stringResource(R.string.webhook_header_name)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(8.dp),
                                 singleLine = true,
@@ -575,7 +581,7 @@ fun HealthConnectScreen(
                                 OutlinedTextField(
                                     value = newHeaderValue,
                                     onValueChange = { newHeaderValue = it },
-                                    placeholder = { Text("Header value") },
+                                    placeholder = { Text(stringResource(R.string.webhook_header_value)) },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(8.dp),
                                     singleLine = true,
@@ -592,30 +598,30 @@ fun HealthConnectScreen(
                                             newHeaderKey = ""
                                             newHeaderValue = ""
                                         } else {
-                                            Toast.makeText(context, "Enter header name and value", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, resources.getString(R.string.webhook_enter_header_name_and_value), Toast.LENGTH_SHORT).show()
                                         }
                                     },
                                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = HealthPrimary)
                                 ) {
-                                    Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.White)
+                                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.common_add), tint = Color.White)
                                 }
                             }
 
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                "HMAC signing secret (optional)",
+                                stringResource(R.string.webhook_hmac_secret_title),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "When set, every POST gets an X-Signature header (sha256=<hex>) computed as HMAC-SHA256 over the body, so your server can verify the sender.",
+                                stringResource(R.string.webhook_hmac_secret_description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             OutlinedTextField(
                                 value = webhookSecret,
                                 onValueChange = { webhookSecret = it },
-                                placeholder = { Text("Shared secret") },
+                                placeholder = { Text(stringResource(R.string.webhook_shared_secret)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(8.dp),
                                 singleLine = true,
@@ -631,9 +637,9 @@ fun HealthConnectScreen(
 
             // Advanced - collapsible
             CollapsibleCard(
-                title = "Advanced",
-                subtitle = (if (includeDailyTotals) "Daily totals" else "No daily totals") + ", " +
-                    (if (allowHttpWebhooks) "Plain HTTP allowed" else "HTTPS only"),
+                title = stringResource(R.string.sync_advanced_title),
+                subtitle = (if (includeDailyTotals) stringResource(R.string.health_daily_totals) else stringResource(R.string.health_no_daily_totals)) + ", " +
+                    (if (allowHttpWebhooks) stringResource(R.string.sync_advanced_plain_http_allowed) else stringResource(R.string.sync_advanced_https_only)),
                 expanded = isAdvancedExpanded,
                 onToggle = { isAdvancedExpanded = !isAdvancedExpanded }
             ) {
@@ -643,9 +649,9 @@ fun HealthConnectScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Daily totals in payload", style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.health_daily_totals_title), style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            "Deduplicated per-day totals (steps, distance, calories) via the aggregate API; merges phone and watch data",
+                            stringResource(R.string.health_daily_totals_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -665,9 +671,9 @@ fun HealthConnectScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Allow plain HTTP webhooks", style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(R.string.webhook_allow_plain_http), style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            "Only for endpoints on a private LAN or VPN; HTTPS stays the default. Applies to Health Connect and Screen Time",
+                            stringResource(R.string.webhook_allow_plain_http_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -684,8 +690,9 @@ fun HealthConnectScreen(
 
             // Failure notifications (shared across Health Connect and Screen Time)
             CollapsibleCard(
-                title = "Notifications",
-                subtitle = if (failureNotificationsEnabled) "On, after $failureThreshold failed syncs" else "Off",
+                title = stringResource(R.string.health_notifications_title),
+                subtitle = if (failureNotificationsEnabled) pluralStringResource(R.plurals.health_notifications_on, failureThreshold, failureThreshold)
+                    else stringResource(R.string.health_notifications_off),
                 subtitleColor = if (failureNotificationsEnabled) HealthPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                 expanded = isNotificationsExpanded,
                 onToggle = { isNotificationsExpanded = !isNotificationsExpanded }
@@ -695,7 +702,7 @@ fun HealthConnectScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Notify after failed syncs",
+                        stringResource(R.string.health_notifications_notify_after_failed),
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -714,7 +721,7 @@ fun HealthConnectScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            "After consecutive failures",
+                            stringResource(R.string.health_notifications_after_failures),
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -736,8 +743,8 @@ fun HealthConnectScreen(
 
             // MQTT / Home Assistant Discovery (shared card with Screen Time)
             MqttSectionCard(
-                description = "Publishes the latest value of each synced data type to your MQTT broker with Home Assistant Discovery: sensors appear in Home Assistant automatically, no server-side setup needed.",
-                otherSection = "Screen Time",
+                description = stringResource(R.string.health_mqtt_description),
+                otherSection = stringResource(R.string.main_title_screen_time),
                 accent = HealthPrimary,
                 section = mqttSection,
                 onSectionChange = { mqttSection = it },
@@ -752,8 +759,8 @@ fun HealthConnectScreen(
 
             // Manual Sync
             SectionCard(
-                title = "Manual Sync",
-                subtitle = "Sync now"
+                title = stringResource(R.string.sync_manual_title),
+                subtitle = stringResource(R.string.sync_manual_subtitle)
             ) {
                 Button(
                     onClick = {
@@ -764,7 +771,7 @@ fun HealthConnectScreen(
                             try {
                                 val availability = HealthConnectClient.getSdkStatus(context)
                                 if (availability != HealthConnectClient.SDK_AVAILABLE) {
-                                    syncMessage = "Health Connect not available"
+                                    syncMessage = resources.getString(R.string.health_connect_not_available_short)
                                     isSyncing = false
                                     return@launch
                                 }
@@ -796,12 +803,17 @@ fun HealthConnectScreen(
                                 syncMessage = when {
                                     result.isSuccess -> {
                                         when (val syncResult = result.getOrThrow()) {
-                                            is HealthSyncResult.NoData -> "No new data"
-                                            is HealthSyncResult.Success -> "Synced ${syncResult.syncCounts.values.sum()} records"
-                                            is HealthSyncResult.Queued -> "Server unreachable - ${syncResult.recordCount} records queued for retry"
+                                            is HealthSyncResult.NoData -> resources.getString(R.string.sync_no_new_data)
+                                            is HealthSyncResult.Success -> {
+                                                val count = syncResult.syncCounts.values.sum()
+                                                resources.getQuantityString(R.plurals.health_synced_records, count, count)
+                                            }
+                                            is HealthSyncResult.Queued -> context.resources.getQuantityString(
+                                                R.plurals.health_queued_records, syncResult.recordCount, syncResult.recordCount
+                                            )
                                         }
                                     }
-                                    else -> "Failed: ${result.exceptionOrNull()?.message}"
+                                    else -> resources.getString(R.string.sync_failed_with_reason, result.exceptionOrNull()?.message ?: "")
                                 }
 
                                 // Update initial values so hasChanges reflects saved state
@@ -813,7 +825,7 @@ fun HealthConnectScreen(
                                 initialMqttSection = mqttSection
                                 initialSharedBroker = sharedBroker
                             } catch (e: Exception) {
-                                syncMessage = "Failed: ${e.message}"
+                                syncMessage = resources.getString(R.string.sync_failed_with_reason, e.message ?: "")
                             } finally {
                                 isSyncing = false
                             }
@@ -832,7 +844,7 @@ fun HealthConnectScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Text(if (isSyncing) "Syncing..." else "Sync Now")
+                    Text(if (isSyncing) stringResource(R.string.sync_syncing) else stringResource(R.string.sync_now))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -849,10 +861,10 @@ fun HealthConnectScreen(
                                 if (result.isSuccess) {
                                     previewData = result.getOrThrow()
                                 } else {
-                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: "Preview failed", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: resources.getString(R.string.sync_preview_failed), Toast.LENGTH_SHORT).show()
                                 }
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Preview failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.sync_preview_failed_with_reason, e.message ?: ""), Toast.LENGTH_SHORT).show()
                             } finally {
                                 isPreviewing = false
                             }
@@ -873,7 +885,7 @@ fun HealthConnectScreen(
                     }
                     Icon(Icons.Outlined.Visibility, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (isPreviewing) "Loading..." else "Preview Data")
+                    Text(if (isPreviewing) stringResource(R.string.sync_loading) else stringResource(R.string.sync_preview_data))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -896,11 +908,12 @@ fun HealthConnectScreen(
                                 ).postData(payload)
                                 Toast.makeText(
                                     context,
-                                    if (result.isSuccess) "Test ping delivered" else "Test ping failed, check the logs",
+                                    if (result.isSuccess) resources.getString(R.string.health_test_ping_delivered)
+                                    else resources.getString(R.string.health_test_ping_failed),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Test ping failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.health_test_ping_failed_with_reason, e.message ?: ""), Toast.LENGTH_SHORT).show()
                             } finally {
                                 isPinging = false
                             }
@@ -913,7 +926,7 @@ fun HealthConnectScreen(
                 ) {
                     Icon(Icons.Outlined.NetworkPing, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (isPinging) "Pinging..." else "Send Test Ping")
+                    Text(if (isPinging) stringResource(R.string.health_test_pinging) else stringResource(R.string.health_test_ping))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -931,10 +944,10 @@ fun HealthConnectScreen(
                                     exportJsonData = result.getOrThrow()
                                     showExportFormatDialog = true
                                 } else {
-                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: "Export failed", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, result.exceptionOrNull()?.message ?: resources.getString(R.string.sync_export_failed), Toast.LENGTH_SHORT).show()
                                 }
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.sync_export_failed_with_reason, e.message ?: ""), Toast.LENGTH_SHORT).show()
                             } finally {
                                 isExporting = false
                             }
@@ -955,7 +968,7 @@ fun HealthConnectScreen(
                     }
                     Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (isExporting) "Loading..." else "Export Data")
+                    Text(if (isExporting) stringResource(R.string.sync_loading) else stringResource(R.string.sync_export_data))
                 }
 
                 OutlinedButton(
@@ -975,7 +988,8 @@ fun HealthConnectScreen(
                     }
                     Icon(Icons.Outlined.History, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(backfillProgress?.let { (done, total) -> "Backfilling $done/$total..." } ?: "Backfill History")
+                    Text(backfillProgress?.let { (done, total) -> stringResource(R.string.health_backfill_progress, done, total) }
+                        ?: stringResource(R.string.health_backfill_history))
                 }
 
                 AnimatedVisibility(visible = syncMessage != null) {
@@ -984,7 +998,7 @@ fun HealthConnectScreen(
                             message,
                             modifier = Modifier.padding(top = 8.dp),
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (message.startsWith("Failed")) Error else HealthPrimary
+                            color = if (message.startsWith(stringResource(R.string.sync_failed_prefix))) Error else HealthPrimary
                         )
                     }
                 }
@@ -1002,20 +1016,20 @@ fun HealthConnectScreen(
                 }
                 AlertDialog(
                     onDismissRequest = { showBackfillDialog = false },
-                    title = { Text("Backfill history") },
+                    title = { Text(stringResource(R.string.health_backfill_title)) },
                     text = {
                         Column {
-                            Text("Sends historical data for all enabled types to your webhooks in 3-day chunks, oldest first. Regular syncing is unaffected; overlapping records deduplicate on their uuid. This can take a while and use mobile data.")
+                            Text(stringResource(R.string.health_backfill_dialog_description))
                             if (!hasHistoryPermission) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    "Health Connect limits reads to the last 30 days until you grant history access.",
+                                    stringResource(R.string.health_backfill_history_permission_warning),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Error
                                 )
                                 TextButton(onClick = {
                                     permissionLauncher.launch(HealthConnectManager.ALL_PERMISSIONS)
-                                }) { Text("Grant history access") }
+                                }) { Text(stringResource(R.string.health_backfill_grant_history)) }
                             }
                         }
                     },
@@ -1031,16 +1045,16 @@ fun HealthConnectScreen(
                                         }
                                         backfillProgress = null
                                         syncMessage = result.fold(
-                                            onSuccess = { "Backfill complete: $it records sent" },
-                                            onFailure = { "Failed: ${it.message}" }
+                                            onSuccess = { resources.getQuantityString(R.plurals.health_backfill_complete, it, it) },
+                                            onFailure = { resources.getString(R.string.sync_failed_with_reason, it.message ?: "") }
                                         )
                                     }
-                                }) { Text("${days}d") }
+                                }) { Text(stringResource(R.string.health_backfill_days, days)) }
                             }
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showBackfillDialog = false }) { Text("Cancel") }
+                        TextButton(onClick = { showBackfillDialog = false }) { Text(stringResource(R.string.common_cancel)) }
                     }
                 )
             }
@@ -1056,11 +1070,11 @@ fun HealthConnectScreen(
                         scope.launch {
                             val interval = syncInterval.toIntOrNull()
                             if (interval == null || interval < 15) {
-                                Toast.makeText(context, "Min 15 minutes", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.webhook_min_interval), Toast.LENGTH_SHORT).show()
                                 return@launch
                             }
                             if (webhookUrls.isEmpty()) {
-                                Toast.makeText(context, "Add a webhook URL", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, resources.getString(R.string.webhook_add_a_url), Toast.LENGTH_SHORT).show()
                                 return@launch
                             }
 
@@ -1083,7 +1097,7 @@ fun HealthConnectScreen(
                             initialWebhookSecret = webhookSecret
                             initialMqttSection = mqttSection
                             initialSharedBroker = sharedBroker
-                            Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, resources.getString(R.string.common_saved), Toast.LENGTH_SHORT).show()
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -1092,13 +1106,13 @@ fun HealthConnectScreen(
                 ) {
                     Icon(Icons.Filled.Check, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Save Changes", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.sync_save_changes), fontWeight = FontWeight.SemiBold)
                 }
             }
 
             // Status
             Text(
-                "Syncing every ${syncInterval}min to ${webhookUrls.size} webhook(s)",
+                pluralStringResource(R.plurals.webhook_status_syncing, webhookUrls.size, syncInterval, webhookUrls.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 4.dp)
@@ -1111,11 +1125,11 @@ fun HealthConnectScreen(
         if (previewData != null) {
             AlertDialog(
                 onDismissRequest = { previewData = null },
-                title = { Text("Data Preview") },
+                title = { Text(stringResource(R.string.sync_data_preview_title)) },
                 text = {
                     Column {
                         Text(
-                            "This is the JSON payload that will be sent:",
+                            stringResource(R.string.sync_preview_payload_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1143,7 +1157,7 @@ fun HealthConnectScreen(
                 },
                 confirmButton = {
                     TextButton(onClick = { previewData = null }) {
-                        Text("Close", color = HealthPrimary)
+                        Text(stringResource(R.string.common_close), color = HealthPrimary)
                     }
                 }
             )
@@ -1153,10 +1167,10 @@ fun HealthConnectScreen(
         if (showExportFormatDialog && exportJsonData != null) {
             AlertDialog(
                 onDismissRequest = { showExportFormatDialog = false },
-                title = { Text("Export Data") },
+                title = { Text(stringResource(R.string.sync_export_data)) },
                 text = {
                     Text(
-                        "Export current health data as JSON or CSV.",
+                        stringResource(R.string.health_export_dialog_description),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 },
@@ -1168,7 +1182,7 @@ fun HealthConnectScreen(
                             .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
                         exportManager.shareFile(exportJsonData!!, "health_data_$timestamp.json", "application/json")
                     }) {
-                        Text("JSON", color = HealthPrimary)
+                        Text(stringResource(R.string.common_json), color = HealthPrimary)
                     }
                 },
                 dismissButton = {
@@ -1179,7 +1193,7 @@ fun HealthConnectScreen(
                             .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
                         exportManager.shareFile(exportJsonData!!, "health_data_$timestamp.csv", "text/csv")
                     }) {
-                        Text("CSV", color = HealthPrimary)
+                        Text(stringResource(R.string.common_csv), color = HealthPrimary)
                     }
                 }
             )
@@ -1189,8 +1203,8 @@ fun HealthConnectScreen(
         if (showPermissionModal && selectedDataTypeForPermission != null) {
             AlertDialog(
                 onDismissRequest = { showPermissionModal = false },
-                title = { Text("Permission Required") },
-                text = { Text("Grant permission to sync ${selectedDataTypeForPermission!!.displayName}.") },
+                title = { Text(stringResource(R.string.health_permission_required_title)) },
+                text = { Text(stringResource(R.string.health_permission_needed, selectedDataTypeForPermission!!.displayName)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -1199,12 +1213,12 @@ fun HealthConnectScreen(
                             showPermissionModal = false
                         }
                     ) {
-                        Text("Grant", color = HealthPrimary)
+                        Text(stringResource(R.string.common_grant), color = HealthPrimary)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showPermissionModal = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.common_cancel))
                     }
                 }
             )

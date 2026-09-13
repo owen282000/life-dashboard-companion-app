@@ -21,12 +21,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.serialization.json.Json
 import com.owen282000.lifedashboard.LogType
+import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.WebhookLog
 import com.owen282000.lifedashboard.ui.theme.*
@@ -71,7 +74,7 @@ fun LogsScreen() {
                     selectedFilter = null
                     logs = preferencesManager.getWebhookLogs(null)
                 },
-                label = { Text("All") }
+                label = { Text(stringResource(R.string.logs_filter_all)) }
             )
             FilterChip(
                 selected = selectedFilter == LogType.HEALTH_CONNECT,
@@ -79,7 +82,7 @@ fun LogsScreen() {
                     selectedFilter = LogType.HEALTH_CONNECT
                     logs = preferencesManager.getWebhookLogs(LogType.HEALTH_CONNECT)
                 },
-                label = { Text("Health") },
+                label = { Text(stringResource(R.string.logs_filter_health)) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = HealthPrimary.copy(alpha = 0.2f),
                     selectedLabelColor = HealthPrimary
@@ -91,7 +94,7 @@ fun LogsScreen() {
                     selectedFilter = LogType.SCREEN_TIME
                     logs = preferencesManager.getWebhookLogs(LogType.SCREEN_TIME)
                 },
-                label = { Text("Screen Time") },
+                label = { Text(stringResource(R.string.logs_filter_screen_time)) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = ScreenTimePrimary.copy(alpha = 0.2f),
                     selectedLabelColor = ScreenTimePrimary
@@ -104,7 +107,7 @@ fun LogsScreen() {
                 IconButton(onClick = { showExportDialog = true }) {
                     Icon(
                         Icons.Outlined.Share,
-                        contentDescription = "Export logs",
+                        contentDescription = stringResource(R.string.logs_export_logs),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -121,7 +124,7 @@ fun LogsScreen() {
                 ) {
                     Icon(
                         Icons.Filled.Delete,
-                        contentDescription = "Clear logs",
+                        contentDescription = stringResource(R.string.logs_clear_logs),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
@@ -137,12 +140,12 @@ fun LogsScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Keep full payloads", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.logs_keep_full_payloads), style = MaterialTheme.typography.bodyMedium)
                 Text(
                     if (keepFullPayloads) {
-                        "Whole payloads are stored, capped by total size"
+                        stringResource(R.string.logs_keep_full_payloads_on)
                     } else {
-                        "Payloads are truncated to keep storage small"
+                        stringResource(R.string.logs_keep_full_payloads_off)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -177,7 +180,7 @@ fun LogsScreen() {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "No webhook logs yet",
+                            stringResource(R.string.logs_empty),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -199,10 +202,10 @@ fun LogsScreen() {
     if (showExportDialog) {
         AlertDialog(
             onDismissRequest = { showExportDialog = false },
-            title = { Text("Export Logs") },
+            title = { Text(stringResource(R.string.logs_export_title)) },
             text = {
                 Text(
-                    "Export ${logs.size} log(s) as JSON or CSV via the share sheet.",
+                    pluralStringResource(R.plurals.logs_export_dialog_description, logs.size, logs.size),
                     style = MaterialTheme.typography.bodyMedium
                 )
             },
@@ -215,7 +218,7 @@ fun LogsScreen() {
                         .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
                     exportManager.shareFile(json, "logs_$timestamp.json", "application/json")
                 }) {
-                    Text("JSON")
+                    Text(stringResource(R.string.common_json))
                 }
             },
             dismissButton = {
@@ -227,7 +230,7 @@ fun LogsScreen() {
                         .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
                     exportManager.shareFile(csv, "logs_$timestamp.csv", "text/csv")
                 }) {
-                    Text("CSV")
+                    Text(stringResource(R.string.common_csv))
                 }
             }
         )
@@ -256,7 +259,7 @@ private fun SyncStatsDashboard(logs: List<WebhookLog>) {
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
-                "Sync Overview",
+                stringResource(R.string.logs_sync_overview),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
@@ -267,9 +270,13 @@ private fun SyncStatsDashboard(logs: List<WebhookLog>) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatItem(value = "$successRate%", label = "Success", color = Success)
-                StatItem(value = "$totalSyncs", label = "Total", color = MaterialTheme.colorScheme.primary)
-                StatItem(value = "$totalRecords", label = "Records", color = MaterialTheme.colorScheme.tertiary)
+                StatItem(
+                    value = stringResource(R.string.logs_stat_success_rate, successRate),
+                    label = stringResource(R.string.logs_stat_success),
+                    color = Success
+                )
+                StatItem(value = "$totalSyncs", label = stringResource(R.string.logs_stat_total), color = MaterialTheme.colorScheme.primary)
+                StatItem(value = "$totalRecords", label = stringResource(R.string.logs_stat_records), color = MaterialTheme.colorScheme.tertiary)
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -283,24 +290,24 @@ private fun SyncStatsDashboard(logs: List<WebhookLog>) {
             ) {
                 Column {
                     Text(
-                        "Health Connect",
+                        stringResource(R.string.main_title_health_connect),
                         style = MaterialTheme.typography.labelSmall,
                         color = HealthPrimary
                     )
                     Text(
-                        "$healthSuccess / $healthSyncs",
+                        stringResource(R.string.logs_type_ratio, healthSuccess, healthSyncs),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        "Screen Time",
+                        stringResource(R.string.main_title_screen_time),
                         style = MaterialTheme.typography.labelSmall,
                         color = ScreenTimePrimary
                     )
                     Text(
-                        "$screenTimeSuccess / $screenTimeSyncs",
+                        stringResource(R.string.logs_type_ratio, screenTimeSuccess, screenTimeSyncs),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -311,7 +318,7 @@ private fun SyncStatsDashboard(logs: List<WebhookLog>) {
             if (lastSuccess != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "Last success: ${formatTimestamp(lastSuccess.timestamp)}",
+                    stringResource(R.string.logs_last_success, formatTimestamp(lastSuccess.timestamp)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -322,13 +329,17 @@ private fun SyncStatsDashboard(logs: List<WebhookLog>) {
             if (recentFailures.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "Recent failures:",
+                    stringResource(R.string.logs_recent_failures),
                     style = MaterialTheme.typography.labelSmall,
                     color = Error
                 )
                 recentFailures.forEach { failure ->
                     Text(
-                        "${formatTimestamp(failure.timestamp)}: ${failure.errorMessage ?: "Unknown error"}",
+                        stringResource(
+                            R.string.logs_failure_line,
+                            formatTimestamp(failure.timestamp),
+                            failure.errorMessage ?: stringResource(R.string.logs_unknown_error)
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = Error.copy(alpha = 0.8f),
                         maxLines = 1
@@ -380,9 +391,9 @@ private fun LogItem(log: WebhookLog) {
     }
 
     val logTypeLabel = when (log.logType) {
-        LogType.HEALTH_CONNECT.name -> "Health"
-        LogType.SCREEN_TIME.name -> "Screen Time"
-        else -> "Unknown"
+        LogType.HEALTH_CONNECT.name -> stringResource(R.string.logs_filter_health)
+        LogType.SCREEN_TIME.name -> stringResource(R.string.logs_filter_screen_time)
+        else -> stringResource(R.string.logs_filter_unknown)
     }
 
     Surface(
@@ -433,9 +444,9 @@ private fun LogItem(log: WebhookLog) {
             ) {
                 Text(
                     if (log.success) {
-                        "✓ ${log.statusCode ?: "OK"}"
+                        stringResource(R.string.logs_status_success, log.statusCode?.toString() ?: stringResource(R.string.logs_ok))
                     } else {
-                        "✗ ${log.statusCode ?: "Error"}"
+                        stringResource(R.string.logs_status_failure, log.statusCode?.toString() ?: stringResource(R.string.logs_error))
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = if (log.success) Success else Error
@@ -443,7 +454,7 @@ private fun LogItem(log: WebhookLog) {
 
                 if (log.dataType != null && log.recordCount != null) {
                     Text(
-                        "${log.dataType}: ${log.recordCount}",
+                        stringResource(R.string.logs_record_count, log.dataType, log.recordCount),
                         style = MaterialTheme.typography.bodySmall,
                         color = textColor.copy(alpha = 0.6f)
                     )
@@ -476,13 +487,13 @@ private fun LogItem(log: WebhookLog) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Payload",
+                        stringResource(R.string.logs_payload),
                         style = MaterialTheme.typography.labelMedium,
                         color = textColor.copy(alpha = 0.7f)
                     )
                     Icon(
                         imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        contentDescription = if (expanded) stringResource(R.string.common_collapse) else stringResource(R.string.common_expand),
                         tint = textColor.copy(alpha = 0.5f),
                         modifier = Modifier.size(20.dp)
                     )

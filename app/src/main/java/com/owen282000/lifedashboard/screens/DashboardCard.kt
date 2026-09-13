@@ -15,9 +15,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.owen282000.lifedashboard.*
+import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
 import com.owen282000.lifedashboard.ui.theme.ScreenTimePrimary
 import kotlinx.coroutines.Dispatchers
@@ -61,10 +63,10 @@ fun DashboardCard() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                StatTile("Today", "${status?.recordsToday ?: 0}", "records")
-                StatTile("Lifetime", "${stats?.records ?: 0}", "records")
+                StatTile(stringResource(R.string.dashboard_today), "${status?.recordsToday ?: 0}", stringResource(R.string.dashboard_records))
+                StatTile(stringResource(R.string.dashboard_lifetime), "${stats?.records ?: 0}", stringResource(R.string.dashboard_records))
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Last sync", style = MaterialTheme.typography.labelSmall,
+                    Text(stringResource(R.string.dashboard_last_sync), style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
@@ -77,7 +79,7 @@ fun DashboardCard() {
                         Text(
                             status?.lastSyncMillis?.let {
                                 DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it))
-                            } ?: "never",
+                            } ?: stringResource(R.string.common_never),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -88,7 +90,7 @@ fun DashboardCard() {
             if (stepsPerDay.size >= 2) {
                 Column {
                     Text(
-                        "Steps, last ${stepsPerDay.size} days",
+                        stringResource(R.string.dashboard_steps_last_days, stepsPerDay.size),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -140,10 +142,14 @@ fun ScreenTimeDashboardCard(refreshKey: Any?) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                StatTile("Today", "${(today?.totalScreenTimeMs ?: 0L) / 60000}", "min")
-                StatTile("Top app", topApp?.appName ?: "none", topApp?.let { "${it.totalTimeMs / 60000} min" } ?: "")
+                StatTile(stringResource(R.string.dashboard_today), "${(today?.totalScreenTimeMs ?: 0L) / 60000}", stringResource(R.string.dashboard_min))
+                StatTile(
+                    stringResource(R.string.dashboard_top_app),
+                    topApp?.appName ?: stringResource(R.string.dashboard_none),
+                    topApp?.let { stringResource(R.string.dashboard_minutes_unit, (it.totalTimeMs / 60000).toInt()) } ?: ""
+                )
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Last sync", style = MaterialTheme.typography.labelSmall,
+                    Text(stringResource(R.string.dashboard_last_sync), style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
@@ -156,7 +162,7 @@ fun ScreenTimeDashboardCard(refreshKey: Any?) {
                         Text(
                             lastSyncMillis?.let {
                                 DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it))
-                            } ?: "never",
+                            } ?: stringResource(R.string.common_never),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -167,7 +173,7 @@ fun ScreenTimeDashboardCard(refreshKey: Any?) {
             if (minutesPerDay.size >= 2) {
                 Column {
                     Text(
-                        "Minutes per day, last ${minutesPerDay.size} days",
+                        stringResource(R.string.dashboard_minutes_per_day_last_days, minutesPerDay.size),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
