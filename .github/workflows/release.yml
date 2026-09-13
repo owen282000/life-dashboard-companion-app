@@ -103,6 +103,21 @@ jobs:
             git diff -- fastlane/metadata/android/en-US/changelogs
             exit 1
           fi
+      - name: Check version.properties matches the tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          # F-Droid's checkupdates reads literal versions from version.properties
+          # at the tag (UpdateCheckData), because the Gradle build derives its
+          # version from git describe and exposes no literals to parse.
+          IFS=. read -r MA MI PA <<< "$GITHUB_REF_NAME"
+          WANT=$((MA * 10000 + MI * 100 + PA))
+          if ! grep -qx "VERSION_NAME=$GITHUB_REF_NAME" version.properties \
+             || ! grep -qx "VERSION_CODE=$WANT" version.properties; then
+            echo "version.properties does not match tag $GITHUB_REF_NAME (code $WANT)."
+            echo "Run scripts/prepare-release.sh $GITHUB_REF_NAME and commit before tagging."
+            cat version.properties
+            exit 1
+          fi
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3

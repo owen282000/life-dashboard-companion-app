@@ -18,18 +18,19 @@ Release signing is described in [KEYSTORE_SETUP.md](KEYSTORE_SETUP.md). Releases
 ## Releasing
 
 1. Add a `## [X.Y.Z]` section to [CHANGELOG.md](../CHANGELOG.md)
-2. Generate the store changelogs and commit them:
+2. Prepare the release files and commit them:
 
    ```bash
-   scripts/generate-fastlane-changelogs.sh        # all versions
-   scripts/generate-fastlane-changelogs.sh 1.12.0 # just one
+   scripts/prepare-release.sh 1.13.0
    ```
 
-3. Tag the release (`git tag 1.12.0 && git push --tags`)
+   This writes `version.properties` (the literal version F-Droid's update checker reads, since the Gradle build derives its version from the tag) and generates the store changelog for that version.
+
+3. Tag the release (`git tag 1.13.0 && git push --tags`)
 
 The tag triggers the release workflow, which builds and signs the APK, attests its provenance, and creates the GitHub release using the matching changelog section as its notes.
 
-`fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` is what F-Droid, IzzyOnDroid and Play show as release notes. The files are generated from `CHANGELOG.md` and committed, and the release workflow fails if the one for the tag being released is missing or stale, so store notes cannot silently drift from the changelog. The versionCode is `major * 10000 + minor * 100 + patch`, matching how `app/build.gradle.kts` derives it, and entries are trimmed on a line boundary to Play's 500-character limit with a link to the full changelog.
+The tag fails to release when `version.properties` or the store changelog does not match it, so neither can silently drift. `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` is what F-Droid and Play show as release notes. The files are generated from `CHANGELOG.md` and committed, and the release workflow fails if the one for the tag being released is missing or stale, so store notes cannot silently drift from the changelog. The versionCode is `major * 10000 + minor * 100 + patch`, matching how `app/build.gradle.kts` derives it, and entries are trimmed on a line boundary to Play's 500-character limit with a link to the full changelog.
 
 ## Project layout
 
