@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- `raw_min_time`, `raw_max_time` and `raw_latest_modified_time` in `_diagnostics`, describing everything Health Connect returned before the incremental filter, so a receiver can tell "the source app has not written it yet" from "the filter dropped it" (#53)
+- `docs/DATA_SOURCES.md`: what individual source apps (Fitbit, Cronometer, Health Sync, Zepp, Garmin) do and do not write, and how screen time is measured
+
+### Changed
+
+- README documents `daily_totals`, server-side deduplication on `uuid`, the `_diagnostics` block, the screen time method, and adds troubleshooting entries for inflated totals, late nightly metrics, missing nutrients and inflated screen time
+
 ## [1.10.2] - 2026-09-12
 
 ### Fixed

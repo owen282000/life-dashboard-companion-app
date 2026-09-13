@@ -169,7 +169,11 @@ data class TypeDiagnostics(
     val minTime: Instant?,
     val maxTime: Instant?,
     val lastSync: Instant?,
-    val error: String?
+    val error: String?,
+    /** Timestamp range and newest modification time of everything Health Connect returned, before the watermark filter (issue #53). */
+    val rawMinTime: Instant? = null,
+    val rawMaxTime: Instant? = null,
+    val rawLatestModifiedTime: Instant? = null
 )
 
 data class StepsData(

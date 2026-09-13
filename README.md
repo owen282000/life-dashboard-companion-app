@@ -44,7 +44,7 @@ Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/
 - Configurable sync interval (minimum 15 minutes)
 
 ### Screen Time Tracking
-- Tracks app usage statistics via Android's UsageStatsManager
+- Tracks foreground time per app via Android's UsageStatsManager, with System UI and the launcher excluded so totals are comparable to Digital Wellbeing
 - **Configurable day boundary** - Perfect for night owls! If you set the boundary to 4 AM, any phone usage between midnight and 4 AM counts towards the previous day's total. This gives you accurate "real day" statistics instead of arbitrary midnight cutoffs.
 - Syncs last 7 days of usage data
 - App names resolved from package names
@@ -381,6 +381,42 @@ The `result` field is one of `positive`, `high`, `negative`, `inconclusive`, or 
 ```
 Skin temperature is reported as deltas from a per-record baseline, matching how wearables write it to Health Connect; `baseline_celsius` is omitted when the source app provides none.
 
+#### Daily totals
+
+When several apps write the same activity to Health Connect (phone and watch, or a mirroring app such as Health Sync), the raw records above contain each copy and adding them up double counts. The payload therefore also carries `daily_totals`, computed with Health Connect's aggregate API, which deduplicates across sources and matches what the Health Connect app shows. It covers yesterday and today, only for the enabled types, and can be switched off in the app.
+
+```json
+"daily_totals": [
+  { "date": "2025-02-05", "steps": 8421, "distance_meters": 6210.4, "active_calories": 412.0, "total_calories": 2231.5 }
+]
+```
+
+Use `daily_totals` for day totals and the raw records for detail. Records that arrive late, for example a watch that uploads hours later with the original timestamps, are still delivered: the sync filters on each record's modification time, not on its timestamp. Because a batch is re-sent after a failed delivery and edited records are sent again, deduplicate on `uuid` server-side.
+
+#### Diagnostics
+
+Every payload ends with a `_diagnostics` object with one entry per enabled type, so a receiver can see what Health Connect returned before and after the incremental filter:
+
+```json
+"_diagnostics": {
+  "heart_rate_variability": {
+    "permission_granted": true,
+    "page_count": 1,
+    "raw_record_count": 472,
+    "raw_min_time": "2026-09-11T22:10:00Z",
+    "raw_max_time": "2026-09-12T05:20:00Z",
+    "raw_latest_modified_time": "2026-09-12T05:43:39.120Z",
+    "filtered_record_count": 0,
+    "min_time": null,
+    "max_time": null,
+    "last_sync": "2026-09-12T05:44:06.439Z",
+    "error": null
+  }
+}
+```
+
+`raw_*` describes everything Health Connect returned for the query window; `filtered_record_count` and `min_time`/`max_time` describe what this payload delivered. When `raw_latest_modified_time` is older than `last_sync`, the source app has not written anything new yet. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) for what individual source apps do and do not write.
+
 ### Screen Time
 ```json
 {
@@ -404,6 +440,8 @@ Skin temperature is reported as deltas from a per-record baseline, matching how 
   ]
 }
 ```
+
+Minutes are foreground time per app, derived from Android's activity resume, pause and stop events; background time is not counted. A session also ends on screen off, keyguard and shutdown, System UI and the launcher are excluded, and apps with under one minute per day are omitted, so totals are comparable to Digital Wellbeing (with a custom day boundary they will not match its midnight day exactly). Every sync recomputes and re-sends the last 7 days from the device's event log, so store per date and let the newest payload win.
 
 ### Delivery, Retries and Signing
 
@@ -469,6 +507,22 @@ Many manufacturers (Samsung, Xiaomi, OnePlus, Huawei, and others) aggressively k
 3. Keep in mind Android enforces a minimum interval of 15 minutes for periodic background work, and may delay syncs further in Doze mode.
 
 The webhook logs screen shows when the last sync attempts actually ran, which helps confirm whether syncs are being suppressed.
+
+### Step, distance or calorie totals are far too high
+
+Health Connect usually holds the same activity from more than one app: the phone's step counter, the watch app, Samsung Health, or a mirroring app. Each copy is a record with its own `source`, and summing the raw records counts the activity two or three times. Use the `daily_totals` array for day totals (it is deduplicated by Health Connect itself) and deduplicate raw records on `uuid`, since a batch is re-sent after a failed delivery.
+
+### Nightly metrics (HRV, respiratory rate, sleep) arrive hours after waking
+
+Watch apps such as Fitbit write the night's results to Health Connect only when they sync in the morning, sometimes an hour or more after you wake up. Until then the records do not exist in Health Connect, and `_diagnostics` shows `raw_record_count` unchanged and `raw_latest_modified_time` older than `last_sync`. They are delivered on the first sync after the source writes them; no data is lost.
+
+### A nutrient or other field is missing from the export
+
+The app exports every field Health Connect's record types expose, but only when the source app wrote it. Cronometer, for example, does not write thiamin, folic acid, chloride or energy from fat, and Health Sync drops vitamins and minerals from mirrored meals. Salt is not a Health Connect field at all. [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) lists what is known per source app.
+
+### Screen time is much higher than Digital Wellbeing
+
+Update to 1.10.2 or later. Earlier versions counted a session whose pause event was never recorded until the end of the day, which produced per-app values of 10 to 15 hours. After the update the next sync re-sends the last 7 days with corrected values.
 
 ## Tech Stack
 

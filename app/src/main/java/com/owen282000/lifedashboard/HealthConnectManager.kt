@@ -267,6 +267,7 @@ class HealthConnectManager(private val context: Context) {
             if (limited.size < filtered.size) cappedTypes += type
             limited.maxOfOrNull { it.metadata.lastModifiedTime }?.let { watermarks[type] = it }
             val times = limited.map(timeOf)
+            val rawTimes = paged.records.map(timeOf)
             recordDiag(
                 type = type,
                 pageCount = paged.pageCount,
@@ -274,7 +275,10 @@ class HealthConnectManager(private val context: Context) {
                 filteredRecordCount = limited.size,
                 minTime = times.minOrNull(),
                 maxTime = times.maxOrNull(),
-                error = skippedWindowsNote(paged.skippedWindows)
+                error = skippedWindowsNote(paged.skippedWindows),
+                rawMinTime = rawTimes.minOrNull(),
+                rawMaxTime = rawTimes.maxOrNull(),
+                rawLatestModifiedTime = paged.records.maxOfOrNull { it.metadata.lastModifiedTime }
             )
             return limited
         } catch (e: Exception) {
@@ -290,7 +294,10 @@ class HealthConnectManager(private val context: Context) {
         filteredRecordCount: Int = 0,
         minTime: Instant? = null,
         maxTime: Instant? = null,
-        error: String? = null
+        error: String? = null,
+        rawMinTime: Instant? = null,
+        rawMaxTime: Instant? = null,
+        rawLatestModifiedTime: Instant? = null
     ) {
         diagnostics[type] = TypeDiagnostics(
             permissionGranted = false, // filled in later in readHealthData()
@@ -300,7 +307,10 @@ class HealthConnectManager(private val context: Context) {
             minTime = minTime,
             maxTime = maxTime,
             lastSync = null, // filled in later in readHealthData()
-            error = error
+            error = error,
+            rawMinTime = rawMinTime,
+            rawMaxTime = rawMaxTime,
+            rawLatestModifiedTime = rawLatestModifiedTime
         )
     }
 
