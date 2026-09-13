@@ -2,6 +2,8 @@
   <img src="docs/social-preview.png" alt="Life Dashboard Companion - your health data, your server, no cloud" width="100%">
 </p>
 
+<h1 align="center">Life Dashboard Companion</h1>
+
 <p align="center">
   <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK" alt="Download APK"></a>
   <a href="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml"><img src="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml/badge.svg" alt="Build"></a>
