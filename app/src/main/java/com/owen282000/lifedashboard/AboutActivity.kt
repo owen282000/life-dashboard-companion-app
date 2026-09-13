@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.owen282000.lifedashboard.ui.theme.*
+import com.owen282000.lifedashboard.screens.ConfigBackupSection
 
 class AboutActivity : ComponentActivity() {
 
@@ -228,6 +229,14 @@ class AboutActivity : ComponentActivity() {
                         FeatureItem(Icons.Outlined.Lock, "No third-party data sharing")
                         FeatureItem(Icons.Outlined.Storage, "Data stays on your device")
                         FeatureItem(Icons.Outlined.Tune, "Full control over sync settings")
+                    }
+
+                    AboutSectionCard(
+                        icon = Icons.Outlined.SettingsBackupRestore,
+                        iconTint = Primary,
+                        title = "Backup & restore"
+                    ) {
+                        ConfigBackupSection()
                     }
 
                     LinkCard(

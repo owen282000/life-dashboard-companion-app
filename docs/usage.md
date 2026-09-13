@@ -38,6 +38,8 @@ More on the project layout and the build in [building.md](building.md).
 
 Use the **Test ping** button to confirm your server accepts a POST before waiting for real data.
 
+Moving from another device? Import your settings under **About > Backup & restore** instead of typing everything again; see [settings-backup.md](settings-backup.md).
+
 ## Troubleshooting
 
 ### Background syncs stop after a while

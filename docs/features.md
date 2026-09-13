@@ -62,6 +62,7 @@ Delivery details, retry rules and signature verification are described in [webho
 - **Data preview** - view the exact JSON payload before syncing
 - **Export as CSV/JSON** - export sync logs via the Android share sheet
 - **Sync history dashboard** - overview of success rates, record counts and recent failures
+- **Settings backup and restore** - export every webhook, header, secret, MQTT broker and toggle as a JSON file, and import it on another device. See [settings-backup.md](settings-backup.md)
 
 ## General
 

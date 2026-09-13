@@ -62,7 +62,7 @@ class ExportManager(private val context: Context) {
         return sb.toString()
     }
 
-    fun shareFile(content: String, filename: String, mimeType: String) {
+    fun shareFile(content: String, filename: String, mimeType: String, title: String = "Export logs") {
         val cacheDir = File(context.cacheDir, "exports")
         cacheDir.mkdirs()
 
@@ -81,7 +81,7 @@ class ExportManager(private val context: Context) {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
-        val chooserIntent = Intent.createChooser(shareIntent, "Export logs")
+        val chooserIntent = Intent.createChooser(shareIntent, title)
         chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(chooserIntent)
     }

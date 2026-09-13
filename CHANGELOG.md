@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Settings backup and restore under About: export every webhook URL, header, signing secret, MQTT broker and toggle as a JSON file and import it on another device. Exports that carry secrets are encrypted with a password (AES-256-GCM, PBKDF2-HMAC-SHA256); a secret-free export can be shared without handing over access. Importing shows a preview of what will be replaced first, and sync watermarks and logs are deliberately left out. Documented in `docs/settings-backup.md`
+
 ### Security
 
 - Webhook auth headers, HMAC signing secrets and MQTT credentials are excluded from Android cloud backup and device transfer. They are stored with a key that never leaves the device, so a restored copy could not be decrypted anyway; excluding them also removes any chance of a keystore outage shipping them off-device

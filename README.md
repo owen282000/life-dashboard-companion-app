@@ -83,6 +83,7 @@ Every record carries a `uuid` for deduplication and a `source` package name. Use
 | [docs/features.md](docs/features.md) | Full feature list, supported data types, MQTT, automation, tech stack |
 | [docs/usage.md](docs/usage.md) | Requirements, installation, setup, troubleshooting |
 | [docs/webhook.md](docs/webhook.md) | Complete payload reference, delivery, retries, HMAC signing, backend examples |
+| [docs/settings-backup.md](docs/settings-backup.md) | Exporting and importing your configuration between devices |
 | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | What Fitbit, Cronometer, Health Sync, Zepp and Garmin do and do not write |
 | [docs/building.md](docs/building.md) | Build, project layout, contributing |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
