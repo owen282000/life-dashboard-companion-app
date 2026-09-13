@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file. The format is b
 ### Added
 
 - Store listing assets for IzzyOnDroid and F-Droid: a 512x512 icon and a 1024x500 feature graphic in the banner's visual identity, plus four fresh screenshots showing real syncs. The sources live in `docs/brand/` as HTML and render with headless Chrome, the same way the repository banner was made, so they can be regenerated instead of only existing as pixels
+- The repository banner itself is regenerated from a committed source (`docs/brand/banner.html`) in the same identity
 
 ### Changed
 
