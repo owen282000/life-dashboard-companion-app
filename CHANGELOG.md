@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Store listing assets for IzzyOnDroid and F-Droid: a 512x512 icon and a 1024x500 feature graphic in the banner's visual identity, plus four fresh screenshots showing real syncs. The sources live in `docs/brand/` as HTML and render with headless Chrome, the same way the repository banner was made, so they can be regenerated instead of only existing as pixels
+
+### Changed
+
+- The launcher icon is now the brand's heartbeat mark on the dark ground from the banner, replacing the Android Studio template robot that had shipped since the first commit. The adaptive icon carries a monochrome layer for themed icons, and the legacy density PNGs are rendered from the same source
+- The README shows four screenshots instead of three, adding the MQTT and sync-actions view
+
 ## [1.12.0] - 2026-09-13
 
 ### Added

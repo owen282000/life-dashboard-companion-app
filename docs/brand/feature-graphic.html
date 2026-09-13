@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+  Source for the store feature graphic (fastlane/metadata/android/en-US/images/featureGraphic.png).
+
+  Rendered with headless Chrome, the same way docs/social-preview.png was made:
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+      --headless=new --screenshot=featureGraphic.png --window-size=1024,500 \
+      --hide-scrollbars --force-device-scale-factor=1 docs/brand/feature-graphic.html
+
+  Same layout language and colours as the banner: background #14181C -> #101C1C,
+  heartbeat green #30B77E, white title with the green "Companion".
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1024px; height: 500px; overflow: hidden; }
+  body {
+    background: radial-gradient(130% 130% at 25% 20%, #171D21 0%, #14181C 45%, #101C1C 100%);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    position: relative; color: #fff;
+  }
+  .grid {
+    position: absolute; right: 0; bottom: 0; width: 46%; height: 78%;
+    background-image:
+      linear-gradient(to right, rgba(48,183,126,0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(48,183,126,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    -webkit-mask-image: radial-gradient(100% 100% at 100% 100%, black 30%, transparent 78%);
+  }
+  .text { position: absolute; left: 64px; top: 74px; }
+  h1 { font-size: 64px; font-weight: 800; letter-spacing: -1px; line-height: 1.04; }
+  h1 .accent { color: #30B77E; display: block; }
+  .tagline { margin-top: 22px; font-size: 25px; color: #B9C2C6; font-weight: 400; }
+  .kicker {
+    position: absolute; left: 64px; bottom: 40px;
+    font-size: 19px; font-weight: 700; color: #30B77E; letter-spacing: 0.2px;
+  }
+  .kicker .dim { color: #1E5C45; padding: 0 6px; }
+  svg.beat { position: absolute; left: 46px; bottom: 96px; }
+
+  /* Phone with a heartbeat on screen, like the banner */
+  .phone {
+    position: absolute; right: 118px; top: 56px; width: 158px; height: 320px;
+    border: 5px solid #3A4440; border-radius: 30px; background: #131A18;
+    box-shadow: 0 0 60px rgba(48,183,126,0.10);
+  }
+  .phone .bar  { position: absolute; left: 24px; background: #35403C; border-radius: 4px; height: 9px; }
+  .phone .b1 { top: 34px; width: 92px; }
+  .phone .b2 { top: 54px; width: 60px; }
+  .phone .home { position: absolute; bottom: 14px; left: 50%; width: 15px; height: 15px;
+    border: 3px solid #3A4440; border-radius: 50%; transform: translateX(-50%); }
+  .phone svg { position: absolute; left: 0; top: 128px; }
+
+  /* Small server/bars motif bottom right, like the banner */
+  .server {
+    position: absolute; right: 40px; bottom: 128px; width: 74px; height: 96px;
+    border: 4px solid rgba(48,183,126,0.35); border-radius: 12px;
+  }
+  .server i { position: absolute; left: 12px; width: 7px; height: 7px; border-radius: 50%;
+    background: #30B77E; opacity: 0.75; }
+  .server i:nth-child(1) { top: 15px; } .server i:nth-child(2) { top: 40px; } .server i:nth-child(3) { top: 65px; }
+  .server s { position: absolute; left: 27px; right: 12px; height: 6px; border-radius: 3px;
+    background: rgba(48,183,126,0.30); }
+  .server s:nth-child(4) { top: 15px; } .server s:nth-child(5) { top: 40px; } .server s:nth-child(6) { top: 65px; }
+  .bars { position: absolute; right: 150px; bottom: 44px; display: flex; align-items: flex-end; gap: 12px; }
+  .bars b { width: 22px; background: #1E5C45; border-radius: 4px; display: block; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+
+  <div class="text">
+    <h1>Life Dashboard<span class="accent">Companion</span></h1>
+    <div class="tagline">Your health data, your server. No cloud.</div>
+  </div>
+
+  <svg class="beat" width="500" height="120" viewBox="0 0 500 120">
+    <defs>
+      <filter id="glow" x="-30%" y="-80%" width="160%" height="260%">
+        <feGaussianBlur stdDeviation="6" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g filter="url(#glow)">
+      <path d="M18 62 L200 62 L226 22 L252 98 L272 44 L288 62 L432 62"
+            fill="none" stroke="#30B77E" stroke-width="7"
+            stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="432" cy="62" r="9" fill="#30B77E"/>
+    </g>
+  </svg>
+
+  <div class="phone">
+    <span class="bar b1"></span><span class="bar b2"></span>
+    <svg width="148" height="70" viewBox="0 0 148 70">
+      <path d="M18 36 L58 36 L70 14 L84 56 L94 30 L102 36 L130 36"
+            fill="none" stroke="#30B77E" stroke-width="4.5"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="home"></span>
+  </div>
+
+  <div class="server"><i></i><i></i><i></i><s></s><s></s><s></s></div>
+  <div class="bars">
+    <b style="height:22px"></b><b style="height:38px"></b><b style="height:30px"></b>
+    <b style="height:52px"></b><b style="height:42px"></b><b style="height:64px"></b>
+  </div>
+
+  <div class="kicker">Android <span class="dim">|</span> Health Connect + Screen Time <span class="dim">&rarr;</span> Webhooks + MQTT</div>
+</body>
+</html>

@@ -32,9 +32,10 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/health-connect.png" width="250" alt="Health Connect screen">
-  <img src="docs/screenshots/screen-time.png" width="250" alt="Screen Time screen">
-  <img src="docs/screenshots/logs.png" width="250" alt="Webhook logs screen">
+  <img src="docs/screenshots/health-connect.png" width="200" alt="Health Connect screen">
+  <img src="docs/screenshots/screen-time.png" width="200" alt="Screen Time screen">
+  <img src="docs/screenshots/mqtt.png" width="200" alt="MQTT and sync actions">
+  <img src="docs/screenshots/logs.png" width="200" alt="Webhook logs screen">
 </p>
 
 ## Why this app?

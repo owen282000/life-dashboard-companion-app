@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+  Source for the store icon (fastlane/metadata/android/en-US/images/icon.png).
+
+  Rendered with headless Chrome, the same way docs/social-preview.png was made:
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+      --headless=new --screenshot=icon.png --window-size=512,512 \
+      --hide-scrollbars --force-device-scale-factor=1 docs/brand/icon.html
+
+  Colours are sampled from the banner so everything stays one identity:
+  background #14181C -> #101C1C, heartbeat green #30B77E.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 512px; height: 512px; overflow: hidden; }
+  body {
+    background: radial-gradient(120% 120% at 30% 25%, #171D21 0%, #14181C 45%, #101C1C 100%);
+    position: relative;
+  }
+  /* Subtle dashboard grid, bottom-right, like the banner */
+  .grid {
+    position: absolute; right: 0; bottom: 0; width: 60%; height: 55%;
+    background-image:
+      linear-gradient(to right, rgba(48,183,126,0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(48,183,126,0.07) 1px, transparent 1px);
+    background-size: 42px 42px;
+    -webkit-mask-image: radial-gradient(100% 100% at 100% 100%, black 30%, transparent 75%);
+  }
+  svg { position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <svg width="512" height="512" viewBox="0 0 512 512">
+    <defs>
+      <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="14" result="b"/>
+        <feMerge>
+          <feMergeNode in="b"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <!-- Heartbeat: flat in, spike, deep dip, recovery, flat out to endpoint dot -->
+    <g filter="url(#glow)">
+      <path d="M84 256 L188 256 L216 176 L262 340 L294 232 L322 256 L404 256"
+            fill="none" stroke="#30B77E" stroke-width="26"
+            stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="404" cy="256" r="21" fill="#30B77E"/>
+    </g>
+  </svg>
+</body>
+</html>
