@@ -15,6 +15,22 @@ Health Connect features need a real device, or an emulator with the Health Conne
 
 Release signing is described in [KEYSTORE_SETUP.md](KEYSTORE_SETUP.md). Releases are driven by semver tags; the app version is derived from the tag at build time.
 
+## Releasing
+
+1. Add a `## [X.Y.Z]` section to [CHANGELOG.md](../CHANGELOG.md)
+2. Generate the store changelogs and commit them:
+
+   ```bash
+   scripts/generate-fastlane-changelogs.sh        # all versions
+   scripts/generate-fastlane-changelogs.sh 1.12.0 # just one
+   ```
+
+3. Tag the release (`git tag 1.12.0 && git push --tags`)
+
+The tag triggers the release workflow, which builds and signs the APK, attests its provenance, and creates the GitHub release using the matching changelog section as its notes.
+
+`fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` is what F-Droid, IzzyOnDroid and Play show as release notes. The files are generated from `CHANGELOG.md` and committed, and the release workflow fails if the one for the tag being released is missing or stale, so store notes cannot silently drift from the changelog. The versionCode is `major * 10000 + minor * 100 + patch`, matching how `app/build.gradle.kts` derives it, and entries are trimmed on a line boundary to Play's 500-character limit with a link to the full changelog.
+
 ## Project layout
 
 | Path | Contents |

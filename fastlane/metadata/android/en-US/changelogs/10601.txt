@@ -1,0 +1,7 @@
+Added:
+
+- Build provenance attestation published with every release (verifiable via gh attestation verify)
+
+Changed:
+
+- Gradle wrapper checksum validation in CI and dependency updates (AGP 9.3.2, OkHttp 5.5.0, Gradle 9.7.1)

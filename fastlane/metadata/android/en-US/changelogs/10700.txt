@@ -1,0 +1,5 @@
+Added:
+
+- 8 new data types (33 total): basal metabolic rate, VO2 max, skin temperature, basal body temperature, intermenstrual bleeding, ovulation test, cervical mucus, and sexual activity
+- Fastlane metadata and privacy policy for F-Droid/IzzyOnDroid distribution
+- OpenSSF Best Practices passing badge

@@ -1,0 +1,7 @@
+Added:
+
+- Record uuid on every payload record (stable Health Connect id) for server-side deduplication, matching the iOS companion app
+- Local notification after repeated sync failures, with an in-app toggle and threshold (3/5/10)
+- Home screen widget with last sync result and records delivered today
+- Quick Settings tile to trigger an immediate sync
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

@@ -1,0 +1,4 @@
+Added:
+
+- Plain HTTP webhooks for private LAN/VPN receivers, behind an explicit "Allow plain HTTP webhooks" switch; http:// URLs stay refused with a clear log message until it is on, and HTTPS remains the default (#51)
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

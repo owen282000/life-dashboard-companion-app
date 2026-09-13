@@ -89,6 +89,20 @@ jobs:
             /^## \[/ { found=0 }
             found { print }
           ' CHANGELOG.md | sed -e '/./,$!d' > RELEASE_NOTES.md
+      - name: Check the fastlane changelog for this release is committed
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          # F-Droid and IzzyOnDroid read release notes from fastlane/, keyed by versionCode.
+          # The file is generated from CHANGELOG.md and committed, so a release cannot ship
+          # without it; regenerating here proves the committed copy is up to date.
+          chmod +x scripts/generate-fastlane-changelogs.sh
+          ./scripts/generate-fastlane-changelogs.sh "$GITHUB_REF_NAME"
+          if ! git diff --quiet -- fastlane/metadata/android/en-US/changelogs; then
+            echo "The fastlane changelog for $GITHUB_REF_NAME is missing or stale."
+            echo "Run scripts/generate-fastlane-changelogs.sh and commit the result."
+            git diff -- fastlane/metadata/android/en-US/changelogs
+            exit 1
+          fi
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3

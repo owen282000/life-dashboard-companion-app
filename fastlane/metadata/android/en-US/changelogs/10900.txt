@@ -1,0 +1,4 @@
+Fixed:
+
+- Heart Rate Variability could never be granted: the manifest declared a nonexistent permission name (#40); the permission request list is now derived from the data type enum, which also restores the 10 newest types that had silently dropped out of the permission dialog
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

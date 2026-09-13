@@ -1,0 +1,6 @@
+Added:
+
+- MQTT publishing with Home Assistant Discovery: every enabled data type appears automatically as a sensor in Home Assistant
+- Store-and-forward outbox: failed webhook deliveries are queued on disk and drained on the next sync, so no data is lost when the receiver is down
+- Historical backfill of up to a year of data (30/90/365 days) in small windows with progress feedback
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
