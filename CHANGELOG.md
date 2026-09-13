@@ -14,6 +14,10 @@ All notable changes to this project are documented in this file. The format is b
 - Dutch and German translations of the whole interface. Android picks them up from the system language; other locales fall back to English, and translations for more are welcome as a pull request
 - Every user-facing string on the Health Connect, Screen Time, Logs and MQTT screens now lives in `strings.xml`, so the app can be translated. Counts use plurals rather than a hardcoded "(s)", and sentences are built with format arguments instead of concatenation. MQTT sensor names stay English on purpose: they are published to Home Assistant. A CI check fails the build on new hardcoded UI text, since Android's own lint only inspects XML layouts and cannot see Compose
 
+### Fixed
+
+- Section headings no longer collide with the label beside them when a translation is long: "Sync Interval" is 13 characters in English but 26 in German, and the title and subtitle overlapped
+
 ### Security
 
 - Webhook auth headers, HMAC signing secrets and MQTT credentials are excluded from Android cloud backup and device transfer. They are stored with a key that never leaves the device, so a restored copy could not be decrypted anyway; excluding them also removes any chance of a keystore outage shipping them off-device
