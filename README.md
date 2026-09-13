@@ -101,10 +101,15 @@ MIT - see [LICENSE](LICENSE).
 
 ## Acknowledgments
 
-- [Google Health Connect](https://developer.android.com/health-and-fitness/guides/health-connect) for the excellent SDK
-- [HC Webhook](https://github.com/mcnaveen/health-connect-webhook) by mcnaveen for inspiration on Health Connect integration patterns
-- The Quantified Self community for inspiration
-- [Claude Code](https://claude.ai/claude-code) for assistance with development
+Built on the work of others:
+
+- [Health Connect](https://developer.android.com/health-and-fitness/health-connect) by Google, the SDK this app reads from
+- [OkHttp](https://github.com/lysine-dev/okhttp) for webhook delivery and [HiveMQ MQTT Client](https://github.com/hivemq/hivemq-mqtt-client) for the Home Assistant integration
+- [Jetpack Compose, WorkManager and Glance](https://developer.android.com/jetpack) for the UI, background sync and home screen widget
+- [HC Webhook](https://github.com/mcnaveen/health-connect-webhook) by mcnaveen, for early inspiration on Health Connect integration patterns
+- Everyone who has filed an issue with a payload dump or a source-app quirk; most of [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) comes from those reports
+- The quantified self and self-hosting communities
+- [Claude Code](https://claude.com/claude-code) for assistance with development
 
 ## Support
 
