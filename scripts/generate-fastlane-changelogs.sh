@@ -56,9 +56,23 @@ trim_to_limit() {
     fi
     local notice="... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md"
     local budget=$(( MAX_CHARS - ${#notice} - 1 ))
-    # Cut on a line boundary so an entry never ends mid-sentence.
+
+    # Keep whole lines while they fit. A bullet that alone exceeds the budget is cut at a
+    # word boundary rather than dropped, so the entry is never empty.
     printf '%s\n' "$text" | awk -v budget="$budget" '
-        { if (total + length($0) + 1 > budget) exit; total += length($0) + 1; print }
+        function emit(line) { print line; total += length(line) + 1 }
+        {
+            if ($0 == "") { if (total > 0 && total + 1 <= budget) emit(""); next }
+            if (total + length($0) + 1 <= budget) { emit($0); next }
+            room = budget - total - 4
+            if (room > 40 && substr($0, 1, 2) == "- ") {
+                cut = substr($0, 1, room)
+                sub(/[^ ]*$/, "", cut)
+                sub(/[ ,;:]+$/, "", cut)
+                if (length(cut) > 20) emit(cut " ...")
+            }
+            exit
+        }
     '
     printf '%s\n' "$notice"
 }

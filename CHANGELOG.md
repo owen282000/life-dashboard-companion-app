@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-09-13
+
 ### Added
 
 - Settings backup and restore under About: export every webhook URL, header, signing secret, MQTT broker and toggle as a JSON file and import it on another device. Exports that carry secrets are encrypted with a password (AES-256-GCM, PBKDF2-HMAC-SHA256); a secret-free export can be shared without handing over access. Importing shows a preview of what will be replaced first, and sync watermarks and logs are deliberately left out. Documented in `docs/settings-backup.md`
@@ -13,6 +15,10 @@ All notable changes to this project are documented in this file. The format is b
 
 - Dutch and German translations of the whole interface. Android picks them up from the system language; other locales fall back to English, and translations for more are welcome as a pull request
 - Every user-facing string on the Health Connect, Screen Time, Logs and MQTT screens now lives in `strings.xml`, so the app can be translated. Counts use plurals rather than a hardcoded "(s)", and sentences are built with format arguments instead of concatenation. MQTT sensor names stay English on purpose: they are published to Home Assistant. A CI check fails the build on new hardcoded UI text, since Android's own lint only inspects XML layouts and cannot see Compose
+- Webhook logs moved out of the main settings file into their own store, with raw payloads kept as separate files. Retention is now capped by total size (5 MB) as well as entry count, so a run of large payloads can no longer grow storage without bound; previously 100 busy syncs could retain roughly 25 MB in a single value that was rewritten on every delivery
+- Raw payloads are truncated to 16 KB by default, with a "Keep full payloads" switch on the logs screen for debugging. Payloads are raw health data, so they are also excluded from backup
+- Webhook delivery and log writing now run on the IO dispatcher; the test ping previously did both on the main thread
+- `targetSdk` raised to 36 (Android 16), which Google Play requires for new apps and updates from 31 August 2026
 
 ### Fixed
 
@@ -22,13 +28,6 @@ All notable changes to this project are documented in this file. The format is b
 
 - Webhook auth headers, HMAC signing secrets and MQTT credentials are excluded from Android cloud backup and device transfer. They are stored with a key that never leaves the device, so a restored copy could not be decrypted anyway; excluding them also removes any chance of a keystore outage shipping them off-device
 - A keystore outage no longer falls back to plain, backup-eligible storage. Secrets are now kept in memory for that process only, so they are never written unencrypted; the affected screens show a banner explaining why saved credentials are temporarily unavailable
-
-### Changed
-
-- Webhook logs moved out of the main settings file into their own store, with raw payloads kept as separate files. Retention is now capped by total size (5 MB) as well as entry count, so a run of large payloads can no longer grow storage without bound; previously 100 busy syncs could retain roughly 25 MB in a single value that was rewritten on every delivery
-- Raw payloads are truncated to 16 KB by default, with a "Keep full payloads" switch on the logs screen for debugging. Payloads are raw health data, so they are also excluded from backup
-- Webhook delivery and log writing now run on the IO dispatcher; the test ping previously did both on the main thread
-- `targetSdk` raised to 36 (Android 16), which Google Play requires for new apps and updates from 31 August 2026
 
 ### Notes
 

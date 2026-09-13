@@ -1,4 +1,5 @@
 Added:
 
 - Plain HTTP webhooks for private LAN/VPN receivers, behind an explicit "Allow plain HTTP webhooks" switch; http:// URLs stay refused with a clear log message until it is on, and HTTPS remains the default (#51)
+- MQTT publishing for Screen Time: today's and yesterday's total minutes and today's most used app, with the top five apps as attributes, under the same Home Assistant ...
 ... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
