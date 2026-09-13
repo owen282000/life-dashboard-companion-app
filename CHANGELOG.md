@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Changed
+
+- The brand mark gained broadcast arcs: the pulse ends in a dot that radiates the signal, chosen from three explored directions because measuring AND publishing is what the app does. Applied to the launcher icon, the store icon, the feature graphic and the repository banner, all rendered from the sources in `docs/brand/`
+
 ## [1.12.1] - 2026-09-14
 
 ### Added

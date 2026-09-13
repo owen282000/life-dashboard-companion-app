@@ -45,12 +45,18 @@
         </feMerge>
       </filter>
     </defs>
-    <!-- Heartbeat: flat in, spike, deep dip, recovery, flat out to endpoint dot -->
+    <!-- Heartbeat broadcast: pulse, endpoint dot, and two arcs radiating the signal.
+         The chosen mark (variant 1 of the 2026-09-14 explorations): the pulse is
+         measured AND published, which is exactly what the app does. -->
     <g filter="url(#glow)">
-      <path d="M84 256 L188 256 L216 176 L262 340 L294 232 L322 256 L404 256"
+      <path d="M64 256 L158 256 L186 176 L232 340 L264 232 L290 256 L330 256"
             fill="none" stroke="#30B77E" stroke-width="26"
             stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="404" cy="256" r="21" fill="#30B77E"/>
+      <circle cx="330" cy="256" r="20" fill="#30B77E"/>
+      <path d="M376 216 A 60 60 0 0 1 376 296" fill="none" stroke="#30B77E"
+            stroke-width="20" stroke-linecap="round" opacity="0.85"/>
+      <path d="M410 186 A 105 105 0 0 1 410 326" fill="none" stroke="#30B77E"
+            stroke-width="20" stroke-linecap="round" opacity="0.5"/>
     </g>
   </svg>
 </body>
