@@ -1,568 +1,103 @@
-# Life Dashboard Companion
-
-[![Download APK](https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK)](https://github.com/owen282000/life-dashboard-companion-app/releases/latest)
-[![Build](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml)
-[![Security](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml)
-[![Release](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml/badge.svg)](https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/owen282000/life-dashboard-companion-app/badge)](https://scorecard.dev/viewer/?uri=github.com/owen282000/life-dashboard-companion-app)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14258/badge)](https://www.bestpractices.dev/projects/14258)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://developer.android.com)
-
 <p align="center">
-  <img src="docs/screenshots/health-connect.png" width="250" alt="Health Connect Screen">
-  <img src="docs/screenshots/screen-time.png" width="250" alt="Screen Time Screen">
-  <img src="docs/screenshots/logs.png" width="250" alt="Webhook Logs Screen">
+  <img src="docs/social-preview.png" alt="Life Dashboard Companion - your health data, your server, no cloud" width="100%">
 </p>
 
-A privacy-focused Android app that syncs your **Health Connect** and **Screen Time** data to your own server via webhooks. Perfect for self-hosted dashboards, Home Assistant integrations, or any quantified self setup.
+<h1 align="center">Life Dashboard Companion</h1>
 
-Also on iPhone? Check out [Life Dashboard Companion for iOS](https://github.com/owen282000/life-dashboard-companion-app-ios), which sends a compatible payload from Apple Health (HealthKit) so both apps can feed the same backend.
+<p align="center">
+  A privacy-focused Android app that syncs your <b>Health Connect</b> and <b>Screen Time</b> data to your own server via webhooks or MQTT.<br>
+  Built for self-hosted dashboards, Home Assistant, and any quantified self setup.
+</p>
 
-## Why This App?
+<p align="center">
+  <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK" alt="Download APK"></a>
+  <a href="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml"><img src="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml"><img src="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/security.yml/badge.svg" alt="Security"></a>
+  <a href="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml"><img src="https://github.com/owen282000/life-dashboard-companion-app/actions/workflows/release.yml/badge.svg" alt="Release"></a>
+  <br>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/owen282000/life-dashboard-companion-app"><img src="https://api.scorecard.dev/projects/github.com/owen282000/life-dashboard-companion-app/badge" alt="OpenSSF Scorecard"></a>
+  <a href="https://www.bestpractices.dev/projects/14258"><img src="https://www.bestpractices.dev/projects/14258/badge" alt="OpenSSF Best Practices"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://developer.android.com"><img src="https://img.shields.io/badge/Android-8.0%2B-green.svg" alt="Android 8.0+"></a>
+</p>
 
-- **Own Your Data** - Send health data to your own server, not third-party clouds
-- **Flexible Webhooks** - Works with any backend that accepts JSON POST requests
-- **Combined App** - Health Connect + Screen Time in one app
-- **33 Health Data Types** - Supports all major Health Connect data types
-- **Modern UI** - Built with Jetpack Compose and Material 3
+<p align="center">
+  <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><b>Download the APK</b></a>
+  &nbsp;·&nbsp;
+  <a href="docs/usage.md">Setup guide</a>
+  &nbsp;·&nbsp;
+  <a href="docs/webhook.md">Payload reference</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iOS version</a>
+</p>
 
-## Features
+<p align="center">
+  <img src="docs/screenshots/health-connect.png" width="250" alt="Health Connect screen">
+  <img src="docs/screenshots/screen-time.png" width="250" alt="Screen Time screen">
+  <img src="docs/screenshots/logs.png" width="250" alt="Webhook logs screen">
+</p>
 
-### Health Connect Integration
-- Syncs data from Google Health Connect to your webhook
-- **33 supported data types:**
-  - Activity: Steps, Distance, Active Calories, Total Calories, Exercise Sessions
-  - Body: Weight, Height, Body Temperature, Skin Temperature, Basal Body Temperature
-  - Body Composition: Body Fat %, Lean Body Mass, Bone Mass, Body Water Mass
-  - Vitals: Heart Rate, Resting Heart Rate, Heart Rate Variability (HRV), Blood Pressure, Blood Glucose, Oxygen Saturation, Respiratory Rate, Basal Metabolic Rate, VO2 Max
-  - Sleep: Sleep sessions with stages
-  - Nutrition: Hydration, Nutrition records
-  - Mindfulness: Meditation sessions (from apps like Waking Up, Headspace)
-  - Cycle Tracking: Menstruation Period, Menstruation Flow, Intermenstrual Bleeding, Ovulation Test, Cervical Mucus, Sexual Activity, Basal Body Temperature (logged data from cycle apps that write to Health Connect, such as Clue and Flo; note that Samsung Health does not share cycle data with Health Connect, and predictions stay in the source app)
-- Per-data-type toggle and permission management
-- Configurable sync interval (minimum 15 minutes)
+## Why this app?
 
-### Screen Time Tracking
-- Tracks foreground time per app via Android's UsageStatsManager, with System UI and the launcher excluded so totals are comparable to Digital Wellbeing
-- **Configurable day boundary** - Perfect for night owls! If you set the boundary to 4 AM, any phone usage between midnight and 4 AM counts towards the previous day's total. This gives you accurate "real day" statistics instead of arbitrary midnight cutoffs.
-- Syncs last 7 days of usage data
-- App names resolved from package names
+- **Own your data** - health data goes to your own server, not a third-party cloud
+- **Flexible delivery** - any backend that accepts a JSON POST, or MQTT with Home Assistant Discovery
+- **Combined** - Health Connect and Screen Time in one app
+- **33 health data types** - all major Health Connect types, per-type toggles
+- **Modern UI** - Jetpack Compose and Material 3, with dark mode
 
-### Webhook Configuration
-- **Multiple webhook URLs** - Send to multiple endpoints simultaneously
-- **Custom headers** - Add auth tokens, API keys, or any custom HTTP headers per category
-- **HMAC payload signing** - Optional `X-Signature` header so your server can verify the sender
-- **Test ping** - Send a small test payload to verify your server setup without waiting for real data
-- **Retries with backoff** - Transient failures are retried automatically; permanent errors fail fast
-- **Separate configuration** - Different URLs, headers, and signing secrets for Health and Screen Time
+Also on iPhone? [Life Dashboard Companion for iOS](https://github.com/owen282000/life-dashboard-companion-app-ios) sends a compatible payload from Apple Health (HealthKit), so both apps can feed the same backend.
 
-- **HTTPS by default, plain HTTP on request** - `http://` URLs are refused unless "Allow plain HTTP webhooks" is switched on, for Home Assistant or receivers only reachable over a private LAN or VPN
+## Quick start
 
-### Data Tools
-- **Data preview** - View the exact JSON payload before syncing
-- **Export as CSV/JSON** - Export sync logs via the Android share sheet
-- **Sync history dashboard** - Overview of success rates, record counts, and recent failures
+1. Install the latest APK from [Releases](https://github.com/owen282000/life-dashboard-companion-app/releases/latest)
+2. Grant Health Connect permissions and, for Screen Time, Usage Access
+3. Enter your webhook URL (or point the app at your MQTT broker)
+4. Tap **Preview Data** to inspect the payload, then **Sync Now**
 
-### Home Assistant / MQTT
-- **MQTT publishing with Home Assistant Discovery** - Point the app at your MQTT broker and the latest value of every synced data type appears in Home Assistant automatically as sensors (steps, heart rate, sleep duration, weight, blood pressure, and more), grouped under one device. No server-side configuration needed.
-- States and discovery configs are published retained, so values survive Home Assistant restarts
-- Optional TLS and username/password authentication; credentials are stored encrypted on-device
-- Event-like types (exercise, nutrition, cycle tracking) remain webhook-only; MQTT sensors represent the most recent record per type
-- Screen Time publishes too: today's and yesterday's total minutes and today's most used app (top five apps as attributes), under the same Home Assistant device. Health Connect and Screen Time each have their own switch and base topic and share one broker connection by default; either section can switch to its own broker
+The full walkthrough, requirements and troubleshooting are in [docs/usage.md](docs/usage.md).
 
-### Automation
-- **Home screen widget** - Last sync result and records delivered today at a glance
-- **Quick Settings tile** - Trigger an immediate sync from the notification shade
-- **Tasker/MacroDroid support** - Trigger syncs with an explicit broadcast intent: `com.owen282000.lifedashboard.ACTION_SYNC`
-- **Failure notifications** - Local notification after repeated failed syncs, with a configurable threshold
+No backend yet? [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is a docker-compose with an HMAC-verifying receiver, Postgres and a provisioned Grafana dashboard: from phone to Grafana in 10 minutes.
 
-### General
-- **Background sync** - Uses WorkManager for reliable background execution
-- **Webhook logs** - View recent sync attempts with payloads for debugging
-- **Health Connect install check** - Clear guidance when Health Connect is missing or outdated
-- **Modern UI** - Material 3 design with dark mode support
-
-## Requirements
-
-- Android 8.0+ (minSdk 26); some Health Connect features need a recent Android version
-- [Health Connect](https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata) app installed
-- Usage access permission (for Screen Time feature)
-
-## Installation
-
-### From Releases (Recommended)
-1. Download the latest APK from [Releases](https://github.com/owen282000/life-dashboard-companion-app/releases/latest)
-2. Install on your Android device (enable "Install from unknown sources" if needed)
-
-### Build from Source
-```bash
-# Clone the repository
-git clone https://github.com/owen282000/life-dashboard-companion-app.git
-cd life-dashboard-companion-app
-
-# Build debug APK
-./gradlew assembleDebug
-
-# The APK will be at: app/build/outputs/apk/debug/app-debug.apk
-
-# Or install directly on connected device
-./gradlew installDebug
-```
-
-## Setup
-
-1. **Install the app** on your Android device
-2. **Grant Health Connect permissions** - Tap "Grant" and select the data types you want to sync
-3. **Grant Usage Access** (for Screen Time) - Go to Settings when prompted
-4. **Configure webhook URLs** - Enter your server endpoint(s)
-5. **Add webhook headers** (optional) - Configure auth tokens or API keys
-6. **Set sync intervals** - Minimum 15 minutes
-7. **Tap "Preview Data"** to inspect the payload, then **"Sync Now"** to send
-
-## Webhook Payload Format
-
-Want a ready-made backend? [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is a docker-compose with an HMAC-verifying receiver, Postgres, and a provisioned Grafana dashboard: from phone to Grafana in 10 minutes.
-
-A machine-readable [JSON Schema](docs/webhook-schema.json) of the complete payload is published in the repository; validate your receiver against it.
-
-### Health Connect
-
-Every Health Connect payload has these top-level fields:
+## What it sends
 
 ```json
 {
   "timestamp": "2025-02-05T12:00:00Z",
   "app_version": "1.2.0",
   "source": "health_connect",
-  "steps": [],
-  "sleep": [],
-  "heart_rate": [],
-  "distance": [],
-  "active_calories": [],
-  "total_calories": [],
-  "weight": [],
-  "height": [],
-  "blood_pressure": [],
-  "blood_glucose": [],
-  "oxygen_saturation": [],
-  "body_temperature": [],
-  "respiratory_rate": [],
-  "resting_heart_rate": [],
-  "exercise": [],
-  "hydration": [],
-  "nutrition": [],
-  "mindfulness": [],
-  "body_fat": [],
-  "lean_body_mass": [],
-  "bone_mass": [],
-  "body_water_mass": [],
-  "heart_rate_variability": [],
-  "menstruation_period": [],
-  "menstruation_flow": [],
-  "basal_metabolic_rate": [],
-  "vo2_max": [],
-  "skin_temperature": [],
-  "basal_body_temperature": [],
-  "intermenstrual_bleeding": [],
-  "ovulation_test": [],
-  "cervical_mucus": [],
-  "sexual_activity": []
-}
-```
-
-Only enabled data types are included. Every record additionally carries a `uuid` (the stable Health Connect record id, useful for server-side deduplication since batches can be re-sent) and a `source` field with the package name of the app that wrote it to Health Connect (e.g. `"source": "com.zepp.app"`), so backends receiving data from multiple sources (phone, watch, third-party apps) can tell records apart. These are omitted from the examples below for brevity. Each array contains records with the following fields:
-
-#### Activity
-
-**Steps**
-```json
-{ "count": 1234, "start_time": "2025-02-05T08:00:00Z", "end_time": "2025-02-05T09:00:00Z", "source": "com.zepp.app" }
-```
-
-**Distance**
-```json
-{ "meters": 1523.5, "start_time": "2025-02-05T08:00:00Z", "end_time": "2025-02-05T09:00:00Z" }
-```
-
-**Active Calories**
-```json
-{ "calories": 245.3, "start_time": "2025-02-05T08:00:00Z", "end_time": "2025-02-05T09:00:00Z" }
-```
-
-**Total Calories**
-```json
-{ "calories": 1850.0, "start_time": "2025-02-05T08:00:00Z", "end_time": "2025-02-05T09:00:00Z" }
-```
-
-**Exercise Sessions**
-```json
-{ "type": "running", "start_time": "2025-02-05T07:00:00Z", "end_time": "2025-02-05T08:00:00Z", "duration_seconds": 3600 }
-```
-
-#### Body
-
-**Weight**
-```json
-{ "kilograms": 75.5, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Height**
-```json
-{ "meters": 1.82, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Body Temperature**
-```json
-{ "celsius": 36.6, "time": "2025-02-05T07:00:00Z" }
-```
-
-#### Body Composition
-
-**Body Fat %**
-```json
-{ "percentage": 18.5, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Lean Body Mass**
-```json
-{ "kilograms": 61.5, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Bone Mass**
-```json
-{ "kilograms": 3.2, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Body Water Mass**
-```json
-{ "kilograms": 42.0, "time": "2025-02-05T07:00:00Z" }
-```
-
-#### Vitals
-
-**Heart Rate**
-```json
-{ "bpm": 72, "time": "2025-02-05T10:30:00Z" }
-```
-
-**Resting Heart Rate**
-```json
-{ "bpm": 58, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Heart Rate Variability (HRV)**
-```json
-{ "heart_rate_variability_millis": 42.5, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Blood Pressure**
-```json
-{ "systolic": 120.0, "diastolic": 80.0, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Blood Glucose**
-```json
-{ "mmol_per_liter": 5.5, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Oxygen Saturation**
-```json
-{ "percentage": 98.0, "time": "2025-02-05T07:00:00Z" }
-```
-
-**Respiratory Rate**
-```json
-{ "rate": 16.0, "time": "2025-02-05T07:00:00Z" }
-```
-
-#### Sleep
-
-**Sleep Sessions**
-```json
-{
-  "session_end_time": "2025-02-05T07:30:00Z",
-  "duration_seconds": 28800,
-  "stages": [
-    {
-      "stage": "deep",
-      "start_time": "2025-02-04T23:00:00Z",
-      "end_time": "2025-02-05T01:00:00Z",
-      "duration_seconds": 7200
-    }
+  "steps": [
+    { "count": 1234, "start_time": "2025-02-05T08:00:00Z", "end_time": "2025-02-05T09:00:00Z", "source": "com.zepp.app" }
+  ],
+  "daily_totals": [
+    { "date": "2025-02-05", "steps": 8421, "distance_meters": 6210.4 }
   ]
 }
 ```
 
-Possible `stage` values: `unknown`, `awake`, `sleeping`, `out_of_bed`, `light`, `deep`, `rem`, `awake_in_bed`.
+Every record carries a `uuid` for deduplication and a `source` package name. Use `daily_totals` for day totals, the raw records for detail. [docs/webhook.md](docs/webhook.md) documents every type, and [docs/webhook-schema.json](docs/webhook-schema.json) is a machine-readable JSON Schema to validate your receiver against.
 
-#### Nutrition
+## Documentation
 
-**Hydration**
-```json
-{ "liters": 0.5, "start_time": "2025-02-05T08:00:00Z", "end_time": "2025-02-05T08:00:00Z" }
-```
-
-**Nutrition**
-```json
-{
-  "calories": 450.0, "protein_grams": 25.0, "carbs_grams": 60.0, "fat_grams": 12.0,
-  "name": "Oatmeal with berries", "meal_type": "breakfast",
-  "dietary_fibre_g": 6.2, "sugars_g": 9.1, "saturated_fat_g": 2.0, "trans_fat_g": 0.0,
-  "sodium_mg": 180.0, "potassium_mg": 320.0, "iron_mg": 1.8,
-  "vitamin_c_mg": 8.0, "vitamin_d_mcg": 2.5, "vitamin_b12_mcg": 1.2,
-  "start_time": "2025-02-05T12:00:00Z", "end_time": "2025-02-05T12:30:00Z"
-}
-```
-
-Every nutrient Health Connect's `NutritionRecord` exposes is exported: energy from fat, fibre, sugars, the fat subtypes, cholesterol, 14 minerals and trace elements, 14 vitamins and related nutrients, and caffeine. Units are in the key suffix (`_g`, `_mg`, `_mcg`, `_kcal`). All fields are optional and omitted when the source app did not write them; a real zero (for example `trans_fat_g: 0.0`) is kept. `meal_type` is one of `breakfast`, `lunch`, `dinner`, `snack`, `unknown`. The full key list is in [docs/webhook-schema.json](docs/webhook-schema.json).
-
-#### Mindfulness
-
-**Mindfulness Sessions**
-```json
-{ "title": "Morning Meditation", "start_time": "2025-02-05T06:00:00Z", "end_time": "2025-02-05T06:15:00Z", "duration_seconds": 900 }
-```
-
-The `title` field is optional and may be `null`.
-
-#### Cycle Tracking
-
-**Menstruation Period**
-```json
-{ "start_time": "2025-02-01T00:00:00Z", "end_time": "2025-02-05T00:00:00Z" }
-```
-
-**Menstruation Flow**
-```json
-{ "flow": "medium", "time": "2025-02-03T00:00:00Z" }
-```
-
-The `flow` field is one of `light`, `medium`, `heavy`, or `unknown`.
-
-**Intermenstrual Bleeding**
-```json
-{ "time": "2025-02-10T00:00:00Z", "source": "com.example.cycleapp" }
-```
-
-**Ovulation Test**
-```json
-{ "result": "positive", "time": "2025-02-12T08:00:00Z" }
-```
-The `result` field is one of `positive`, `high`, `negative`, `inconclusive`, or `unknown`.
-
-**Cervical Mucus**
-```json
-{ "appearance": "egg_white", "sensation": "medium", "time": "2025-02-12T08:00:00Z" }
-```
-
-**Sexual Activity**
-```json
-{ "protection_used": "protected", "time": "2025-02-11T00:00:00Z" }
-```
-
-**Basal Body Temperature**
-```json
-{ "celsius": 36.4, "time": "2025-02-12T06:30:00Z" }
-```
-
-#### Metabolic and Fitness
-
-**Basal Metabolic Rate**
-```json
-{ "kilocalories_per_day": 1650.0, "time": "2025-02-05T00:00:00Z" }
-```
-
-**VO2 Max**
-```json
-{ "vo2_ml_per_min_per_kg": 42.5, "time": "2025-02-05T09:00:00Z" }
-```
-
-**Skin Temperature**
-```json
-{ "delta_celsius": -0.3, "baseline_celsius": 33.5, "time": "2025-02-05T03:00:00Z" }
-```
-Skin temperature is reported as deltas from a per-record baseline, matching how wearables write it to Health Connect; `baseline_celsius` is omitted when the source app provides none.
-
-#### Daily totals
-
-When several apps write the same activity to Health Connect (phone and watch, or a mirroring app such as Health Sync), the raw records above contain each copy and adding them up double counts. The payload therefore also carries `daily_totals`, computed with Health Connect's aggregate API, which deduplicates across sources and matches what the Health Connect app shows. It covers yesterday and today, only for the enabled types, and can be switched off in the app.
-
-```json
-"daily_totals": [
-  { "date": "2025-02-05", "steps": 8421, "distance_meters": 6210.4, "active_calories": 412.0, "total_calories": 2231.5 }
-]
-```
-
-Use `daily_totals` for day totals and the raw records for detail. Records that arrive late, for example a watch that uploads hours later with the original timestamps, are still delivered: the sync filters on each record's modification time, not on its timestamp. Because a batch is re-sent after a failed delivery and edited records are sent again, deduplicate on `uuid` server-side.
-
-#### Diagnostics
-
-Every payload ends with a `_diagnostics` object with one entry per enabled type, so a receiver can see what Health Connect returned before and after the incremental filter:
-
-```json
-"_diagnostics": {
-  "heart_rate_variability": {
-    "permission_granted": true,
-    "page_count": 1,
-    "raw_record_count": 472,
-    "raw_min_time": "2026-09-11T22:10:00Z",
-    "raw_max_time": "2026-09-12T05:20:00Z",
-    "raw_latest_modified_time": "2026-09-12T05:43:39.120Z",
-    "filtered_record_count": 0,
-    "min_time": null,
-    "max_time": null,
-    "last_sync": "2026-09-12T05:44:06.439Z",
-    "error": null
-  }
-}
-```
-
-`raw_*` describes everything Health Connect returned for the query window; `filtered_record_count` and `min_time`/`max_time` describe what this payload delivered. When `raw_latest_modified_time` is older than `last_sync`, the source app has not written anything new yet. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) for what individual source apps do and do not write.
-
-### Screen Time
-```json
-{
-  "timestamp": "2025-02-05T12:00:00Z",
-  "app_version": "1.2.0",
-  "device": "Google Pixel 8",
-  "source": "screen_time",
-  "screen_time": [
-    {
-      "date": "2025-02-05",
-      "total_screen_time_minutes": 180,
-      "apps": [
-        {
-          "package": "com.instagram.android",
-          "name": "Instagram",
-          "minutes": 45,
-          "last_used": "2025-02-05T11:30:00Z"
-        }
-      ]
-    }
-  ]
-}
-```
-
-Minutes are foreground time per app, derived from Android's activity resume, pause and stop events; background time is not counted. A session also ends on screen off, keyguard and shutdown, System UI and the launcher are excluded, and apps with under one minute per day are omitted, so totals are comparable to Digital Wellbeing (with a custom day boundary they will not match its midnight day exactly). Every sync recomputes and re-sends the last 7 days from the device's event log, so store per date and let the newest payload win.
-
-### Delivery, Retries and Signing
-
-Every configured webhook URL receives each payload. A sync counts as delivered when at least one endpoint accepted it; per-URL results are visible in the in-app webhook logs.
-
-Failed posts are retried up to 3 times with exponential backoff (1s, 2s), but only for transient failures: network errors, timeouts, HTTP 408, 429, and 5xx. Permanent client errors (401, 404, ...) fail immediately without retrying. The logs distinguish "recovered after retry" from "failed after all attempts".
-
-When an HMAC signing secret is configured (under Webhook Headers in the app), every POST includes:
-
-```
-X-Signature: sha256=<hex of HMAC-SHA256(secret, raw request body)>
-```
-
-Verify it server-side by recomputing the HMAC over the raw body:
-
-```javascript
-const crypto = require('crypto');
-
-function verifySignature(req, secret) {
-  const expected = 'sha256=' + crypto
-    .createHmac('sha256', secret)
-    .update(req.rawBody) // the exact raw request body bytes
-    .digest('hex');
-  const actual = req.get('X-Signature') || '';
-  return actual.length === expected.length &&
-    crypto.timingSafeEqual(Buffer.from(actual), Buffer.from(expected));
-}
-```
-
-## Example Backend Integrations
-
-### Simple Express.js Server
-```javascript
-const express = require('express');
-const app = express();
-app.use(express.json());
-
-app.post('/api/health-connect', (req, res) => {
-  console.log('Health data received:', req.body);
-  // Store in database, forward to InfluxDB, etc.
-  res.status(200).send('OK');
-});
-
-app.post('/api/screen-time', (req, res) => {
-  console.log('Screen time data received:', req.body);
-  res.status(200).send('OK');
-});
-
-app.listen(3000);
-```
-
-### Home Assistant Webhook
-Use Home Assistant's webhook trigger to receive data and store it or trigger automations.
-
-## Troubleshooting
-
-### Background syncs stop after a while
-
-Many manufacturers (Samsung, Xiaomi, OnePlus, Huawei, and others) aggressively kill background work to save battery, which silently stops the WorkManager syncs this app relies on. If syncs only happen when you open the app:
-
-1. Go to **Settings > Apps > Life Dashboard > Battery** and set it to **Unrestricted** (naming varies per manufacturer).
-2. On heavily customized Android skins, also exempt the app from the manufacturer's own battery or startup manager. [dontkillmyapp.com](https://dontkillmyapp.com) has per-brand instructions.
-3. Keep in mind Android enforces a minimum interval of 15 minutes for periodic background work, and may delay syncs further in Doze mode.
-
-The webhook logs screen shows when the last sync attempts actually ran, which helps confirm whether syncs are being suppressed.
-
-### "CLEARTEXT communication not permitted" or "Plain HTTP is blocked"
-
-Webhook URLs must use HTTPS unless you opt in. For a receiver that is only reachable over your LAN or a VPN and has no certificate, switch on **Allow plain HTTP webhooks** (in the Health Connect or Screen Time settings; it applies to both). Keep in mind that the payload, headers and signature then travel unencrypted on that network.
-
-### Step, distance or calorie totals are far too high
-
-Health Connect usually holds the same activity from more than one app: the phone's step counter, the watch app, Samsung Health, or a mirroring app. Each copy is a record with its own `source`, and summing the raw records counts the activity two or three times. Use the `daily_totals` array for day totals (it is deduplicated by Health Connect itself) and deduplicate raw records on `uuid`, since a batch is re-sent after a failed delivery.
-
-### Nightly metrics (HRV, respiratory rate, sleep) arrive hours after waking
-
-Watch apps such as Fitbit write the night's results to Health Connect only when they sync in the morning, sometimes an hour or more after you wake up. Until then the records do not exist in Health Connect, and `_diagnostics` shows `raw_record_count` unchanged and `raw_latest_modified_time` older than `last_sync`. They are delivered on the first sync after the source writes them; no data is lost.
-
-### A nutrient or other field is missing from the export
-
-The app exports every field Health Connect's record types expose, but only when the source app wrote it. Cronometer, for example, does not write thiamin, folic acid, chloride or energy from fat, and Health Sync drops vitamins and minerals from mirrored meals. Salt is not a Health Connect field at all. [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) lists what is known per source app.
-
-### Screen time is much higher than Digital Wellbeing
-
-Update to 1.10.2 or later. Earlier versions counted a session whose pause event was never recorded until the end of the day, which produced per-app values of 10 to 15 hours. After the update the next sync re-sends the last 7 days with corrected values.
-
-## Tech Stack
-
-- **Kotlin** - Modern Android development
-- **Jetpack Compose** - Declarative UI with Material 3
-- **Health Connect SDK** - Official Google Health Connect API
-- **WorkManager** - Reliable background task scheduling
-- **OkHttp** - HTTP client with retry logic
-- **Kotlinx Serialization** - JSON serialization
+| Doc | Covers |
+|---|---|
+| [docs/features.md](docs/features.md) | Full feature list, supported data types, MQTT, automation, tech stack |
+| [docs/usage.md](docs/usage.md) | Requirements, installation, setup, troubleshooting |
+| [docs/webhook.md](docs/webhook.md) | Complete payload reference, delivery, retries, HMAC signing, backend examples |
+| [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | What Fitbit, Cronometer, Health Sync, Zepp and Garmin do and do not write |
+| [docs/building.md](docs/building.md) | Build, project layout, contributing |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
 
 ## Privacy
 
-This app:
-- Does **not** collect any data itself
-- Does **not** send data anywhere except your configured webhook URLs
-- Does **not** include any analytics or tracking
-- Stores settings locally on your device only
-
-You are in full control of where your data goes.
+This app does **not** collect any data itself, does **not** send data anywhere except your configured webhook URLs or MQTT broker, and contains **no** analytics or tracking. Settings stay on your device. You are in full control of where your data goes. See [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and [docs/building.md](docs/building.md) for the build and project layout.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT - see [LICENSE](LICENSE).
 
 ## Acknowledgments
 
@@ -573,12 +108,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-If you find this project useful, please consider:
-- Starring the repository
-- Sharing it with others who might benefit
-- Contributing improvements
-- [Buying me a coffee on Ko-fi](https://ko-fi.com/owen282000) - the app stays free and open source; a coffee helps keep releases and bug hunts quick
+If you find this project useful, consider starring the repository, sharing it, or contributing improvements. [Buying me a coffee on Ko-fi](https://ko-fi.com/owen282000) helps keep releases and bug hunts quick - the app stays free and open source either way.
 
 ---
 
-Made by [Owen Vogelaar](https://github.com/owen282000) for the self-hosted and quantified self community.
+<p align="center">
+  Made by <a href="https://github.com/owen282000">Owen Vogelaar</a> for the self-hosted and quantified self community.
+</p>
