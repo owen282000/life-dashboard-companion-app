@@ -56,7 +56,7 @@ No backend yet? [life-dashboard-stack](https://github.com/owen282000/life-dashbo
 
 ## Home Assistant
 
-Point the app at the MQTT broker Home Assistant already uses and tap **Sync Now**. MQTT Discovery creates a device with a sensor per synced type: today's steps, distance and calories, the latest heart rate, weight and sleep duration, and screen time. No YAML, no server-side setup; states are retained, so they survive a restart.
+Point the app at the MQTT broker Home Assistant already uses and tap **Sync Now**. MQTT Discovery creates one device with a sensor for every synced type that has a value: 24 of the 33 Health Connect types (today's totals for steps, distance and calories; the latest heart rate, weight, sleep duration, blood pressure, glucose, body composition and so on) plus screen time. Workouts, meals, mindfulness sessions and cycle tracking are events rather than values and stay webhook-only. No YAML, no server-side setup; states are retained, so they survive a restart.
 
 <p align="center">
   <img src="docs/screenshots/home-assistant.png" alt="The Life Dashboard Companion device in Home Assistant with its sensors" width="720">
