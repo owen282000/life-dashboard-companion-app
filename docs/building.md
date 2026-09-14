@@ -72,3 +72,9 @@ Two things to keep in mind:
 - **Commit messages** follow the conventional style used in the history: `feat:`, `fix:`, `docs:`, `ci:`, `build:`, `test:`, `chore:`.
 
 Small, focused PRs are much easier to review than big ones. When in doubt, open an issue first to discuss the direction.
+
+## Release builds and R8
+
+`assembleRelease` runs R8 with resource shrinking (`isMinifyEnabled` and `isShrinkResources` in `app/build.gradle.kts`). The keep rules live in `app/proguard-rules.pro`: the MQTT stack (HiveMQ client and the Netty it bundles) and kotlinx.serialization resolve classes reflectively, enum names are stored in preferences, and WorkManager's Room database is instantiated by name, so those are kept whole. The obfuscation map is written to `app/build/outputs/mapping/release/mapping.txt` for every release build; keep it next to a release if you want readable stack traces from that version.
+
+Signing is unchanged: without a `KEYSTORE_PATH` the build produces `app-release-unsigned.apk`. For a quick device test of a release build, sign it with the debug key: `apksigner sign --ks ~/.android/debug.keystore --ks-pass pass:android --out app-release-debugsigned.apk app/build/outputs/apk/release/app-release-unsigned.apk`.

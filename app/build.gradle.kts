@@ -81,7 +81,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 shrinks and optimises; the keep rules in proguard-rules.pro cover the
+            // reflection-heavy parts (HiveMQ/Netty, kotlinx.serialization). Asked for by
+            // F-Droid during review; mapping.txt lands in app/build/outputs/mapping/release.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
