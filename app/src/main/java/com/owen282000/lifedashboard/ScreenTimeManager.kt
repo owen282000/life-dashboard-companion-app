@@ -213,11 +213,24 @@ class ScreenTimeManager(
             }
             packageManager.getApplicationLabel(appInfo).toString()
         } catch (e: PackageManager.NameNotFoundException) {
-            packageName.substringAfterLast('.')
+            fallbackAppName(packageName)
         }
     }
 
     companion object {
         const val LOOKBACK_DAYS = 7
+
+        private val GENERIC_SEGMENTS = setOf("android", "app", "apps", "mobile", "client", "main", "release", "prod", "free", "pro", "lite")
+
+        /**
+         * A readable stand-in for a package the app cannot see: the last segment that says
+         * something. `org.wakingup.android` becomes `wakingup`, not `android`; `com.example`
+         * becomes `example`; a package with nothing but generic segments falls back to itself.
+         */
+        fun fallbackAppName(packageName: String): String {
+            // The first segment is the TLD-style prefix (com, org, io) and never a name.
+            val segments = packageName.split('.').filter { it.isNotBlank() }.drop(1)
+            return segments.lastOrNull { it.lowercase() !in GENERIC_SEGMENTS } ?: packageName
+        }
     }
 }

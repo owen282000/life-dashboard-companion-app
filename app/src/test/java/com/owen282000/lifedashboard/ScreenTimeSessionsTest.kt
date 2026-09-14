@@ -166,4 +166,12 @@ class ScreenTimeSessionsTest {
         assertEquals(12 * minute, result.getValue("a").foregroundMs)
         assertEquals(15 * minute, result.getValue("b").foregroundMs)
     }
+
+    @Test
+    fun `fallback app names skip generic package segments`() {
+        assertEquals("wakingup", ScreenTimeManager.fallbackAppName("org.wakingup.android"))
+        assertEquals("nexuslauncher", ScreenTimeManager.fallbackAppName("com.google.android.apps.nexuslauncher"))
+        assertEquals("example", ScreenTimeManager.fallbackAppName("com.example"))
+        assertEquals("com.android.app", ScreenTimeManager.fallbackAppName("com.android.app"))
+    }
 }

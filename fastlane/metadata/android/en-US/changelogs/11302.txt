@@ -1,0 +1,8 @@
+Added:
+
+- scripts/webhook-receiver.py: a zero-dependency receiver for a laptop on the same network that prints every POST the app sends, appends it to a JSON Lines file and can verify the X-Signature header. The quickest way to see what the app sends before building a real receiver
+
+Fixed:
+
+- Screen time payloads named an app the phone would not let us look up after the last segment of its ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

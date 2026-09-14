@@ -143,7 +143,7 @@ class WebhookManager(
     ) {
         context?.let {
             if (success) {
-                LifetimeStats.recordDelivery(it, recordCount ?: 0, rawPayload?.length ?: 0)
+                LifetimeStats.recordDelivery(it, recordCount ?: 0, rawPayload?.length ?: 0, logType)
             }
             val preferencesManager = PreferencesManager(it)
             val log = WebhookLog(

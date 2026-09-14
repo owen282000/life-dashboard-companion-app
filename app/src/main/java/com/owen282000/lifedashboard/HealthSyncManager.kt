@@ -115,7 +115,8 @@ class HealthSyncManager(private val context: Context) {
                 // published after the loop, like it is when webhooks are configured too.
                 if (webhookUrls.isEmpty()) {
                     SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, true)
-                    SyncStatusStore.record(context, true, totalRecords)
+                    SyncStatusStore.record(context, true, totalRecords, LogType.HEALTH_CONNECT)
+                    LifetimeStats.recordDelivery(context, totalRecords, 0, LogType.HEALTH_CONNECT)
                     val passCounts = mutableMapOf<HealthDataType, Int>()
                     updateSyncTimestamps(healthData, passCounts)
                     passCounts.forEach { (type, count) -> syncCounts.merge(type, count, Int::plus) }
@@ -140,7 +141,7 @@ class HealthSyncManager(private val context: Context) {
 
                 val postResult = webhookManager.postData(jsonPayload)
                 SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
-                SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalRecords else 0)
+                SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalRecords else 0, LogType.HEALTH_CONNECT)
 
                 // Watermarks advance regardless of delivery outcome: a failed payload goes to the
                 // outbox and is guaranteed to be delivered by a later drain, so re-reading (and

@@ -18,12 +18,14 @@ object LifetimeStats {
         val firstSyncMillis: Long?
     )
 
-    /** Counted per successful delivery (one webhook log entry per URL). */
-    fun recordDelivery(context: Context, records: Int, payloadBytes: Int) {
+    /** Counted per successful delivery (one webhook log entry per URL, or one MQTT publish). */
+    fun recordDelivery(context: Context, records: Int, payloadBytes: Int, source: LogType) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val sourceKey = KEY_RECORDS + "_" + source.name
         val editor = prefs.edit()
             .putInt(KEY_DELIVERIES, prefs.getInt(KEY_DELIVERIES, 0) + 1)
             .putLong(KEY_RECORDS, prefs.getLong(KEY_RECORDS, 0) + records)
+            .putLong(sourceKey, prefs.getLong(sourceKey, 0) + records)
         if (payloadBytes > prefs.getInt(KEY_LARGEST_PAYLOAD, 0)) {
             editor.putInt(KEY_LARGEST_PAYLOAD, payloadBytes)
         }
@@ -33,11 +35,12 @@ object LifetimeStats {
         editor.apply()
     }
 
-    fun read(context: Context): Stats {
+    /** App-wide stats, or with [source] the record total of that source alone. */
+    fun read(context: Context, source: LogType? = null): Stats {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return Stats(
             deliveries = prefs.getInt(KEY_DELIVERIES, 0),
-            records = prefs.getLong(KEY_RECORDS, 0),
+            records = prefs.getLong(source?.let { KEY_RECORDS + "_" + it.name } ?: KEY_RECORDS, 0),
             largestPayloadBytes = prefs.getInt(KEY_LARGEST_PAYLOAD, 0),
             firstSyncMillis = prefs.getLong(KEY_FIRST_SYNC, -1).takeIf { it > 0 }
         )

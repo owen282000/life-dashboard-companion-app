@@ -40,6 +40,8 @@ After the wizard:
 
 The **Send Test Ping** button, in the wizard and on both tabs, confirms your server accepts a POST before waiting for real data.
 
+To see exactly what the app sends before you build a receiver, run `python3 scripts/webhook-receiver.py` on a laptop on the same Wi-Fi (it prints its LAN address), add `http://<that address>:8765/health` as a webhook URL, switch on **Advanced > Allow plain HTTP**, and tap Test ping. Every POST is printed with its headers and appended to `received.jsonl`; pass `--secret <your HMAC secret>` to verify signatures.
+
 Moving from another device? Import your settings under **About > Backup & restore** instead of typing everything again; see [settings-backup.md](settings-backup.md).
 
 ## Troubleshooting

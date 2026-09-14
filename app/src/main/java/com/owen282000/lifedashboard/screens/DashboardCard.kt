@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.LifetimeStats
+import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ScreenTimeData
 import com.owen282000.lifedashboard.ScreenTimeManager
@@ -67,8 +68,8 @@ fun DashboardCard() {
     var stepsPerDay by remember { mutableStateOf<List<Long>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        status = SyncStatusStore.read(context)
-        stats = LifetimeStats.read(context)
+        status = SyncStatusStore.read(context, LogType.HEALTH_CONNECT)
+        stats = LifetimeStats.read(context, LogType.HEALTH_CONNECT)
         try {
             val enabled = context.appPreferences().getHealthEnabledDataTypes()
             stepsPerDay = HealthConnectManager(context)

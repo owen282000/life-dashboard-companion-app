@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.13.2] - 2026-09-14
+
+### Added
+
+- `scripts/webhook-receiver.py`: a zero-dependency receiver for a laptop on the same network that prints every POST the app sends, appends it to a JSON Lines file and can verify the `X-Signature` header. The quickest way to see what the app sends before building a real receiver
+
+### Fixed
+
+- Screen time payloads named an app the phone would not let us look up after the last segment of its package, so `org.wakingup.android` became "android". The fallback now skips generic segments and picks the one that says something: `wakingup`
+- The Health Connect dashboard could show more records today than in its lifetime: "today" counted every sync including screen time apps, "lifetime" only webhook deliveries. Both counters are now kept per source, so the Health tab counts Health Connect records only, and MQTT-only syncs count too. The widget keeps the app-wide numbers; per-source lifetime totals start counting from this version
+
 ## [1.13.1] - 2026-09-14
 
 ### Fixed

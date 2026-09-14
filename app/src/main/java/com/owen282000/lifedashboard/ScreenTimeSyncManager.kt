@@ -88,7 +88,8 @@ class ScreenTimeSyncManager(private val context: Context) {
             // MQTT-only setup: nothing to post, nothing to queue.
             if (webhookUrls.isEmpty()) {
                 SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, true)
-                SyncStatusStore.record(context, true, totalApps)
+                SyncStatusStore.record(context, true, totalApps, LogType.SCREEN_TIME)
+                LifetimeStats.recordDelivery(context, totalApps, 0, LogType.SCREEN_TIME)
                 preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis())
                 return@withContext Result.success(ScreenTimeSyncResult.Success(totalApps, screenTimeDataList.size))
             }
@@ -109,7 +110,7 @@ class ScreenTimeSyncManager(private val context: Context) {
             // Post to webhook
             val postResult = webhookManager.postData(jsonPayload)
             SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, postResult.isSuccess)
-            SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalApps else 0)
+            SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalApps else 0, LogType.SCREEN_TIME)
             // Watermark advances regardless of delivery outcome: a failed payload goes to the
             // outbox and is guaranteed to be delivered by a later drain.
             preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis())
