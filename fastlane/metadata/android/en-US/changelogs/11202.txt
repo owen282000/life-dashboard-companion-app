@@ -1,0 +1,4 @@
+Fixed:
+
+- Reproducible builds: the version name is now the exact tag whenever HEAD sits on one, regardless of the state of the working tree. F-Droid's builder modifies the tree before building (it strips signing configs and removes the Gradle wrapper jar), which made git describe --dirty stamp 1.12.1-dirty into the manifest while the released APK says 1.12.1; that one word was the only ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

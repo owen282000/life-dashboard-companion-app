@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.12.2] - 2026-09-14
+
+### Fixed
+
+- Reproducible builds: the version name is now the exact tag whenever HEAD sits on one, regardless of the state of the working tree. F-Droid's builder modifies the tree before building (it strips signing configs and removes the Gradle wrapper jar), which made `git describe --dirty` stamp `1.12.1-dirty` into the manifest while the released APK says `1.12.1`; that one word was the only difference between the two builds and failed the verification
+
 ### Changed
 
 - The APK no longer carries Google's dependency-info block, a dependency-tree blob in the signing block encrypted with a Google public key that only Google can read. IzzyOnDroid's scanner flagged it and F-Droid checks for the same; it served no purpose outside Google Play
