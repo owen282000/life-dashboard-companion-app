@@ -19,7 +19,12 @@ class ConfigBackupTest {
             webhookUrls = listOf("https://example.com/health", "https://backup.example.com/h"),
             headers = mapOf("Authorization" to "Bearer token123", "X-Api-Key" to "abc"),
             signingSecret = "hmac-secret",
-            syncIntervalMinutes = 30
+            syncIntervalMinutes = 30,
+            syncMode = "TIMES",
+            syncTimes = "08:00,21:00",
+            syncDays = "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY",
+            quietFrom = "23:00",
+            quietTo = "07:00"
         ),
         screenTime = SectionConfig(
             webhookUrls = listOf("https://example.com/screen"),
@@ -171,4 +176,38 @@ class ConfigBackupTest {
         assertNull(broker.username)
         assertNull(broker.password)
     }
+
+    @Test
+    fun keepsTheScheduleThroughTheRoundTrip() {
+        val restored = ConfigBackup.decode(fullBackup().encode())
+        with(restored.health) {
+            assertEquals("TIMES", syncMode)
+            assertEquals("08:00,21:00", syncTimes)
+            assertEquals("MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY", syncDays)
+            assertEquals("23:00", quietFrom)
+            assertEquals("07:00", quietTo)
+        }
+    }
+
+    @Test
+    fun readsABackupWrittenBeforeSchedulesExisted() {
+        // Every schedule field is absent, as in a file exported by 1.13.x. It has to load,
+        // with the interval intact and the schedule fields left for the app to default.
+        val old = """
+            {
+              "exported_at": "2026-09-01T10:00:00Z",
+              "app_version": "1.13.3",
+              "health": { "webhook_urls": ["https://example.com/h"], "sync_interval_minutes": 45 },
+              "screen_time": { "webhook_urls": [], "sync_interval_minutes": 60 }
+            }
+        """.trimIndent()
+
+        val restored = ConfigBackup.decode(old)
+        assertEquals(listOf("https://example.com/h"), restored.health.webhookUrls)
+        assertEquals(45, restored.health.syncIntervalMinutes)
+        assertNull(restored.health.syncMode)
+        assertNull(restored.health.syncTimes)
+        assertNull(restored.health.quietFrom)
+    }
+
 }

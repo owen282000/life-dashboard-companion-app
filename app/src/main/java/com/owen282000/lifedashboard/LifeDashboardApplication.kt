@@ -1,10 +1,6 @@
 package com.owen282000.lifedashboard
 
 import android.app.Application
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import java.util.concurrent.TimeUnit
 
 class LifeDashboardApplication : Application() {
 
@@ -14,40 +10,15 @@ class LifeDashboardApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Schedule periodic sync work for both Health Connect and Screen Time
-        scheduleHealthSyncWork()
-        scheduleScreenTimeSyncWork()
+        // Both sources schedule themselves from their stored schedule: a plain interval stays
+        // periodic work, a schedule with times, weekdays or quiet hours becomes self-repeating
+        // one-time work. See SyncScheduler.
+        SyncScheduler.rescheduleAll(this)
     }
 
-    fun scheduleHealthSyncWork() {
-        val syncIntervalMinutes = preferencesManager.getHealthSyncIntervalMinutes()
+    fun scheduleHealthSyncWork() = SyncScheduler.reschedule(this, LogType.HEALTH_CONNECT)
 
-        val syncWorkRequest = PeriodicWorkRequestBuilder<HealthSyncWorker>(
-            repeatInterval = syncIntervalMinutes.toLong(),
-            repeatIntervalTimeUnit = TimeUnit.MINUTES
-        ).build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            HealthSyncWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.UPDATE,
-            syncWorkRequest
-        )
-    }
-
-    fun scheduleScreenTimeSyncWork() {
-        val syncIntervalMinutes = preferencesManager.getScreenTimeSyncIntervalMinutes()
-
-        val syncWorkRequest = PeriodicWorkRequestBuilder<ScreenTimeSyncWorker>(
-            repeatInterval = syncIntervalMinutes.toLong(),
-            repeatIntervalTimeUnit = TimeUnit.MINUTES
-        ).build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            ScreenTimeSyncWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.UPDATE,
-            syncWorkRequest
-        )
-    }
+    fun scheduleScreenTimeSyncWork() = SyncScheduler.reschedule(this, LogType.SCREEN_TIME)
 }
 
 /** The process-wide [PreferencesManager], or a fresh one when not running inside the app (tests, previews). */

@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.owen282000.lifedashboard.ConfigBackup
 import com.owen282000.lifedashboard.ConfigBackupManager
+import com.owen282000.lifedashboard.SyncScheduler
 import com.owen282000.lifedashboard.ConfigCrypto
 import com.owen282000.lifedashboard.ExportManager
 
@@ -273,6 +274,8 @@ fun ConfigBackupSection() {
                     onClick = {
                         runCatching { ConfigBackupManager(context).import(backup) }
                             .onSuccess {
+                                // The imported schedule has to reach WorkManager now, not at the next app start.
+                                SyncScheduler.rescheduleAll(context)
                                 Toast.makeText(
                                     context,
                                     "Settings imported, reopen the app to see them",

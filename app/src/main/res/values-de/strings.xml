@@ -34,10 +34,6 @@
     </plurals>
     <string name="webhook_min_interval">Mindestens 15 Minuten</string>
     <string name="webhook_shared_secret">Gemeinsamer Schlüssel</string>
-    <plurals name="webhook_status_syncing">
-        <item quantity="one">Synchronisiert alle %1$s Min. zu %2$d Webhook</item>
-        <item quantity="other">Synchronisiert alle %1$s Min. zu %2$d Webhooks</item>
-    </plurals>
     <string name="webhook_url_placeholder">https://...</string>
     <string name="webhook_urls_configured">%1$d konfiguriert</string>
     <string name="webhook_urls_title">Webhook-URLs</string>
@@ -52,7 +48,6 @@
     <string name="sync_export_failed_with_reason">Export fehlgeschlagen: %1$s</string>
     <string name="sync_failed_with_reason">Fehlgeschlagen: %1$s</string>
     <string name="sync_failed_prefix">Fehlgeschlagen</string>
-    <string name="sync_interval_placeholder">60</string>
     <string name="sync_interval_subtitle">Minuten zwischen den Synchronisierungen</string>
     <string name="sync_interval_title">Synchronisierungsintervall</string>
     <string name="sync_loading">Wird geladen...</string>
@@ -334,4 +329,37 @@
         <item quantity="other">%1$d Tage quantifiziertes Du</item>
     </plurals>
     <string name="health_backfill_needs_webhook">Nachladen braucht eine Webhook-URL: MQTT trägt nur den letzten Wert je Typ</string>
+    <string name="schedule_title">Sync-Zeitplan</string>
+    <string name="schedule_mode_interval">Alle X Minuten</string>
+    <string name="schedule_mode_times">Zu festen Zeiten</string>
+    <string name="schedule_times_title">Sync-Zeiten</string>
+    <string name="schedule_add_time">Zeit hinzufügen</string>
+    <string name="schedule_remove_time">%1$s entfernen</string>
+    <string name="schedule_no_times">Noch keine Zeiten. Fügen Sie eine hinzu, um zu synchronisieren.</string>
+    <string name="schedule_days_title">Tage</string>
+    <string name="schedule_days_all">Täglich</string>
+    <string name="schedule_quiet_title">Ruhezeiten</string>
+    <string name="schedule_quiet_subtitle">Zwischen diesen Zeiten nie synchronisieren</string>
+    <string name="schedule_quiet_from">Von</string>
+    <string name="schedule_quiet_to">Bis</string>
+    <string name="schedule_never_runs">Mit diesen Einstellungen wird nie synchronisiert. Fügen Sie eine Zeit oder einen Tag hinzu, oder verkürzen Sie die Ruhezeiten.</string>
+    <string name="schedule_summary_interval">Alle %1$d Min.</string>
+    <string name="schedule_summary_times">Um %1$s</string>
+    <string name="schedule_summary_days">%1$s</string>
+    <string name="schedule_summary_quiet">ruhig %1$s bis %2$s</string>
+    <string name="schedule_no_sync_times">Fügen Sie mindestens eine Sync-Zeit hinzu</string>
+    <string name="schedule_day_mon">Mo</string>
+    <string name="schedule_day_tue">Di</string>
+    <string name="schedule_day_wed">Mi</string>
+    <string name="schedule_day_thu">Do</string>
+    <string name="schedule_day_fri">Fr</string>
+    <string name="schedule_day_sat">Sa</string>
+    <string name="schedule_day_sun">So</string>
+    <string name="schedule_status_to_webhooks">%1$s an %2$d Webhook</string>
+    <string name="schedule_status_to_webhooks_plural">%1$s an %2$d Webhooks</string>
+    <string name="schedule_status_to_mqtt">%1$s an MQTT</string>
+    <string name="schedule_status_to_both">%1$s an %2$d Webhook und MQTT</string>
+    <string name="schedule_status_to_both_plural">%1$s an %2$d Webhooks und MQTT</string>
+    <string name="schedule_status_nowhere">%1$s, noch kein Ziel</string>
+    <string name="schedule_summary_no_times">Noch keine Synchronisierungszeiten</string>
 </resources>

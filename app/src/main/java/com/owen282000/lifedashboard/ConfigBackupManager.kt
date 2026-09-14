@@ -2,6 +2,7 @@ package com.owen282000.lifedashboard
 
 import android.content.Context
 import java.time.Instant
+import java.time.LocalTime
 
 /**
  * Reads the current settings into a [ConfigBackup] and writes one back.
@@ -24,17 +25,17 @@ class ConfigBackupManager(private val context: Context) {
             appVersion = runCatching {
                 context.packageManager.getPackageInfo(context.packageName, 0).versionName
             }.getOrNull(),
-            health = SectionConfig(
+            health = sectionConfig(
+                LogType.HEALTH_CONNECT,
                 webhookUrls = prefs.getHealthWebhookUrls(),
                 headers = prefs.getHealthWebhookHeaders(),
-                signingSecret = prefs.getHealthWebhookSecret(),
-                syncIntervalMinutes = prefs.getHealthSyncIntervalMinutes()
+                signingSecret = prefs.getHealthWebhookSecret()
             ),
-            screenTime = SectionConfig(
+            screenTime = sectionConfig(
+                LogType.SCREEN_TIME,
                 webhookUrls = prefs.getScreenTimeWebhookUrls(),
                 headers = prefs.getScreenTimeWebhookHeaders(),
-                signingSecret = prefs.getScreenTimeWebhookSecret(),
-                syncIntervalMinutes = prefs.getScreenTimeSyncIntervalMinutes()
+                signingSecret = prefs.getScreenTimeWebhookSecret()
             ),
             mqtt = MqttConfig(
                 shared = BrokerConfig.from(prefs.getSharedMqttBroker()),
@@ -71,6 +72,7 @@ class ConfigBackupManager(private val context: Context) {
             if (headers.isNotEmpty()) prefs.setHealthWebhookHeaders(headers)
             if (!signingSecret.isNullOrBlank()) prefs.setHealthWebhookSecret(signingSecret)
             syncIntervalMinutes?.let { prefs.setHealthSyncIntervalMinutes(it) }
+            restoreSchedule(LogType.HEALTH_CONNECT, this)
         }
 
         with(backup.screenTime) {
@@ -78,6 +80,7 @@ class ConfigBackupManager(private val context: Context) {
             if (headers.isNotEmpty()) prefs.setScreenTimeWebhookHeaders(headers)
             if (!signingSecret.isNullOrBlank()) prefs.setScreenTimeWebhookSecret(signingSecret)
             syncIntervalMinutes?.let { prefs.setScreenTimeSyncIntervalMinutes(it) }
+            restoreSchedule(LogType.SCREEN_TIME, this)
         }
 
         with(backup.mqtt) {
@@ -128,4 +131,51 @@ class ConfigBackupManager(private val context: Context) {
             return names.mapNotNull { known[it] }.toSet()
         }
     }
+
+    /** One section's webhook and schedule settings, as the backup stores them. */
+    private fun sectionConfig(
+        source: LogType,
+        webhookUrls: List<String>,
+        headers: Map<String, String>,
+        signingSecret: String?
+    ): SectionConfig {
+        val schedule = prefs.getSyncSchedule(source)
+        return SectionConfig(
+            webhookUrls = webhookUrls,
+            headers = headers,
+            signingSecret = signingSecret,
+            syncIntervalMinutes = schedule.intervalMinutes,
+            syncMode = schedule.mode.name,
+            syncTimes = SyncSchedule.formatTimes(schedule.times),
+            syncDays = SyncSchedule.formatDays(schedule.days),
+            quietFrom = schedule.quietWindow?.from?.toString(),
+            quietTo = schedule.quietWindow?.to?.toString()
+        )
+    }
+
+    /**
+     * Applies the schedule fields of a backup. A backup from before 1.14.0 carries none of
+     * them, so the stored schedule stays as it is and only the interval, handled above, moves.
+     */
+    private fun restoreSchedule(source: LogType, config: SectionConfig) {
+        if (config.syncMode == null && config.syncTimes == null && config.syncDays == null &&
+            config.quietFrom == null && config.quietTo == null
+        ) return
+
+        val current = prefs.getSyncSchedule(source)
+        val quiet = if (config.quietFrom != null && config.quietTo != null) {
+            runCatching { QuietWindow(LocalTime.parse(config.quietFrom), LocalTime.parse(config.quietTo)) }.getOrNull()
+        } else null
+        prefs.setSyncSchedule(
+            source,
+            current.copy(
+                mode = config.syncMode?.let { name -> runCatching { SyncMode.valueOf(name) }.getOrNull() } ?: current.mode,
+                intervalMinutes = config.syncIntervalMinutes ?: current.intervalMinutes,
+                times = config.syncTimes?.let { SyncSchedule.parseTimes(it) } ?: current.times,
+                days = config.syncDays?.let { SyncSchedule.parseDays(it) } ?: current.days,
+                quietWindow = quiet
+            )
+        )
+    }
+
 }

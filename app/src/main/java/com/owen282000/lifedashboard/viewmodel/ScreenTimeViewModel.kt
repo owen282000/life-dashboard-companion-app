@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
+import com.owen282000.lifedashboard.SyncSchedule
 import com.owen282000.lifedashboard.appPreferences
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,6 +44,7 @@ data class ScreenTimeUiState(
 
 interface ScreenTimeActions {
     fun setSyncInterval(text: String)
+    fun setSchedule(schedule: ScheduleDraft)
     fun addUrl(url: String)
     fun removeUrl(index: Int)
     fun addHeader(key: String, value: String)
@@ -104,7 +106,9 @@ class ScreenTimeViewModel(
         _openUsageAccess.tryEmit(Unit)
     }
 
-    override fun setSyncInterval(text: String) = editDraft { it.copy(syncInterval = text) }
+    override fun setSyncInterval(text: String) = editDraft { it.copy(schedule = it.schedule.copy(intervalText = text)) }
+
+    override fun setSchedule(schedule: ScheduleDraft) = editDraft { it.copy(schedule = schedule) }
 
     override fun addUrl(url: String) {
         if (!SettingsRules.isValidUrl(url)) {
@@ -147,11 +151,20 @@ class ScreenTimeViewModel(
 
     private fun persist(): UiMessage {
         val draft = _state.value.draft
-        val interval = SettingsRules.intervalOrNull(draft.syncInterval) ?: return UiMessage.IntervalTooShort
+        SettingsRules.scheduleProblem(draft.schedule)?.let { return it }
+        // In times mode the interval field is hidden and may hold half-typed text; keep what
+        // was saved rather than silently resetting it to the default.
+        val interval = SettingsRules.intervalOrNull(draft.schedule.intervalText)
+            ?: SettingsRules.intervalOrNull(_state.value.saved.schedule.intervalText)
+            ?: SyncSchedule.DEFAULT_INTERVAL_MINUTES
         if (!draft.hasDestination) return UiMessage.NoDestination
         val hour = SettingsRules.dayBoundaryHourOrNull(draft.dayBoundaryHour) ?: return UiMessage.InvalidDayBoundaryHour
         settings.saveScreenTime(draft, interval, hour)
-        val saved = draft.copy(syncInterval = interval.toString(), dayBoundaryHour = hour.toString(), mqtt = draft.mqtt.withPort())
+        val saved = draft.copy(
+            schedule = draft.schedule.copy(intervalText = interval.toString()),
+            dayBoundaryHour = hour.toString(),
+            mqtt = draft.mqtt.withPort()
+        )
         _state.update { it.copy(saved = saved, draft = saved) }
         return UiMessage.Saved
     }

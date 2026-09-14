@@ -13,8 +13,8 @@ internal fun emptyMqtt() = MqttDraft.from(
 )
 
 internal class FakeAppSettings(
-    var health: HealthDraft = HealthDraft("60", WebhookDraft(), emptySet(), emptyMqtt()),
-    var screenTime: ScreenTimeDraft = ScreenTimeDraft("60", WebhookDraft(), "4", true, emptyMqtt())
+    var health: HealthDraft = HealthDraft(WebhookDraft(), emptySet(), emptyMqtt()),
+    var screenTime: ScreenTimeDraft = ScreenTimeDraft(WebhookDraft(), "4", true, emptyMqtt())
 ) : AppSettings {
     var savedHealth = 0
     var savedScreenTime = 0
@@ -27,13 +27,13 @@ internal class FakeAppSettings(
     override fun loadHealth() = health
     override fun saveHealth(draft: HealthDraft, interval: Int) {
         savedHealth++
-        health = draft.copy(syncInterval = interval.toString())
+        health = draft.copy(schedule = draft.schedule.copy(intervalText = interval.toString()))
     }
 
     override fun loadScreenTime() = screenTime
     override fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int) {
         savedScreenTime++
-        screenTime = draft.copy(syncInterval = interval.toString(), dayBoundaryHour = dayBoundaryHour.toString())
+        screenTime = draft.copy(schedule = draft.schedule.copy(intervalText = interval.toString()), dayBoundaryHour = dayBoundaryHour.toString())
     }
 
     override fun setHealthEnabledTypes(types: Set<HealthDataType>) {

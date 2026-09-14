@@ -4,6 +4,7 @@ import android.content.Context
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.LifeDashboardApplication
 import com.owen282000.lifedashboard.MqttSection
+import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.SyncFailureNotifier
 
@@ -39,7 +40,7 @@ class PreferencesAppSettings(
 ) : AppSettings {
 
     override fun loadHealth() = HealthDraft(
-        syncInterval = prefs.getHealthSyncIntervalMinutes().toString(),
+        schedule = ScheduleDraft.from(prefs.getSyncSchedule(LogType.HEALTH_CONNECT)),
         webhook = WebhookDraft(
             urls = prefs.getHealthWebhookUrls(),
             headers = prefs.getHealthWebhookHeaders(),
@@ -50,7 +51,7 @@ class PreferencesAppSettings(
     )
 
     override fun saveHealth(draft: HealthDraft, interval: Int) {
-        prefs.setHealthSyncIntervalMinutes(interval)
+        prefs.setSyncSchedule(LogType.HEALTH_CONNECT, draft.schedule.toSchedule(fallbackInterval = interval))
         prefs.setHealthWebhookUrls(draft.webhook.urls)
         prefs.setHealthEnabledDataTypes(draft.enabledTypes)
         prefs.setHealthWebhookHeaders(draft.webhook.headers)
@@ -62,7 +63,7 @@ class PreferencesAppSettings(
     }
 
     override fun loadScreenTime() = ScreenTimeDraft(
-        syncInterval = prefs.getScreenTimeSyncIntervalMinutes().toString(),
+        schedule = ScheduleDraft.from(prefs.getSyncSchedule(LogType.SCREEN_TIME)),
         webhook = WebhookDraft(
             urls = prefs.getScreenTimeWebhookUrls(),
             headers = prefs.getScreenTimeWebhookHeaders(),
@@ -74,7 +75,7 @@ class PreferencesAppSettings(
     )
 
     override fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int) {
-        prefs.setScreenTimeSyncIntervalMinutes(interval)
+        prefs.setSyncSchedule(LogType.SCREEN_TIME, draft.schedule.toSchedule(fallbackInterval = interval))
         prefs.setScreenTimeWebhookUrls(draft.webhook.urls)
         prefs.setScreenTimeDayBoundaryHour(dayBoundaryHour)
         prefs.setUseScreenTimeDayBoundary(draft.useDayBoundary)

@@ -34,10 +34,6 @@
     </plurals>
     <string name="webhook_min_interval">Minimaal 15 minuten</string>
     <string name="webhook_shared_secret">Gedeeld geheim</string>
-    <plurals name="webhook_status_syncing">
-        <item quantity="one">Synchroniseert elke %1$smin naar %2$d webhook</item>
-        <item quantity="other">Synchroniseert elke %1$smin naar %2$d webhooks</item>
-    </plurals>
     <string name="webhook_url_placeholder">https://...</string>
     <string name="webhook_urls_configured">%1$d ingesteld</string>
     <string name="webhook_urls_title">Webhook-URL\'s</string>
@@ -52,7 +48,6 @@
     <string name="sync_export_failed_with_reason">Export mislukt: %1$s</string>
     <string name="sync_failed_with_reason">Mislukt: %1$s</string>
     <string name="sync_failed_prefix">Mislukt</string>
-    <string name="sync_interval_placeholder">60</string>
     <string name="sync_interval_subtitle">Minuten tussen synchronisaties</string>
     <string name="sync_interval_title">Synchronisatie-interval</string>
     <string name="sync_loading">Laden...</string>
@@ -334,4 +329,37 @@
         <item quantity="other">%1$d dagen gekwantificeerde jij</item>
     </plurals>
     <string name="health_backfill_needs_webhook">Aanvullen vereist een webhook-URL: MQTT draagt alleen de laatste waarde per type</string>
+    <string name="schedule_title">Syncschema</string>
+    <string name="schedule_mode_interval">Elke X minuten</string>
+    <string name="schedule_mode_times">Op vaste tijden</string>
+    <string name="schedule_times_title">Synctijden</string>
+    <string name="schedule_add_time">Tijd toevoegen</string>
+    <string name="schedule_remove_time">%1$s verwijderen</string>
+    <string name="schedule_no_times">Nog geen tijden. Voeg er een toe om te gaan syncen.</string>
+    <string name="schedule_days_title">Dagen</string>
+    <string name="schedule_days_all">Elke dag</string>
+    <string name="schedule_quiet_title">Stille uren</string>
+    <string name="schedule_quiet_subtitle">Sync nooit tussen deze tijden</string>
+    <string name="schedule_quiet_from">Van</string>
+    <string name="schedule_quiet_to">Tot</string>
+    <string name="schedule_never_runs">Met deze instellingen wordt er nooit gesynct. Voeg een tijd of dag toe, of verkort de stille uren.</string>
+    <string name="schedule_summary_interval">Elke %1$d min</string>
+    <string name="schedule_summary_times">Om %1$s</string>
+    <string name="schedule_summary_days">%1$s</string>
+    <string name="schedule_summary_quiet">stil %1$s tot %2$s</string>
+    <string name="schedule_no_sync_times">Voeg minstens een synctijd toe</string>
+    <string name="schedule_day_mon">ma</string>
+    <string name="schedule_day_tue">di</string>
+    <string name="schedule_day_wed">wo</string>
+    <string name="schedule_day_thu">do</string>
+    <string name="schedule_day_fri">vr</string>
+    <string name="schedule_day_sat">za</string>
+    <string name="schedule_day_sun">zo</string>
+    <string name="schedule_status_to_webhooks">%1$s naar %2$d webhook</string>
+    <string name="schedule_status_to_webhooks_plural">%1$s naar %2$d webhooks</string>
+    <string name="schedule_status_to_mqtt">%1$s naar MQTT</string>
+    <string name="schedule_status_to_both">%1$s naar %2$d webhook en MQTT</string>
+    <string name="schedule_status_to_both_plural">%1$s naar %2$d webhooks en MQTT</string>
+    <string name="schedule_status_nowhere">%1$s, nog geen bestemming</string>
+    <string name="schedule_summary_no_times">Nog geen synctijden</string>
 </resources>

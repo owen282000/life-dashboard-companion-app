@@ -35,7 +35,7 @@ After the wizard:
 1. **Grant Health Connect permissions** - tap "Grant" on the Health tab
 2. **Grant Usage Access** for Screen Time - go to Settings when prompted
 3. **Add webhook headers** (optional) - auth tokens or API keys
-4. **Set sync intervals** - minimum 15 minutes
+4. **Set the sync schedule** - an interval (minimum 15 minutes) or fixed times of day, per tab, with optional weekdays and quiet hours
 5. **Tap "Preview Data"** to inspect the payload, then **"Sync Now"** to send
 
 The **Send Test Ping** button, in the wizard and on both tabs, confirms your server accepts a POST before waiting for real data.

@@ -76,7 +76,16 @@ data class SectionConfig(
     @SerialName("webhook_urls") val webhookUrls: List<String> = emptyList(),
     val headers: Map<String, String> = emptyMap(),
     @SerialName("signing_secret") val signingSecret: String? = null,
-    @SerialName("sync_interval_minutes") val syncIntervalMinutes: Int? = null
+    @SerialName("sync_interval_minutes") val syncIntervalMinutes: Int? = null,
+    /**
+     * Schedule beyond the plain interval, all optional so a backup written before 1.14.0
+     * restores exactly as it used to: absent fields leave the stored schedule alone.
+     */
+    @SerialName("sync_mode") val syncMode: String? = null,
+    @SerialName("sync_times") val syncTimes: String? = null,
+    @SerialName("sync_days") val syncDays: String? = null,
+    @SerialName("quiet_from") val quietFrom: String? = null,
+    @SerialName("quiet_to") val quietTo: String? = null
 ) {
     fun containsSecrets(): Boolean = !signingSecret.isNullOrBlank() || headers.isNotEmpty()
 

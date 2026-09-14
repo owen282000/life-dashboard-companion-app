@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/). For older releases, see the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases).
 
+## [Unreleased]
+
+### Added
+
+- Sync schedules per tab. Next to the interval the app has always had, Health Connect and Screen Time can each sync at fixed times of day ("08:00 and 21:00", so the night's sleep is in Home Assistant before you get up). Both modes take an optional weekday filter and quiet hours, and the row warns when a combination would never sync. A plain interval still runs as periodic work; a schedule with times or filters runs as one-time work that queues the next run after every sync
+- Schedules are part of the settings backup, and a backup written by an earlier version restores exactly as before
+
 ## [1.13.4] - 2026-09-14
 
 ### Fixed

@@ -23,6 +23,10 @@ class ScreenTimeSyncWorker(
             }
         } catch (e: Exception) {
             Result.failure()
+        } finally {
+            // Scheduled runs queue their successor here; see SyncScheduler for why every run,
+            // manual ones included, reports that it finished.
+            SyncScheduler.onSyncFinished(applicationContext, LogType.SCREEN_TIME, id, tags)
         }
     }
 

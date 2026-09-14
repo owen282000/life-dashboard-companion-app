@@ -69,6 +69,15 @@ The two are complementary rather than rivals: keep the companion app for presenc
 - 24 of the 33 types get a sensor. Event-like types (exercise, nutrition, mindfulness, cycle tracking) remain webhook-only. Every publish carries the full set of sensors the app has mapped so far, so a new broker or a fresh Home Assistant sees the whole device after one sync
 - Screen Time publishes too: today's and yesterday's total minutes and today's most used app (top five apps as attributes), under the same Home Assistant device. Health Connect and Screen Time each have their own switch and base topic and share one broker connection by default; either section can switch to its own broker.
 
+## Sync scheduling
+
+- **Two modes per source** - a fixed interval (minimum 15 minutes, as before) or a list of times of day. Health Connect and Screen Time are scheduled separately, so screen time can sync hourly while health syncs at 08:00 and 21:00
+- **Fixed times** suit data that arrives in batches: a watch writes the night to Health Connect when it syncs in the morning, so one sync at 08:00 puts the sleep, resting heart rate and HRV in Home Assistant before you look at it
+- **Weekday filter** - any subset of days, for schedules that should stay quiet at the weekend
+- **Quiet hours** - never sync between two times. An interval sync resumes at the end of the window; a fixed time inside the window is skipped rather than moved, so the app never invents a sync you did not ask for
+- The row warns when a combination would never sync (no days left, no times, or every time inside the quiet hours) instead of going silent
+- Schedules travel with the settings backup
+
 ## Automation
 
 - **Home screen widget** - last sync result and records delivered today at a glance

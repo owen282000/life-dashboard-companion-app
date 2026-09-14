@@ -6,6 +6,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.LocalTime
 
 class PreferencesManager(context: Context) {
 
@@ -153,6 +154,14 @@ class PreferencesManager(context: Context) {
         // Health Connect keys
         private const val KEY_HEALTH_LAST_SYNC_TS_PREFIX = "health_last_sync_ts_"
         private const val KEY_HEALTH_SYNC_INTERVAL_MINUTES = "health_sync_interval_minutes"
+
+        /**
+         * Schedule keys, per source. The interval keeps its own long-standing key above; mode,
+         * times, days and the quiet window are suffixes on these prefixes, so both sources
+         * share one implementation.
+         */
+        private const val HEALTH_SCHEDULE_PREFIX = "health_schedule_"
+        private const val SCREENTIME_SCHEDULE_PREFIX = "screentime_schedule_"
         private const val KEY_HEALTH_WEBHOOK_URLS = "health_webhook_urls"
         private const val KEY_HEALTH_ENABLED_DATA_TYPES = "health_enabled_data_types"
 
@@ -264,6 +273,63 @@ class PreferencesManager(context: Context) {
         } else {
             securePrefs.edit().putString(KEY_HEALTH_WEBHOOK_SECRET, secret).apply()
         }
+    }
+
+    // ==================== Sync schedules ====================
+
+    /**
+     * The schedule of one source. Reads the existing interval key so an app that has never
+     * seen this setting keeps syncing exactly as before: mode defaults to INTERVAL and the
+     * interval to whatever the user already had.
+     */
+    fun getSyncSchedule(source: LogType): SyncSchedule {
+        val prefix = schedulePrefix(source)
+        val interval = when (source) {
+            LogType.HEALTH_CONNECT -> getHealthSyncIntervalMinutes()
+            LogType.SCREEN_TIME -> getScreenTimeSyncIntervalMinutes()
+        }
+        val mode = runCatching { SyncMode.valueOf(prefs.getString(prefix + "mode", null) ?: SyncMode.INTERVAL.name) }
+            .getOrDefault(SyncMode.INTERVAL)
+        val quietFrom = prefs.getString(prefix + "quiet_from", null)
+        val quietTo = prefs.getString(prefix + "quiet_to", null)
+        val quiet = if (quietFrom != null && quietTo != null) {
+            runCatching { QuietWindow(LocalTime.parse(quietFrom), LocalTime.parse(quietTo)) }.getOrNull()
+        } else null
+        return SyncSchedule(
+            mode = mode,
+            intervalMinutes = interval,
+            times = SyncSchedule.parseTimes(prefs.getString(prefix + "times", "") ?: ""),
+            days = SyncSchedule.parseDays(prefs.getString(prefix + "days", null)),
+            quietWindow = quiet
+        )
+    }
+
+    fun setSyncSchedule(source: LogType, schedule: SyncSchedule) {
+        val prefix = schedulePrefix(source)
+        when (source) {
+            LogType.HEALTH_CONNECT -> setHealthSyncIntervalMinutes(schedule.intervalMinutes)
+            LogType.SCREEN_TIME -> setScreenTimeSyncIntervalMinutes(schedule.intervalMinutes)
+        }
+        prefs.edit()
+            .putString(prefix + "mode", schedule.mode.name)
+            .putString(prefix + "times", SyncSchedule.formatTimes(schedule.times))
+            .putString(prefix + "days", SyncSchedule.formatDays(schedule.days))
+            .putString(prefix + "quiet_from", schedule.quietWindow?.from?.toString())
+            .putString(prefix + "quiet_to", schedule.quietWindow?.to?.toString())
+            .apply()
+    }
+
+    /** When the last scheduled run of [source] finished, in epoch millis; null before the first. */
+    fun getScheduleLastRun(source: LogType): Long? =
+        prefs.getLong(schedulePrefix(source) + "last_run", -1L).takeIf { it > 0 }
+
+    fun setScheduleLastRun(source: LogType, epochMillis: Long) {
+        prefs.edit().putLong(schedulePrefix(source) + "last_run", epochMillis).apply()
+    }
+
+    private fun schedulePrefix(source: LogType) = when (source) {
+        LogType.HEALTH_CONNECT -> HEALTH_SCHEDULE_PREFIX
+        LogType.SCREEN_TIME -> SCREENTIME_SCHEDULE_PREFIX
     }
 
     // ==================== Screen Time Settings ====================

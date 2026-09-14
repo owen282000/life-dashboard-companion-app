@@ -36,10 +36,6 @@
     </plurals>
     <string name="webhook_min_interval">Min 15 minutes</string>
     <string name="webhook_shared_secret">Shared secret</string>
-    <plurals name="webhook_status_syncing">
-        <item quantity="one">Syncing every %1$smin to %2$d webhook</item>
-        <item quantity="other">Syncing every %1$smin to %2$d webhooks</item>
-    </plurals>
     <string name="webhook_url_placeholder">https://...</string>
     <string name="webhook_urls_configured">%1$d configured</string>
     <string name="webhook_urls_title">Webhook URLs</string>
@@ -54,7 +50,6 @@
     <string name="sync_export_failed_with_reason">Export failed: %1$s</string>
     <string name="sync_failed_with_reason">Failed: %1$s</string>
     <string name="sync_failed_prefix">Failed</string>
-    <string name="sync_interval_placeholder">60</string>
     <string name="sync_interval_subtitle">Minutes between syncs</string>
     <string name="sync_interval_title">Sync Interval</string>
     <string name="sync_loading">Loading...</string>
@@ -336,4 +331,37 @@
         <item quantity="other">%1$d days of quantified you</item>
     </plurals>
     <string name="health_backfill_needs_webhook">Backfill needs a webhook URL: MQTT only carries the latest value of each type</string>
+    <string name="schedule_title">Sync Schedule</string>
+    <string name="schedule_mode_interval">Every X minutes</string>
+    <string name="schedule_mode_times">At fixed times</string>
+    <string name="schedule_times_title">Sync times</string>
+    <string name="schedule_add_time">Add a time</string>
+    <string name="schedule_remove_time">Remove %1$s</string>
+    <string name="schedule_no_times">No times yet. Add one to start syncing.</string>
+    <string name="schedule_days_title">Days</string>
+    <string name="schedule_days_all">Every day</string>
+    <string name="schedule_quiet_title">Quiet hours</string>
+    <string name="schedule_quiet_subtitle">Never sync between these times</string>
+    <string name="schedule_quiet_from">From</string>
+    <string name="schedule_quiet_to">Until</string>
+    <string name="schedule_never_runs">These settings never sync. Add a time, a day, or shorten the quiet hours.</string>
+    <string name="schedule_summary_interval">Every %1$d min</string>
+    <string name="schedule_summary_times">At %1$s</string>
+    <string name="schedule_summary_days">%1$s</string>
+    <string name="schedule_summary_quiet">quiet %1$s to %2$s</string>
+    <string name="schedule_no_sync_times">Add at least one sync time</string>
+    <string name="schedule_day_mon">Mon</string>
+    <string name="schedule_day_tue">Tue</string>
+    <string name="schedule_day_wed">Wed</string>
+    <string name="schedule_day_thu">Thu</string>
+    <string name="schedule_day_fri">Fri</string>
+    <string name="schedule_day_sat">Sat</string>
+    <string name="schedule_day_sun">Sun</string>
+    <string name="schedule_status_to_webhooks">%1$s to %2$d webhook</string>
+    <string name="schedule_status_to_webhooks_plural">%1$s to %2$d webhooks</string>
+    <string name="schedule_status_to_mqtt">%1$s to MQTT</string>
+    <string name="schedule_status_to_both">%1$s to %2$d webhook and MQTT</string>
+    <string name="schedule_status_to_both_plural">%1$s to %2$d webhooks and MQTT</string>
+    <string name="schedule_status_nowhere">%1$s, no destination yet</string>
+    <string name="schedule_summary_no_times">No sync times yet</string>
 </resources>

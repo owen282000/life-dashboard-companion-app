@@ -80,6 +80,8 @@ import com.owen282000.lifedashboard.viewmodel.WebhookDraft
 fun UiMessage.text(res: Resources): String = when (this) {
     UiMessage.Saved -> res.getString(R.string.common_saved)
     UiMessage.IntervalTooShort -> res.getString(R.string.webhook_min_interval)
+    UiMessage.NoSyncTimes -> res.getString(R.string.schedule_no_sync_times)
+    UiMessage.ScheduleNeverRuns -> res.getString(R.string.schedule_never_runs)
     UiMessage.NoDestination -> res.getString(R.string.sync_no_destination)
     UiMessage.InvalidDayBoundaryHour -> res.getString(R.string.screentime_day_boundary_hour_invalid)
     UiMessage.InvalidUrl -> res.getString(R.string.webhook_enter_valid_url)
@@ -115,24 +117,6 @@ fun SyncMessageLine(message: UiMessage?, accent: Color) {
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
         }
-    }
-}
-
-@Composable
-fun SyncIntervalRow(accent: Color, value: String, onChange: (String) -> Unit) {
-    SettingRow(
-        icon = Icons.Outlined.Schedule,
-        accent = accent,
-        title = stringResource(R.string.sync_interval_title),
-        subtitle = stringResource(R.string.sync_interval_subtitle)
-    ) {
-        FilledField(
-            value = value,
-            onValueChange = onChange,
-            accent = accent,
-            keyboardType = KeyboardType.Number,
-            modifier = Modifier.width(88.dp)
-        )
     }
 }
 

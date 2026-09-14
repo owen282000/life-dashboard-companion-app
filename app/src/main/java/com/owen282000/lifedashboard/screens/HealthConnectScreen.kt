@@ -134,6 +134,7 @@ fun HealthConnectContent(
     val accent = HealthPrimary
     val draft = state.draft
     var dataTypesExpanded by remember { mutableStateOf(false) }
+    var scheduleExpanded by remember { mutableStateOf(false) }
     var webhookExpanded by remember { mutableStateOf(false) }
     var mqttExpanded by remember { mutableStateOf(false) }
     var advancedExpanded by remember { mutableStateOf(false) }
@@ -186,7 +187,13 @@ fun HealthConnectContent(
                 onToggleType = actions::toggleType
             )
             GroupDivider()
-            SyncIntervalRow(accent, draft.syncInterval, actions::setSyncInterval)
+            ScheduleRow(
+                accent = accent,
+                schedule = draft.schedule,
+                expanded = scheduleExpanded,
+                onToggle = { scheduleExpanded = !scheduleExpanded },
+                onChange = actions::setSchedule
+            )
         }
 
         GroupCard {
@@ -282,10 +289,10 @@ fun HealthConnectContent(
 
         SaveBar(visible = state.hasChanges, onSave = actions::save)
 
-        Text(
-            pluralStringResource(R.plurals.webhook_status_syncing, draft.webhook.urls.size, draft.syncInterval, draft.webhook.urls.size),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        ScheduleStatusLine(
+            schedule = draft.schedule,
+            webhookCount = draft.webhook.urls.size,
+            mqttEnabled = draft.mqtt.section.enabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
