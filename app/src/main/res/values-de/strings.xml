@@ -333,4 +333,5 @@
         <item quantity="one">%1$d Tag quantifiziertes Du</item>
         <item quantity="other">%1$d Tage quantifiziertes Du</item>
     </plurals>
+    <string name="health_backfill_needs_webhook">Nachladen braucht eine Webhook-URL: MQTT trägt nur den letzten Wert je Typ</string>
 </resources>

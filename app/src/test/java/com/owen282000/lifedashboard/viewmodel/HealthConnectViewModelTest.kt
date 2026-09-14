@@ -185,4 +185,22 @@ class HealthConnectViewModelTest {
         vm.dismissPreview()
         assertNull(vm.state.value.previewData)
     }
+
+    @Test
+    fun `backfill without a webhook URL explains why instead of opening the dialog`() = runTest {
+        val vm = vm()
+        val toasts = mutableListOf<UiMessage>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+        vm.openBackfillDialog()
+        assertEquals(UiMessage.BackfillNeedsWebhook, toasts.last())
+        assertFalse(vm.state.value.backfillDialog)
+
+        vm.addUrl("https://example.org/hook")
+        vm.openBackfillDialog()
+        assertTrue(vm.state.value.backfillDialog)
+        vm.backfill(30)
+        assertFalse(vm.state.value.backfillDialog)
+        assertEquals(UiMessage.BackfillComplete(30), vm.state.value.syncMessage)
+        job.cancel()
+    }
 }

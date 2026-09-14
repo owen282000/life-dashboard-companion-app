@@ -129,6 +129,7 @@ sealed interface UiMessage {
     data object PingFailed : UiMessage
     data class PingFailedWith(val reason: String) : UiMessage
     data class BackfillComplete(val count: Int) : UiMessage
+    data object BackfillNeedsWebhook : UiMessage
 
     /** True for the messages the sync line paints red. */
     val isFailure: Boolean

@@ -100,6 +100,7 @@ fun UiMessage.text(res: Resources): String = when (this) {
     UiMessage.PingFailed -> res.getString(R.string.health_test_ping_failed)
     is UiMessage.PingFailedWith -> res.getString(R.string.health_test_ping_failed_with_reason, reason)
     is UiMessage.BackfillComplete -> res.getQuantityString(R.plurals.health_backfill_complete, count, count)
+    UiMessage.BackfillNeedsWebhook -> res.getString(R.string.health_backfill_needs_webhook)
 }
 
 /** The line under the sync actions: the outcome of the last sync, red when it failed. */

@@ -335,4 +335,5 @@
         <item quantity="one">%1$d day of quantified you</item>
         <item quantity="other">%1$d days of quantified you</item>
     </plurals>
+    <string name="health_backfill_needs_webhook">Backfill needs a webhook URL: MQTT only carries the latest value of each type</string>
 </resources>

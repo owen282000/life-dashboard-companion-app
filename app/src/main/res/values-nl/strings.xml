@@ -333,4 +333,5 @@
         <item quantity="one">%1$d dag gekwantificeerde jij</item>
         <item quantity="other">%1$d dagen gekwantificeerde jij</item>
     </plurals>
+    <string name="health_backfill_needs_webhook">Aanvullen vereist een webhook-URL: MQTT draagt alleen de laatste waarde per type</string>
 </resources>

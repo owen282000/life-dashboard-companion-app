@@ -70,8 +70,11 @@ class HealthSyncManager(private val context: Context) {
             PendingDrainer.drain(context)
 
             val webhookUrls = preferencesManager.getHealthWebhookUrls()
+            val mqttSettings = preferencesManager.resolvedMqttSettings(MqttSection.HEALTH)
+            val publishToMqtt = mqttSettings.enabled && mqttSettings.host.isNotBlank()
 
-            if (webhookUrls.isEmpty()) {
+            // MQTT alone is a valid destination since 1.13.0; Screen Time already allowed it.
+            if (webhookUrls.isEmpty() && !publishToMqtt) {
                 return@withContext Result.failure(Exception("No webhook URLs configured"))
             }
 
@@ -107,6 +110,19 @@ class HealthSyncManager(private val context: Context) {
                 lastDelivered = healthData
 
                 val totalRecords = countRecords(healthData)
+
+                // MQTT-only setup: nothing to post, nothing to queue. The newest batch is
+                // published after the loop, like it is when webhooks are configured too.
+                if (webhookUrls.isEmpty()) {
+                    SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, true)
+                    SyncStatusStore.record(context, true, totalRecords)
+                    val passCounts = mutableMapOf<HealthDataType, Int>()
+                    updateSyncTimestamps(healthData, passCounts)
+                    passCounts.forEach { (type, count) -> syncCounts.merge(type, count, Int::plus) }
+                    if (healthData.cappedTypes.isEmpty()) break
+                    continue
+                }
+
                 val webhookManager = WebhookManager(
                     webhookUrls = webhookUrls,
                     context = context,

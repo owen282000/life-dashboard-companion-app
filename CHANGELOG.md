@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.13.1] - 2026-09-14
+
+### Fixed
+
+- A Health Connect sync with MQTT as the only destination failed with "No webhook URLs configured". The wizard and the tabs have accepted MQTT alone since 1.13.0, and Screen Time already synced that way; the Health Connect sync manager still insisted on a webhook URL. It now reads and publishes without one, exactly like Screen Time
+- Backfill on an MQTT-only setup failed with the same message. Backfill posts history to webhooks and MQTT only carries the latest value of each type, so the button now says exactly that instead of opening the dialog
+
 ## [1.13.0] - 2026-09-14
 
 ### Added

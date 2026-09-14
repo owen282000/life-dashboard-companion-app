@@ -1,0 +1,5 @@
+Fixed:
+
+- A Health Connect sync with MQTT as the only destination failed with "No webhook URLs configured". The wizard and the tabs have accepted MQTT alone since 1.13.0, and Screen Time already synced that way; the Health Connect sync manager still insisted on a webhook URL. It now reads and publishes without one, exactly like Screen Time
+- Backfill on an MQTT-only setup failed with the ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

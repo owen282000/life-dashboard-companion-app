@@ -44,7 +44,8 @@ data class HealthUiState(
     val previewData: String? = null,
     val exportJson: String? = null,
     /** A data type whose toggle needs a permission grant first. */
-    val permissionPrompt: HealthDataType? = null
+    val permissionPrompt: HealthDataType? = null,
+    val backfillDialog: Boolean = false
 ) {
     val hasChanges: Boolean get() = draft.differsFrom(saved)
     val hasAnyPermission: Boolean get() = grantedPermissions.isNotEmpty()
@@ -73,6 +74,8 @@ interface HealthActions {
     fun testPing()
     fun export()
     fun dismissExport()
+    fun openBackfillDialog()
+    fun dismissBackfillDialog()
     fun backfill(days: Int)
     fun requestAllPermissions()
     fun requestPermission(permission: String)
@@ -299,7 +302,19 @@ class HealthConnectViewModel(
 
     override fun dismissExport() = _state.update { it.copy(exportJson = null) }
 
+    /** Backfill posts history to webhooks; MQTT only carries the latest value, so say so instead of failing. */
+    override fun openBackfillDialog() {
+        if (_state.value.draft.webhook.urls.isEmpty()) {
+            _toasts.tryEmit(UiMessage.BackfillNeedsWebhook)
+            return
+        }
+        _state.update { it.copy(backfillDialog = true) }
+    }
+
+    override fun dismissBackfillDialog() = _state.update { it.copy(backfillDialog = false) }
+
     override fun backfill(days: Int) {
+        _state.update { it.copy(backfillDialog = false) }
         if (_state.value.backfillProgress != null) return
         viewModelScope.launch {
             _state.update { it.copy(backfillProgress = 0 to 1) }

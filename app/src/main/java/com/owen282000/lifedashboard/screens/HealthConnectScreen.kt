@@ -138,7 +138,6 @@ fun HealthConnectContent(
     var mqttExpanded by remember { mutableStateOf(false) }
     var advancedExpanded by remember { mutableStateOf(false) }
     var notificationsExpanded by remember { mutableStateOf(false) }
-    var showBackfillDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -269,7 +268,7 @@ fun HealthConnectContent(
                 enabled = draft.enabledTypes.isNotEmpty(), loading = state.isExporting, onClick = actions::export)
             ActionTile(Icons.Outlined.History, stringResource(R.string.sync_action_backfill), accent,
                 enabled = draft.enabledTypes.isNotEmpty(), loading = state.backfillProgress != null,
-                onClick = { showBackfillDialog = true })
+                onClick = actions::openBackfillDialog)
         }
         state.backfillProgress?.let { (done, total) ->
             Text(
@@ -323,13 +322,13 @@ fun HealthConnectContent(
         )
     }
 
-    if (showBackfillDialog) {
+    if (state.backfillDialog) {
         // Without READ_HEALTH_DATA_HISTORY Health Connect only exposes the 30 days before the
         // first permission grant, so a 90/365 day backfill would silently return recent data
         // only (#39). Granting happens via the normal permission flow.
         val hasHistoryPermission = HealthConnectManager.HISTORY_PERMISSION in state.grantedPermissions
         AlertDialog(
-            onDismissRequest = { showBackfillDialog = false },
+            onDismissRequest = actions::dismissBackfillDialog,
             title = { Text(stringResource(R.string.health_backfill_title)) },
             text = {
                 Column {
@@ -350,15 +349,12 @@ fun HealthConnectContent(
             confirmButton = {
                 Row {
                     listOf(30, 90, 365).forEach { days ->
-                        TextButton(onClick = {
-                            showBackfillDialog = false
-                            actions.backfill(days)
-                        }) { Text(stringResource(R.string.health_backfill_days, days)) }
+                        TextButton(onClick = { actions.backfill(days) }) { Text(stringResource(R.string.health_backfill_days, days)) }
                     }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showBackfillDialog = false }) { Text(stringResource(R.string.common_cancel)) }
+                TextButton(onClick = actions::dismissBackfillDialog) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
