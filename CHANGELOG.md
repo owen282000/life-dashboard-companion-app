@@ -2,17 +2,17 @@
 
 All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/). For older releases, see the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases).
 
-## [Unreleased]
-
-### Added
-
-- Developer tooling for the MQTT route: an instrumentation class that seeds a week of Health Connect data on an emulator, debug-only write permissions for it, and a Docker compose file with a Mosquitto broker and a Home Assistant; described in docs/building.md
-- A screenshot of the Home Assistant device in the README and a two-minute "phone to Home Assistant" quickstart in docs/usage.md
+## [1.13.4] - 2026-09-14
 
 ### Fixed
 
-- MQTT states for weight, temperatures, percentages and the other decimal values are rounded to one or two decimals instead of carrying the raw double (`78.2006048685296`)
-- Home Assistant showed distance, weight and duration sensors with two forced decimals (`5,921.00 m`); the discovery config now carries `suggested_display_precision` matching the published state
+- MQTT states for weight, temperatures, percentages and other decimal values are rounded to one or two decimals instead of the raw double (`78.2006048685296`)
+- Home Assistant forced two decimals on distance, weight and duration sensors (`5,921.00 m`); the discovery config now sets `suggested_display_precision` to match the state
+
+### Added
+
+- Emulator seeder for a week of Health Connect data, and a Docker compose file with Mosquitto and Home Assistant (docs/building.md)
+- A screenshot of the Home Assistant device in the README and a two-minute "phone to Home Assistant" quickstart in docs/usage.md
 
 ## [1.13.3] - 2026-09-14
 

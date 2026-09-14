@@ -1,0 +1,9 @@
+Fixed:
+
+- MQTT states for weight, temperatures, percentages and other decimal values are rounded to one or two decimals instead of the raw double (78.2006048685296)
+- Home Assistant forced two decimals on distance, weight and duration sensors (5,921.00 m); the discovery config now sets suggested_display_precision to match the state
+
+Added:
+
+- Emulator seeder for a week of Health Connect ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
