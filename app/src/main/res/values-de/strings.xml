@@ -164,7 +164,7 @@
     </plurals>
     <string name="logs_export_logs">Logs exportieren</string>
     <string name="logs_export_title">Logs exportieren</string>
-    <string name="logs_empty">Noch keine Webhook-Logs</string>
+    <string name="logs_empty">Noch keine Logs</string>
     <string name="logs_error">Fehler</string>
     <string name="logs_failed_with_status">Fehlgeschlagen - %1$s</string>
     <string name="logs_failure_line">%1$s: %2$s</string>
@@ -199,7 +199,7 @@
     <string name="main_tab_logs">Logs</string>
     <string name="main_title_health_connect">Health Connect</string>
     <string name="main_title_screen_time">Bildschirmzeit</string>
-    <string name="main_title_webhook_logs">Webhook-Logs</string>
+    <string name="main_title_webhook_logs">Logs</string>
 
     <!-- Bildschirmzeit-Bildschirm -->
     <plurals name="screentime_apps_queued">
@@ -270,4 +270,67 @@
     <string name="onboarding_welcome_body">Life Dashboard Companion sendet deine Health Connect- und Bildschirmzeitdaten an einen Ort, den du kontrollierst: dein eigenes Webhook-Backend oder Home Assistant über MQTT. Keine Cloud dazwischen. Drei kurze Fragen, und es läuft.</string>
     <string name="onboarding_welcome_title">Deine Gesundheitsdaten, dein Server</string>
 
+    <!-- Redesigned main screens -->
+    <string name="health_access_not_granted">Zugriff noch nicht erteilt</string>
+    <string name="screentime_access_granted">Nutzungszugriff erteilt</string>
+    <string name="screentime_access_needed">Nutzungszugriff nötig</string>
+    <string name="screentime_allow">Erlauben</string>
+    <string name="screentime_settings">Einstellungen</string>
+    <string name="webhook_title">Webhook</string>
+    <string name="sync_action_preview">Ansehen</string>
+    <string name="sync_action_ping">Test-Ping</string>
+    <string name="sync_action_export">Export</string>
+    <string name="sync_action_backfill">Nachladen</string>
+    <string name="sync_no_destination">Füge zuerst eine Webhook-URL hinzu oder aktiviere MQTT</string>
+    <string name="logs_delivered">Zugestellt</string>
+    <string name="logs_published">Veröffentlicht</string>
+    <string name="logs_failed">Fehlgeschlagen</string>
+    <string name="logs_row_records">%1$s · %2$d Einträge</string>
+    <string name="logs_row_sensors">%1$s · %2$d Sensoren</string>
+    <string name="logs_destination_webhook">Webhook</string>
+    <string name="logs_destination_mqtt">MQTT</string>
+
+    <!-- About screen -->
+    <string name="about_title">Über</string>
+    <string name="about_back">Zurück</string>
+    <string name="about_description">Sendet deine Health Connect- und Bildschirmzeitdaten an dein eigenes Webhook-Backend oder an Home Assistant über MQTT. Keine Cloud dazwischen.</string>
+    <string name="about_privacy_title">Datenschutz und Sicherheit</string>
+    <string name="about_backup_title">Sicherung und Wiederherstellung</string>
+    <string name="about_f_steps">Schritte, Distanz, Kalorien</string>
+    <string name="about_f_sleep">Schlaf mit Phasen</string>
+    <string name="about_f_meditation">Meditationssitzungen</string>
+    <string name="about_f_heart">Herzfrequenz und mehr</string>
+    <string name="about_f_apps">App-Nutzungsstatistiken</string>
+    <string name="about_f_boundary">Einstellbare Tagesgrenze</string>
+    <string name="about_f_lookback">7-Tage-Rückblick</string>
+    <string name="about_f_no_sharing">Keine Weitergabe an Dritte</string>
+    <string name="about_f_on_device">Daten bleiben auf deinem Gerät</string>
+    <string name="about_f_control">Volle Kontrolle über Sync-Einstellungen</string>
+    <string name="about_docs">Dokumentation</string>
+    <string name="about_docs_sub">Einrichtung, Webhook-Schema, MQTT, Datenquellen</string>
+    <string name="about_whats_new">Was ist neu</string>
+    <string name="about_whats_new_sub">Changelog zu %1$s</string>
+    <string name="about_report">Problem melden</string>
+    <string name="about_report_sub">GitHub-Issues</string>
+    <string name="about_github">Auf GitHub ansehen</string>
+    <string name="about_coffee">Spendier mir einen Kaffee</string>
+    <string name="about_coffee_sub">Die App bleibt kostenlos und Open Source; ein Kaffee hält die Releases schnell</string>
+    <string name="about_privacy_policy">Datenschutzerklärung</string>
+    <string name="about_privacy_policy_sub">Was die App liest, speichert und sendet</string>
+    <string name="about_licence">Lizenz</string>
+    <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_bpm">%1$d BPM</string>
+    <string name="nerd_title">Nerd-Statistiken</string>
+    <string name="nerd_secret">Du hast das Geheimnis gefunden</string>
+    <string name="nerd_empty">Noch keine Syncs. Komm zurück, wenn deine Daten fließen.</string>
+    <string name="nerd_records">Zugestellte Einträge</string>
+    <string name="nerd_deliveries">Erfolgreiche Zustellungen</string>
+    <string name="nerd_largest">Größte Payload</string>
+    <string name="nerd_since">Synchronisiert seit</string>
+    <string name="nerd_that_is">Das sind</string>
+    <plurals name="nerd_days">
+        <item quantity="one">%1$d Tag quantifiziertes Du</item>
+        <item quantity="other">%1$d Tage quantifiziertes Du</item>
+    </plurals>
 </resources>

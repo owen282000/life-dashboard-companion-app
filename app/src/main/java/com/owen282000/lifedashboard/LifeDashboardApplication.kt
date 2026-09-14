@@ -8,11 +8,11 @@ import java.util.concurrent.TimeUnit
 
 class LifeDashboardApplication : Application() {
 
-    private lateinit var preferencesManager: PreferencesManager
+    /** The one PreferencesManager for the process; screens and view models share it. */
+    val preferencesManager: PreferencesManager by lazy { PreferencesManager(this) }
 
     override fun onCreate() {
         super.onCreate()
-        preferencesManager = PreferencesManager(this)
 
         // Schedule periodic sync work for both Health Connect and Screen Time
         scheduleHealthSyncWork()
@@ -49,3 +49,7 @@ class LifeDashboardApplication : Application() {
         )
     }
 }
+
+/** The process-wide [PreferencesManager], or a fresh one when not running inside the app (tests, previews). */
+fun android.content.Context.appPreferences(): PreferencesManager =
+    (applicationContext as? LifeDashboardApplication)?.preferencesManager ?: PreferencesManager(this)

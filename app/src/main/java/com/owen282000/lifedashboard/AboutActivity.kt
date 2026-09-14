@@ -7,11 +7,25 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,22 +33,76 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Article
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.DirectionsWalk
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Gavel
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.LocalCafe
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.outlined.PrivacyTip
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.SelfImprovement
+import androidx.compose.material.icons.outlined.SettingsBackupRestore
+import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.owen282000.lifedashboard.ui.theme.*
+import androidx.compose.ui.unit.sp
 import com.owen282000.lifedashboard.screens.ConfigBackupSection
+import com.owen282000.lifedashboard.screens.IconTile
+import com.owen282000.lifedashboard.screens.PremiumCard
+import com.owen282000.lifedashboard.ui.theme.BrandGreen
+import com.owen282000.lifedashboard.ui.theme.BrandGround
+import com.owen282000.lifedashboard.ui.theme.BrandGroundDeep
+import com.owen282000.lifedashboard.ui.theme.BrandGroundLight
+import com.owen282000.lifedashboard.ui.theme.HealthPrimary
+import com.owen282000.lifedashboard.ui.theme.LifeDashboardTheme
+import com.owen282000.lifedashboard.ui.theme.ScreenTimePrimary
+import com.owen282000.lifedashboard.ui.theme.Success
+import kotlinx.coroutines.delay
+
+private const val REPO_URL = "https://github.com/owen282000/life-dashboard-companion-app"
 
 class AboutActivity : ComponentActivity() {
 
@@ -54,16 +122,16 @@ class AboutActivity : ComponentActivity() {
     fun AboutScreen() {
         val context = LocalContext.current
 
-        // Easter eggs: tap the icon 7 times for a heart beating at your real heart rate,
+        // Easter eggs: tap the mark 7 times for a heart beating at your real heart rate,
         // long-press the version pill for Nerd Stats
-        var heartTapCount by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0) }
-        var isBeating by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-        var bpm by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(72L) }
-        var showNerdStats by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-        val heartScale = androidx.compose.runtime.remember { androidx.compose.animation.core.Animatable(1f) }
-        val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+        var heartTapCount by remember { mutableStateOf(0) }
+        var isBeating by remember { mutableStateOf(false) }
+        var bpm by remember { mutableStateOf(72L) }
+        var showNerdStats by remember { mutableStateOf(false) }
+        val heartScale = remember { Animatable(1f) }
+        val haptics = LocalHapticFeedback.current
 
-        androidx.compose.runtime.LaunchedEffect(isBeating) {
+        LaunchedEffect(isBeating) {
             if (!isBeating) {
                 heartScale.snapTo(1f)
                 return@LaunchedEffect
@@ -71,12 +139,12 @@ class AboutActivity : ComponentActivity() {
             HealthConnectManager(context).latestHeartRateBpm()?.let { bpm = it.coerceIn(30, 200) }
             while (isBeating) {
                 val cycleMs = 60_000L / bpm
-                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                heartScale.animateTo(1.18f, androidx.compose.animation.core.tween(120))
-                heartScale.animateTo(1f, androidx.compose.animation.core.tween(110))
-                heartScale.animateTo(1.10f, androidx.compose.animation.core.tween(100))
-                heartScale.animateTo(1f, androidx.compose.animation.core.tween(100))
-                kotlinx.coroutines.delay((cycleMs - 430).coerceAtLeast(50))
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                heartScale.animateTo(1.18f, tween(120))
+                heartScale.animateTo(1f, tween(110))
+                heartScale.animateTo(1.10f, tween(100))
+                heartScale.animateTo(1f, tween(100))
+                delay((cycleMs - 430).coerceAtLeast(50))
             }
         }
 
@@ -85,27 +153,20 @@ class AboutActivity : ComponentActivity() {
         } catch (e: PackageManager.NameNotFoundException) {
             "1.0"
         }
-        val versionCode = try {
-            @Suppress("DEPRECATION")
-            context.packageManager.getPackageInfo(context.packageName, 0).versionCode.toLong()
-        } catch (e: PackageManager.NameNotFoundException) {
-            1L
-        }
 
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("About") },
+                    title = { Text(stringResource(R.string.about_title), fontWeight = FontWeight.SemiBold) },
                     navigationIcon = {
                         IconButton(onClick = { finish() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
-                            )
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.about_back))
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
             Column(
                 modifier = Modifier
@@ -113,29 +174,25 @@ class AboutActivity : ComponentActivity() {
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Header with gradient
+                // Hero on the brand ground from the banner and the icon, with the mark itself.
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
                         .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Primary,
-                                    PrimaryDark
-                                )
+                            Brush.radialGradient(
+                                colors = listOf(BrandGroundLight, BrandGround, BrandGroundDeep),
+                                radius = 900f
                             )
                         )
-                        .padding(32.dp),
+                        .padding(top = 20.dp, bottom = 30.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(
                             modifier = Modifier
-                                .size(80.dp)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.2f))
+                                .fillMaxWidth()
+                                .height(110.dp)
                                 .clickable {
                                     heartTapCount++
                                     if (heartTapCount >= 7) {
@@ -145,40 +202,55 @@ class AboutActivity : ComponentActivity() {
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = if (isBeating) Icons.Filled.Favorite else Icons.Filled.Dashboard,
-                                contentDescription = null,
-                                tint = Color.White,
+                            Box(
                                 modifier = Modifier
-                                    .size(44.dp)
-                                    .scale(heartScale.value)
+                                    .size(120.dp)
+                                    .drawBehind {
+                                        drawCircle(Brush.radialGradient(listOf(BrandGreen.copy(alpha = 0.28f), Color.Transparent)))
+                                    }
                             )
+                            if (isBeating) {
+                                Icon(
+                                    Icons.Filled.Favorite,
+                                    contentDescription = null,
+                                    tint = BrandGreen,
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .scale(heartScale.value)
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(R.drawable.ic_launcher_foreground),
+                                    contentDescription = null,
+                                    modifier = Modifier.requiredSize(200.dp)
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             "Life Dashboard",
-                            style = MaterialTheme.typography.headlineMedium,
+                            fontSize = 30.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                         Text(
                             "Companion",
                             style = MaterialTheme.typography.titleLarge,
-                            color = Color.White.copy(alpha = 0.8f)
+                            color = Color(0xFFB9C2C6)
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                         Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = Color.White.copy(alpha = 0.2f),
+                            shape = CircleShape,
+                            color = BrandGreen.copy(alpha = 0.18f),
                             modifier = Modifier.pointerInput(Unit) {
                                 detectTapGestures(onLongPress = { showNerdStats = !showNerdStats })
                             }
                         ) {
                             Text(
-                                if (isBeating) "$bpm BPM" else "Version $versionName",
+                                if (isBeating) stringResource(R.string.about_bpm, bpm) else stringResource(R.string.about_version, versionName),
                                 style = MaterialTheme.typography.labelMedium,
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                fontWeight = FontWeight.SemiBold,
+                                color = BrandGreen,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                             )
                         }
                     }
@@ -186,72 +258,44 @@ class AboutActivity : ComponentActivity() {
 
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    if (showNerdStats) {
-                        NerdStatsCard(context)
-                    }
+                    if (showNerdStats) NerdStatsCard()
 
-                    // Description
                     Text(
-                        "Syncs Health Connect and Screen Time data to your custom webhook endpoints for automated life tracking.",
+                        stringResource(R.string.about_description),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 4.dp)
                     )
 
-                    // Features Section
-                    AboutSectionCard(
-                        icon = Icons.Outlined.Favorite,
-                        iconTint = HealthPrimary,
-                        title = "Health Connect"
-                    ) {
-                        FeatureItem(Icons.Outlined.DirectionsWalk, "Steps, distance, calories")
-                        FeatureItem(Icons.Outlined.Bedtime, "Sleep tracking with phases")
-                        FeatureItem(Icons.Outlined.SelfImprovement, "Meditation sessions")
-                        FeatureItem(Icons.Outlined.MonitorHeart, "Heart rate & more")
+                    FeatureCard(Icons.Outlined.FavoriteBorder, HealthPrimary, stringResource(R.string.main_title_health_connect)) {
+                        FeatureItem(Icons.Outlined.DirectionsWalk, stringResource(R.string.about_f_steps))
+                        FeatureItem(Icons.Outlined.Bedtime, stringResource(R.string.about_f_sleep))
+                        FeatureItem(Icons.Outlined.SelfImprovement, stringResource(R.string.about_f_meditation))
+                        FeatureItem(Icons.Outlined.MonitorHeart, stringResource(R.string.about_f_heart))
                     }
-
-                    AboutSectionCard(
-                        icon = Icons.Outlined.PhoneAndroid,
-                        iconTint = ScreenTimePrimary,
-                        title = "Screen Time"
-                    ) {
-                        FeatureItem(Icons.Outlined.Apps, "App usage statistics")
-                        FeatureItem(Icons.Outlined.Schedule, "Configurable day boundary")
-                        FeatureItem(Icons.Outlined.History, "7-day lookback window")
+                    FeatureCard(Icons.Outlined.PhoneAndroid, ScreenTimePrimary, stringResource(R.string.main_title_screen_time)) {
+                        FeatureItem(Icons.Outlined.Apps, stringResource(R.string.about_f_apps))
+                        FeatureItem(Icons.Outlined.Schedule, stringResource(R.string.about_f_boundary))
+                        FeatureItem(Icons.Outlined.History, stringResource(R.string.about_f_lookback))
                     }
-
-                    AboutSectionCard(
-                        icon = Icons.Outlined.Shield,
-                        iconTint = Success,
-                        title = "Privacy & Security"
-                    ) {
-                        FeatureItem(Icons.Outlined.Lock, "No third-party data sharing")
-                        FeatureItem(Icons.Outlined.Storage, "Data stays on your device")
-                        FeatureItem(Icons.Outlined.Tune, "Full control over sync settings")
+                    FeatureCard(Icons.Outlined.Shield, Success, stringResource(R.string.about_privacy_title)) {
+                        FeatureItem(Icons.Outlined.Lock, stringResource(R.string.about_f_no_sharing))
+                        FeatureItem(Icons.Outlined.Storage, stringResource(R.string.about_f_on_device))
+                        FeatureItem(Icons.Outlined.Tune, stringResource(R.string.about_f_control))
                     }
-
-                    AboutSectionCard(
-                        icon = Icons.Outlined.SettingsBackupRestore,
-                        iconTint = Primary,
-                        title = "Backup & restore"
-                    ) {
+                    FeatureCard(Icons.Outlined.SettingsBackupRestore, HealthPrimary, stringResource(R.string.about_backup_title)) {
                         ConfigBackupSection()
                     }
 
-                    LinkCard(
-                        icon = Icons.Outlined.Code,
-                        title = "View on GitHub",
-                        subtitle = "owen282000/life-dashboard-companion-app",
-                        url = "https://github.com/owen282000/life-dashboard-companion-app"
-                    )
-
-                    LinkCard(
-                        icon = Icons.Outlined.LocalCafe,
-                        title = "Buy me a coffee",
-                        subtitle = "The app stays free and open source; a coffee keeps releases quick",
-                        url = "https://ko-fi.com/owen282000"
-                    )
+                    LinkCard(Icons.Outlined.Article, stringResource(R.string.about_docs), stringResource(R.string.about_docs_sub), "$REPO_URL/blob/main/docs/usage.md")
+                    LinkCard(Icons.Outlined.AutoAwesome, stringResource(R.string.about_whats_new), stringResource(R.string.about_whats_new_sub, versionName), "$REPO_URL/releases/tag/$versionName")
+                    LinkCard(Icons.Outlined.BugReport, stringResource(R.string.about_report), stringResource(R.string.about_report_sub), "$REPO_URL/issues/new")
+                    LinkCard(Icons.Outlined.Code, stringResource(R.string.about_github), "owen282000/life-dashboard-companion-app", REPO_URL)
+                    LinkCard(Icons.Outlined.LocalCafe, stringResource(R.string.about_coffee), stringResource(R.string.about_coffee_sub), "https://ko-fi.com/owen282000")
+                    LinkCard(Icons.Outlined.PrivacyTip, stringResource(R.string.about_privacy_policy), stringResource(R.string.about_privacy_policy_sub), "$REPO_URL/blob/main/PRIVACY.md")
+                    LinkCard(Icons.Outlined.Gavel, stringResource(R.string.about_licence), stringResource(R.string.about_licence_sub), "$REPO_URL/blob/main/LICENSE")
 
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -264,77 +308,42 @@ class AboutActivity : ComponentActivity() {
 @Composable
 private fun LinkCard(icon: ImageVector, title: String, subtitle: String, url: String) {
     val context = LocalContext.current
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
-    ) {
+    PremiumCard(shape = RoundedCornerShape(16.dp)) {
         Row(
             modifier = Modifier
                 .clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            IconTile(icon, HealthPrimary, size = 40)
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                Icons.AutoMirrored.Filled.OpenInNew,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(18.dp)
             )
         }
     }
 }
 
 @Composable
-private fun AboutSectionCard(
+private fun FeatureCard(
     icon: ImageVector,
     iconTint: Color,
     title: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
-    ) {
+    PremiumCard {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(iconTint.copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = iconTint,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
+                IconTile(icon, iconTint, size = 40)
+                Spacer(modifier = Modifier.width(14.dp))
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(12.dp))
             content()
@@ -348,70 +357,40 @@ private fun FeatureItem(icon: ImageVector, text: String) {
         modifier = Modifier.padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp)
-        )
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun NerdStatsCard(context: android.content.Context) {
+private fun NerdStatsCard() {
+    val context = LocalContext.current
     val stats = remember { LifetimeStats.read(context) }
 
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
-    ) {
+    PremiumCard {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Filled.AutoAwesome,
-                    contentDescription = null,
-                    tint = Color(0xFFF9A825),
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = Color(0xFFF9A825), modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    "Nerd Stats",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Text(stringResource(R.string.nerd_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    "You found the secret",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(stringResource(R.string.nerd_secret), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(modifier = Modifier.height(12.dp))
 
             if (stats.deliveries == 0) {
-                Text(
-                    "No syncs yet. Come back when your data has started flowing.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(stringResource(R.string.nerd_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                NerdStatRow("Records delivered", "%,d".format(stats.records))
-                NerdStatRow("Successful deliveries", "%,d".format(stats.deliveries))
+                NerdStatRow(stringResource(R.string.nerd_records), "%,d".format(stats.records))
+                NerdStatRow(stringResource(R.string.nerd_deliveries), "%,d".format(stats.deliveries))
                 if (stats.largestPayloadBytes > 0) {
-                    NerdStatRow("Largest payload", android.text.format.Formatter.formatShortFileSize(context, stats.largestPayloadBytes.toLong()))
+                    NerdStatRow(stringResource(R.string.nerd_largest), android.text.format.Formatter.formatShortFileSize(context, stats.largestPayloadBytes.toLong()))
                 }
                 stats.firstSyncMillis?.let { first ->
-                    val days = ((System.currentTimeMillis() - first) / 86_400_000L).coerceAtLeast(1)
-                    NerdStatRow("Syncing since", java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(first)))
-                    NerdStatRow("That is", "$days day${if (days == 1L) "" else "s"} of quantified you")
+                    val days = ((System.currentTimeMillis() - first) / 86_400_000L).coerceAtLeast(1).toInt()
+                    NerdStatRow(stringResource(R.string.nerd_since), java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date(first)))
+                    NerdStatRow(stringResource(R.string.nerd_that_is), pluralStringResource(R.plurals.nerd_days, days, days))
                 }
             }
         }
@@ -421,19 +400,12 @@ private fun NerdStatsCard(context: android.content.Context) {
 @Composable
 private fun NerdStatRow(label: String, value: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold
-        )
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
     }
 }

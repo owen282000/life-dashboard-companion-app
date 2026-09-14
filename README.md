@@ -28,7 +28,7 @@
 
 | Health Connect | Screen Time | MQTT / Home Assistant | Delivery logs |
 |:--:|:--:|:--:|:--:|
-| <img src="docs/screenshots/health-connect.png" alt="Health Connect screen"> | <img src="docs/screenshots/screen-time.png" alt="Screen Time screen"> | <img src="docs/screenshots/mqtt.png" alt="MQTT and sync actions"> | <img src="docs/screenshots/logs.png" alt="Webhook logs screen"> |
+| <img src="docs/screenshots/health-connect.png" alt="Health Connect screen"> | <img src="docs/screenshots/screen-time.png" alt="Screen Time screen"> | <img src="docs/screenshots/mqtt.png" alt="MQTT and sync actions"> | <img src="docs/screenshots/logs.png" alt="Logs screen"> |
 | 33 data types, per-type toggles, incremental sync | Foreground time per app, with a custom day boundary | Sensors appear in Home Assistant automatically | Every delivery logged, payloads inspectable |
 
 ## Why this app?
@@ -86,6 +86,7 @@ Every record carries a `uuid` for deduplication and a `source` package name. Use
 | [docs/webhook.md](docs/webhook.md) | Complete payload reference, delivery, retries, HMAC signing, backend examples |
 | [docs/settings-backup.md](docs/settings-backup.md) | Exporting and importing your configuration between devices |
 | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | What Fitbit, Cronometer, Health Sync, Zepp and Garmin do and do not write |
+| [PRIVACY.md](PRIVACY.md) | What the app reads, stores and sends, and to whom (nobody but you) |
 | [docs/building.md](docs/building.md) | Build, project layout, contributing |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 

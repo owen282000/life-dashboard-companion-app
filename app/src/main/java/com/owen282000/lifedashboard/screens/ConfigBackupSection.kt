@@ -95,12 +95,16 @@ fun ConfigBackupSection() {
                     exportPassword = ""
                     showExportDialog = true
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = com.owen282000.lifedashboard.ui.theme.HealthPrimary)
             ) { Text("Export") }
 
             OutlinedButton(
                 onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = com.owen282000.lifedashboard.ui.theme.HealthPrimary)
             ) { Text("Import") }
         }
     }

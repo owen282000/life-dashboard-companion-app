@@ -63,10 +63,29 @@ class MqttPublisher(private val context: Context) {
         publish(MqttSupport.sensorsFromScreenTime(days), MqttSection.SCREEN_TIME)
 
     private suspend fun publish(sensors: List<MqttSensor>, section: MqttSection): Result<Int> {
-        val preferencesManager = PreferencesManager(context)
-        return publish(sensors, preferencesManager.resolvedMqttSettings(section)) {
-            preferencesManager.setLastMqttStatus(section, it)
+        val preferencesManager = context.appPreferences()
+        val settings = preferencesManager.resolvedMqttSettings(section)
+        val result = publish(sensors, settings) { preferencesManager.setLastMqttStatus(section, it) }
+        // The Logs tab lists MQTT publishes next to webhook deliveries, so a failing broker
+        // shows up in the same place as a failing endpoint.
+        if (settings.enabled && settings.host.isNotBlank() && sensors.isNotEmpty()) {
+            preferencesManager.addWebhookLog(
+                WebhookLog(
+                    id = UUID.randomUUID().toString(),
+                    timestamp = System.currentTimeMillis(),
+                    url = "mqtt://${settings.host}:${settings.port}/${settings.baseTopic}",
+                    statusCode = null,
+                    success = result.isSuccess,
+                    errorMessage = result.exceptionOrNull()?.let { it.message ?: it.javaClass.simpleName },
+                    dataType = "mqtt",
+                    recordCount = sensors.size,
+                    rawPayload = null,
+                    logType = if (section == MqttSection.HEALTH) LogType.HEALTH_CONNECT.name else LogType.SCREEN_TIME.name,
+                    destination = LogDestination.MQTT.name
+                )
+            )
         }
+        return result
     }
 
     private suspend fun publish(

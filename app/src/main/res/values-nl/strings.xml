@@ -164,7 +164,7 @@
     </plurals>
     <string name="logs_export_logs">Logs exporteren</string>
     <string name="logs_export_title">Logs exporteren</string>
-    <string name="logs_empty">Nog geen webhook-logs</string>
+    <string name="logs_empty">Nog geen logs</string>
     <string name="logs_error">Fout</string>
     <string name="logs_failed_with_status">Mislukt - %1$s</string>
     <string name="logs_failure_line">%1$s: %2$s</string>
@@ -199,7 +199,7 @@
     <string name="main_tab_logs">Logs</string>
     <string name="main_title_health_connect">Health Connect</string>
     <string name="main_title_screen_time">Schermtijd</string>
-    <string name="main_title_webhook_logs">Webhook-logs</string>
+    <string name="main_title_webhook_logs">Logs</string>
 
     <!-- Schermtijd-scherm -->
     <plurals name="screentime_apps_queued">
@@ -270,4 +270,67 @@
     <string name="onboarding_welcome_body">Life Dashboard Companion stuurt je Health Connect- en schermtijddata naar een plek die jij beheert: je eigen webhook-backend, of Home Assistant via MQTT. Geen cloud ertussen. Drie korte vragen en je draait.</string>
     <string name="onboarding_welcome_title">Jouw gezondheidsdata, jouw server</string>
 
+    <!-- Redesigned main screens -->
+    <string name="health_access_not_granted">Toegang nog niet gegeven</string>
+    <string name="screentime_access_granted">Gebruikstoegang verleend</string>
+    <string name="screentime_access_needed">Gebruikstoegang nodig</string>
+    <string name="screentime_allow">Toestaan</string>
+    <string name="screentime_settings">Instellingen</string>
+    <string name="webhook_title">Webhook</string>
+    <string name="sync_action_preview">Bekijken</string>
+    <string name="sync_action_ping">Testping</string>
+    <string name="sync_action_export">Exporteren</string>
+    <string name="sync_action_backfill">Aanvullen</string>
+    <string name="sync_no_destination">Voeg eerst een webhook-URL toe of zet MQTT aan</string>
+    <string name="logs_delivered">Afgeleverd</string>
+    <string name="logs_published">Gepubliceerd</string>
+    <string name="logs_failed">Mislukt</string>
+    <string name="logs_row_records">%1$s · %2$d records</string>
+    <string name="logs_row_sensors">%1$s · %2$d sensors</string>
+    <string name="logs_destination_webhook">Webhook</string>
+    <string name="logs_destination_mqtt">MQTT</string>
+
+    <!-- About screen -->
+    <string name="about_title">Over</string>
+    <string name="about_back">Terug</string>
+    <string name="about_description">Stuurt je Health Connect- en schermtijddata naar je eigen webhook-backend of naar Home Assistant via MQTT. Geen cloud ertussen.</string>
+    <string name="about_privacy_title">Privacy en beveiliging</string>
+    <string name="about_backup_title">Back-up en herstel</string>
+    <string name="about_f_steps">Stappen, afstand, calorieën</string>
+    <string name="about_f_sleep">Slaap met fases</string>
+    <string name="about_f_meditation">Meditatiesessies</string>
+    <string name="about_f_heart">Hartslag en meer</string>
+    <string name="about_f_apps">App-gebruiksstatistieken</string>
+    <string name="about_f_boundary">Instelbare daggrens</string>
+    <string name="about_f_lookback">7 dagen terugkijken</string>
+    <string name="about_f_no_sharing">Geen data naar derden</string>
+    <string name="about_f_on_device">Data blijft op je toestel</string>
+    <string name="about_f_control">Volledige controle over sync-instellingen</string>
+    <string name="about_docs">Documentatie</string>
+    <string name="about_docs_sub">Setup, webhook-schema, MQTT, databronnen</string>
+    <string name="about_whats_new">Wat is nieuw</string>
+    <string name="about_whats_new_sub">Changelog van %1$s</string>
+    <string name="about_report">Probleem melden</string>
+    <string name="about_report_sub">GitHub-issues</string>
+    <string name="about_github">Bekijk op GitHub</string>
+    <string name="about_coffee">Trakteer me op koffie</string>
+    <string name="about_coffee_sub">De app blijft gratis en open source; een koffie houdt de releases snel</string>
+    <string name="about_privacy_policy">Privacybeleid</string>
+    <string name="about_privacy_policy_sub">Wat de app leest, opslaat en verstuurt</string>
+    <string name="about_licence">Licentie</string>
+    <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
+    <string name="about_version">Versie %1$s</string>
+    <string name="about_bpm">%1$d BPM</string>
+    <string name="nerd_title">Nerd-stats</string>
+    <string name="nerd_secret">Je hebt het geheim gevonden</string>
+    <string name="nerd_empty">Nog geen syncs. Kom terug als je data is gaan stromen.</string>
+    <string name="nerd_records">Records afgeleverd</string>
+    <string name="nerd_deliveries">Geslaagde afleveringen</string>
+    <string name="nerd_largest">Grootste payload</string>
+    <string name="nerd_since">Synct sinds</string>
+    <string name="nerd_that_is">Dat is</string>
+    <plurals name="nerd_days">
+        <item quantity="one">%1$d dag gekwantificeerde jij</item>
+        <item quantity="other">%1$d dagen gekwantificeerde jij</item>
+    </plurals>
 </resources>

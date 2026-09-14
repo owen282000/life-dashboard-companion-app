@@ -7,6 +7,12 @@ enum class LogType {
     SCREEN_TIME
 }
 
+/** Where a log entry was sent: a webhook POST or an MQTT publish. */
+enum class LogDestination {
+    WEBHOOK,
+    MQTT
+}
+
 @Serializable
 data class WebhookLog(
     val id: String,
@@ -19,5 +25,6 @@ data class WebhookLog(
     val recordCount: Int?,
     val rawPayload: String? = null,
     val logType: String = LogType.HEALTH_CONNECT.name, // "HEALTH_CONNECT" or "SCREEN_TIME"
-    val note: String? = null // e.g. "Recovered on attempt 2 of 3" for successes after retries
+    val note: String? = null, // e.g. "Recovered on attempt 2 of 3" for successes after retries
+    val destination: String = LogDestination.WEBHOOK.name // "WEBHOOK" or "MQTT"; entries from before 1.13 are webhooks
 )

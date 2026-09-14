@@ -170,7 +170,7 @@ class MainActivity : ComponentActivity() {
                             icon = if (selectedTab == AppTab.Logs)
                                 Icons.Filled.History else Icons.Outlined.History,
                             label = stringResource(R.string.main_tab_logs),
-                            selectedColor = MaterialTheme.colorScheme.primary,
+                            selectedColor = LogsPrimary,
                             modifier = Modifier.weight(1f)
                         )
                     }
