@@ -69,6 +69,14 @@ The two are complementary rather than rivals: keep the companion app for presenc
 - 24 of the 33 types get a sensor. Event-like types (exercise, nutrition, mindfulness, cycle tracking) remain webhook-only. Every publish carries the full set of sensors the app has mapped so far, so a new broker or a fresh Home Assistant sees the whole device after one sync
 - Screen Time publishes too: today's and yesterday's total minutes and today's most used app (top five apps as attributes), under the same Home Assistant device. Health Connect and Screen Time each have their own switch and base topic and share one broker connection by default; either section can switch to its own broker.
 
+## Data resolution
+
+- **Per type, choose every record or one value per window** (1, 5 or 15 minutes, or hourly). Dense series are where payloads go wrong: a heart rate sample per second is 86,400 records a day
+- Measured values are averaged with their minimum and maximum kept; accumulated quantities (steps, distance, calories) are summed. An average heart rate hides whether someone slept or sprinted, so the range travels with it
+- Windows align to the clock and every bucket says how many samples went into it. A window still filling when a sync runs is held until it is complete, so it normally goes out once; late records for a window already sent produce a second object that merges exactly with the first
+- The payload names the resolution it used per series, so a receiver does not have to be configured to match
+- Everything defaults to every record: bucketing is lossy and is offered, never applied on your behalf
+
 ## Sync scheduling
 
 - **Two modes per source** - a fixed interval (minimum 15 minutes, as before) or a list of times of day. Health Connect and Screen Time are scheduled separately, so screen time can sync hourly while health syncs at 08:00 and 21:00

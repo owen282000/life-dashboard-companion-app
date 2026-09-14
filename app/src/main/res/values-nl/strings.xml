@@ -362,4 +362,15 @@
     <string name="schedule_status_to_both_plural">%1$s naar %2$d webhooks en MQTT</string>
     <string name="schedule_status_nowhere">%1$s, nog geen bestemming</string>
     <string name="schedule_summary_no_times">Nog geen synctijden</string>
+    <string name="resolution_title">Dataresolutie</string>
+    <string name="resolution_subtitle_raw">Elke meting</string>
+    <string name="resolution_subtitle_count">%1$d gebundeld</string>
+    <string name="resolution_explainer">Dichte reeksen zoals hartslag kun je versturen als gemiddelden per tijdvenster in plaats van elke losse meting. Kleinere payloads, minder detail.</string>
+    <string name="resolution_raw">Elke meting</string>
+    <string name="resolution_1m">1 min</string>
+    <string name="resolution_5m">5 min</string>
+    <string name="resolution_15m">15 min</string>
+    <string name="resolution_1h">1 uur</string>
+    <string name="resolution_group_sampled">Gemiddeld per venster</string>
+    <string name="resolution_group_accumulated">Opgeteld per venster</string>
 </resources>

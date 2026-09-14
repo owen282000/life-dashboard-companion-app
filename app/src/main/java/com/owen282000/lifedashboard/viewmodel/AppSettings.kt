@@ -47,6 +47,7 @@ class PreferencesAppSettings(
             secret = prefs.getHealthWebhookSecret() ?: ""
         ),
         enabledTypes = prefs.getHealthEnabledDataTypes(),
+        resolutions = prefs.getSeriesResolutions(),
         mqtt = MqttDraft.from(prefs.getMqttSection(MqttSection.HEALTH), prefs.getSharedMqttBroker())
     )
 
@@ -54,6 +55,7 @@ class PreferencesAppSettings(
         prefs.setSyncSchedule(LogType.HEALTH_CONNECT, draft.schedule.toSchedule(fallbackInterval = interval))
         prefs.setHealthWebhookUrls(draft.webhook.urls)
         prefs.setHealthEnabledDataTypes(draft.enabledTypes)
+        prefs.setSeriesResolutions(draft.resolutions)
         prefs.setHealthWebhookHeaders(draft.webhook.headers)
         prefs.setHealthWebhookSecret(draft.webhook.secret.trim())
         val mqtt = draft.mqtt.withPort()

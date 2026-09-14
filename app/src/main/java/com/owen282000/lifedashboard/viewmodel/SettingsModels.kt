@@ -4,6 +4,7 @@ import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.MqttBroker
 import com.owen282000.lifedashboard.MqttSectionSettings
 import com.owen282000.lifedashboard.QuietWindow
+import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.SyncMode
 import com.owen282000.lifedashboard.SyncSchedule
 import java.time.DayOfWeek
@@ -103,13 +104,16 @@ data class HealthDraft(
     val webhook: WebhookDraft,
     val enabledTypes: Set<HealthDataType>,
     val mqtt: MqttDraft,
-    val schedule: ScheduleDraft = ScheduleDraft()
+    val schedule: ScheduleDraft = ScheduleDraft(),
+    /** Resolution per type; absent means [com.owen282000.lifedashboard.DEFAULT_RESOLUTION]. */
+    val resolutions: Map<HealthDataType, SeriesResolution> = emptyMap()
 ) {
     val hasDestination: Boolean get() = webhook.urls.isNotEmpty() || mqtt.section.enabled
 
     fun differsFrom(saved: HealthDraft): Boolean =
         webhook != saved.webhook ||
             enabledTypes != saved.enabledTypes ||
+            resolutions.filterValues { it != SeriesResolution.RAW } != saved.resolutions.filterValues { it != SeriesResolution.RAW } ||
             scheduleDiffers(schedule, saved.schedule) ||
             mqtt.withPort().let { it.section to it.sharedBroker } != saved.mqtt.withPort().let { it.section to it.sharedBroker }
 }

@@ -26,34 +26,73 @@
     "steps": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "count": {
-            "type": "integer"
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "start_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "end_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "Stable record id for server-side deduplication"
+              }
+            },
+            "required": [
+              "count",
+              "start_time",
+              "end_time"
+            ],
+            "additionalProperties": true
           },
-          "start_time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "end_time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "source": {
-            "type": "string",
-            "description": "Package name of the app that wrote the record to Health Connect"
-          },
-          "uuid": {
-            "type": "string",
-            "description": "Stable record id for server-side deduplication"
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "total": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "total"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "count",
-          "start_time",
-          "end_time"
-        ],
-        "additionalProperties": true
+        ]
       }
     },
     "sleep": {
@@ -114,128 +153,292 @@
     "heart_rate": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "bpm": {
-            "type": "integer"
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "bpm": {
+                "type": "integer"
+              },
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "Stable record id for server-side deduplication"
+              }
+            },
+            "required": [
+              "bpm",
+              "time"
+            ],
+            "additionalProperties": true
           },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "source": {
-            "type": "string",
-            "description": "Package name of the app that wrote the record to Health Connect"
-          },
-          "uuid": {
-            "type": "string",
-            "description": "Stable record id for server-side deduplication"
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "avg": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "avg",
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "bpm",
-          "time"
-        ],
-        "additionalProperties": true
+        ]
       }
     },
     "distance": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "meters": {
-            "type": "number"
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "meters": {
+                "type": "number"
+              },
+              "start_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "end_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "Stable record id for server-side deduplication"
+              }
+            },
+            "required": [
+              "meters",
+              "start_time",
+              "end_time"
+            ],
+            "additionalProperties": true
           },
-          "start_time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "end_time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "source": {
-            "type": "string",
-            "description": "Package name of the app that wrote the record to Health Connect"
-          },
-          "uuid": {
-            "type": "string",
-            "description": "Stable record id for server-side deduplication"
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "total": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "total"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "meters",
-          "start_time",
-          "end_time"
-        ],
-        "additionalProperties": true
+        ]
       }
     },
     "active_calories": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "calories": {
-            "type": "number"
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "calories": {
+                "type": "number"
+              },
+              "start_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "end_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "Stable record id for server-side deduplication"
+              }
+            },
+            "required": [
+              "calories",
+              "start_time",
+              "end_time"
+            ],
+            "additionalProperties": true
           },
-          "start_time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "end_time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "source": {
-            "type": "string",
-            "description": "Package name of the app that wrote the record to Health Connect"
-          },
-          "uuid": {
-            "type": "string",
-            "description": "Stable record id for server-side deduplication"
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "total": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "total"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "calories",
-          "start_time",
-          "end_time"
-        ],
-        "additionalProperties": true
+        ]
       }
     },
     "total_calories": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "calories": {
-            "type": "number"
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "calories": {
+                "type": "number"
+              },
+              "start_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "end_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "Stable record id for server-side deduplication"
+              }
+            },
+            "required": [
+              "calories",
+              "start_time",
+              "end_time"
+            ],
+            "additionalProperties": true
           },
-          "start_time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "end_time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "source": {
-            "type": "string",
-            "description": "Package name of the app that wrote the record to Health Connect"
-          },
-          "uuid": {
-            "type": "string",
-            "description": "Stable record id for server-side deduplication"
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "total": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "total"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "calories",
-          "start_time",
-          "end_time"
-        ],
-        "additionalProperties": true
+        ]
       }
     },
     "weight": {
@@ -357,29 +560,76 @@
     "oxygen_saturation": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "percentage": {
-            "type": "number"
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "percentage": {
+                "type": "number"
+              },
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "Stable record id for server-side deduplication"
+              }
+            },
+            "required": [
+              "percentage",
+              "time"
+            ],
+            "additionalProperties": true
           },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "source": {
-            "type": "string",
-            "description": "Package name of the app that wrote the record to Health Connect"
-          },
-          "uuid": {
-            "type": "string",
-            "description": "Stable record id for server-side deduplication"
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "avg": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "avg",
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "percentage",
-          "time"
-        ],
-        "additionalProperties": true
+        ]
       }
     },
     "body_temperature": {
@@ -413,29 +663,76 @@
     "respiratory_rate": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "rate": {
-            "type": "number"
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "rate": {
+                "type": "number"
+              },
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "Stable record id for server-side deduplication"
+              }
+            },
+            "required": [
+              "rate",
+              "time"
+            ],
+            "additionalProperties": true
           },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "source": {
-            "type": "string",
-            "description": "Package name of the app that wrote the record to Health Connect"
-          },
-          "uuid": {
-            "type": "string",
-            "description": "Stable record id for server-side deduplication"
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "avg": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "avg",
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "rate",
-          "time"
-        ],
-        "additionalProperties": true
+        ]
       }
     },
     "resting_heart_rate": {
@@ -933,29 +1230,76 @@
     "heart_rate_variability": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "heart_rate_variability_millis": {
-            "type": "number"
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "heart_rate_variability_millis": {
+                "type": "number"
+              },
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "Stable record id for server-side deduplication"
+              }
+            },
+            "required": [
+              "heart_rate_variability_millis",
+              "time"
+            ],
+            "additionalProperties": true
           },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "source": {
-            "type": "string",
-            "description": "Package name of the app that wrote the record to Health Connect"
-          },
-          "uuid": {
-            "type": "string",
-            "description": "Stable record id for server-side deduplication"
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "avg": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "avg",
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "heart_rate_variability_millis",
-          "time"
-        ],
-        "additionalProperties": true
+        ]
       }
     },
     "menstruation_period": {
@@ -1079,32 +1423,79 @@
     "skin_temperature": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "delta_celsius": {
-            "type": "number"
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "delta_celsius": {
+                "type": "number"
+              },
+              "baseline_celsius": {
+                "type": "number"
+              },
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "Stable record id for server-side deduplication"
+              }
+            },
+            "required": [
+              "delta_celsius",
+              "time"
+            ],
+            "additionalProperties": true
           },
-          "baseline_celsius": {
-            "type": "number"
-          },
-          "time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "source": {
-            "type": "string",
-            "description": "Package name of the app that wrote the record to Health Connect"
-          },
-          "uuid": {
-            "type": "string",
-            "description": "Stable record id for server-side deduplication"
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "avg": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "avg",
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "delta_celsius",
-          "time"
-        ],
-        "additionalProperties": true
+        ]
       }
     },
     "basal_body_temperature": {
@@ -1315,6 +1706,19 @@
           "date"
         ],
         "additionalProperties": false
+      }
+    },
+    "_resolutions": {
+      "type": "object",
+      "description": "Window used per bucketed series; absent series are raw records",
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "1m",
+          "5m",
+          "15m",
+          "1h"
+        ]
       }
     }
   },

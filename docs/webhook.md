@@ -9,7 +9,7 @@ Want a ready-made backend? [life-dashboard-stack](https://github.com/owen282000/
 - [Health Connect payload](#health-connect-payload)
   - [Activity](#activity) - [Body](#body) - [Body composition](#body-composition) - [Vitals](#vitals) - [Sleep](#sleep)
   - [Nutrition](#nutrition) - [Mindfulness](#mindfulness) - [Cycle tracking](#cycle-tracking) - [Metabolic and fitness](#metabolic-and-fitness)
-  - [Daily totals](#daily-totals) - [Diagnostics](#diagnostics)
+  - [Daily totals](#daily-totals) - [Data resolution](#data-resolution) - [Diagnostics](#diagnostics)
 - [Screen Time payload](#screen-time-payload)
 - [Delivery, retries and signing](#delivery-retries-and-signing)
 - [Example backend integrations](#example-backend-integrations)
@@ -285,6 +285,39 @@ When several apps write the same activity to Health Connect (phone and watch, or
 ```
 
 Use `daily_totals` for day totals and the raw records for detail. Records that arrive late, for example a watch that uploads hours later with the original timestamps, are still delivered: the sync filters on each record's modification time, not on its timestamp. Because a batch is re-sent after a failed delivery and edited records are sent again, deduplicate on `uuid` server-side.
+
+### Data resolution
+
+A chest strap writes a heart rate sample every second, which is 86,400 records a day that no dashboard reads one by one. Any of the dense types can be sent as one value per time window instead: 1, 5 or 15 minutes, or hourly, set per type under **Data Resolution** on the Health tab. Everything defaults to every record, so a receiver that was built before this existed keeps seeing exactly what it saw.
+
+A bucketed series replaces its raw array under the same key, and the objects inside are a different shape. They never carry the raw field name, so `"bucket_start" in obj` is a reliable test and a parser looking for `bpm` cannot mistake an average for a measurement.
+
+```json
+"heart_rate": [
+  { "bucket_start": "2025-02-05T08:00:00Z", "bucket_end": "2025-02-05T08:01:00Z",
+    "sample_count": 58, "avg": 72.4, "min": 66, "max": 81, "sources": ["com.garmin.android.apps.connectmobile"] }
+],
+"steps": [
+  { "bucket_start": "2025-02-05T08:00:00Z", "bucket_end": "2025-02-05T09:00:00Z",
+    "sample_count": 12, "total": 1840 }
+],
+"_resolutions": { "heart_rate": "1m", "steps": "1h" }
+```
+
+Measured values (heart rate, HRV, oxygen saturation, respiratory rate, skin temperature) are averaged, with `min` and `max` kept because an average alone cannot tell a night's sleep from a sprint. Accumulated quantities (steps, distance, active and total calories) are summed into `total`, and carry no average: the mean of a sum describes the records that went in, not the window.
+
+Four things worth knowing when you store these:
+
+- **Windows are aligned to the clock**, not to the first sample. A 15-minute window starts at :00, :15, :30 or :45 in UTC, so buckets from different syncs line up instead of drifting.
+- **`sample_count` says how complete a bucket is.** A window with two samples and one with sixty are both one object; without the count you cannot tell them apart or merge them.
+- **A window is normally sent once, complete.** Bucketed series arrive in the last payload of a sync, even when a large backlog made the sync deliver its raw records in several payloads. A window that is still filling when a sync runs is not sent yet; its samples are kept and bucketed together with the next sync's records, so the bucket goes out whole. The sync's incremental watermark is not involved.
+- **Empty windows produce nothing.** No bucket means nothing was measured, which is not the same as a measured zero.
+
+The exception is a record that arrives late for a window already sent, such as a watch uploading hours after the fact, or a record edited afterwards. That window is sent again with only the late samples. Every bucket carries enough to merge exactly, so a receiver that keys on `bucket_start` should combine rather than replace: add the `sample_count`s, add the `total`s, take the smaller `min` and the larger `max`, and weight the `avg` by `sample_count` (`(avg1 * n1 + avg2 * n2) / (n1 + n2)`). A receiver that simply keeps the object with the larger `sample_count` is right in every case but that one.
+
+`_resolutions` names the window per series so a receiver can store the data correctly without being configured separately. It lists only the bucketed series, and is absent when nothing is bucketed.
+
+Bucketing applies to webhook payloads. The Home Assistant sensors always publish the latest value or today's total, and `daily_totals` is unaffected because it comes from Health Connect's own aggregate.
 
 ### Diagnostics
 

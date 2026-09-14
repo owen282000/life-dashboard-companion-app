@@ -362,4 +362,15 @@
     <string name="schedule_status_to_both_plural">%1$s an %2$d Webhooks und MQTT</string>
     <string name="schedule_status_nowhere">%1$s, noch kein Ziel</string>
     <string name="schedule_summary_no_times">Noch keine Synchronisierungszeiten</string>
+    <string name="resolution_title">Datenauflösung</string>
+    <string name="resolution_subtitle_raw">Jeder Datensatz</string>
+    <string name="resolution_subtitle_count">%1$d gebündelt</string>
+    <string name="resolution_explainer">Dichte Reihen wie die Herzfrequenz lassen sich als Mittelwerte pro Zeitfenster senden statt als einzelne Datensätze. Kleinere Payloads, weniger Details.</string>
+    <string name="resolution_raw">Jeder Datensatz</string>
+    <string name="resolution_1m">1 Min.</string>
+    <string name="resolution_5m">5 Min.</string>
+    <string name="resolution_15m">15 Min.</string>
+    <string name="resolution_1h">1 Std.</string>
+    <string name="resolution_group_sampled">Pro Fenster gemittelt</string>
+    <string name="resolution_group_accumulated">Pro Fenster summiert</string>
 </resources>

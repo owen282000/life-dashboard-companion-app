@@ -53,7 +53,17 @@ class HealthSyncManager(private val context: Context) {
             // Preview must show exactly what a sync would send, including daily totals.
             val dailyTotals = if (preferencesManager.includeDailyTotals())
                 healthConnectManager.readDailyTotals(days = 2, enabledTypes = enabledTypes) else emptyList()
-            val payload = buildJsonPayload(healthData, dailyTotals = dailyTotals)
+            // The preview buckets with what the last sync was holding, like a sync would, but
+            // stores nothing: looking is not sending.
+            val payload = buildJsonPayload(
+                healthData,
+                dailyTotals = dailyTotals,
+                resolved = ResolutionApplier.from(
+                    healthData,
+                    preferencesManager.getSeriesResolutions(),
+                    carriedIn = preferencesManager.getBucketCarry()
+                )
+            )
             val prettyPayload = json.encodeToString(
                 kotlinx.serialization.json.JsonElement.serializer(),
                 Json.parseToJsonElement(payload)
@@ -90,6 +100,9 @@ class HealthSyncManager(private val context: Context) {
             var lastDelivered: HealthData? = null
             var queuedRecords: Int? = null
             var anyData = false
+            // Samples of bucketed windows still open: carried from the last sync, then from
+            // pass to pass, and stored again at the end so a window goes out once, complete.
+            var carried = preferencesManager.getBucketCarry()
 
             for (pass in 1..MAX_SYNC_PASSES) {
                 // Re-read watermarks each pass; the previous pass advanced them.
@@ -137,7 +150,31 @@ class HealthSyncManager(private val context: Context) {
                 // Build JSON payload, with deduplicated daily totals when enabled
                 val dailyTotals = if (preferencesManager.includeDailyTotals())
                     healthConnectManager.readDailyTotals(days = 2, enabledTypes = enabledTypes) else emptyList()
-                val jsonPayload = buildJsonPayload(healthData, dailyTotals = dailyTotals)
+                // Bucketed series go out once per sync, in its last pass; earlier passes only
+                // collect. The collection is stored after every pass so an interrupted sync
+                // hands it to the next one instead of losing it.
+                val isLastPass = healthData.cappedTypes.isEmpty() || pass == MAX_SYNC_PASSES
+                val resolved = ResolutionApplier.from(
+                    healthData,
+                    preferencesManager.getSeriesResolutions(),
+                    carriedIn = carried,
+                    emit = isLastPass
+                )
+                carried = resolved.carriedOut
+                preferencesManager.setBucketCarry(carried)
+
+                // A collecting pass whose every record went into a bucket has nothing to post.
+                val recordsToSend = totalRecords - resolved.absorbedRecords
+                val bucketsToSend = resolved.series.values.sumOf { it.size }
+                if (recordsToSend == 0 && bucketsToSend == 0) {
+                    val passCounts = mutableMapOf<HealthDataType, Int>()
+                    updateSyncTimestamps(healthData, passCounts)
+                    passCounts.forEach { (type, count) -> syncCounts.merge(type, count, Int::plus) }
+                    if (isLastPass) break
+                    continue
+                }
+
+                val jsonPayload = buildJsonPayload(healthData, dailyTotals = dailyTotals, resolved = resolved)
 
                 val postResult = webhookManager.postData(jsonPayload)
                 SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
@@ -247,6 +284,13 @@ class HealthSyncManager(private val context: Context) {
                         "backfill" to JsonPrimitive(true),
                         "window_start" to JsonPrimitive(windowStart.toString()),
                         "window_end" to JsonPrimitive(windowEnd.toString())
+                    ),
+                    // A backfill window lies wholly in the past, so every bucket in it is
+                    // closed; passing the window end as "now" says so without consulting the clock.
+                    resolved = ResolutionApplier.from(
+                        healthData,
+                        preferencesManager.getSeriesResolutions(),
+                        now = windowEnd
                     )
                 )
                 val webhookManager = WebhookManager(
@@ -422,13 +466,22 @@ class HealthSyncManager(private val context: Context) {
     private fun buildJsonPayload(
         healthData: HealthData,
         extraFields: Map<String, JsonPrimitive> = emptyMap(),
-        dailyTotals: List<DailyTotals> = emptyList()
+        dailyTotals: List<DailyTotals> = emptyList(),
+        resolved: ResolutionApplier = ResolutionApplier(emptyMap())
     ): String {
         val json = buildJsonObject {
             put("timestamp", Instant.now().toString())
             put("app_version", getAppVersion())
             put("source", "health_connect")
             extraFields.forEach { (key, value) -> put(key, value) }
+
+            // Series the user chose to bucket replace their raw array under the same key, and
+            // _resolutions names the window each one used. Both are absent at raw resolution,
+            // so an untouched install sends exactly the payload it always did.
+            resolved.series.forEach { (key, buckets) -> put(key, buckets) }
+            if (resolved.used.isNotEmpty()) {
+                put("_resolutions", ResolutionPayload.resolutionsJson(resolved.used))
+            }
 
             if (dailyTotals.isNotEmpty()) {
                 putJsonArray("daily_totals") {
@@ -442,7 +495,7 @@ class HealthSyncManager(private val context: Context) {
                 }
             }
 
-            if (healthData.steps.isNotEmpty()) {
+            if (healthData.steps.isNotEmpty() && !resolved.isBucketed("steps")) {
                 putJsonArray("steps") {
                     healthData.steps.forEach { step ->
                         add(buildJsonObject {
@@ -479,7 +532,7 @@ class HealthSyncManager(private val context: Context) {
                 }
             }
 
-            if (healthData.heartRate.isNotEmpty()) {
+            if (healthData.heartRate.isNotEmpty() && !resolved.isBucketed("heart_rate")) {
                 putJsonArray("heart_rate") {
                     healthData.heartRate.forEach { add(buildJsonObject {
                         put("bpm", it.bpm)
@@ -490,7 +543,7 @@ class HealthSyncManager(private val context: Context) {
                 }
             }
 
-            if (healthData.distance.isNotEmpty()) {
+            if (healthData.distance.isNotEmpty() && !resolved.isBucketed("distance")) {
                 putJsonArray("distance") {
                     healthData.distance.forEach { add(buildJsonObject {
                         put("meters", it.meters)
@@ -502,7 +555,7 @@ class HealthSyncManager(private val context: Context) {
                 }
             }
 
-            if (healthData.activeCalories.isNotEmpty()) {
+            if (healthData.activeCalories.isNotEmpty() && !resolved.isBucketed("active_calories")) {
                 putJsonArray("active_calories") {
                     healthData.activeCalories.forEach { add(buildJsonObject {
                         put("calories", it.calories)
@@ -514,7 +567,7 @@ class HealthSyncManager(private val context: Context) {
                 }
             }
 
-            if (healthData.totalCalories.isNotEmpty()) {
+            if (healthData.totalCalories.isNotEmpty() && !resolved.isBucketed("total_calories")) {
                 putJsonArray("total_calories") {
                     healthData.totalCalories.forEach { add(buildJsonObject {
                         put("calories", it.calories)
@@ -571,7 +624,7 @@ class HealthSyncManager(private val context: Context) {
                 }
             }
 
-            if (healthData.oxygenSaturation.isNotEmpty()) {
+            if (healthData.oxygenSaturation.isNotEmpty() && !resolved.isBucketed("oxygen_saturation")) {
                 putJsonArray("oxygen_saturation") {
                     healthData.oxygenSaturation.forEach { add(buildJsonObject {
                         put("percentage", it.percentage)
@@ -593,7 +646,7 @@ class HealthSyncManager(private val context: Context) {
                 }
             }
 
-            if (healthData.respiratoryRate.isNotEmpty()) {
+            if (healthData.respiratoryRate.isNotEmpty() && !resolved.isBucketed("respiratory_rate")) {
                 putJsonArray("respiratory_rate") {
                     healthData.respiratoryRate.forEach { add(buildJsonObject {
                         put("rate", it.rate)
@@ -703,7 +756,7 @@ class HealthSyncManager(private val context: Context) {
                 }
             }
 
-            if (healthData.hrv.isNotEmpty()) {
+            if (healthData.hrv.isNotEmpty() && !resolved.isBucketed("heart_rate_variability")) {
                 putJsonArray("heart_rate_variability") {
                     healthData.hrv.forEach { add(buildJsonObject {
                         put("heart_rate_variability_millis", it.heartRateVariabilityMillis)
@@ -758,7 +811,7 @@ class HealthSyncManager(private val context: Context) {
                 }
             }
 
-            if (healthData.skinTemperature.isNotEmpty()) {
+            if (healthData.skinTemperature.isNotEmpty() && !resolved.isBucketed("skin_temperature")) {
                 putJsonArray("skin_temperature") {
                     healthData.skinTemperature.forEach { add(buildJsonObject {
                         put("delta_celsius", it.deltaCelsius)

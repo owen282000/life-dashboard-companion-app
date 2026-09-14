@@ -164,6 +164,8 @@ class PreferencesManager(context: Context) {
         private const val SCREENTIME_SCHEDULE_PREFIX = "screentime_schedule_"
         private const val KEY_HEALTH_WEBHOOK_URLS = "health_webhook_urls"
         private const val KEY_HEALTH_ENABLED_DATA_TYPES = "health_enabled_data_types"
+        private const val KEY_HEALTH_SERIES_RESOLUTIONS = "health_series_resolutions"
+        private const val KEY_HEALTH_BUCKET_CARRY = "health_bucket_carry"
 
         // Screen Time keys
         private const val KEY_SCREENTIME_LAST_SYNC_TS = "screentime_last_sync_ts"
@@ -221,6 +223,61 @@ class PreferencesManager(context: Context) {
     fun setHealthEnabledDataTypes(types: Set<HealthDataType>) {
         val typesString = types.joinToString(",") { it.name }
         prefs.edit().putString(KEY_HEALTH_ENABLED_DATA_TYPES, typesString).apply()
+    }
+
+    /**
+     * Resolution per data type, stored as "TYPE=RESOLUTION" pairs. Types that are absent, and
+     * anything unparseable, fall back to [DEFAULT_RESOLUTION], so a partly written or older
+     * value degrades to raw records rather than to silently averaged ones.
+     */
+    fun getSeriesResolutions(): Map<HealthDataType, SeriesResolution> {
+        val stored = prefs.getString(KEY_HEALTH_SERIES_RESOLUTIONS, "") ?: ""
+        if (stored.isEmpty()) return emptyMap()
+        return stored.split(",").mapNotNull { pair ->
+            val (typeName, resolutionName) = pair.split("=").let {
+                if (it.size == 2) it[0] to it[1] else return@mapNotNull null
+            }
+            val type = runCatching { HealthDataType.valueOf(typeName) }.getOrNull() ?: return@mapNotNull null
+            type to SeriesResolution.from(resolutionName)
+        }.toMap()
+    }
+
+    fun getSeriesResolution(type: HealthDataType): SeriesResolution =
+        getSeriesResolutions()[type] ?: DEFAULT_RESOLUTION
+
+    fun setSeriesResolutions(resolutions: Map<HealthDataType, SeriesResolution>) {
+        // Only what differs from the default is written, so the stored value stays small and
+        // a future change of default reaches everyone who never touched the setting.
+        val stored = resolutions.entries
+            .filter { it.value != DEFAULT_RESOLUTION }
+            .sortedBy { it.key.name }
+            .joinToString(",") { "${it.key.name}=${it.value.name}" }
+        prefs.edit().putString(KEY_HEALTH_SERIES_RESOLUTIONS, stored).apply()
+    }
+
+    /**
+     * Samples of bucketed windows that were still open at the end of the last sync, per type.
+     * They are bucketed together with the next sync's records so a window is sent once,
+     * complete, instead of as two halves. Anything unreadable is treated as nothing held.
+     */
+    fun getBucketCarry(): Map<HealthDataType, List<CarriedSample>> {
+        val stored = prefs.getString(KEY_HEALTH_BUCKET_CARRY, null) ?: return emptyMap()
+        return runCatching {
+            Json.decodeFromString<Map<String, List<CarriedSample>>>(stored)
+                .mapNotNull { (name, samples) ->
+                    runCatching { HealthDataType.valueOf(name) }.getOrNull()?.let { it to samples }
+                }
+                .toMap()
+        }.getOrDefault(emptyMap())
+    }
+
+    fun setBucketCarry(carry: Map<HealthDataType, List<CarriedSample>>) {
+        val nonEmpty = carry.filterValues { it.isNotEmpty() }
+        if (nonEmpty.isEmpty()) {
+            prefs.edit().remove(KEY_HEALTH_BUCKET_CARRY).apply()
+            return
+        }
+        prefs.edit().putString(KEY_HEALTH_BUCKET_CARRY, Json.encodeToString(nonEmpty.mapKeys { it.key.name })).apply()
     }
 
     fun getHealthLastSyncTimestamp(type: HealthDataType): Long? {

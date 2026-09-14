@@ -49,7 +49,8 @@ class ConfigBackupTest {
             keepFullPayloads = true,
             screenTimeDayBoundaryHour = 3,
             screenTimeUseDayBoundary = false,
-            failureNotificationThreshold = 5
+            failureNotificationThreshold = 5,
+            seriesResolutions = mapOf("HEART_RATE" to "ONE_MINUTE", "STEPS" to "HOURLY")
         )
     )
 
@@ -190,6 +191,12 @@ class ConfigBackupTest {
     }
 
     @Test
+    fun keepsTheResolutionsThroughTheRoundTrip() {
+        val restored = ConfigBackup.decode(fullBackup().encode())
+        assertEquals(mapOf("HEART_RATE" to "ONE_MINUTE", "STEPS" to "HOURLY"), restored.options.seriesResolutions)
+    }
+
+    @Test
     fun readsABackupWrittenBeforeSchedulesExisted() {
         // Every schedule field is absent, as in a file exported by 1.13.x. It has to load,
         // with the interval intact and the schedule fields left for the app to default.
@@ -208,6 +215,7 @@ class ConfigBackupTest {
         assertNull(restored.health.syncMode)
         assertNull(restored.health.syncTimes)
         assertNull(restored.health.quietFrom)
+        assertNull(restored.options.seriesResolutions)
     }
 
 }

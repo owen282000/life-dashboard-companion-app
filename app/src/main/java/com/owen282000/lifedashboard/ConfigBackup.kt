@@ -161,5 +161,7 @@ data class OptionsConfig(
     @SerialName("keep_full_payloads") val keepFullPayloads: Boolean = false,
     @SerialName("screen_time_day_boundary_hour") val screenTimeDayBoundaryHour: Int = 4,
     @SerialName("screen_time_use_day_boundary") val screenTimeUseDayBoundary: Boolean = true,
-    @SerialName("failure_notification_threshold") val failureNotificationThreshold: Int? = null
+    @SerialName("failure_notification_threshold") val failureNotificationThreshold: Int? = null,
+    /** Type name to resolution name, only for types not at raw; absent in older backups. */
+    @SerialName("series_resolutions") val seriesResolutions: Map<String, String>? = null
 )

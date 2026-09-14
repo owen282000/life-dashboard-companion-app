@@ -55,7 +55,11 @@ class ConfigBackupManager(private val context: Context) {
                 keepFullPayloads = prefs.keepFullPayloads(),
                 screenTimeDayBoundaryHour = prefs.getScreenTimeDayBoundaryHour(),
                 screenTimeUseDayBoundary = prefs.useScreenTimeDayBoundary(),
-                failureNotificationThreshold = SyncFailureNotifier.getThreshold(context)
+                failureNotificationThreshold = SyncFailureNotifier.getThreshold(context),
+                seriesResolutions = prefs.getSeriesResolutions()
+                    .filterValues { it != DEFAULT_RESOLUTION }
+                    .entries.sortedBy { it.key.name }
+                    .associate { it.key.name to it.value.name }
             )
         )
     }
@@ -113,6 +117,14 @@ class ConfigBackupManager(private val context: Context) {
             prefs.setScreenTimeDayBoundaryHour(screenTimeDayBoundaryHour)
             prefs.setUseScreenTimeDayBoundary(screenTimeUseDayBoundary)
             failureNotificationThreshold?.let { SyncFailureNotifier.setThreshold(context, it) }
+            // Null means a backup from before resolutions existed: leave the setting alone.
+            seriesResolutions?.let { stored ->
+                prefs.setSeriesResolutions(
+                    stored.mapNotNull { (type, resolution) ->
+                        runCatching { HealthDataType.valueOf(type) }.getOrNull()?.let { it to SeriesResolution.from(resolution) }
+                    }.toMap()
+                )
+            }
         }
     }
 

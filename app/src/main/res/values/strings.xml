@@ -364,4 +364,15 @@
     <string name="schedule_status_to_both_plural">%1$s to %2$d webhooks and MQTT</string>
     <string name="schedule_status_nowhere">%1$s, no destination yet</string>
     <string name="schedule_summary_no_times">No sync times yet</string>
+    <string name="resolution_title">Data Resolution</string>
+    <string name="resolution_subtitle_raw">Every record</string>
+    <string name="resolution_subtitle_count">%1$d bucketed</string>
+    <string name="resolution_explainer">Dense series like heart rate can be sent as averages per time window instead of every single record. Smaller payloads, less detail.</string>
+    <string name="resolution_raw">Every record</string>
+    <string name="resolution_1m">1 min</string>
+    <string name="resolution_5m">5 min</string>
+    <string name="resolution_15m">15 min</string>
+    <string name="resolution_1h">1 hour</string>
+    <string name="resolution_group_sampled">Averaged per window</string>
+    <string name="resolution_group_accumulated">Summed per window</string>
 </resources>

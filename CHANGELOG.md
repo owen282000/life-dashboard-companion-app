@@ -6,6 +6,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
+- Data resolution per type. Dense series (heart rate, HRV, oxygen saturation, respiratory rate, skin temperature, steps, distance, calories) can be sent as one value per 1, 5 or 15 minutes, or per hour, instead of every record. Measured values are averaged with their min and max; quantities are summed. Windows align to the clock, each bucket carries its sample count, and a window still filling when a sync runs is held until it is complete, so it normally goes out once and whole. The payload names the resolution it used per series, and docs/webhook.md gives the merge rule for the rare late record. Everything defaults to every record, so existing receivers are unaffected
+
 - Sync schedules per tab. Next to the interval the app has always had, Health Connect and Screen Time can each sync at fixed times of day ("08:00 and 21:00", so the night's sleep is in Home Assistant before you get up). Both modes take an optional weekday filter and quiet hours, and the row warns when a combination would never sync. A plain interval still runs as periodic work; a schedule with times or filters runs as one-time work that queues the next run after every sync
 - Schedules are part of the settings backup, and a backup written by an earlier version restores exactly as before
 

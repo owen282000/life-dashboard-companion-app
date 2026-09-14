@@ -135,6 +135,7 @@ fun HealthConnectContent(
     val draft = state.draft
     var dataTypesExpanded by remember { mutableStateOf(false) }
     var scheduleExpanded by remember { mutableStateOf(false) }
+    var resolutionExpanded by remember { mutableStateOf(false) }
     var webhookExpanded by remember { mutableStateOf(false) }
     var mqttExpanded by remember { mutableStateOf(false) }
     var advancedExpanded by remember { mutableStateOf(false) }
@@ -185,6 +186,15 @@ fun HealthConnectContent(
                 expanded = dataTypesExpanded,
                 onToggle = { dataTypesExpanded = !dataTypesExpanded },
                 onToggleType = actions::toggleType
+            )
+            GroupDivider()
+            ResolutionRow(
+                accent = accent,
+                enabledTypes = draft.enabledTypes,
+                resolutions = draft.resolutions,
+                expanded = resolutionExpanded,
+                onToggle = { resolutionExpanded = !resolutionExpanded },
+                onChange = actions::setResolution
             )
             GroupDivider()
             ScheduleRow(

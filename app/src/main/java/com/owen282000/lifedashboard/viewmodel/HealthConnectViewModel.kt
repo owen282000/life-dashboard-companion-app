@@ -11,6 +11,7 @@ import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.MqttSection
+import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.SyncSchedule
 import com.owen282000.lifedashboard.appPreferences
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -57,6 +58,7 @@ data class HealthUiState(
 interface HealthActions {
     fun setSyncInterval(text: String)
     fun setSchedule(schedule: ScheduleDraft)
+    fun setResolution(type: HealthDataType, resolution: SeriesResolution)
     fun addUrl(url: String)
     fun removeUrl(index: Int)
     fun addHeader(key: String, value: String)
@@ -145,6 +147,10 @@ class HealthConnectViewModel(
     override fun setSyncInterval(text: String) = editDraft { it.copy(schedule = it.schedule.copy(intervalText = text)) }
 
     override fun setSchedule(schedule: ScheduleDraft) = editDraft { it.copy(schedule = schedule) }
+
+    override fun setResolution(type: HealthDataType, resolution: SeriesResolution) = editDraft {
+        it.copy(resolutions = it.resolutions + (type to resolution))
+    }
 
     override fun addUrl(url: String) {
         if (!SettingsRules.isValidUrl(url)) {
