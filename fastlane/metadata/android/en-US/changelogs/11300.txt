@@ -1,0 +1,4 @@
+Added:
+
+- A first-run wizard. A fresh install used to open on the Health tab with 33 toggles and no destination; the wizard now asks what to sync (Health Connect, Screen Time or both), where the data should go (a webhook URL with a test ping, an MQTT broker, or both, applied only to the sources you picked) and which health data types to start with (the essentials, all 33, or none yet), then ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

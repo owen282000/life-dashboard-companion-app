@@ -4,6 +4,27 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-09-14
+
+### Added
+
+- A first-run wizard. A fresh install used to open on the Health tab with 33 toggles and no destination; the wizard now asks what to sync (Health Connect, Screen Time or both), where the data should go (a webhook URL with a test ping, an MQTT broker, or both, applied only to the sources you picked) and which health data types to start with (the essentials, all 33, or none yet), then ends with a summary and the two permissions that remain. Every choice stays editable on the tabs, the whole thing can be skipped, and it is available in English, Dutch and German
+- The wizard shows the plain-HTTP opt-in switch as soon as an `http://` URL is typed, so a receiver on the LAN can be tested from the first screen instead of failing with a pointer to the logs
+- MQTT publishes now appear in the Logs tab next to webhook deliveries, with the broker, sensor count and the error when the broker could not be reached. Until now a failing broker was only visible as a one-line status inside the MQTT settings
+- A test ping on the Screen Time tab, which has its own webhook URLs but had no way to test them
+- The failure-notification setting is reachable from both tabs; it was always app-wide but only shown on Health Connect
+- `PRIVACY.md`, a plain-language privacy policy, linked from the About screen together with the documentation, the changelog of the running version, the issue tracker and the licence
+
+### Changed
+
+- The three tabs and the About screen share one design: a coloured status banner per tab (green Health Connect, purple Screen Time, blue Logs) with the permission state and one action in it, a stat card, settings grouped in cards of icon rows with the webhook and MQTT destinations side by side, one sync button with the secondary actions as tiles, and the About hero on the brand's dark ground with the mark. The red "permissions required" card is gone; the banner says it instead. Logs rows show the destination as an icon and the outcome as one word, and the log filter is a segmented control
+- The two sync tabs are backed by view models (`HealthConnectViewModel`, `ScreenTimeViewModel`) exposing `StateFlow`, with the screens as pure functions of state and callbacks and the shared sections (webhook, MQTT, notifications, data types) as separate composables. One `PreferencesManager` is shared through the Application instead of being constructed per screen. The models are unit tested against in-memory fakes: validation, change tracking, sync outcomes and permission flows
+- A destination is now either a webhook URL or MQTT: saving and syncing no longer insist on a webhook URL when MQTT is enabled
+- The release build is minified with R8 and resource shrinking, which takes the APK from 19 MB to about 4 MB. Keep rules cover HiveMQ/Netty, kotlinx.serialization, enum names stored in preferences and WorkManager's Room database; `mapping.txt` is kept with the build outputs
+- The About screen is fully translated (English, Dutch, German); it was the last screen with hardcoded English
+- The Screen Time dashboard shows the icon of today's most used app instead of its package name
+- `docs/features.md` compares the app with the Home Assistant companion app's Health Connect sensors on verifiable points (data types, history window, Android versions, screen time), each checked against the companion app's documentation and issue tracker on 14 September 2026. The README links to it
+
 ## [1.12.2] - 2026-09-14
 
 ### Fixed
