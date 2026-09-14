@@ -44,6 +44,18 @@ To see exactly what the app sends before you build a receiver, run `python3 scri
 
 Moving from another device? Import your settings under **About > Backup & restore** instead of typing everything again; see [settings-backup.md](settings-backup.md).
 
+## Phone to Home Assistant in two minutes
+
+The MQTT route needs no YAML and no server-side setup beyond a broker Home Assistant already talks to.
+
+1. In Home Assistant, install the **Mosquitto broker** add-on (Settings > Add-ons) and add the **MQTT** integration if it is not there yet. Create a user for the app under Settings > People, or in the add-on's login list; a dedicated account keeps the app's credentials out of your own.
+2. In the app, open the Health tab, expand **MQTT**, switch on **Enable MQTT publishing** and fill in the broker host (the Home Assistant IP on your LAN, or its hostname), port 1883 and that username and password. Screen Time shares the broker by default.
+3. Tap **Sync Now**. Within a few seconds Settings > Devices & services > MQTT lists a device named **Life Dashboard Companion** with a sensor per synced data type: today's steps, distance and calories, the latest heart rate, weight and sleep duration, and screen time.
+
+Values are published retained, so they survive a Home Assistant restart, and every sync republishes the full set the app has mapped so far. The sensors carry `state_class`, so they show up in the Statistics graphs and in the energy-style history cards. If nothing appears, the Logs tab shows every publish with the broker's answer; `NOT_AUTHORIZED` means the username or password is wrong, and the broker's own log names the client as `lifedashboard-` followed by eight random characters.
+
+For a throwaway setup on a laptop, `scripts/dev/docker-compose.yml` starts a Mosquitto broker without authentication and a Home Assistant on port 8123; an emulator reaches the laptop as `10.0.2.2`, a phone through the laptop's LAN address.
+
 ## Troubleshooting
 
 ### Background syncs stop after a while

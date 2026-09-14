@@ -31,6 +31,11 @@
 | <img src="docs/screenshots/health-connect.png" alt="Health Connect screen"> | <img src="docs/screenshots/screen-time.png" alt="Screen Time screen"> | <img src="docs/screenshots/mqtt.png" alt="MQTT and sync actions"> | <img src="docs/screenshots/logs.png" alt="Logs screen"> |
 | 33 data types, per-type toggles, incremental sync | Foreground time per app, with a custom day boundary | Sensors appear in Home Assistant automatically | Every delivery logged, payloads inspectable |
 
+<p align="center">
+  <img src="docs/screenshots/home-assistant.png" alt="The Life Dashboard Companion device in Home Assistant with its sensors" width="720">
+  <br><sub>One sync later in Home Assistant: the device and its sensors, created by MQTT Discovery without any YAML</sub>
+</p>
+
 ## Why this app?
 
 - **Own your data** - health data goes to your own server, not a third-party cloud

@@ -61,6 +61,8 @@ The two are complementary rather than rivals: keep the companion app for presenc
 
 ## Home Assistant and MQTT
 
+<img src="screenshots/home-assistant.png" alt="The device Home Assistant creates from the app's MQTT discovery messages, with its sensors" width="720">
+
 - **MQTT publishing with Home Assistant Discovery** - point the app at your MQTT broker and sensors appear in Home Assistant automatically, grouped under one device: today's totals for steps, distance and calories, and the latest value for heart rate, sleep duration, weight, blood pressure and the other point-in-time types. No server-side configuration needed.
 - States and discovery configs are published retained, so values survive Home Assistant restarts
 - Optional TLS and username/password authentication; credentials are stored encrypted on-device
