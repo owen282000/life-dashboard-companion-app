@@ -42,6 +42,23 @@ What individual source apps do and do not write is collected in [DATA_SOURCES.md
 
 Delivery details, retry rules and signature verification are described in [webhook.md](webhook.md#delivery-retries-and-signing).
 
+## How this compares to the Home Assistant companion app
+
+The [Home Assistant companion app](https://companion.home-assistant.io/docs/core/sensors) ships Health Connect sensors of its own, so if you run Home Assistant the fair question is why you would add this app. The short answer: the companion app gives you the latest value of 25 metrics inside Home Assistant; this app gives you every record of 33 types, wherever you want them. Verified against the companion app's documentation on 14 September 2026.
+
+| | HA companion app | Life Dashboard Companion |
+|---|---|---|
+| Health Connect coverage | 25 sensors | 33 data types |
+| Exercise sessions, nutrition, sleep stages, cycle tracking, mindfulness, skin temperature | Missing ([open issue](https://github.com/home-assistant/android/issues/4804)) | Supported |
+| Detail | Latest value or daily aggregate per sensor | Every record, with the source app and a stable id, plus deduplicated daily totals |
+| History | "Only the last 30 days of data is used" | Unlimited, with backfill of up to a year |
+| Screen time | No sensor | Foreground time per app, custom day boundary |
+| Destination | Your Home Assistant | Any webhook backend, plus MQTT with Home Assistant Discovery |
+| Delivery | Sensor updates | HMAC-signed webhooks, retries, store-and-forward outbox, delivery logs |
+| Android | 9+ on the Play build, 14+ otherwise | 8.0+ |
+
+The two are complementary rather than rivals: keep the companion app for presence, notifications and device sensors, and add this app when you want the full health pipeline, history, or delivery to anything that is not Home Assistant.
+
 ## Home Assistant and MQTT
 
 - **MQTT publishing with Home Assistant Discovery** - point the app at your MQTT broker and the latest value of every synced data type appears in Home Assistant automatically as sensors (steps, heart rate, sleep duration, weight, blood pressure, and more), grouped under one device. No server-side configuration needed.
@@ -67,7 +84,7 @@ Delivery details, retry rules and signature verification are described in [webho
 ## General
 
 - **Background sync** - uses WorkManager for reliable background execution
-- **Webhook logs** - recent sync attempts with payloads, for debugging
+- **Logs** - every webhook delivery and MQTT publish with status, error and payload, for debugging
 - **Health Connect install check** - clear guidance when Health Connect is missing or outdated
 - **Modern UI** - Material 3 design with dark mode support
 - **Languages** - English, Dutch and German, following the system language
