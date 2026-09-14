@@ -16,7 +16,15 @@ fun runGit(vararg args: String): String? = try {
 
 val semverRegex = Regex("""^(\d+)\.(\d+)\.(\d+)$""")
 val baseVersionTag = runGit("describe", "--tags", "--match", "[0-9]*.[0-9]*.[0-9]*", "--abbrev=0")
-val describedVersion = runGit("describe", "--tags", "--match", "[0-9]*.[0-9]*.[0-9]*", "--dirty")
+
+// When HEAD is exactly a release tag, the version name is that tag, no matter what the
+// working tree looks like. F-Droid's builder modifies the tree before building (it strips
+// signing configs and removes gradle-wrapper.jar), and with --dirty that produced
+// "1.12.1-dirty" in the manifest, breaking the reproducible-build comparison against the
+// released APK. Between tags, dev builds keep the descriptive --dirty form.
+val exactTag = runGit("describe", "--tags", "--match", "[0-9]*.[0-9]*.[0-9]*", "--exact-match")
+val describedVersion = exactTag
+    ?: runGit("describe", "--tags", "--match", "[0-9]*.[0-9]*.[0-9]*", "--dirty")
 val semverMatch = baseVersionTag?.let { semverRegex.find(it) }
 
 if (semverMatch == null && System.getenv("CI") != null) {
