@@ -61,10 +61,10 @@ The two are complementary rather than rivals: keep the companion app for presenc
 
 ## Home Assistant and MQTT
 
-- **MQTT publishing with Home Assistant Discovery** - point the app at your MQTT broker and the latest value of every synced data type appears in Home Assistant automatically as sensors (steps, heart rate, sleep duration, weight, blood pressure, and more), grouped under one device. No server-side configuration needed.
+- **MQTT publishing with Home Assistant Discovery** - point the app at your MQTT broker and sensors appear in Home Assistant automatically, grouped under one device: today's totals for steps, distance and calories, and the latest value for heart rate, sleep duration, weight, blood pressure and the other point-in-time types. No server-side configuration needed.
 - States and discovery configs are published retained, so values survive Home Assistant restarts
 - Optional TLS and username/password authentication; credentials are stored encrypted on-device
-- Event-like types (exercise, nutrition, cycle tracking) remain webhook-only; MQTT sensors represent the most recent record per type
+- Event-like types (exercise, nutrition, cycle tracking) remain webhook-only. Every publish carries the full set of sensors the app has mapped so far, so a new broker or a fresh Home Assistant sees the whole device after one sync
 - Screen Time publishes too: today's and yesterday's total minutes and today's most used app (top five apps as attributes), under the same Home Assistant device. Health Connect and Screen Time each have their own switch and base topic and share one broker connection by default; either section can switch to its own broker.
 
 ## Automation

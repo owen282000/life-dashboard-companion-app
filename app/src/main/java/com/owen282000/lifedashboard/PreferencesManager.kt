@@ -109,6 +109,12 @@ class PreferencesManager(context: Context) {
         )
     }
 
+    fun getMqttSensorCache(section: MqttSection): String? = prefs.getString(section.prefix + "sensor_cache", null)
+
+    fun setMqttSensorCache(section: MqttSection, json: String) {
+        prefs.edit().putString(section.prefix + "sensor_cache", json).apply()
+    }
+
     fun getLastMqttStatus(section: MqttSection): String? = prefs.getString(section.statusKey, null)
 
     fun setLastMqttStatus(section: MqttSection, status: String) {

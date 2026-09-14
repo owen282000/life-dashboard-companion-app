@@ -173,7 +173,12 @@ class HealthSyncManager(private val context: Context) {
             // once per run, after draining: the last batch is the newest thanks to the
             // oldest-first cap. Failures never block the webhook sync; the outcome is stored
             // and shown in the MQTT settings section.
-            lastDelivered?.let { MqttPublisher(context).publishHealthData(it) }
+            lastDelivered?.let { data ->
+                val totalsForMqtt = if (publishToMqtt) {
+                    runCatching { healthConnectManager.readDailyTotals(days = 1, enabledTypes = enabledTypes) }.getOrDefault(emptyList())
+                } else emptyList()
+                MqttPublisher(context).publishHealthData(data, totalsForMqtt)
+            }
 
             queuedRecords?.let {
                 return@withContext Result.success(HealthSyncResult.Queued(it))
@@ -254,6 +259,9 @@ class HealthSyncManager(private val context: Context) {
                     signingSecret = preferencesManager.getHealthWebhookSecret()
                 )
                 val postResult = webhookManager.postData(payload)
+                // A delivered backfill window counts as a sync on the dashboard: "today" and
+                // "last sync" would otherwise say nothing while thousands of records went out.
+                SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) recordCount else 0, LogType.HEALTH_CONNECT)
                 if (postResult.isFailure) {
                     return@withContext Result.failure(
                         Exception("Delivery failed after $completed of $totalWindows windows; rerun to resume")

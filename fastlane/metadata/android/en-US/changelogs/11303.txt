@@ -1,0 +1,4 @@
+Changed:
+
+- Home Assistant sensors for steps, distance, active and total calories now carry today's total from the deduplicated daily aggregate instead of the last record. "Steps (latest record): 7 steps" was true and useless; "Steps Today: 6,412" is what a dashboard wants. Their entity ids change accordingly (steps_today and so on); the old steps, distance, active_calories and ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

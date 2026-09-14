@@ -5,6 +5,7 @@ import com.hivemq.client.mqtt.MqttClient
 import com.hivemq.client.mqtt.datatypes.MqttQos
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import java.time.Instant
 import java.util.UUID
 
@@ -56,15 +57,22 @@ enum class MqttSection(val prefix: String, val enabledKey: String, val baseTopic
  */
 class MqttPublisher(private val context: Context) {
 
-    suspend fun publishHealthData(healthData: HealthData): Result<Int> =
-        publish(MqttSupport.sensorsFrom(healthData), MqttSection.HEALTH)
+    suspend fun publishHealthData(healthData: HealthData, dailyTotals: List<DailyTotals> = emptyList()): Result<Int> =
+        publish(MqttSupport.sensorsFrom(healthData, dailyTotals), MqttSection.HEALTH)
 
     suspend fun publishScreenTime(days: List<ScreenTimeData>): Result<Int> =
         publish(MqttSupport.sensorsFromScreenTime(days), MqttSection.SCREEN_TIME)
 
-    private suspend fun publish(sensors: List<MqttSensor>, section: MqttSection): Result<Int> {
+    private suspend fun publish(fresh: List<MqttSensor>, section: MqttSection): Result<Int> {
         val preferencesManager = context.appPreferences()
         val settings = preferencesManager.resolvedMqttSettings(section)
+        // Publish everything the app has ever mapped for this section, not only the types that
+        // had new records this run, so a new broker or Home Assistant gets the whole device.
+        val cached = preferencesManager.getMqttSensorCache(section)
+            ?.let { runCatching { Json.decodeFromString<List<MqttSensor>>(it) }.getOrNull() }
+            ?: emptyList()
+        val sensors = MqttSupport.mergeSensors(cached, fresh)
+        if (sensors.isNotEmpty()) preferencesManager.setMqttSensorCache(section, Json.encodeToString(sensors))
         val result = publish(sensors, settings) { preferencesManager.setLastMqttStatus(section, it) }
         // The Logs tab lists MQTT publishes next to webhook deliveries, so a failing broker
         // shows up in the same place as a failing endpoint.
@@ -121,6 +129,17 @@ class MqttPublisher(private val context: Context) {
                     context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
                 } catch (e: Exception) {
                     "unknown"
+                }
+                // Retire sensors that older versions published under other keys, so Home
+                // Assistant does not keep a stale "Steps (latest record)" next to "Steps Today".
+                for (key in MqttSupport.RETIRED_SENSOR_KEYS) {
+                    for (topic in listOf(
+                        MqttSupport.discoveryTopic(MqttSupport.DEFAULT_DISCOVERY_PREFIX, key),
+                        MqttSupport.stateTopic(settings.baseTopic, key),
+                        MqttSupport.attributesTopic(settings.baseTopic, key)
+                    )) {
+                        client.publishWith().topic(topic).payload(ByteArray(0)).qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
+                    }
                 }
                 for (sensor in sensors) {
                     client.publishWith()

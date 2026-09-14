@@ -145,4 +145,50 @@ class MqttSupportTest {
     fun noScreenTimeDaysYieldsNoSensors() {
         assertEquals(emptyList<MqttSensor>(), MqttSupport.sensorsFromScreenTime(emptyList()))
     }
+
+    @Test
+    fun `cumulative types publish today's totals, not the latest record`() {
+        val totals = listOf(
+            DailyTotals(date = "2026-09-13", steps = 8000, distanceMeters = 6000.0),
+            DailyTotals(date = "2026-09-14", steps = 1234, distanceMeters = 950.4, activeCalories = 210.6, totalCalories = 1800.2)
+        )
+        val sensors = MqttSupport.sensorsFrom(emptyHealthData(), totals)
+        val byKey = sensors.associateBy { it.key }
+        assertEquals("1234", byKey.getValue("steps_today").state)
+        assertEquals("950", byKey.getValue("distance_today").state)
+        assertEquals("211", byKey.getValue("active_calories_today").state)
+        assertEquals("1800", byKey.getValue("total_calories_today").state)
+        assertEquals("total_increasing", byKey.getValue("steps_today").stateClass)
+        assertEquals("2026-09-14", byKey.getValue("steps_today").attributes["date"])
+        assertNull(byKey["steps"])
+        assertNull(byKey["distance"])
+    }
+
+    @Test
+    fun `merging keeps cached sensors and lets fresh values win`() {
+        val cached = listOf(
+            MqttSensor("weight", "Weight", "80.0", "kg"),
+            MqttSensor("steps_today", "Steps Today", "100", "steps")
+        )
+        val fresh = listOf(MqttSensor("steps_today", "Steps Today", "1234", "steps"))
+        val merged = MqttSupport.mergeSensors(cached, fresh).associateBy { it.key }
+        assertEquals(2, merged.size)
+        assertEquals("80.0", merged.getValue("weight").state)
+        assertEquals("1234", merged.getValue("steps_today").state)
+    }
+
+    @Test
+    fun `sensors round-trip through JSON for the publish cache`() {
+        val sensors = listOf(MqttSensor("weight", "Weight", "80.0", "kg", "weight", mapOf("source" to "app")))
+        val json = kotlinx.serialization.json.Json.encodeToString(kotlinx.serialization.builtins.ListSerializer(MqttSensor.serializer()), sensors)
+        val back = kotlinx.serialization.json.Json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(MqttSensor.serializer()), json)
+        assertEquals(sensors, back)
+    }
+
+    @Test
+    fun `merging drops sensors that older versions published under retired keys`() {
+        val cached = listOf(MqttSensor("steps", "Steps (latest record)", "7", "steps"), MqttSensor("weight", "Weight", "80.0", "kg"))
+        val merged = MqttSupport.mergeSensors(cached, emptyList()).map { it.key }
+        assertEquals(listOf("weight"), merged)
+    }
 }

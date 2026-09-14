@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.13.3] - 2026-09-14
+
+### Changed
+
+- Home Assistant sensors for steps, distance, active and total calories now carry today's total from the deduplicated daily aggregate instead of the last record. "Steps (latest record): 7 steps" was true and useless; "Steps Today: 6,412" is what a dashboard wants. Their entity ids change accordingly (`steps_today` and so on); the old `steps`, `distance`, `active_calories` and `total_calories` sensors are removed from the broker and from Home Assistant on the next publish
+- Every MQTT publish sends the full set of sensors the app has mapped so far, not only the types that had new records in that sync. Pointing the app at a new broker, or adding Home Assistant later, now shows the whole device after one sync instead of one sensor at a time
+
+### Fixed
+
+- A backfill now counts on the Health Connect dashboard: "today" and "last sync" said nothing while thousands of records went out, because only regular syncs recorded the status
+
 ## [1.13.2] - 2026-09-14
 
 ### Added

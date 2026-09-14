@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
@@ -7,6 +8,7 @@ import kotlinx.serialization.json.putJsonObject
 import java.time.Instant
 
 /** A single Home Assistant sensor derived from the most recent synced record of a type. */
+@Serializable
 data class MqttSensor(
     val key: String,
     val name: String,
@@ -20,8 +22,10 @@ data class MqttSensor(
 
 /**
  * Pure MQTT/Home Assistant mapping logic, kept free of Android and network types so it can be
- * unit tested on the JVM. Sensors represent the LATEST record per data type; retained MQTT
- * states mean Home Assistant always shows the most recent value even after restarts.
+ * unit tested on the JVM. Point-in-time types (heart rate, weight, blood pressure) map to the
+ * LATEST record; cumulative types (steps, distance, calories) map to TODAY'S TOTAL from the
+ * deduplicated daily aggregate, which is what a Home Assistant dashboard wants to show.
+ * Retained MQTT states mean Home Assistant always shows the last value even after restarts.
  */
 object MqttSupport {
 
@@ -39,8 +43,29 @@ object MqttSupport {
      * (exercise, nutrition, mindfulness, cycle tracking) are intentionally not mapped; they do
      * not fit Home Assistant's single-value sensor model and remain webhook-only.
      */
-    fun sensorsFrom(data: HealthData): List<MqttSensor> {
+    fun sensorsFrom(data: HealthData, dailyTotals: List<DailyTotals> = emptyList()): List<MqttSensor> {
         val sensors = mutableListOf<MqttSensor>()
+
+        // Today's totals for the cumulative types. A single steps record is a few dozen steps
+        // and meaningless on a dashboard; the day total is the number people look for.
+        dailyTotals.maxByOrNull { it.date }?.let { today ->
+            val dayAttrs = mapOf("date" to today.date)
+            today.steps?.let {
+                sensors += MqttSensor("steps_today", "Steps Today", it.toString(), "steps", null, dayAttrs, "total_increasing")
+            }
+            today.distanceMeters?.let {
+                sensors += MqttSensor("distance_today", "Distance Today", String.format(java.util.Locale.ROOT, "%.0f", it),
+                    "m", "distance", dayAttrs, "total_increasing")
+            }
+            today.activeCalories?.let {
+                sensors += MqttSensor("active_calories_today", "Active Calories Today", String.format(java.util.Locale.ROOT, "%.0f", it),
+                    "kcal", null, dayAttrs, "total_increasing")
+            }
+            today.totalCalories?.let {
+                sensors += MqttSensor("total_calories_today", "Total Calories Today", String.format(java.util.Locale.ROOT, "%.0f", it),
+                    "kcal", null, dayAttrs, "total_increasing")
+            }
+        }
 
         fun <T> latest(records: List<T>, timeOf: (T) -> Instant): T? = records.maxByOrNull(timeOf)
 
@@ -50,10 +75,6 @@ object MqttSupport {
             uuid?.let { put("uuid", it) }
         }
 
-        latest(data.steps) { it.endTime }?.let {
-            sensors += MqttSensor("steps", "Steps (latest record)", it.count.toString(),
-                "steps", null, attrs(it.endTime, it.source, it.uuid))
-        }
         latest(data.heartRate) { it.time }?.let {
             sensors += MqttSensor("heart_rate", "Heart Rate", it.bpm.toString(),
                 "bpm", null, attrs(it.time, it.source, it.uuid))
@@ -104,18 +125,6 @@ object MqttSupport {
         latest(data.respiratoryRate) { it.time }?.let {
             sensors += MqttSensor("respiratory_rate", "Respiratory Rate", it.rate.toString(),
                 "breaths/min", null, attrs(it.time, it.source, it.uuid))
-        }
-        latest(data.distance) { it.endTime }?.let {
-            sensors += MqttSensor("distance", "Distance (latest record)", it.meters.toString(),
-                "m", "distance", attrs(it.endTime, it.source, it.uuid))
-        }
-        latest(data.activeCalories) { it.endTime }?.let {
-            sensors += MqttSensor("active_calories", "Active Calories (latest record)",
-                it.calories.toString(), "kcal", null, attrs(it.endTime, it.source, it.uuid))
-        }
-        latest(data.totalCalories) { it.endTime }?.let {
-            sensors += MqttSensor("total_calories", "Total Calories (latest record)",
-                it.calories.toString(), "kcal", null, attrs(it.endTime, it.source, it.uuid))
         }
         latest(data.hydration) { it.endTime }?.let {
             sensors += MqttSensor("hydration", "Hydration (latest record)", it.liters.toString(),
@@ -185,6 +194,22 @@ object MqttSupport {
         }
         return sensors
     }
+
+    /**
+     * The set to publish: everything published before, with fresh values on top. A sync only
+     * carries the types that had new records, but the broker should hold every sensor the app
+     * knows, so a new broker or a fresh Home Assistant sees the whole device at once.
+     */
+    fun mergeSensors(cached: List<MqttSensor>, fresh: List<MqttSensor>): List<MqttSensor> =
+        (cached.associateBy { it.key } + fresh.associateBy { it.key }).values
+            .filterNot { it.key in RETIRED_SENSOR_KEYS }
+
+    /**
+     * Sensor keys that older versions published and that no longer exist. Their retained
+     * discovery configs would keep a stale entity alive in Home Assistant forever, so every
+     * publish clears them (an empty retained payload on the config topic removes the entity).
+     */
+    val RETIRED_SENSOR_KEYS: Set<String> = setOf("steps", "distance", "active_calories", "total_calories")
 
     /** Home Assistant MQTT Discovery config payload for a sensor (published retained). */
     fun discoveryConfigJson(sensor: MqttSensor, baseTopic: String, appVersion: String): String {
