@@ -224,4 +224,52 @@
     <string name="screentime_header">Track your app usage</string>
     <string name="screentime_mqtt_description">Publishes today\'s and yesterday\'s screen time and today\'s most used app to your MQTT broker with Home Assistant Discovery, under the same device as Health Connect.</string>
     <string name="screentime_permission_not_granted">Permission not granted</string>
+
+    <!-- Onboarding wizard -->
+    <string name="onboarding_destination_body">Pick one or both. You can add or change destinations any time in the Health and Screen Time tabs.</string>
+    <string name="onboarding_destination_title">Where should your data go?</string>
+    <string name="onboarding_done_body">Two things remain, both on the main screens: grant Health Connect permissions, and allow usage access for screen time. Then tap Sync Now.</string>
+    <string name="onboarding_done_short">What remains lives on the main screens; then tap Sync Now.</string>
+    <string name="onboarding_done_title">You are set</string>
+    <string name="onboarding_feature_health">Health Connect</string>
+    <string name="onboarding_feature_health_desc">Steps, sleep, heart rate and 30 more types from Health Connect</string>
+    <string name="onboarding_feature_screen">Screen Time</string>
+    <string name="onboarding_feature_screen_desc">Daily and per-app usage from Android\'s usage stats</string>
+    <string name="onboarding_features_body">Pick one or both. Each has its own tab, permissions and settings.</string>
+    <string name="onboarding_features_title">What do you want to sync?</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_mqtt_desc">Sensors appear in Home Assistant automatically via MQTT Discovery</string>
+    <string name="onboarding_mqtt_option">MQTT / Home Assistant</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_open_app">Open the app</string>
+    <string name="onboarding_skip">Skip setup</string>
+    <string name="onboarding_skip_destination">I will set this up later</string>
+    <string name="onboarding_step_of">Step %1$d of %2$d</string>
+    <string name="onboarding_summary_all">all 33</string>
+    <string name="onboarding_summary_dest">Destination</string>
+    <string name="onboarding_summary_essentials">8 essentials</string>
+    <string name="onboarding_summary_later">none yet</string>
+    <string name="onboarding_summary_none">not yet</string>
+    <string name="onboarding_summary_sync">Syncing</string>
+    <string name="onboarding_summary_types">Data types</string>
+    <string name="onboarding_task_health">Grant Health Connect permissions</string>
+    <string name="onboarding_task_health_sub">Health tab, the card at the top</string>
+    <string name="onboarding_task_screen">Allow usage access for screen time</string>
+    <string name="onboarding_task_screen_sub">Screen Time tab, opens Android settings</string>
+    <string name="onboarding_types_all">All 33 data types</string>
+    <string name="onboarding_types_all_desc">Everything Health Connect offers, from steps to cycle tracking</string>
+    <string name="onboarding_types_body">Only enabled types are read and sent. Start broad or start small; every type keeps its own toggle in the Health tab.</string>
+    <string name="onboarding_types_essentials">The essentials</string>
+    <string name="onboarding_types_essentials_desc">Steps, sleep, heart rate, distance, calories and weight</string>
+    <string name="onboarding_types_later">Decide later</string>
+    <string name="onboarding_types_later_desc">Start with nothing enabled</string>
+    <string name="onboarding_types_title">Which health data matters to you?</string>
+    <string name="onboarding_webhook_applied">Used for both Health Connect and Screen Time; you can split them per tab later</string>
+    <string name="onboarding_webhook_applied_health">Used for Health Connect</string>
+    <string name="onboarding_webhook_applied_screen">Used for Screen Time</string>
+    <string name="onboarding_webhook_desc">POST JSON to your own server or dashboard backend</string>
+    <string name="onboarding_webhook_option">Webhook</string>
+    <string name="onboarding_welcome_body">Life Dashboard Companion sends your Health Connect and screen time data to a place you control: your own webhook backend, or Home Assistant over MQTT. No cloud in between. Three quick questions and you are running.</string>
+    <string name="onboarding_welcome_title">Your health data, your server</string>
+
 </resources>

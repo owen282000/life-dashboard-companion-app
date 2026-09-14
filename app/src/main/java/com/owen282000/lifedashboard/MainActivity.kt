@@ -29,6 +29,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.owen282000.lifedashboard.screens.HealthConnectScreen
+import com.owen282000.lifedashboard.screens.OnboardingScreen
 import com.owen282000.lifedashboard.screens.LogsScreen
 import com.owen282000.lifedashboard.screens.ScreenTimeScreen
 import com.owen282000.lifedashboard.ui.theme.*
@@ -68,10 +69,18 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             LifeDashboardTheme {
-                MainScreen(
-                    activity = this@MainActivity,
-                    permissionLauncher = permissionLauncher
-                )
+                // First run: walk through the onboarding wizard before showing the main UI.
+                var showOnboarding by remember {
+                    mutableStateOf(!preferencesManager.onboardingCompleted())
+                }
+                if (showOnboarding) {
+                    OnboardingScreen(onFinished = { showOnboarding = false })
+                } else {
+                    MainScreen(
+                        activity = this@MainActivity,
+                        permissionLauncher = permissionLauncher
+                    )
+                }
             }
         }
     }

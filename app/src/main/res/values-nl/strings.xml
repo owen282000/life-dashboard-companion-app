@@ -222,4 +222,52 @@
     <string name="screentime_header">Houd je app-gebruik bij</string>
     <string name="screentime_mqtt_description">Publiceert de schermtijd van vandaag en gisteren en de meest gebruikte app van vandaag naar je MQTT-broker met Home Assistant Discovery, onder hetzelfde apparaat als Health Connect.</string>
     <string name="screentime_permission_not_granted">Toestemming niet verleend</string>
+
+    <!-- Onboarding-wizard -->
+    <string name="onboarding_destination_body">Kies er een of allebei. Je kunt bestemmingen altijd toevoegen of wijzigen in de tabs Gezondheid en Schermtijd.</string>
+    <string name="onboarding_destination_title">Waar moet je data naartoe?</string>
+    <string name="onboarding_done_body">Er resten twee dingen, allebei op de hoofdschermen: geef Health Connect-toestemmingen, en sta toegang tot app-gebruik toe voor schermtijd. Tik daarna op Nu synchroniseren.</string>
+    <string name="onboarding_done_short">Wat nog rest staat op de hoofdschermen; tik daarna op Nu synchroniseren.</string>
+    <string name="onboarding_done_title">Je bent klaar</string>
+    <string name="onboarding_feature_health">Health Connect</string>
+    <string name="onboarding_feature_health_desc">Stappen, slaap, hartslag en 30 andere types uit Health Connect</string>
+    <string name="onboarding_feature_screen">Schermtijd</string>
+    <string name="onboarding_feature_screen_desc">Dagelijks en per-app gebruik uit de Android-gebruiksstatistieken</string>
+    <string name="onboarding_features_body">Kies er een of allebei. Elk heeft een eigen tab, permissies en instellingen.</string>
+    <string name="onboarding_features_title">Wat wil je synchroniseren?</string>
+    <string name="onboarding_get_started">Aan de slag</string>
+    <string name="onboarding_mqtt_desc">Sensors verschijnen automatisch in Home Assistant via MQTT Discovery</string>
+    <string name="onboarding_mqtt_option">MQTT / Home Assistant</string>
+    <string name="onboarding_next">Volgende</string>
+    <string name="onboarding_open_app">Open de app</string>
+    <string name="onboarding_skip">Setup overslaan</string>
+    <string name="onboarding_skip_destination">Dit stel ik later in</string>
+    <string name="onboarding_step_of">Stap %1$d van %2$d</string>
+    <string name="onboarding_summary_all">alle 33</string>
+    <string name="onboarding_summary_dest">Bestemming</string>
+    <string name="onboarding_summary_essentials">8 basistypes</string>
+    <string name="onboarding_summary_later">nog geen</string>
+    <string name="onboarding_summary_none">nog niet</string>
+    <string name="onboarding_summary_sync">Synchroniseert</string>
+    <string name="onboarding_summary_types">Datatypes</string>
+    <string name="onboarding_task_health">Geef Health Connect-permissies</string>
+    <string name="onboarding_task_health_sub">Tab Gezondheid, de kaart bovenaan</string>
+    <string name="onboarding_task_screen">Sta gebruikstoegang toe voor schermtijd</string>
+    <string name="onboarding_task_screen_sub">Tab Schermtijd, opent de Android-instellingen</string>
+    <string name="onboarding_types_all">Alle 33 datatypes</string>
+    <string name="onboarding_types_all_desc">Alles wat Health Connect biedt, van stappen tot cyclustracking</string>
+    <string name="onboarding_types_body">Alleen ingeschakelde types worden gelezen en verstuurd. Begin breed of begin klein; elk type houdt zijn eigen schakelaar op het Gezondheid-tabblad.</string>
+    <string name="onboarding_types_essentials">De basis</string>
+    <string name="onboarding_types_essentials_desc">Stappen, slaap, hartslag, afstand, calorieën en gewicht</string>
+    <string name="onboarding_types_later">Later beslissen</string>
+    <string name="onboarding_types_later_desc">Begin met niets ingeschakeld</string>
+    <string name="onboarding_types_title">Welke gezondheidsdata is voor jou belangrijk?</string>
+    <string name="onboarding_webhook_applied">Gebruikt voor zowel Health Connect als Schermtijd; later per tabblad te splitsen</string>
+    <string name="onboarding_webhook_applied_health">Gebruikt voor Health Connect</string>
+    <string name="onboarding_webhook_applied_screen">Gebruikt voor Schermtijd</string>
+    <string name="onboarding_webhook_desc">POST JSON naar je eigen server of dashboard-backend</string>
+    <string name="onboarding_webhook_option">Webhook</string>
+    <string name="onboarding_welcome_body">Life Dashboard Companion stuurt je Health Connect- en schermtijddata naar een plek die jij beheert: je eigen webhook-backend, of Home Assistant via MQTT. Geen cloud ertussen. Drie korte vragen en je draait.</string>
+    <string name="onboarding_welcome_title">Jouw gezondheidsdata, jouw server</string>
+
 </resources>

@@ -28,15 +28,17 @@ More on the project layout and the build in [building.md](building.md).
 
 ## First run
 
-1. **Install the app** on your Android device
-2. **Grant Health Connect permissions** - tap "Grant" and select the data types you want to sync
-3. **Grant Usage Access** for Screen Time - go to Settings when prompted
-4. **Configure webhook URLs** - enter your server endpoint(s)
-5. **Add webhook headers** (optional) - auth tokens or API keys
-6. **Set sync intervals** - minimum 15 minutes
-7. **Tap "Preview Data"** to inspect the payload, then **"Sync Now"** to send
+The first launch opens a short setup wizard. It asks three questions and nothing else: what to sync (Health Connect, Screen Time, or both), where the data should go (a webhook URL with a test ping, an MQTT broker for Home Assistant, or both) and, when Health Connect is in, which data types to start with (the essentials, all 33, or none yet). The destination only applies to the sources you picked. Everything it sets can be changed later on the Health and Screen Time tabs, and **Skip setup** takes you straight to those tabs.
 
-Use the **Test ping** button to confirm your server accepts a POST before waiting for real data.
+After the wizard:
+
+1. **Grant Health Connect permissions** - tap "Grant" on the Health tab
+2. **Grant Usage Access** for Screen Time - go to Settings when prompted
+3. **Add webhook headers** (optional) - auth tokens or API keys
+4. **Set sync intervals** - minimum 15 minutes
+5. **Tap "Preview Data"** to inspect the payload, then **"Sync Now"** to send
+
+The **Send Test Ping** button, in the wizard and on both tabs, confirms your server accepts a POST before waiting for real data.
 
 Moving from another device? Import your settings under **About > Backup & restore** instead of typing everything again; see [settings-backup.md](settings-backup.md).
 
@@ -50,7 +52,7 @@ Many manufacturers (Samsung, Xiaomi, OnePlus, Huawei, and others) aggressively k
 2. On heavily customized Android skins, also exempt the app from the manufacturer's own battery or startup manager. [dontkillmyapp.com](https://dontkillmyapp.com) has per-brand instructions.
 3. Keep in mind Android enforces a minimum interval of 15 minutes for periodic background work, and may delay syncs further in Doze mode.
 
-The webhook logs screen shows when the last sync attempts actually ran, which helps confirm whether syncs are being suppressed.
+The Logs tab shows when the last sync attempts actually ran, which helps confirm whether syncs are being suppressed.
 
 ### "CLEARTEXT communication not permitted" or "Plain HTTP is blocked"
 

@@ -165,6 +165,7 @@ class PreferencesManager(context: Context) {
 
         // Shared keys
         private const val KEY_KEEP_FULL_PAYLOADS = "keep_full_payloads"
+        private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
 
         // Defaults
         private const val DEFAULT_SYNC_INTERVAL_MINUTES = 60
@@ -343,6 +344,13 @@ class PreferencesManager(context: Context) {
 
     fun clearWebhookLogs(filterType: LogType? = null) {
         logStore.clear(filterType)
+    }
+
+    /** Whether the first-run wizard has been completed or skipped. */
+    fun onboardingCompleted(): Boolean = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+
+    fun setOnboardingCompleted() {
+        prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, true).apply()
     }
 
     /** Whether raw payloads are kept in full; off by default, they are raw health data. */
