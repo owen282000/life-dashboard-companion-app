@@ -73,6 +73,28 @@ Two things to keep in mind:
 
 Small, focused PRs are much easier to review than big ones. When in doubt, open an issue first to discuss the direction.
 
+## Local test stack
+
+Two pieces of tooling make an emulator behave like a phone with a year of history and a Home Assistant next to it.
+
+**Seeded Health Connect data.** Debug builds declare write permissions for the eight essential types plus mindfulness (`app/src/debug/AndroidManifest.xml`, never in a release), and the instrumentation class `SeedHealthConnect` inserts a deterministic week: hourly steps, distance and active calories, daily total calories, a heart rate sample every ten minutes, resting heart rate, weight, sleep with stages, and mindfulness sessions. Reruns update the same records. Install the debug APK and the test APK with adb, then:
+
+```bash
+./gradlew assembleDebug assembleDebugAndroidTest
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell am instrument -w -e class com.owen282000.lifedashboard.SeedHealthConnect \
+  com.owen282000.lifedashboard.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+The first run opens Health Connect's permission dialog on the device; accept it there. Do not grant the permissions with `adb shell pm grant`: inserts then succeed, but the app is never registered as a data source, and only data sources count in aggregates, so the daily totals (and the app's "today" sensors) stay empty. `connectedDebugAndroidTest` reinstalls the app and drops the grants, which is why the command above uses `am instrument` directly.
+
+**Broker and Home Assistant in Docker.** `scripts/dev/docker-compose.yml` starts a Mosquitto broker without authentication on port 1883 and a Home Assistant on port 8123, with its configuration under `scripts/dev/ha-config/` (ignored by git). Point the app at `10.0.2.2` from an emulator, or at the laptop's LAN address from a phone, and the device appears under Settings > Devices & services > MQTT after the first sync.
+
+```bash
+docker compose -f scripts/dev/docker-compose.yml up -d
+```
+
 ## Release builds and R8
 
 `assembleRelease` runs R8 with resource shrinking (`isMinifyEnabled` and `isShrinkResources` in `app/build.gradle.kts`). The keep rules live in `app/proguard-rules.pro`: the MQTT stack (HiveMQ client and the Netty it bundles) and kotlinx.serialization resolve classes reflectively, enum names are stored in preferences, and WorkManager's Room database is instantiated by name, so those are kept whole. The obfuscation map is written to `app/build/outputs/mapping/release/mapping.txt` for every release build; keep it next to a release if you want readable stack traces from that version.

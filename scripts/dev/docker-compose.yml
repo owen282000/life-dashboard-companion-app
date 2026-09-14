@@ -1,0 +1,34 @@
+# Local Home Assistant plus Mosquitto for trying the MQTT route end to end:
+#
+#   docker compose -f scripts/dev/docker-compose.yml up -d
+#
+# Home Assistant: http://localhost:8123 (first start asks you to create a user).
+# Broker for the phone: <this machine's LAN IP>:1883, no credentials.
+# In HA: Settings > Devices & services > Add integration > MQTT, broker "mosquitto", port 1883.
+# The app's device then appears under the MQTT integration by itself (Discovery).
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: lifedashboard-mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+    restart: unless-stopped
+
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: lifedashboard-homeassistant
+    ports:
+      - "8123:8123"
+    volumes:
+      - ./ha-config:/config
+    environment:
+      TZ: Europe/Amsterdam
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
+volumes:
+  mosquitto-data:
