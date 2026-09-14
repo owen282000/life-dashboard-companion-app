@@ -31,11 +31,6 @@
 | <img src="docs/screenshots/health-connect.png" alt="Health Connect screen"> | <img src="docs/screenshots/screen-time.png" alt="Screen Time screen"> | <img src="docs/screenshots/mqtt.png" alt="MQTT and sync actions"> | <img src="docs/screenshots/logs.png" alt="Logs screen"> |
 | 33 data types, per-type toggles, incremental sync | Foreground time per app, with a custom day boundary | Sensors appear in Home Assistant automatically | Every delivery logged, payloads inspectable |
 
-<p align="center">
-  <img src="docs/screenshots/home-assistant.png" alt="The Life Dashboard Companion device in Home Assistant with its sensors" width="720">
-  <br><sub>One sync later in Home Assistant: the device and its sensors, created by MQTT Discovery without any YAML</sub>
-</p>
-
 ## Why this app?
 
 - **Own your data** - health data goes to your own server, not a third-party cloud
@@ -58,6 +53,16 @@ Already using the Home Assistant companion app's health sensors? [See how this c
 The full walkthrough, requirements and troubleshooting are in [docs/usage.md](docs/usage.md).
 
 No backend yet? [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is a docker-compose with an HMAC-verifying receiver, Postgres and a provisioned Grafana dashboard: from phone to Grafana in 10 minutes.
+
+## Home Assistant
+
+Point the app at the MQTT broker Home Assistant already uses and tap **Sync Now**. MQTT Discovery creates a device with a sensor per synced type: today's steps, distance and calories, the latest heart rate, weight and sleep duration, and screen time. No YAML, no server-side setup; states are retained, so they survive a restart.
+
+<p align="center">
+  <img src="docs/screenshots/home-assistant.png" alt="The Life Dashboard Companion device in Home Assistant with its sensors" width="720">
+</p>
+
+The two-minute walkthrough is in [docs/usage.md](docs/usage.md#phone-to-home-assistant-in-two-minutes); [docs/features.md](docs/features.md#home-assistant-and-mqtt) lists every sensor.
 
 ## What it sends
 
