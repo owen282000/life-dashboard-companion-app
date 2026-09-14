@@ -6,6 +6,7 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Changed
 
+- The APK no longer carries Google's dependency-info block, a dependency-tree blob in the signing block encrypted with a Google public key that only Google can read. IzzyOnDroid's scanner flagged it and F-Droid checks for the same; it served no purpose outside Google Play
 - The brand mark gained broadcast arcs: the pulse ends in a dot that radiates the signal, chosen from three explored directions because measuring AND publishing is what the app does. Applied to the launcher icon, the store icon, the feature graphic and the repository banner, all rendered from the sources in `docs/brand/`
 
 ## [1.12.1] - 2026-09-14

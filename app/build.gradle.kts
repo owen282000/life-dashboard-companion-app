@@ -63,6 +63,14 @@ android {
             }
         }
     }
+    dependenciesInfo {
+        // AGP embeds a dependency-tree blob in the APK signing block, encrypted with a
+        // Google public key: only Google can read it and nobody can verify its contents.
+        // IzzyOnDroid and F-Droid flag it, and it adds nothing outside Google Play.
+        includeInApk = false
+        includeInBundle = false
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
