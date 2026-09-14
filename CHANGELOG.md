@@ -2,14 +2,19 @@
 
 All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/). For older releases, see the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases).
 
-## [Unreleased]
+## [1.14.0] - 2026-09-14
 
 ### Added
 
-- Data resolution per type. Dense series (heart rate, HRV, oxygen saturation, respiratory rate, skin temperature, steps, distance, calories) can be sent as one value per 1, 5 or 15 minutes, or per hour, instead of every record. Measured values are averaged with their min and max; quantities are summed. Windows align to the clock, each bucket carries its sample count, and a window still filling when a sync runs is held until it is complete, so it normally goes out once and whole. The payload names the resolution it used per series, and docs/webhook.md gives the merge rule for the rare late record. Everything defaults to every record, so existing receivers are unaffected
+- Sync at fixed times of day per tab, such as 08:00 and 21:00, so the night's sleep reaches Home Assistant before you get up. With an optional weekday filter and quiet hours, next to the interval the app has always had
+- Data resolution per type: send dense series (heart rate, HRV, steps, calories and five more) as one value per 1, 5 or 15 minutes, or per hour, instead of every record. Measured values are averaged with their min and max, quantities are summed. Defaults to every record, so existing receivers are unaffected
+- Both settings travel with the settings backup
 
-- Sync schedules per tab. Next to the interval the app has always had, Health Connect and Screen Time can each sync at fixed times of day ("08:00 and 21:00", so the night's sleep is in Home Assistant before you get up). Both modes take an optional weekday filter and quiet hours, and the row warns when a combination would never sync. A plain interval still runs as periodic work; a schedule with times or filters runs as one-time work that queues the next run after every sync
-- Schedules are part of the settings backup, and a backup written by an earlier version restores exactly as before
+Details on the scheduling rules and the bucketed payload shape are in [docs/features.md](docs/features.md) and [docs/webhook.md](docs/webhook.md#data-resolution).
+
+### Changed
+
+- The line under the save button reports the real schedule and destination ("At 08:00, 21:00 to MQTT") instead of assuming an interval and ignoring MQTT
 
 ## [1.13.4] - 2026-09-14
 

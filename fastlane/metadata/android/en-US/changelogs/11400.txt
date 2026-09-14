@@ -1,0 +1,5 @@
+Added:
+
+- Sync at fixed times of day per tab, such as 08:00 and 21:00, so the night's sleep reaches Home Assistant before you get up. With an optional weekday filter and quiet hours, next to the interval the app has always had
+- Data resolution per type: send dense series (heart rate, HRV, steps, calories and five more) as one value per 1, 5 or 15 minutes, or per hour, instead of every ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
