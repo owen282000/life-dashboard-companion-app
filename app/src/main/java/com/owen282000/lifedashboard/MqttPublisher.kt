@@ -132,11 +132,13 @@ class MqttPublisher(private val context: Context) {
                 }
                 // Retire sensors that older versions published under other keys, so Home
                 // Assistant does not keep a stale "Steps (latest record)" next to "Steps Today".
+                // State and attributes go first: an empty attributes payload on a still-living
+                // entity makes Home Assistant log "Erroneous JSON", the config clear removes it.
                 for (key in MqttSupport.RETIRED_SENSOR_KEYS) {
                     for (topic in listOf(
-                        MqttSupport.discoveryTopic(MqttSupport.DEFAULT_DISCOVERY_PREFIX, key),
                         MqttSupport.stateTopic(settings.baseTopic, key),
-                        MqttSupport.attributesTopic(settings.baseTopic, key)
+                        MqttSupport.attributesTopic(settings.baseTopic, key),
+                        MqttSupport.discoveryTopic(MqttSupport.DEFAULT_DISCOVERY_PREFIX, key)
                     )) {
                         client.publishWith().topic(topic).payload(ByteArray(0)).qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
                     }

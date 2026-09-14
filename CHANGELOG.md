@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Developer tooling for the MQTT route: an instrumentation class that seeds a week of Health Connect data on an emulator, debug-only write permissions for it, and a Docker compose file with a Mosquitto broker and a Home Assistant; described in docs/building.md
+- A screenshot of the Home Assistant device in the README and a two-minute "phone to Home Assistant" quickstart in docs/usage.md
+
+### Fixed
+
+- MQTT states for weight, temperatures, percentages and the other decimal values are rounded to one or two decimals instead of carrying the raw double (`78.2006048685296`)
+- Home Assistant showed distance, weight and duration sensors with two forced decimals (`5,921.00 m`); the discovery config now carries `suggested_display_precision` matching the published state
+
 ## [1.13.3] - 2026-09-14
 
 ### Changed

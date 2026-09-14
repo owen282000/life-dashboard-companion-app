@@ -33,6 +33,9 @@ object MqttSupport {
     const val DEFAULT_DISCOVERY_PREFIX = "homeassistant"
     const val DEVICE_ID = "life_dashboard_companion"
 
+    /** Numeric states with a sensible number of decimals; raw doubles like 78.2006048685296 help nobody. */
+    fun num(value: Double, decimals: Int = 1): String = String.format(java.util.Locale.ROOT, "%.${decimals}f", value)
+
     fun stateTopic(baseTopic: String, key: String) = "$baseTopic/$key/state"
     fun attributesTopic(baseTopic: String, key: String) = "$baseTopic/$key/attributes"
     fun discoveryTopic(discoveryPrefix: String, key: String) =
@@ -85,7 +88,7 @@ object MqttSupport {
         }
         latest(data.hrv) { it.time }?.let {
             sensors += MqttSensor("heart_rate_variability", "Heart Rate Variability",
-                it.heartRateVariabilityMillis.toString(), "ms", null, attrs(it.time, it.source, it.uuid))
+                num(it.heartRateVariabilityMillis), "ms", null, attrs(it.time, it.source, it.uuid))
         }
         latest(data.sleep) { it.sessionEndTime }?.let {
             sensors += MqttSensor("sleep_duration", "Last Sleep Duration",
@@ -93,7 +96,7 @@ object MqttSupport {
                 attrs(it.sessionEndTime, it.source, it.uuid))
         }
         latest(data.weight) { it.time }?.let {
-            sensors += MqttSensor("weight", "Weight", it.kilograms.toString(),
+            sensors += MqttSensor("weight", "Weight", num(it.kilograms),
                 "kg", "weight", attrs(it.time, it.source, it.uuid))
         }
         latest(data.bloodPressure) { it.time }?.let {
@@ -103,59 +106,59 @@ object MqttSupport {
                 it.diastolic.toString(), "mmHg", null, attrs(it.time, it.source, it.uuid))
         }
         latest(data.bloodGlucose) { it.time }?.let {
-            sensors += MqttSensor("blood_glucose", "Blood Glucose", it.mmolPerLiter.toString(),
+            sensors += MqttSensor("blood_glucose", "Blood Glucose", num(it.mmolPerLiter, 2),
                 "mmol/L", null, attrs(it.time, it.source, it.uuid))
         }
         latest(data.oxygenSaturation) { it.time }?.let {
-            sensors += MqttSensor("oxygen_saturation", "Oxygen Saturation", it.percentage.toString(),
+            sensors += MqttSensor("oxygen_saturation", "Oxygen Saturation", num(it.percentage),
                 "%", null, attrs(it.time, it.source, it.uuid))
         }
         latest(data.bodyTemperature) { it.time }?.let {
-            sensors += MqttSensor("body_temperature", "Body Temperature", it.celsius.toString(),
+            sensors += MqttSensor("body_temperature", "Body Temperature", num(it.celsius),
                 "°C", "temperature", attrs(it.time, it.source, it.uuid))
         }
         latest(data.skinTemperature) { it.time }?.let {
             sensors += MqttSensor("skin_temperature_delta", "Skin Temperature Delta",
-                it.deltaCelsius.toString(), "°C", "temperature", attrs(it.time, it.source, it.uuid))
+                num(it.deltaCelsius, 2), "°C", "temperature", attrs(it.time, it.source, it.uuid))
         }
         latest(data.basalBodyTemperature) { it.time }?.let {
             sensors += MqttSensor("basal_body_temperature", "Basal Body Temperature",
-                it.celsius.toString(), "°C", "temperature", attrs(it.time, it.source, it.uuid))
+                num(it.celsius), "°C", "temperature", attrs(it.time, it.source, it.uuid))
         }
         latest(data.respiratoryRate) { it.time }?.let {
-            sensors += MqttSensor("respiratory_rate", "Respiratory Rate", it.rate.toString(),
+            sensors += MqttSensor("respiratory_rate", "Respiratory Rate", num(it.rate),
                 "breaths/min", null, attrs(it.time, it.source, it.uuid))
         }
         latest(data.hydration) { it.endTime }?.let {
-            sensors += MqttSensor("hydration", "Hydration (latest record)", it.liters.toString(),
+            sensors += MqttSensor("hydration", "Hydration (latest record)", num(it.liters, 2),
                 "L", "volume", attrs(it.endTime, it.source, it.uuid))
         }
         latest(data.bodyFat) { it.time }?.let {
-            sensors += MqttSensor("body_fat", "Body Fat", it.percentage.toString(),
+            sensors += MqttSensor("body_fat", "Body Fat", num(it.percentage),
                 "%", null, attrs(it.time, it.source, it.uuid))
         }
         latest(data.leanBodyMass) { it.time }?.let {
-            sensors += MqttSensor("lean_body_mass", "Lean Body Mass", it.kilograms.toString(),
+            sensors += MqttSensor("lean_body_mass", "Lean Body Mass", num(it.kilograms),
                 "kg", "weight", attrs(it.time, it.source, it.uuid))
         }
         latest(data.boneMass) { it.time }?.let {
-            sensors += MqttSensor("bone_mass", "Bone Mass", it.kilograms.toString(),
+            sensors += MqttSensor("bone_mass", "Bone Mass", num(it.kilograms),
                 "kg", "weight", attrs(it.time, it.source, it.uuid))
         }
         latest(data.bodyWaterMass) { it.time }?.let {
-            sensors += MqttSensor("body_water_mass", "Body Water Mass", it.kilograms.toString(),
+            sensors += MqttSensor("body_water_mass", "Body Water Mass", num(it.kilograms),
                 "kg", "weight", attrs(it.time, it.source, it.uuid))
         }
         latest(data.basalMetabolicRate) { it.time }?.let {
             sensors += MqttSensor("basal_metabolic_rate", "Basal Metabolic Rate",
-                it.kilocaloriesPerDay.toString(), "kcal/d", null, attrs(it.time, it.source, it.uuid))
+                num(it.kilocaloriesPerDay, 0), "kcal/d", null, attrs(it.time, it.source, it.uuid))
         }
         latest(data.vo2Max) { it.time }?.let {
-            sensors += MqttSensor("vo2_max", "VO2 Max", it.vo2MillilitersPerMinuteKilogram.toString(),
+            sensors += MqttSensor("vo2_max", "VO2 Max", num(it.vo2MillilitersPerMinuteKilogram),
                 "mL/min/kg", null, attrs(it.time, it.source, it.uuid))
         }
         latest(data.height) { it.time }?.let {
-            sensors += MqttSensor("height", "Height", it.meters.toString(),
+            sensors += MqttSensor("height", "Height", num(it.meters, 2),
                 "m", "distance", attrs(it.time, it.source, it.uuid))
         }
         return sensors
@@ -221,6 +224,10 @@ object MqttSupport {
             sensor.unit?.let { put("unit_of_measurement", it) }
             sensor.deviceClass?.let { put("device_class", it) }
             sensor.stateClass?.let { put("state_class", it) }
+            // Home Assistant defaults numeric sensors with a convertible device class (distance,
+            // weight, duration) to two decimals, which turns 5921 m into "5,921.00 m". The state
+            // already carries the decimals we want, so tell HA to show exactly those.
+            displayPrecision(sensor.state)?.let { put("suggested_display_precision", it) }
             putJsonObject("device") {
                 putJsonArray("identifiers") { add(kotlinx.serialization.json.JsonPrimitive(DEVICE_ID)) }
                 put("name", "Life Dashboard Companion")
@@ -229,6 +236,12 @@ object MqttSupport {
                 put("sw_version", appVersion)
             }
         }.toString()
+    }
+
+    /** Decimals in a numeric state ("78.2" gives 1, "8002" gives 0), null for text states. */
+    fun displayPrecision(state: String): Int? {
+        if (state.toDoubleOrNull() == null) return null
+        return state.substringAfter('.', "").length
     }
 
     fun attributesJson(sensor: MqttSensor): String {

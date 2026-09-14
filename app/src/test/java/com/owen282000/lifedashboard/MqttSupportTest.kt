@@ -191,4 +191,31 @@ class MqttSupportTest {
         val merged = MqttSupport.mergeSensors(cached, emptyList()).map { it.key }
         assertEquals(listOf("weight"), merged)
     }
+
+    @Test
+    fun `discovery config tells Home Assistant to show the decimals the state carries`() {
+        assertEquals(0, MqttSupport.displayPrecision("5921"))
+        assertEquals(1, MqttSupport.displayPrecision("78.2"))
+        assertEquals(2, MqttSupport.displayPrecision("5.55"))
+        assertEquals(null, MqttSupport.displayPrecision("Life Dashboard"))
+
+        val distance = MqttSupport.discoveryConfigJson(
+            MqttSensor("distance_today", "Distance Today", "5921", "m", "distance", emptyMap(), "total_increasing"),
+            "lifedashboard", "1.0"
+        )
+        assertTrue(distance.contains("\"suggested_display_precision\":0"))
+        val topApp = MqttSupport.discoveryConfigJson(
+            MqttSensor("screen_time_top_app", "Screen Time Top App Today", "Life Dashboard", null, null, emptyMap(), null),
+            "lifedashboard", "1.0"
+        )
+        assertFalse(topApp.contains("suggested_display_precision"))
+    }
+
+    @Test
+    fun `numeric states are rounded to sensible decimals`() {
+        assertEquals("78.2", MqttSupport.num(78.2006048685296))
+        assertEquals("5.55", MqttSupport.num(5.5499, 2))
+        assertEquals("1650", MqttSupport.num(1650.4, 0))
+        assertEquals("36.6", MqttSupport.num(36.6))
+    }
 }
