@@ -1,0 +1,11 @@
+# One maintainer, so everything routes to the same place. This exists to make review
+# assignment automatic rather than to restrict who may contribute.
+*                       @owen282000
+
+# Anything that decides what ships, or what the app is allowed to read, gets looked at
+# even when the rest of a pull request is routine.
+/.github/workflows/     @owen282000
+/app/src/main/AndroidManifest.xml  @owen282000
+/SECURITY.md            @owen282000
+/PRIVACY.md             @owen282000
+/docs/webhook-schema.json          @owen282000

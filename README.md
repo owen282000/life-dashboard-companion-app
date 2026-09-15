@@ -124,7 +124,11 @@ Built on the work of others:
 - The quantified self and self-hosting communities
 - [Claude Code](https://claude.com/claude-code) for assistance with development
 
-## Support
+## Getting help
+
+[docs/usage.md](docs/usage.md) covers setup and the questions that come up most, [Discussions](https://github.com/owen282000/life-dashboard-companion-app/discussions) is the place to ask, and [SUPPORT.md](.github/SUPPORT.md) explains when something belongs in an issue instead.
+
+## Sponsoring
 
 If you find this project useful, consider starring the repository, sharing it, or contributing improvements. [Buying me a coffee on Ko-fi](https://ko-fi.com/owen282000) helps keep releases and bug hunts quick - the app stays free and open source either way.
 

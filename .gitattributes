@@ -1,0 +1,22 @@
+# Normalise text on commit, so a contributor on Windows does not turn a whole file into a diff.
+* text=auto eol=lf
+
+# gradlew is executed by a shell and must keep LF whatever the checkout platform does;
+# gradlew.bat is a batch file and must keep CRLF.
+gradlew        text eol=lf
+*.sh           text eol=lf
+gradlew.bat    text eol=crlf
+
+# Binaries: never touched, never diffed as text.
+*.png          binary
+*.jpg          binary
+*.webp         binary
+*.jar          binary
+*.keystore     binary
+*.jks          binary
+*.apk          binary
+
+# Generated or vendored, so GitHub's language stats and diffs stay about the app.
+gradle/wrapper/gradle-wrapper.jar   binary linguist-vendored
+docs/screenshots/*.png             binary linguist-documentation
+fastlane/**                        linguist-documentation

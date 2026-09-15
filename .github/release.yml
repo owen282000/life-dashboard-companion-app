@@ -1,0 +1,19 @@
+# Categories for the notes GitHub generates alongside the hand-written CHANGELOG section.
+# Conventional commit prefixes map onto the labels Dependabot and the templates apply.
+changelog:
+  exclude:
+    labels:
+      - duplicate
+      - invalid
+      - wontfix
+  categories:
+    - title: Features
+      labels: [enhancement, feature]
+    - title: Fixes
+      labels: [bug]
+    - title: Documentation
+      labels: [documentation]
+    - title: Dependencies
+      labels: [dependencies]
+    - title: Other changes
+      labels: ["*"]

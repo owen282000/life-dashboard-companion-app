@@ -1,5 +1,13 @@
-blank_issues_enabled: true
+# Questions belong in Discussions; a blank issue is rarely the right first step, and
+# "how do I get X into Home Assistant" was arriving as a bug report.
+blank_issues_enabled: false
 contact_links:
+  - name: Question or setup help
+    url: https://github.com/owen282000/life-dashboard-companion-app/discussions
+    about: Setup questions, Home Assistant help and ideas. Faster than an issue, and findable later.
+  - name: Troubleshooting guide
+    url: https://github.com/owen282000/life-dashboard-companion-app/blob/main/docs/usage.md#troubleshooting
+    about: Syncs stopping, plain HTTP refused, totals too high, nightly metrics arriving late.
   - name: Security vulnerability
     url: https://github.com/owen282000/life-dashboard-companion-app/security/advisories/new
     about: Please report security vulnerabilities privately, not as a public issue.
