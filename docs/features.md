@@ -103,6 +103,9 @@ The two are complementary rather than rivals: keep the companion app for presenc
 
 ## General
 
+<img src="screenshots/about.png" alt="The About screen: brand header with the version, and what the app reads from Health Connect and Screen Time" width="300" align="right">
+
+
 - **Background sync** - uses WorkManager for reliable background execution
 - **Logs** - every webhook delivery and MQTT publish with status, error and payload, for debugging
 - **Health Connect install check** - clear guidance when Health Connect is missing or outdated
