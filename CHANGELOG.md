@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.16.1] - 2026-09-15
+
+### Fixed
+
+- The scanner in the app found nothing while the phone's own camera read the same pairing code instantly. A camera buffer routinely ends before the padding of its last row, and the decoder demanded a full padded rectangle, so every real frame was discarded before it could be read
+
 ## [1.16.0] - 2026-09-15
 
 ### Added
