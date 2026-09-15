@@ -57,6 +57,9 @@ interface ScreenTimeActions {
     fun setFailureNotifications(enabled: Boolean)
     fun setFailureThreshold(threshold: Int)
     fun save()
+
+    /** See HealthActions.reloadFromSettings: for changes made outside this screen. */
+    fun reloadFromSettings()
     fun syncNow()
     fun preview()
     fun dismissPreview()
@@ -167,6 +170,13 @@ class ScreenTimeViewModel(
         )
         _state.update { it.copy(saved = saved, draft = saved) }
         return UiMessage.Saved
+    }
+
+    override fun reloadFromSettings() {
+        val saved = settings.loadScreenTime()
+        _state.update {
+            it.copy(saved = saved, draft = saved, allowHttpWebhooks = settings.allowHttpWebhooks())
+        }
     }
 
     override fun save() {

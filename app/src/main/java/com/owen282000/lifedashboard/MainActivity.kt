@@ -2,6 +2,7 @@ package com.owen282000.lifedashboard
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -22,12 +23,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.owen282000.lifedashboard.screens.HealthConnectScreen
 import com.owen282000.lifedashboard.screens.LogsScreen
 import com.owen282000.lifedashboard.screens.OnboardingScreen
+import com.owen282000.lifedashboard.screens.PairingDialog
 import com.owen282000.lifedashboard.screens.ScreenTimeScreen
 import com.owen282000.lifedashboard.ui.theme.*
+import com.owen282000.lifedashboard.viewmodel.HealthConnectViewModel
+import com.owen282000.lifedashboard.viewmodel.ScreenTimeViewModel
 import kotlinx.coroutines.launch
 
 enum class AppTab {
@@ -40,6 +45,9 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var preferencesManager: PreferencesManager
     private var permissionStatusCallback: ((Boolean) -> Unit)? = null
+
+    /** A scanned or opened pairing link, waiting for the user to confirm or dismiss it. */
+    private val pendingPairing = mutableStateOf<PairingLink?>(null)
     private lateinit var permissionLauncher: androidx.activity.result.ActivityResultLauncher<Set<String>>
 
     private fun initializePermissionLauncher() {
@@ -62,6 +70,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         preferencesManager = PreferencesManager(this)
         initializePermissionLauncher()
+        // Only on a fresh start. Android recreates the Activity on rotation with the same
+        // intent, and a link the user already answered must not come back as a new one.
+        if (savedInstanceState == null) handlePairingIntent(intent)
 
         setContent {
             LifeDashboardTheme {
@@ -77,8 +88,81 @@ class MainActivity : ComponentActivity() {
                         permissionLauncher = permissionLauncher
                     )
                 }
+
+                // Above both, so a link scanned during onboarding is not lost.
+                pendingPairing.value?.let { link ->
+                    PairingDialog(
+                        link = link,
+                        accent = HealthPrimary,
+                        currentHealth = preferencesManager.healthSectionWebhook(),
+                        currentScreenTime = preferencesManager.screenTimeSectionWebhook(),
+                        onDismiss = { pendingPairing.value = null },
+                        onConfirm = { choice ->
+                            pendingPairing.value = null
+                            applyPairing(link, choice)
+                            // During onboarding the wizard stays open: its data-types step
+                            // is still worth answering, and finishing it never clears what
+                            // pairing just wrote.
+                        }
+                    )
+                }
             }
         }
+    }
+
+    /**
+     * A pairing link arriving while the app is already running.
+     *
+     * The Activity is singleTop, so a tapped link does not start a second copy; it comes
+     * through here instead.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handlePairingIntent(intent)
+    }
+
+    /**
+     * Turn a VIEW intent into a pending pairing, or say why it cannot be used.
+     *
+     * Anything that is not a pairing link is left alone without a word: the app is
+     * launched by other intents too, and a complaint would be noise.
+     */
+    private fun handlePairingIntent(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_VIEW) return
+        when (val parsed = PairingLinks.parse(intent.dataString)) {
+            is PairingParse.Ok -> pendingPairing.value = parsed.link
+            is PairingParse.Invalid -> Toast.makeText(this, pairingProblemText(parsed.reason), Toast.LENGTH_LONG).show()
+            PairingParse.NotAPairingLink -> Unit
+        }
+    }
+
+    private fun pairingProblemText(problem: PairingProblem): String = getString(
+        when (problem) {
+            PairingProblem.UnsupportedVersion -> R.string.pairing_error_version
+            PairingProblem.Incomplete -> R.string.pairing_error_incomplete
+            PairingProblem.NoUsableSource -> R.string.pairing_error_no_source
+        }
+    )
+
+    /**
+     * Write the pairing, then tell the screens to re-read it.
+     *
+     * The write goes through PreferencesManager because it spans both sections, while each
+     * ViewModel owns only its own unsaved draft. Those ViewModels live in this Activity's
+     * store (the screens create them with viewModel(factory = ...) and there is no
+     * NavHost), so these are the instances the tabs are showing.
+     */
+    private fun applyPairing(link: PairingLink, choice: PairingChoice) {
+        val written = PairingApply.apply(link, choice, preferencesManager.asPairingStore())
+        if (written.isEmpty()) return
+
+        ViewModelProvider(this, HealthConnectViewModel.factory(this))[HealthConnectViewModel::class.java]
+            .reloadFromSettings()
+        ViewModelProvider(this, ScreenTimeViewModel.factory(this))[ScreenTimeViewModel::class.java]
+            .reloadFromSettings()
+
+        Toast.makeText(this, R.string.pairing_done, Toast.LENGTH_LONG).show()
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

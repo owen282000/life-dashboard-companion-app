@@ -380,4 +380,21 @@
     <string name="webhook_secret_generated">Geheimnis erzeugt. Speichern und denselben Wert auf dem Server hinterlegen; eine Signatur beweist nur etwas, wenn beide Seiten ihn kennen.</string>
     <string name="webhook_secret_copy">Kopieren</string>
     <string name="webhook_secret_copied">In die Zwischenablage kopiert</string>
+
+    <!-- QR pairing -->
+    <string name="pairing_title">Mit einem Empfänger koppeln</string>
+    <string name="pairing_intro">%1$s möchte deine Daten empfangen unter:</string>
+    <string name="pairing_intro_unnamed">Ein Empfänger möchte deine Daten unter:</string>
+    <string name="pairing_sections_label">Senden von</string>
+    <string name="pairing_section_health">Gesundheit</string>
+    <string name="pairing_section_screen_time">Bildschirmzeit</string>
+    <string name="pairing_replaces_secret">Ersetzt das Signaturgeheimnis, das dieser Bereich jetzt verwendet.</string>
+    <string name="pairing_already_paired">Dieser Bereich sendet bereits hierhin. Es ändert sich nichts.</string>
+    <string name="pairing_types_note">Welche Datentypen gesendet werden, und wann, bleibt deine Wahl auf den Tabs. Das Koppeln füllt nur die Adresse und das Geheimnis ein.</string>
+    <string name="pairing_confirm">Koppeln</string>
+    <string name="pairing_done">Gekoppelt. Tippe auf dem Tab auf Test, um die Verbindung zu prüfen.</string>
+    <string name="pairing_nothing_selected">Wähle mindestens einen Bereich.</string>
+    <string name="pairing_error_version">Dieser Code stammt von einer neueren Version. Aktualisiere die App und scanne erneut.</string>
+    <string name="pairing_error_incomplete">In diesem Code fehlt die Adresse oder das Geheimnis.</string>
+    <string name="pairing_error_no_source">Dieser Empfänger akzeptiert nichts, was diese App senden kann.</string>
 </resources>

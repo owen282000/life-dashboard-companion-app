@@ -380,4 +380,21 @@
     <string name="webhook_secret_generated">Geheim aangemaakt. Sla op en zet dezelfde waarde op je server; een handtekening bewijst pas iets als beide kanten hem hebben.</string>
     <string name="webhook_secret_copy">Kopiëren</string>
     <string name="webhook_secret_copied">Gekopieerd naar klembord</string>
+
+    <!-- QR pairing -->
+    <string name="pairing_title">Koppelen met een ontvanger</string>
+    <string name="pairing_intro">%1$s wil je gegevens ontvangen op:</string>
+    <string name="pairing_intro_unnamed">Een ontvanger wil je gegevens op:</string>
+    <string name="pairing_sections_label">Versturen vanaf</string>
+    <string name="pairing_section_health">Gezondheid</string>
+    <string name="pairing_section_screen_time">Schermtijd</string>
+    <string name="pairing_replaces_secret">Vervangt het ondertekeningsgeheim dat dit onderdeel nu gebruikt.</string>
+    <string name="pairing_already_paired">Dit onderdeel verstuurt hier al naartoe. Er verandert niets.</string>
+    <string name="pairing_types_note">Welke gegevenstypen worden verstuurd, en wanneer, blijft jouw keuze op de tabbladen. Koppelen vult alleen het adres en het geheim in.</string>
+    <string name="pairing_confirm">Koppelen</string>
+    <string name="pairing_done">Gekoppeld. Tik op Test op het tabblad om de verbinding te controleren.</string>
+    <string name="pairing_nothing_selected">Kies minstens één onderdeel.</string>
+    <string name="pairing_error_version">Deze code komt van een nieuwere versie. Werk de app bij en scan opnieuw.</string>
+    <string name="pairing_error_incomplete">In deze code ontbreekt het adres of het geheim.</string>
+    <string name="pairing_error_no_source">Deze ontvanger accepteert niets wat deze app kan versturen.</string>
 </resources>

@@ -64,12 +64,50 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LifeDashboard"
         tools:targetApi="31">
+        <!--
+            singleTop so a pairing link tapped while the app is already open arrives in
+            onNewIntent instead of starting a second copy of the app.
+        -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+                A pairing QR code, opened straight from the phone's camera. Verified
+                against https://owen282000.github.io/.well-known/assetlinks.json, which
+                names this package and the release signing certificate, so no other app
+                can claim these links and the browser is skipped entirely.
+
+                https only in this filter: mixing schemes prevents verification.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="owen282000.github.io"
+                    android:pathPrefix="/life-dashboard-companion-app/pair" />
+            </intent-filter>
+
+            <!--
+                The same payload, for the "Open in the app" button on the landing page and
+                for browsers that do not verify App Links. A separate filter on purpose:
+                data elements inside one filter are merged, which would also match
+                lifedashboard://owen282000.github.io and https://pair.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="lifedashboard"
+                    android:host="pair" />
             </intent-filter>
         </activity>
 

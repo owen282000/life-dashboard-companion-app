@@ -489,4 +489,31 @@ class PreferencesManager(context: Context) {
     fun setKeepFullPayloads(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_KEEP_FULL_PAYLOADS, enabled).apply()
     }
+
+    // QR pairing writes across both webhook sections at once, which no single ViewModel
+    // owns, so it goes through here. PairingStore is narrower than this class on purpose,
+    // so the rules in PairingApply stay unit-testable without SharedPreferences.
+
+    fun healthSectionWebhook(): SectionWebhook =
+        SectionWebhook(getHealthWebhookUrls(), getHealthWebhookSecret())
+
+    fun screenTimeSectionWebhook(): SectionWebhook =
+        SectionWebhook(getScreenTimeWebhookUrls(), getScreenTimeWebhookSecret())
+
+    fun asPairingStore(): PairingStore = object : PairingStore {
+        override fun health() = healthSectionWebhook()
+        override fun screenTime() = screenTimeSectionWebhook()
+
+        override fun setHealth(urls: List<String>, secret: String) {
+            setHealthWebhookUrls(urls)
+            setHealthWebhookSecret(secret)
+        }
+
+        override fun setScreenTime(urls: List<String>, secret: String) {
+            setScreenTimeWebhookUrls(urls)
+            setScreenTimeWebhookSecret(secret)
+        }
+
+        override fun setAllowPlainHttp(enabled: Boolean) = setAllowHttpWebhooks(enabled)
+    }
 }

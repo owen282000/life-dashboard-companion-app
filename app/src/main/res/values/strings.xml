@@ -382,4 +382,21 @@
     <string name="webhook_secret_generated">Secret generated. Save, then configure the same value on your server; a signature only proves anything when both sides hold it.</string>
     <string name="webhook_secret_copy">Copy</string>
     <string name="webhook_secret_copied">Copied to clipboard</string>
+
+    <!-- QR pairing -->
+    <string name="pairing_title">Pair with a receiver</string>
+    <string name="pairing_intro">%1$s wants to receive your data at:</string>
+    <string name="pairing_intro_unnamed">A receiver wants your data at:</string>
+    <string name="pairing_sections_label">Send from</string>
+    <string name="pairing_section_health">Health</string>
+    <string name="pairing_section_screen_time">Screen Time</string>
+    <string name="pairing_replaces_secret">Replaces the signing secret this section uses now.</string>
+    <string name="pairing_already_paired">This section already sends here. Nothing changes.</string>
+    <string name="pairing_types_note">Which data types are sent, and when, stays your choice on the tabs. Pairing only fills in the address and the secret.</string>
+    <string name="pairing_confirm">Pair</string>
+    <string name="pairing_done">Paired. Tap Test on the tab to check the connection.</string>
+    <string name="pairing_nothing_selected">Pick at least one section.</string>
+    <string name="pairing_error_version">This code was made by a newer version. Update the app and scan again.</string>
+    <string name="pairing_error_incomplete">This code is missing its address or its secret.</string>
+    <string name="pairing_error_no_source">This receiver does not accept anything this app can send.</string>
 </resources>

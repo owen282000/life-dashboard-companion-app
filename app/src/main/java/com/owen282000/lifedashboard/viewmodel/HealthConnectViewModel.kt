@@ -72,6 +72,15 @@ interface HealthActions {
     fun setFailureNotifications(enabled: Boolean)
     fun setFailureThreshold(threshold: Int)
     fun save()
+
+    /**
+     * Re-read the settings from storage, discarding the draft.
+     *
+     * For changes made outside this screen, such as QR pairing writing the webhook
+     * address and secret for both sections at once. Saved and draft are set together, so
+     * the unsaved-changes bar does not appear for something the user did not type.
+     */
+    fun reloadFromSettings()
     fun syncNow()
     fun preview()
     fun dismissPreview()
@@ -221,6 +230,18 @@ class HealthConnectViewModel(
         )
         _state.update { it.copy(saved = saved, draft = saved) }
         return UiMessage.Saved
+    }
+
+    override fun reloadFromSettings() {
+        val saved = settings.loadHealth()
+        _state.update {
+            it.copy(
+                saved = saved,
+                draft = saved,
+                includeDailyTotals = settings.includeDailyTotals(),
+                allowHttpWebhooks = settings.allowHttpWebhooks()
+            )
+        }
     }
 
     override fun save() {
