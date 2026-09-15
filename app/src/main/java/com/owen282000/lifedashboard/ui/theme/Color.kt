@@ -2,11 +2,12 @@ package com.owen282000.lifedashboard.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary - Teal/Cyan tones for health/wellness feel
-val Primary = Color(0xFF00897B)
-val PrimaryLight = Color(0xFF4DB6AC)
-val PrimaryDark = Color(0xFF00695C)
-val OnPrimary = Color(0xFFFFFFFF)
+// Primary is the brand green, not a teal of its own. The Material primary role is rendered:
+// text selection handles and the cursor pick it up, which a magenta test made visible. Teal
+// next to the brand green was the same confusion the two greens had, one layer down.
+// OnPrimary is the brand ground rather than white, because white on #30B77E is 2.56:1 while
+// the dark ground is 6.97:1, and it matches how the icon shows green on dark.
+val OnPrimary = Color(0xFF14181C)
 
 // Background & Surface. SurfaceDark sits 4.8 dE from BackgroundDark, which is the separation a
 // base and an elevated surface need; the brand grounds further down are gradient stops, not
@@ -17,7 +18,6 @@ val SurfaceLight = Color(0xFFFFFFFF)
 val SurfaceDark = Color(0xFF161B22)
 val SurfaceVariantLight = Color(0xFFF1F5F9)
 val SurfaceVariantDark = Color(0xFF1E2530)
-val PrimaryContainerLight = Color(0xFFB2DFDB)
 
 // The brand green from docs/brand (icon, banner, feature graphic). One green, one meaning.
 // Health Connect used to carry its own #10B981, 3.4 dE away, which nobody could tell apart

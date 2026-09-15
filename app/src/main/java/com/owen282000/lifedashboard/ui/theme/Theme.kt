@@ -16,10 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryLight,
-    onPrimary = Color.Black,
-    primaryContainer = PrimaryDark,
-    onPrimaryContainer = Color.White,
+    primary = BrandGreen,
+    onPrimary = OnPrimary,
+    primaryContainer = HealthContainerDark,
+    onPrimaryContainer = OnHealthContainerDark,
     // The Material secondary role has to point somewhere, and it used to be an orange no
     // component in the app ever rendered (verified by turning it magenta and photographing
     // nine screens in both themes). Pointing it at the Screen Time accent means anything
@@ -40,10 +40,10 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Primary,
+    primary = BrandGreen,
     onPrimary = OnPrimary,
-    primaryContainer = PrimaryContainerLight,
-    onPrimaryContainer = PrimaryDark,
+    primaryContainer = HealthContainer,
+    onPrimaryContainer = OnHealthContainer,
     secondary = ScreenTimePrimary,
     onSecondary = Color.White,
     secondaryContainer = ScreenTimeContainer,
