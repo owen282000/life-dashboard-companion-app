@@ -407,6 +407,7 @@
     <string name="scan_permission_open_settings">Instellingen openen</string>
     <string name="scan_no_camera">Dit apparaat heeft geen camera. Vul het adres en het geheim met de hand in.</string>
     <string name="scan_camera_failed">De camera kon niet worden gestart.</string>
+    <string name="webhook_scan_lead">Koppelcode scannen</string>
     <string name="webhook_scan_button">Scannen</string>
     <string name="onboarding_scan_option">Code uit Home Assistant scannen</string>
     <string name="onboarding_scan_desc">De integratie toont een QR-code. Door die te scannen worden het adres en het ondertekeningsgeheim voor je ingevuld.</string>

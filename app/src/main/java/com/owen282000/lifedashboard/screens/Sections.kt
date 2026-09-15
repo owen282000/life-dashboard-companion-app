@@ -14,6 +14,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,6 +49,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -160,37 +162,32 @@ fun WebhookRow(
         webhook.urls.forEachIndexed { index, url ->
             ListLine(text = url, onRemove = { onRemoveUrl(index) })
         }
+        // Typing a URL and 64 hex characters on a phone keyboard is where people give up,
+        // so on an empty card scanning leads. Once a receiver is set up it steps back into
+        // the field it fills, because from then on it is a convenience, not the main route.
+        if (webhook.urls.isEmpty()) {
+            ScanLeadButton(accent = accent, onClick = onScanRequested)
+        }
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             FilledField(
                 value = newUrl,
                 onValueChange = { newUrl = it },
                 accent = accent,
                 placeholder = stringResource(R.string.webhook_url_placeholder),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                // Only while the field is empty: beside typed text a trailing icon reads
+                // as clear, and this one fills instead.
+                trailingIcon = if (webhook.urls.isNotEmpty() && newUrl.isEmpty()) {
+                    { ScanFieldIcon(accent = accent, onClick = onScanRequested) }
+                } else {
+                    null
+                }
             )
             Spacer(modifier = Modifier.width(8.dp))
             AddButton(accent) {
                 onAddUrl(newUrl)
                 if (SettingsRules.isValidUrl(newUrl)) newUrl = ""
-            }
-        }
-
-        // Scanning the code Home Assistant shows beats typing a URL and 64 hex
-        // characters on a phone keyboard, which is where people give up.
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onScanRequested, contentPadding = PaddingValues(horizontal = 4.dp)) {
-                Icon(
-                    Icons.Outlined.QrCodeScanner,
-                    contentDescription = null,
-                    tint = accent,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    stringResource(R.string.webhook_scan_button),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = accent
-                )
             }
         }
 
@@ -271,6 +268,41 @@ fun WebhookRow(
                 Text(stringResource(R.string.webhook_secret_copy), color = accent)
             }
         }
+    }
+}
+
+/** The way in on a card with no receiver yet: full width, above the field it replaces. */
+@Composable
+private fun ScanLeadButton(accent: Color, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.42f)),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = accent.copy(alpha = 0.14f),
+            contentColor = accent
+        ),
+        contentPadding = PaddingValues(vertical = 14.dp)
+    ) {
+        Icon(Icons.Outlined.QrCodeScanner, contentDescription = null, modifier = Modifier.size(19.dp))
+        Spacer(modifier = Modifier.width(9.dp))
+        Text(stringResource(R.string.webhook_scan_lead), fontWeight = FontWeight.SemiBold)
+    }
+}
+
+/** The same action once a receiver exists: inside the field, out of the way. */
+@Composable
+private fun ScanFieldIcon(accent: Color, onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            Icons.Outlined.QrCodeScanner,
+            // Named, not decorative: a trailing icon usually clears a field, and a screen
+            // reader has to be able to tell this one apart from that.
+            contentDescription = stringResource(R.string.webhook_scan_button),
+            tint = accent,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 

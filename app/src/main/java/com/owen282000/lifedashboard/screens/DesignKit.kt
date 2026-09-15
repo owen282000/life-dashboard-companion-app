@@ -314,7 +314,9 @@ fun FilledField(
     placeholder: String? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     password: Boolean = false,
-    singleLine: Boolean = true
+    singleLine: Boolean = true,
+    /** Sits at the end of the field, for an action that fills it rather than clears it. */
+    trailingIcon: @Composable (() -> Unit)? = null
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
@@ -323,6 +325,7 @@ fun FilledField(
         onValueChange = onValueChange,
         label = label?.let { { Text(it) } },
         placeholder = placeholder?.let { { Text(it) } },
+        trailingIcon = trailingIcon,
         singleLine = singleLine,
         interactionSource = interaction,
         shape = FieldShape,

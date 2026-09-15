@@ -409,6 +409,7 @@
     <string name="scan_permission_open_settings">Open settings</string>
     <string name="scan_no_camera">This device has no camera. Paste the address and the secret by hand instead.</string>
     <string name="scan_camera_failed">The camera could not be started.</string>
+    <string name="webhook_scan_lead">Scan a pairing code</string>
     <string name="webhook_scan_button">Scan</string>
     <string name="onboarding_scan_option">Scan a code from Home Assistant</string>
     <string name="onboarding_scan_desc">The integration shows a QR code. Scanning it fills in the address and the signing secret for you.</string>
