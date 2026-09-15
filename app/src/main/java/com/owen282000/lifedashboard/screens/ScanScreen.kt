@@ -7,11 +7,14 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
+import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -180,6 +183,21 @@ private fun CameraPreview(onText: (String) -> Unit, onFailed: () -> Unit) {
                     // Decode the newest frame and drop the backlog: a stale frame is a
                     // code the camera is no longer pointing at.
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    // CameraX analyses at 640x480 by default, which is not enough for a
+                    // pairing code: the URL makes a 69-module symbol, so half a 480-pixel
+                    // frame leaves 3.5 pixels per module and the modules blur together.
+                    // 720p doubles that. Measured, not guessed: at 480p the analyzer ran
+                    // 225 frames on a code filling the viewfinder without one decode.
+                    .setResolutionSelector(
+                        ResolutionSelector.Builder()
+                            .setResolutionStrategy(
+                                ResolutionStrategy(
+                                    Size(1280, 720),
+                                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+                                )
+                            )
+                            .build()
+                    )
                     .build()
                     .also { it.setAnalyzer(executor, QrAnalyzer { text -> latestOnText(text) }) }
 
