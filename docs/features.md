@@ -62,7 +62,9 @@ The two are complementary rather than rivals: keep the companion app for presenc
 
 ## Home Assistant and MQTT
 
-<img src="screenshots/home-assistant.png" alt="The device Home Assistant creates from the app's MQTT discovery messages, with its sensors" width="720">
+<img src="screenshots/mqtt.png" alt="The MQTT section in the app: broker host, port, optional credentials and a shared base topic" width="300" align="right">
+
+<img src="screenshots/home-assistant.png" alt="The device Home Assistant creates from the app's MQTT discovery messages, with its sensors" width="560">
 
 - **MQTT publishing with Home Assistant Discovery** - point the app at your MQTT broker and sensors appear in Home Assistant automatically, grouped under one device: today's totals for steps, distance and calories, and the latest value for heart rate, sleep duration, weight, blood pressure and the other point-in-time types. No server-side configuration needed.
 - States and discovery configs are published retained, so values survive Home Assistant restarts
@@ -79,6 +81,8 @@ The two are complementary rather than rivals: keep the companion app for presenc
 - Everything defaults to every record: bucketing is lossy and is offered, never applied on your behalf
 
 ## Sync scheduling
+
+<img src="screenshots/sync-schedule.png" alt="Sync Schedule set to fixed times: 09:00, 11:00 and 14:00, on Monday, Wednesday, Thursday, Saturday and Sunday" width="300" align="right">
 
 - **Two modes per source** - a fixed interval (minimum 15 minutes, as before) or a list of times of day. Health Connect and Screen Time are scheduled separately, so screen time can sync hourly while health syncs at 08:00 and 21:00
 - **Fixed times** suit data that arrives in batches: a watch writes the night to Health Connect when it syncs in the morning, so one sync at 08:00 puts the sleep, resting heart rate and HRV in Home Assistant before you look at it

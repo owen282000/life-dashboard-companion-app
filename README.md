@@ -26,10 +26,11 @@
   <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iOS version</a>
 </p>
 
-| Health Connect | Screen Time | Data resolution | Delivery logs |
-|:--:|:--:|:--:|:--:|
-| <img src="docs/screenshots/health-connect.png" alt="Health Connect screen showing 4 records today and 59,073 lifetime, with a steps sparkline"> | <img src="docs/screenshots/screen-time.png" alt="Screen Time screen showing today's minutes, the most used app and a day boundary"> | <img src="docs/screenshots/data-resolution.png" alt="Per-type resolution: heart rate averaged per minute, steps summed per 15 minutes"> | <img src="docs/screenshots/logs.png" alt="Logs screen showing deliveries to a webhook and to MQTT, each with its outcome"> |
-| 33 data types, per-type toggles, incremental sync | Foreground time per app, with a custom day boundary | Dense series as averages or totals per window | Every delivery logged, payloads inspectable |
+| Health Connect | Screen Time | Sync schedule | Data resolution | Delivery logs |
+|:--:|:--:|:--:|:--:|:--:|
+| <img src="docs/screenshots/health-connect.png" alt="Health Connect screen showing 4 records today and 59,073 lifetime, with a steps sparkline"> | <img src="docs/screenshots/screen-time.png" alt="Screen Time screen showing today's minutes, the most used app and a day boundary"> | <img src="docs/screenshots/sync-schedule.png" alt="Sync Schedule set to fixed times: 09:00, 11:00 and 14:00, on selected weekdays"> | <img src="docs/screenshots/data-resolution.png" alt="Per-type resolution: heart rate averaged per minute, steps summed per 15 minutes"> | <img src="docs/screenshots/logs.png" alt="Logs screen showing deliveries to a webhook and to MQTT, each with its outcome"> |
+| 33 data types, per-type toggles, incremental sync | Foreground time per app, with a custom day boundary | An interval, or times you choose, with quiet hours | Dense series as averages or totals per window | Every delivery logged, payloads inspectable |
+
 
 ## Why this app?
 
@@ -60,12 +61,6 @@ Point the app at the MQTT broker Home Assistant already uses and tap **Sync Now*
 
 <p align="center">
   <img src="docs/screenshots/home-assistant.png" alt="The Life Dashboard Companion device in Home Assistant with its sensors" width="720">
-</p>
-
-The app side of the same setup, with the broker shared between Health Connect and Screen Time:
-
-<p align="center">
-  <img src="docs/screenshots/mqtt.png" alt="The MQTT section in the app: broker host, port, optional credentials and base topic" width="300">
 </p>
 
 The two-minute walkthrough is in [docs/usage.md](docs/usage.md#phone-to-home-assistant-in-two-minutes); [docs/features.md](docs/features.md#home-assistant-and-mqtt) lists every sensor.
