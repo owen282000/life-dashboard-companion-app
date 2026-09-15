@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-09-15
+
+### Added
+
+- **Pairing by QR code.** The Life Dashboard integration for Home Assistant shows a code; point the phone's camera at it and the app opens with the address and the signing secret ready to confirm. The link is an Android App Link verified against the release signing certificate, so the browser is skipped entirely and no other app can claim it. Without the app installed the code opens a page that says where to get it
+- **A scanner in the app**, on the Webhook card of both tabs and as the first option in the setup wizard, for a code on a screen you are already looking at. CameraX with ZXing, no Play Services: the APK still carries none. The camera permission is asked for at the moment of scanning, never at startup, and the camera is released as soon as the scanner closes
+- One confirmation dialog for every route in: it names the receiver and its host, offers the sections the receiver accepts, says when a section's existing secret will be replaced, and turns on plain HTTP only when the address needs it and you agree. Nothing is written until you tap **Pair**, and a scanned code never decides which data types are synced or when
+- Pairing appends the address rather than replacing the list, so a second receiver you configured by hand survives
+
+### Changed
+
+- The setup wizard stores a signing secret, which it never did: it wrote addresses only, so a scanned secret would have been dropped on a first run
+- On a webhook card with no receiver yet, scanning leads: a full-width button above the address field. Once one exists the button is gone and the scanner is a QR icon inside the field, so the card is no taller than before
+
 ## [1.15.0] - 2026-09-15
 
 ### Added

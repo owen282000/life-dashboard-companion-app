@@ -56,6 +56,34 @@ Moving from another device? Import your settings under **About > Backup & restor
 
 ## Phone to Home Assistant in two minutes
 
+Two routes, and neither needs YAML. The **Life Dashboard integration** (installed through
+HACS from [life-dashboard-ha](https://github.com/owen282000/life-dashboard-ha)) needs no
+broker at all and is paired by scanning a code. **MQTT** needs a broker Home Assistant
+already talks to, and publishes retained values that survive a restart. Pick one: running
+both gives you two devices holding the same numbers.
+
+### Pairing by QR code
+
+The integration shows a QR code when you add it, and again under its Reconfigure. Three
+ways to use it, all ending in the same confirmation dialog:
+
+- **Point your phone's camera at it.** The app opens straight from the camera, because the
+  code is an Android App Link verified against the app's signing certificate.
+- **Tap Scan a pairing code** on the Webhook card of the Health or Screen Time tab. Once a
+  receiver is set up the button becomes a small QR icon inside the address field.
+- **From the setup wizard**, as the first option under "Where should your data go?".
+
+The app then asks which sections to fill, says so when a section's existing signing secret
+will be replaced, and offers to allow plain HTTP when the address is an internal
+`http://` one. Nothing is written until you tap **Pair**. What is synced, and on what
+schedule, stays a choice on the tabs: a scanned code only ever fills in the address and
+the secret.
+
+Without the app installed, the code opens a page that explains where to get it. The secret
+travels in the part of the link after the `#`, which a browser never sends to any server.
+
+### MQTT
+
 The MQTT route needs no YAML and no server-side setup beyond a broker Home Assistant already talks to.
 
 1. In Home Assistant, install the **Mosquitto broker** add-on (Settings > Add-ons) and add the **MQTT** integration if it is not there yet. Create a user for the app under Settings > People, or in the add-on's login list; a dedicated account keeps the app's credentials out of your own.
@@ -77,6 +105,29 @@ Many manufacturers (Samsung, Xiaomi, OnePlus, Huawei, and others) aggressively k
 3. Keep in mind Android enforces a minimum interval of 15 minutes for periodic background work, and may delay syncs further in Doze mode.
 
 The Logs tab shows when the last sync attempts actually ran, which helps confirm whether syncs are being suppressed.
+
+### Scanning the code opens a web page instead of the app
+
+Android verifies the link against the app's signing certificate the first time the app is
+installed, and caches the answer. An APK from GitHub Releases or F-Droid carries the right
+signature, but a build you signed yourself does not, and a device that had no network
+during install may have failed the check.
+
+The page the browser opens has an **Open in the app** button, which works regardless.
+To fix the camera route itself, reinstall the released APK, or approve the domain by hand:
+
+```sh
+adb shell pm verify-app-links --re-verify com.owen282000.lifedashboard
+adb shell pm get-app-links com.owen282000.lifedashboard
+```
+
+The second command should say `owen282000.github.io: verified`. Scanning from inside the
+app (the **Scan** button on the Webhook card) never depends on this.
+
+### The app says a pairing code is from a newer version
+
+The code carries a format version, and this build only reads version 1. Update the app and
+scan again; the integration and the app ship their formats in step.
 
 ### "CLEARTEXT communication not permitted" or "Plain HTTP is blocked"
 

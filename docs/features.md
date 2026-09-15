@@ -32,6 +32,7 @@ What individual source apps do and do not write is collected in [DATA_SOURCES.md
 
 ## Webhook configuration
 
+- **Pairing by QR code** - the [Home Assistant integration](https://github.com/owen282000/life-dashboard-ha) shows a code; the phone's camera or the scanner in the app fills in the address and the secret, after one confirmation. See [Pairing by QR code](usage.md#pairing-by-qr-code)
 - **HMAC signing** with a generated secret: one tap produces 32 bytes of entropy as hex, and the same value on your server verifies every `X-Signature`
 - **Multiple webhook URLs** - send to several endpoints simultaneously
 - **Custom headers** - auth tokens, API keys, or any custom HTTP header, per category
@@ -61,6 +62,11 @@ The [Home Assistant companion app](https://companion.home-assistant.io/docs/core
 The two are complementary rather than rivals: keep the companion app for presence, notifications and device sensors, and add this app when you want the full health pipeline, history, or delivery to anything that is not Home Assistant.
 
 ## Home Assistant and MQTT
+
+Two ways in. The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha),
+installed through HACS, receives the webhook directly and needs no broker; it is paired by
+scanning a QR code. MQTT, described below, publishes retained values through Discovery and
+suits a setup that already has a broker. Either one, not both.
 
 <img src="screenshots/mqtt.png" alt="The MQTT section in the app: broker host, port, optional credentials and a shared base topic" width="300" align="right">
 

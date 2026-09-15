@@ -1,0 +1,4 @@
+Added:
+
+- Pairing by QR code. The Life Dashboard integration for Home Assistant shows a code; point the phone's camera at it and the app opens with the address and the signing secret ready to confirm. The link is an Android App Link verified against the release signing certificate, so the browser is skipped entirely and no other app can claim it. Without the app installed the code opens a ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
