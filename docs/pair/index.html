@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!--
+  The page a Life Dashboard pairing QR code points at.
+
+  Everything the phone needs (webhook URL, signing secret) is in the fragment after
+  the #, which a browser never sends to any server (RFC 3986, section 3.5). This page
+  reads it with JavaScript and builds two links from it. It makes no request of any
+  kind: no fetch, no fonts, no analytics, no images. Read it and see.
+
+  With the app installed on Android, the camera opens the app directly through an App
+  Link and this page is never shown. It is the fallback: the app is missing, or the
+  link was opened in a browser that does not verify App Links.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
+<title>Pair Life Dashboard Companion</title>
+<style>
+  :root { --bg: #14181C; --card: #1B2126; --text: #E6EDF0; --muted: #9AA7B0; --green: #30B77E; --line: #2A3238; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: radial-gradient(120% 120% at 30% 25%, #171D21 0%, var(--bg) 45%, #101C1C 100%);
+         color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         display: grid; place-items: center; padding: 24px; }
+  main { width: 100%; max-width: 440px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
+  h1 { font-size: 1.35rem; margin: 0 0 4px; }
+  p { margin: 12px 0; }
+  .muted { color: var(--muted); }
+  .host { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); border: 1px solid var(--line);
+          border-radius: 8px; padding: 10px 12px; word-break: break-all; }
+  .btn { display: block; text-align: center; text-decoration: none; border-radius: 12px; padding: 14px 18px; margin-top: 12px;
+         font-weight: 600; border: 1px solid var(--line); color: var(--text); }
+  .btn.primary { background: var(--green); color: #0B1A12; border-color: var(--green); }
+  .btn.disabled { opacity: .45; pointer-events: none; }
+  a { color: var(--green); }
+  small { display: block; margin-top: 18px; color: var(--muted); font-size: .85rem; }
+  [hidden] { display: none !important; }
+  ul { padding-left: 20px; margin: 8px 0; }
+</style>
+</head>
+<body>
+<main>
+  <section id="pair" hidden>
+    <h1>Pair Life Dashboard Companion</h1>
+    <p class="muted">with <strong id="receiver">a receiver</strong> at</p>
+    <p class="host" id="host"></p>
+    <p>If the app is installed, open it and confirm the pairing there. The app asks
+       before it writes anything.</p>
+    <a id="open" class="btn primary" href="#">Open in the app</a>
+    <a id="open-scheme" class="btn" href="#">Open in the app (other browsers)</a>
+    <p class="muted" style="margin-top:20px">No app yet?</p>
+    <a class="btn" href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest">Install from GitHub Releases</a>
+    <p class="muted"><a href="https://github.com/ImranR98/Obtainium">Obtainium</a> can install and update it from GitHub as well.</p>
+    <small>This page never sees your secret. It stays in the part of the link after the
+      <code>#</code>, which your browser keeps to itself. Installed the app after opening
+      this page? Scan the code again, or use the camera button in the app.</small>
+  </section>
+
+  <section id="bad" hidden>
+    <h1>Not a pairing link</h1>
+    <p id="bad-reason" class="muted"></p>
+    <p>Scan the QR code shown by the Life Dashboard integration in Home Assistant, or
+       use the camera button on the Webhook card in the app.</p>
+  </section>
+
+  <section id="about" hidden>
+    <h1>Life Dashboard Companion</h1>
+    <p>This address is where the app's pairing QR codes point. Opened on its own it does
+       nothing; scanned from Home Assistant it hands the app a webhook address and a
+       signing secret.</p>
+    <a class="btn primary" href="https://github.com/owen282000/life-dashboard-companion-app">About the app</a>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var PACKAGE = "com.owen282000.lifedashboard";
+  var SCHEME = "lifedashboard";
+
+  function show(id) {
+    ["pair", "bad", "about"].forEach(function (s) { document.getElementById(s).hidden = s !== id; });
+  }
+
+  var raw = window.location.hash.slice(1);
+  if (!raw) { show("about"); return; }
+
+  var params;
+  try { params = new URLSearchParams(raw); } catch (e) { params = null; }
+  if (!params || params.get("v") !== "1") {
+    document.getElementById("bad-reason").textContent =
+      params && params.get("v") ? "This code uses a format version this page does not know." : "The link is missing its pairing details.";
+    show("bad");
+    return;
+  }
+
+  var url = params.get("url") || "";
+  var secret = params.get("secret") || "";
+  var host = "";
+  try { host = new URL(url).host; } catch (e) { host = ""; }
+  if (!host || !secret) {
+    document.getElementById("bad-reason").textContent = "The link is missing its address or its secret.";
+    show("bad");
+    return;
+  }
+
+  document.getElementById("receiver").textContent = params.get("name") || "a receiver";
+  document.getElementById("host").textContent = host;
+
+  // The same fragment, handed to the app. Intent.parseUri splits on the LAST "#", so
+  // the payload fragment before "#Intent;" survives into the app's intent data.
+  var here = window.location.origin + window.location.pathname;
+  var intentLink = "intent://pair#" + raw + "#Intent;scheme=" + SCHEME + ";package=" + PACKAGE +
+                   ";S.browser_fallback_url=" + encodeURIComponent(here) + ";end";
+  document.getElementById("open").setAttribute("href", intentLink);
+  document.getElementById("open-scheme").setAttribute("href", SCHEME + "://pair#" + raw);
+
+  show("pair");
+})();
+</script>
+</body>
+</html>
