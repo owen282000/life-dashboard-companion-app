@@ -55,7 +55,7 @@ class PreferencesManager(context: Context) {
 
     /** One-time migration of secrets that older versions kept in plain SharedPreferences. */
     private fun migrateSecretsToEncryptedStorage() {
-        if (secretsUnavailable) return  // Keystore unavailable, nothing to migrate into
+        if (secretsUnavailable) return // Keystore unavailable, nothing to migrate into
         val secretKeys = listOf(
             KEY_HEALTH_WEBHOOK_HEADERS, KEY_SCREENTIME_WEBHOOK_HEADERS,
             KEY_HEALTH_WEBHOOK_SECRET, KEY_SCREENTIME_WEBHOOK_SECRET
@@ -148,6 +148,7 @@ class PreferencesManager(context: Context) {
 
         private const val KEY_INCLUDE_DAILY_TOTALS = "include_daily_totals"
         private const val KEY_ALLOW_HTTP_WEBHOOKS = "allow_http_webhooks"
+
         /** Shared MQTT broker keys: mqtt_host, mqtt_port, mqtt_tls, mqtt_username, mqtt_password (securePrefs). */
         private const val SHARED_MQTT_PREFIX = "mqtt_"
 

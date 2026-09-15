@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -31,9 +30,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.owen282000.lifedashboard.ConfigBackup
 import com.owen282000.lifedashboard.ConfigBackupManager
-import com.owen282000.lifedashboard.SyncScheduler
 import com.owen282000.lifedashboard.ConfigCrypto
 import com.owen282000.lifedashboard.ExportManager
+import com.owen282000.lifedashboard.SyncScheduler
 
 /**
  * Export and import of all settings.

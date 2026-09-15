@@ -217,5 +217,4 @@ class ConfigBackupTest {
         assertNull(restored.health.quietFrom)
         assertNull(restored.options.seriesResolutions)
     }
-
 }

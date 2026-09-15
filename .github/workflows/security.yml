@@ -63,9 +63,11 @@ jobs:
           sarif_file: 'trivy-config-results.sarif'
           category: 'trivy-config'
 
+      # The only place secrets are scanned. build.yml used to run this too, on the same push,
+      # which doubled the runtime of every build for an identical result.
       - name: Detect secrets with TruffleHog
         uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4
         with:
           path: ./
           version: 3.97.0
-          extra_args: --debug --only-verified
+          extra_args: --only-verified

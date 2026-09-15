@@ -2,16 +2,41 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.kover)
+}
+
+// ktlint enforces a deliberately narrow rule set, configured in .editorconfig.
+//
+// The full set flags 4,276 violations across 82 files, almost entirely argument wrapping and
+// trailing commas. Auto-formatting that would rewrite every file, destroy git blame for the
+// whole codebase and change no behaviour, which is a bad trade while F-Droid is reviewing this
+// very code. What remains enforced is the part that catches mistakes: unused imports, wildcard
+// imports outside the packages listed in .editorconfig, import order and stray whitespace.
+ktlint {
+    version.set("1.5.0")
+    // Off on purpose: it layers a rule set of its own over .editorconfig.
+    android.set(false)
+    ignoreFailures.set(false)
+    filter {
+        exclude { it.file.path.contains("/build/") }
+    }
 }
 
 // The latest semver git tag (X.Y.Z, no prefix) is the single source of truth for the app
 // version. Tagging a release is the only version bump needed; CI enforces tag validity.
-fun runGit(vararg args: String): String? = try {
-    val process = ProcessBuilder("git", *args).directory(rootDir).start()
-    val output = process.inputStream.bufferedReader().readText().trim()
-    if (process.waitFor() == 0 && output.isNotEmpty()) output else null
-} catch (e: Exception) {
-    null
+// providers.exec rather than ProcessBuilder: reading process output directly at configuration
+// time makes the build unfit for Gradle's configuration cache, because the result cannot be
+// tracked as an input. This form is cache-correct and behaves identically, including the
+// empty-output and non-zero-exit cases that a repository without tags produces.
+fun runGit(vararg args: String): String? {
+    val result = providers.exec {
+        commandLine("git", *args)
+        workingDir = rootDir
+        isIgnoreExitValue = true
+    }
+    if (result.result.get().exitValue != 0) return null
+    return result.standardOutput.asText.get().trim().takeIf { it.isNotEmpty() }
 }
 
 val semverRegex = Regex("""^(\d+)\.(\d+)\.(\d+)$""")

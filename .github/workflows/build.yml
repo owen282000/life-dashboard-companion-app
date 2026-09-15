@@ -45,37 +45,23 @@ jobs:
           # Compose UI. This is the equivalent guard; it keeps new screens translatable.
           chmod +x scripts/check-hardcoded-strings.sh
           ./scripts/check-hardcoded-strings.sh
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
+      - name: Coverage report
+        run: ./gradlew koverXmlReport
+      - name: Upload coverage report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage
+          path: app/build/reports/kover/report.xml
+          retention-days: 30
 
       - name: Run Android Lint
         run: ./gradlew lintDebug
       - name: Build APK
         run: ./gradlew assembleDebug
-
-      # Scans run on pushes only: PR runs (e.g. Dependabot) have a read-only token, which
-      # cannot upload SARIF; security.yml covers pull requests separately.
-      - name: Run security scan (Trivy)
-        if: github.event_name != 'pull_request'
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
-        if: always() && github.event_name != 'pull_request'
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-      - name: Check for secrets with TruffleHog
-        if: github.event_name != 'pull_request'
-        uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4
-        with:
-          path: ./
-          version: 3.97.0
 
       - name: Upload APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

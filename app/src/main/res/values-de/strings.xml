@@ -373,4 +373,7 @@
     <string name="resolution_1h">1 Std.</string>
     <string name="resolution_group_sampled">Pro Fenster gemittelt</string>
     <string name="resolution_group_accumulated">Pro Fenster summiert</string>
+    <string name="activity_logs_label">Zustellprotokoll</string>
+    <string name="activity_about_label">Über</string>
+    <string name="tile_sync_label">Life Dashboard synchronisieren</string>
 </resources>

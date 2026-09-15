@@ -3,8 +3,8 @@ package com.owen282000.lifedashboard.viewmodel
 import android.content.Context
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.LifeDashboardApplication
-import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.LogType
+import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.SyncFailureNotifier
 

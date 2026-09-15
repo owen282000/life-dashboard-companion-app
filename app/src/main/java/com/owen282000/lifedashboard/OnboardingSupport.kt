@@ -20,7 +20,6 @@ object OnboardingSupport {
         add(Step.DONE)
     }
 
-
     /** The choices offered for the data-type step. */
     enum class TypePreset { ALL, ESSENTIALS, LATER }
 

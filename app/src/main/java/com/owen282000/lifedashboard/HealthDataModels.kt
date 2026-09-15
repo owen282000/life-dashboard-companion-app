@@ -483,4 +483,3 @@ val HealthDataType.maxRecordsPerSync: Int
         HealthDataType.SKIN_TEMPERATURE -> 500
         else -> 200
     }
-

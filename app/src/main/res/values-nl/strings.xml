@@ -373,4 +373,7 @@
     <string name="resolution_1h">1 uur</string>
     <string name="resolution_group_sampled">Gemiddeld per venster</string>
     <string name="resolution_group_accumulated">Opgeteld per venster</string>
+    <string name="activity_logs_label">Bezorglogboek</string>
+    <string name="activity_about_label">Over</string>
+    <string name="tile_sync_label">Life Dashboard syncen</string>
 </resources>

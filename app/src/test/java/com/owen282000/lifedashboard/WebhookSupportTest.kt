@@ -1,9 +1,9 @@
 package com.owen282000.lifedashboard
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -32,7 +32,7 @@ class WebhookSupportTest {
 
     @Test
     fun transientFailuresAreRetryable() {
-        assertTrue(WebhookSupport.isRetryable(null))  // network error, no HTTP response
+        assertTrue(WebhookSupport.isRetryable(null)) // network error, no HTTP response
         assertTrue(WebhookSupport.isRetryable(408))
         assertTrue(WebhookSupport.isRetryable(429))
         assertTrue(WebhookSupport.isRetryable(500))

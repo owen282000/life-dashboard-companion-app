@@ -76,12 +76,12 @@
         <activity
             android:name=".LogsActivity"
             android:exported="false"
-            android:label="Webhook Logs" />
+            android:label="@string/activity_logs_label" />
 
         <activity
             android:name=".AboutActivity"
             android:exported="false"
-            android:label="About" />
+            android:label="@string/activity_about_label" />
 
         <!-- File Provider for export sharing -->
         <provider
@@ -120,7 +120,7 @@
             android:name=".SyncTileService"
             android:exported="true"
             android:icon="@drawable/ic_tile_sync"
-            android:label="Sync Life Dashboard"
+            android:label="@string/tile_sync_label"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

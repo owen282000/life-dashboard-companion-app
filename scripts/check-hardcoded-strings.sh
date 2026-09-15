@@ -37,7 +37,10 @@ is_allowlisted() {
 
 # Composables and calls that put text on screen. Matches a double-quoted literal of two or more
 # characters as the argument; stringResource(...) calls have no literal and never match.
-PATTERN='(Text\(|contentDescription = |Toast\.makeText\([^,]+, )"[^"]{2,}"'
+# `qsTile` / `label =` catches the Quick Settings tile, which is not Compose but is just as
+# visible. Animation labels (animateFloatAsState, updateTransition) are debug names that never
+# reach the screen, so they are skipped below rather than matched here.
+PATTERN='(Text\(|contentDescription = |Toast\.makeText\([^,]+, |label = )"[^"]{2,}"'
 
 violations=0
 report=""
@@ -53,6 +56,9 @@ while IFS= read -r file; do
         case "$text" in
             *contentDescription*=*null*) continue ;;
             *'Text("$'*) continue ;;
+            # Compose animation labels are debug names for the inspector, not UI text.
+            *animate*label\ =*|*updateTransition*label\ =*|*transition.animate*) continue ;;
+            *label\ =\ \"tab_transition\"*) continue ;;
         esac
         report+="  $file:$line"$'\n'
         report+="      ${text#"${text%%[![:space:]]*}"}"$'\n'
@@ -60,12 +66,26 @@ while IFS= read -r file; do
     done < <(grep -nE "$PATTERN" "$file" || true)
 done < <(find "$SRC" -name "*.kt" | sort)
 
+# android:label in the manifest shows up in the app switcher, the launcher and the Quick
+# Settings tile. Android's own lint does not flag it, and the Compose scan above never reads
+# XML, so all three labels stayed in English until September 2026.
+MANIFEST="app/src/main/AndroidManifest.xml"
+while IFS= read -r hit; do
+    line="${hit%%:*}"
+    text="${hit#*:}"
+    report+="  $MANIFEST:$line"$'\n'
+    report+="      ${text#"${text%%[![:space:]]*}"}"$'\n'
+    violations=$((violations + 1))
+done < <(grep -nE 'android:label="[^@"]' "$MANIFEST" || true)
+
 if [ "$violations" -gt 0 ]; then
     echo "Hardcoded user-facing strings found ($violations):"
     echo ""
     printf '%s' "$report"
     echo ""
-    echo "Move them to app/src/main/res/values/strings.xml and use stringResource(R.string.…)."
+    echo "Move them to app/src/main/res/values/strings.xml and reference them:"
+    echo "  Kotlin:   stringResource(R.string.…) or getString(R.string.…)"
+    echo "  Manifest: android:label=\"@string/…\""
     echo "If a file is mid-migration, add it to ALLOWLIST in $0 and shrink that list later."
     exit 1
 fi

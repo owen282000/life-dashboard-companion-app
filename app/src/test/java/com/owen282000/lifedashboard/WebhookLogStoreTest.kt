@@ -87,7 +87,7 @@ class WebhookLogStoreTest {
      */
     @Test
     fun oneHundredBusySyncsStayWithinTheByteCap() {
-        val busyPayload = 260L * 1024  // HR + steps at their per-sync caps
+        val busyPayload = 260L * 1024 // HR + steps at their per-sync caps
         val entries = List(100) { busyPayload }
 
         val kept = WebhookLogStore.entriesToKeep(entries) { it }

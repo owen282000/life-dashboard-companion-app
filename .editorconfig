@@ -1,0 +1,72 @@
+# Kotlin official style, which gradle.properties already declares with kotlin.code.style=official.
+# ktlint reads this file, so the rules live in one place rather than in build logic.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{kt,kts}]
+max_line_length = 120
+ktlint_code_style = intellij_idea
+
+# ktlint runs in CI with most of its formatting rules off, on purpose.
+#
+# Enabling the full set reported 4,276 violations across 82 files, nearly all of it argument
+# wrapping and trailing commas. Auto-formatting that would touch every file in the repository,
+# destroy git blame for the whole codebase, and change no behaviour at all. What is left below
+# is the subset that catches actual mistakes rather than a difference of opinion about layout.
+ktlint_standard_argument-list-wrapping = disabled
+ktlint_standard_parameter-list-wrapping = disabled
+ktlint_standard_trailing-comma-on-call-site = disabled
+ktlint_standard_trailing-comma-on-declaration-site = disabled
+ktlint_standard_function-signature = disabled
+ktlint_standard_max-line-length = disabled
+ktlint_standard_multiline-expression-wrapping = disabled
+ktlint_standard_string-template-indent = disabled
+ktlint_standard_statement-wrapping = disabled
+ktlint_standard_curly-spacing = disabled
+ktlint_standard_indent = disabled
+ktlint_standard_wrapping = disabled
+ktlint_standard_comment-wrapping = disabled
+ktlint_standard_function-literal = disabled
+ktlint_standard_blank-line-before-declaration = disabled
+ktlint_standard_if-else-wrapping = disabled
+ktlint_standard_chain-method-continuation = disabled
+ktlint_standard_condition-wrapping = disabled
+ktlint_standard_class-signature = disabled
+ktlint_standard_function-expression-body = disabled
+# Composable functions are capitalised by convention; ktlint reads them as violations.
+ktlint_standard_function-naming = disabled
+# Braces around single-line if bodies are a house-style choice, not a correctness rule, and
+# adding 118 of them would rewrite expression bodies that read better as they are. The rule
+# that produces "Missing { ... }" is multiline-if-else; if-else-bracing is a different one.
+ktlint_standard_multiline-if-else = disabled
+ktlint_standard_if-else-bracing = disabled
+ktlint_standard_no-single-line-block-comment = disabled
+ktlint_standard_no-empty-first-line-in-method-block = disabled
+ktlint_standard_no-consecutive-comments = disabled
+
+# What is left is the part worth enforcing: no unused imports, no wildcard imports, a stable
+# import order, and no stray whitespace. Those catch real mistakes and never start an argument.
+
+# no-wildcard-imports honours this list: the packages below may stay star imports because
+# they already are, and expanding thirteen of them by hand is churn with no behaviour change.
+# Anything else must be imported by name, which is the part of the rule worth having.
+ij_kotlin_packages_to_use_import_on_demand = androidx.compose.animation.*,androidx.compose.foundation.layout.*,androidx.compose.material.icons.filled.*,androidx.compose.material.icons.outlined.*,androidx.compose.material3.*,androidx.compose.runtime.*,androidx.health.connect.client.records.*,com.owen282000.lifedashboard.ui.theme.*,java.util.*
+
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+[*.{yml,yaml,json}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab

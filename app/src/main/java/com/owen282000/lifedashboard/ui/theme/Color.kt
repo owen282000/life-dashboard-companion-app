@@ -20,13 +20,13 @@ val SurfaceLight = Color(0xFFFFFFFF)
 val SurfaceDark = Color(0xFF161B22)
 
 // Health Connect specific colors
-val HealthPrimary = Color(0xFF10B981)  // Emerald green
+val HealthPrimary = Color(0xFF10B981) // Emerald green
 val HealthPrimaryContainer = Color(0xFFD1FAE5)
 val HealthOnPrimaryContainer = Color(0xFF064E3B)
 
 // Screen Time specific colors
-val ScreenTimePrimary = Color(0xFF8B5CF6)  // Purple (matching emerald subtlety)
-val ScreenTimePrimaryDark = Color(0xFF7C3AED)  // Darker purple
+val ScreenTimePrimary = Color(0xFF8B5CF6) // Purple (matching emerald subtlety)
+val ScreenTimePrimaryDark = Color(0xFF7C3AED) // Darker purple
 val ScreenTimePrimaryContainer = Color(0xFFEDE9FE)
 val ScreenTimeOnPrimaryContainer = Color(0xFF4C1D95)
 

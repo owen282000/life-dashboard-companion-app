@@ -4,11 +4,10 @@ import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.permission.HealthPermission
-import com.owen282000.lifedashboard.NutritionSupport.toNutritionData
 import androidx.health.connect.client.records.*
-import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import com.owen282000.lifedashboard.NutritionSupport.toNutritionData
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -748,7 +747,7 @@ class HealthConnectManager(private val context: Context) {
     }
 
     companion object {
-        private const val LOOKBACK_HOURS = 168L  // 7 days
+        private const val LOOKBACK_HOURS = 168L // 7 days
         private fun skippedWindowsNote(skippedWindows: Int): String? =
             if (skippedWindows > 0) {
                 "Skipped $skippedWindows unreadable window(s) of max " +

@@ -12,7 +12,7 @@ class SyncTileService : TileService() {
         super.onStartListening()
         qsTile?.apply {
             state = Tile.STATE_INACTIVE
-            label = "Sync Life Dashboard"
+            label = getString(R.string.tile_sync_label)
             updateTile()
         }
     }

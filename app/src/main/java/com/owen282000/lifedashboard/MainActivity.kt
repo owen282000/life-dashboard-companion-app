@@ -1,9 +1,7 @@
 package com.owen282000.lifedashboard
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,8 +16,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -27,12 +23,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 import com.owen282000.lifedashboard.screens.HealthConnectScreen
-import com.owen282000.lifedashboard.screens.OnboardingScreen
 import com.owen282000.lifedashboard.screens.LogsScreen
+import com.owen282000.lifedashboard.screens.OnboardingScreen
 import com.owen282000.lifedashboard.screens.ScreenTimeScreen
 import com.owen282000.lifedashboard.ui.theme.*
+import kotlinx.coroutines.launch
 
 enum class AppTab {
     HealthConnect,
@@ -246,4 +242,3 @@ private fun NavBarItem(
         }
     }
 }
-
