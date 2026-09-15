@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-09-15
+
 ### Added
 
 - A **Generate** button next to the HMAC signing secret: 32 bytes from SecureRandom, hex encoded, so nobody has to invent a passphrase. Copy puts it on the clipboard flagged as sensitive on Android 13 and later
@@ -248,7 +250,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.14.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.15.0...HEAD
+[1.15.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.14.0...1.15.0
 [1.14.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.13.4...1.14.0
 [1.13.4]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.13.3...1.13.4
 [1.13.3]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.13.2...1.13.3

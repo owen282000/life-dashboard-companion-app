@@ -1,0 +1,8 @@
+Added:
+
+- A Generate button next to the HMAC signing secret: 32 bytes from SecureRandom, hex encoded, so nobody has to invent a passphrase. Copy puts it on the clipboard flagged as sensitive on Android 13 and later
+
+Changed:
+
+- The Screen Time day boundary is chosen with a clock instead of typed as a number, shown in the device's own 12 or 24 hour format. Stored exactly as before, as a ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
