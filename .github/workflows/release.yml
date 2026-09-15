@@ -8,6 +8,12 @@ on:
 permissions:
   contents: read
 
+# Unlike the other workflows this never cancels in progress: a half-finished release would
+# leave a tag with no APK behind it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-release:
     runs-on: ubuntu-latest
@@ -54,8 +60,22 @@ jobs:
           cache: gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      # build.yml runs these on every push to main, but a tag can sit on a commit that
+      # never went through it, or where it failed. Releasing is the last place to find out.
+      - name: Check for hardcoded UI strings
+        run: |
+          chmod +x scripts/check-hardcoded-strings.sh
+          ./scripts/check-hardcoded-strings.sh
+      # testDebugUnitTest, not testReleaseUnitTest: the release variant has no unit test
+      # task in this project, and the tests are variant independent anyway.
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest
+      - name: Run Android Lint
+        run: ./gradlew lintRelease
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_FILE_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/keystore.jks"
+        env:
+          KEYSTORE_FILE_BASE64: ${{ secrets.KEYSTORE_FILE_BASE64 }}
+        run: printf '%s' "$KEYSTORE_FILE_BASE64" | base64 --decode > "$RUNNER_TEMP/keystore.jks"
       - name: Build signed release APK
         env:
           KEYSTORE_PATH: ${{ runner.temp }}/keystore.jks
@@ -73,12 +93,22 @@ jobs:
           subject-path: app/build/outputs/apk/release/app-release.apk
       - name: Prepare provenance bundle as release asset
         run: cp "${{ steps.attest.outputs.bundle-path }}" app-release.apk.sigstore.json
+      - name: Name the R8 mapping after the tag
+        run: cp app/build/outputs/mapping/release/mapping.txt "mapping-$GITHUB_REF_NAME.txt"
       - name: Upload release APK as artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-apk
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 90
+      # Without this a stack trace from a bug report is unreadable and cannot be
+      # deobfuscated later: the mapping only exists in the runner that built the APK.
+      - name: Upload R8 mapping as artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-mapping
+          path: mapping-${{ github.ref_name }}.txt
+          retention-days: 365
       - name: Extract changelog section for this tag
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -125,5 +155,6 @@ jobs:
           files: |
             app/build/outputs/apk/release/app-release.apk
             app-release.apk.sigstore.json
+            mapping-${{ github.ref_name }}.txt
           body_path: RELEASE_NOTES.md
           generate_release_notes: true
