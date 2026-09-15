@@ -25,26 +25,34 @@ Compare it against a downloaded APK with `apksigner` from the Android SDK build 
 apksigner verify --print-certs app-release.apk | grep "SHA-256 digest"
 ```
 
+That prints the same value without separators and in lower case, which is the other common way of writing it:
+
+```
+271406d5baf790506e914d82aca2533336ae083d01c79fbacb0015f42e4ff61f
+```
+
 A different fingerprint means the APK was not signed by this project, whatever the file is called. F-Droid pins the same value as `AllowedAPKSigningKeys`.
 
 **The provenance attestation** links the APK to the workflow run and the commit that produced it. With the [GitHub CLI](https://cli.github.com/):
 
 ```bash
-gh attestation verify app-release.apk --owner owen282000
+gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion-app
 ```
+
+Use `--repo` rather than `--owner`: the owner form accepts an attestation from any repository under the account, so an APK built by a different project of the same owner would pass.
 
 It exits quietly with status 0 when the APK is genuine and fails when the file was modified or came from somewhere else. To see what it actually proves, ask for the details:
 
 ```bash
-gh attestation verify app-release.apk --owner owen282000 --format json
+gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion-app --format json
 ```
 
-For release 1.14.0 that names `.github/workflows/release.yml`, the tag `refs/tags/1.14.0` and commit `619dfb30f257362c26d842cc803ea402046fcd3c`, which is the same commit F-Droid builds from.
+For any release that names `.github/workflows/release.yml`, the tag it was built from and the commit behind it. For 1.14.0, for example, `refs/tags/1.14.0` and commit `619dfb30f257362c26d842cc803ea402046fcd3c`, which is the same commit F-Droid builds from.
 
 The `app-release.apk.sigstore.json` published next to each APK is the same attestation for checking without a network round trip:
 
 ```bash
-gh attestation verify app-release.apk --owner owen282000 --bundle app-release.apk.sigstore.json
+gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion-app --bundle app-release.apk.sigstore.json
 ```
 
 ## Reporting a Vulnerability
