@@ -50,8 +50,10 @@ sealed interface PairingParse {
 enum class PairingProblem {
     /** A newer format. The app needs updating, not the user's patience. */
     UnsupportedVersion,
+
     /** No address, no secret, or an address the app cannot post to. */
     Incomplete,
+
     /** A receiver that accepts nothing this app can send. */
     NoUsableSource
 }
