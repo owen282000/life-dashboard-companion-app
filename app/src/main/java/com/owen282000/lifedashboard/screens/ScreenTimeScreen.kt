@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,6 +43,7 @@ import com.owen282000.lifedashboard.viewmodel.ScreenTimeActions
 import com.owen282000.lifedashboard.viewmodel.ScreenTimeUiState
 import com.owen282000.lifedashboard.viewmodel.ScreenTimeViewModel
 import kotlinx.coroutines.delay
+import java.time.LocalTime
 
 /** The Screen Time tab: stateful shell around [ScreenTimeContent]. */
 @Composable
@@ -87,6 +87,7 @@ fun ScreenTimeContent(
     val accent = ScreenTimePrimary
     val draft = state.draft
     var dayBoundaryExpanded by remember { mutableStateOf(false) }
+    var boundaryPicker by remember { mutableStateOf(false) }
     var scheduleExpanded by remember { mutableStateOf(false) }
     var webhookExpanded by remember { mutableStateOf(false) }
     var mqttExpanded by remember { mutableStateOf(false) }
@@ -124,7 +125,10 @@ fun ScreenTimeContent(
                 icon = Icons.Outlined.WbSunny,
                 accent = accent,
                 title = stringResource(R.string.screentime_day_boundary_title),
-                subtitle = if (draft.useDayBoundary) stringResource(R.string.screentime_day_boundary_enabled, draft.dayBoundaryHour)
+                subtitle = if (draft.useDayBoundary) stringResource(
+                    R.string.screentime_day_boundary_enabled,
+                    draft.dayBoundaryHour.toIntOrNull()?.let { formatTime(LocalTime.of(it.coerceIn(0, 23), 0)) } ?: draft.dayBoundaryHour
+                )
                 else stringResource(R.string.screentime_day_boundary_disabled),
                 subtitleAccent = draft.useDayBoundary,
                 expanded = dayBoundaryExpanded,
@@ -137,13 +141,13 @@ fun ScreenTimeContent(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    FilledField(
-                        value = draft.dayBoundaryHour,
-                        onValueChange = actions::setDayBoundaryHour,
+                    // The same clock the sync schedule uses. The boundary is stored as a whole
+                    // hour, so the minutes the picker offers are dropped on the way in.
+                    TimeChip(
+                        label = stringResource(R.string.screentime_day_boundary_time_label),
+                        time = draft.dayBoundaryHour.toIntOrNull()?.let { LocalTime.of(it.coerceIn(0, 23), 0) },
                         accent = accent,
-                        label = stringResource(R.string.screentime_day_boundary_hour_label),
-                        placeholder = stringResource(R.string.screentime_day_boundary_hour_placeholder),
-                        keyboardType = KeyboardType.Number
+                        onClick = { boundaryPicker = true }
                     )
                 }
             }
@@ -228,6 +232,28 @@ fun ScreenTimeContent(
                 enabled = state.hasUsageAccess, loading = state.isExporting, onClick = actions::export)
         }
         SyncMessageLine(state.syncMessage, accent)
+
+        if (boundaryPicker) {
+
+            TimePickerDialog(
+
+                initial = draft.dayBoundaryHour.toIntOrNull()?.let { LocalTime.of(it.coerceIn(0, 23), 0) } ?: LocalTime.of(4, 0),
+
+                onDismiss = { boundaryPicker = false },
+
+                onPicked = { time ->
+
+                    // Stored as a whole hour since 1.0; the reader builds LocalTime.of(hour, 0).
+
+                    actions.setDayBoundaryHour(time.hour.toString())
+
+                    boundaryPicker = false
+                },
+
+                confirmLabel = stringResource(R.string.common_set)
+
+            )
+        }
 
         SaveBar(visible = state.hasChanges, onSave = actions::save)
 

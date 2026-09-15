@@ -252,8 +252,9 @@ private fun DayPicker(accent: Color, schedule: ScheduleDraft, onChange: (Schedul
     }
 }
 
+/** A tappable time, shown as its own small card. Shared with the Screen Time day boundary. */
 @Composable
-private fun TimeChip(label: String, time: LocalTime?, accent: Color, onClick: () -> Unit) {
+fun TimeChip(label: String, time: LocalTime?, accent: Color, onClick: () -> Unit) {
     Surface(onClick = onClick, shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -262,16 +263,25 @@ private fun TimeChip(label: String, time: LocalTime?, accent: Color, onClick: ()
     }
 }
 
+/**
+ * The clock dialog, in the device's own 12 or 24 hour format. [confirmLabel] differs by caller:
+ * adding a sync time reads as "Add", choosing the day boundary reads as "Set".
+ */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun TimePickerDialog(initial: LocalTime, onDismiss: () -> Unit, onPicked: (LocalTime) -> Unit) {
+fun TimePickerDialog(
+    initial: LocalTime,
+    onDismiss: () -> Unit,
+    onPicked: (LocalTime) -> Unit,
+    confirmLabel: String = stringResource(R.string.common_add)
+) {
     val is24Hour = android.text.format.DateFormat.is24HourFormat(LocalContext.current)
     val state = rememberTimePickerState(initialHour = initial.hour, initialMinute = initial.minute, is24Hour = is24Hour)
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = { onPicked(LocalTime.of(state.hour, state.minute)) }) {
-                Text(stringResource(R.string.common_add))
+                Text(confirmLabel)
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } },
@@ -344,4 +354,5 @@ private fun dayLabel(day: DayOfWeek): String = stringResource(
 
 private val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
 
-private fun formatTime(time: LocalTime): String = time.format(TIME_FORMAT)
+/** A time as the locale writes it, so 16:00 and 4:00 PM both read naturally. */
+fun formatTime(time: LocalTime): String = time.format(TIME_FORMAT)

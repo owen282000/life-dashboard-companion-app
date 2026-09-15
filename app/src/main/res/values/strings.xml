@@ -22,7 +22,7 @@
     <!-- Shared webhook / sync settings, used by Health Connect and Screen Time -->
     <string name="webhook_add_a_url">Add a webhook URL</string>
     <string name="webhook_allow_plain_http">Allow plain HTTP webhooks</string>
-    <string name="webhook_allow_plain_http_description">Only for endpoints on a private LAN or VPN; HTTPS stays the default. Applies to Health Connect and Screen Time</string>
+    <string name="webhook_allow_plain_http_description">For a webhook on your own LAN or VPN that has no certificate. HTTPS stays the default, and this one switch covers both Health Connect and Screen Time. MQTT is unaffected.</string>
     <string name="webhook_enter_header_name_and_value">Enter header name and value</string>
     <string name="webhook_enter_valid_url">Enter a valid URL</string>
     <string name="webhook_header_name">Header name</string>
@@ -210,9 +210,7 @@
     <string name="screentime_day_boundary_description">Activity before this hour counts as previous day</string>
     <string name="screentime_day_boundary_disabled">Disabled</string>
     <string name="screentime_day_boundary_enable">Enable day boundary</string>
-    <string name="screentime_day_boundary_enabled">Enabled · %1$s:00</string>
-    <string name="screentime_day_boundary_hour_label">Hour (0-23)</string>
-    <string name="screentime_day_boundary_hour_placeholder">4</string>
+    <string name="screentime_day_boundary_enabled">Enabled · %1$s</string>
     <string name="screentime_day_boundary_hour_invalid">Hour must be 0-23</string>
     <string name="screentime_day_boundary_title">Day Boundary</string>
     <string name="screentime_export_dialog_description">Export current screen time data as JSON or CSV.</string>
@@ -378,4 +376,10 @@
     <string name="activity_logs_label">Delivery Logs</string>
     <string name="activity_about_label">About</string>
     <string name="tile_sync_label">Sync Life Dashboard</string>
+    <string name="common_set">Set</string>
+    <string name="screentime_day_boundary_time_label">Day starts at</string>
+    <string name="webhook_secret_generate">Generate</string>
+    <string name="webhook_secret_generated">Secret generated. Save, then configure the same value on your server; a signature only proves anything when both sides hold it.</string>
+    <string name="webhook_secret_copy">Copy</string>
+    <string name="webhook_secret_copied">Copied to clipboard</string>
 </resources>

@@ -19,8 +19,8 @@
 
     <!-- Gedeelde webhook- en synchronisatie-instellingen, gebruikt door Health Connect en Schermtijd -->
     <string name="webhook_add_a_url">Voeg een webhook-URL toe</string>
-    <string name="webhook_allow_plain_http">Sta webhooks via plain HTTP toe</string>
-    <string name="webhook_allow_plain_http_description">Alleen voor endpoints op een privé-LAN of VPN; HTTPS blijft de standaard. Geldt voor Health Connect en Schermtijd</string>
+    <string name="webhook_allow_plain_http">Gewone HTTP-webhooks toestaan</string>
+    <string name="webhook_allow_plain_http_description">Voor een webhook op je eigen netwerk of VPN zonder certificaat. HTTPS blijft de standaard, en deze ene schakelaar geldt voor zowel Health Connect als Screen Time. MQTT staat hier los van.</string>
     <string name="webhook_enter_header_name_and_value">Vul een headernaam en waarde in</string>
     <string name="webhook_enter_valid_url">Vul een geldige URL in</string>
     <string name="webhook_header_name">Headernaam</string>
@@ -208,9 +208,7 @@
     <string name="screentime_day_boundary_description">Activiteit voor dit uur telt mee bij de vorige dag</string>
     <string name="screentime_day_boundary_disabled">Uitgeschakeld</string>
     <string name="screentime_day_boundary_enable">Daggrens inschakelen</string>
-    <string name="screentime_day_boundary_enabled">Ingeschakeld · %1$s:00</string>
-    <string name="screentime_day_boundary_hour_label">Uur (0-23)</string>
-    <string name="screentime_day_boundary_hour_placeholder">4</string>
+    <string name="screentime_day_boundary_enabled">Ingeschakeld · %1$s</string>
     <string name="screentime_day_boundary_hour_invalid">Uur moet 0-23 zijn</string>
     <string name="screentime_day_boundary_title">Daggrens</string>
     <string name="screentime_export_dialog_description">Exporteer de huidige schermtijddata als JSON of CSV.</string>
@@ -376,4 +374,10 @@
     <string name="activity_logs_label">Bezorglogboek</string>
     <string name="activity_about_label">Over</string>
     <string name="tile_sync_label">Life Dashboard syncen</string>
+    <string name="common_set">Instellen</string>
+    <string name="screentime_day_boundary_time_label">Dag begint om</string>
+    <string name="webhook_secret_generate">Genereren</string>
+    <string name="webhook_secret_generated">Geheim aangemaakt. Sla op en zet dezelfde waarde op je server; een handtekening bewijst pas iets als beide kanten hem hebben.</string>
+    <string name="webhook_secret_copy">Kopiëren</string>
+    <string name="webhook_secret_copied">Gekopieerd naar klembord</string>
 </resources>

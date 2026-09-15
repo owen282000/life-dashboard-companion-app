@@ -32,6 +32,7 @@ What individual source apps do and do not write is collected in [DATA_SOURCES.md
 
 ## Webhook configuration
 
+- **HMAC signing** with a generated secret: one tap produces 32 bytes of entropy as hex, and the same value on your server verifies every `X-Signature`
 - **Multiple webhook URLs** - send to several endpoints simultaneously
 - **Custom headers** - auth tokens, API keys, or any custom HTTP header, per category
 - **HMAC payload signing** - optional `X-Signature` header so your server can verify the sender

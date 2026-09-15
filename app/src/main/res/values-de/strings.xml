@@ -19,8 +19,8 @@
 
     <!-- Gemeinsame Webhook- und Synchronisierungseinstellungen, genutzt von Health Connect und Bildschirmzeit -->
     <string name="webhook_add_a_url">Webhook-URL hinzufügen</string>
-    <string name="webhook_allow_plain_http">Unverschlüsselte HTTP-Webhooks erlauben</string>
-    <string name="webhook_allow_plain_http_description">Nur für Endpunkte im privaten LAN oder VPN; HTTPS bleibt der Standard. Gilt für Health Connect und Bildschirmzeit</string>
+    <string name="webhook_allow_plain_http">Einfache HTTP-Webhooks erlauben</string>
+    <string name="webhook_allow_plain_http_description">Für einen Webhook im eigenen LAN oder VPN ohne Zertifikat. HTTPS bleibt die Vorgabe, und dieser eine Schalter gilt für Health Connect und Screen Time. MQTT ist nicht betroffen.</string>
     <string name="webhook_enter_header_name_and_value">Header-Name und -Wert eingeben</string>
     <string name="webhook_enter_valid_url">Gib eine gültige URL ein</string>
     <string name="webhook_header_name">Header-Name</string>
@@ -208,9 +208,7 @@
     <string name="screentime_day_boundary_description">Aktivität vor dieser Stunde zählt zum Vortag</string>
     <string name="screentime_day_boundary_disabled">Deaktiviert</string>
     <string name="screentime_day_boundary_enable">Tagesgrenze aktivieren</string>
-    <string name="screentime_day_boundary_enabled">Aktiviert · %1$s:00</string>
-    <string name="screentime_day_boundary_hour_label">Stunde (0-23)</string>
-    <string name="screentime_day_boundary_hour_placeholder">4</string>
+    <string name="screentime_day_boundary_enabled">Aktiviert · %1$s</string>
     <string name="screentime_day_boundary_hour_invalid">Die Stunde muss zwischen 0 und 23 liegen</string>
     <string name="screentime_day_boundary_title">Tagesgrenze</string>
     <string name="screentime_export_dialog_description">Aktuelle Bildschirmzeit-Daten als JSON oder CSV exportieren.</string>
@@ -376,4 +374,10 @@
     <string name="activity_logs_label">Zustellprotokoll</string>
     <string name="activity_about_label">Über</string>
     <string name="tile_sync_label">Life Dashboard synchronisieren</string>
+    <string name="common_set">Festlegen</string>
+    <string name="screentime_day_boundary_time_label">Tag beginnt um</string>
+    <string name="webhook_secret_generate">Erzeugen</string>
+    <string name="webhook_secret_generated">Geheimnis erzeugt. Speichern und denselben Wert auf dem Server hinterlegen; eine Signatur beweist nur etwas, wenn beide Seiten ihn kennen.</string>
+    <string name="webhook_secret_copy">Kopieren</string>
+    <string name="webhook_secret_copied">In die Zwischenablage kopiert</string>
 </resources>

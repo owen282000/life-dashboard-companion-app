@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- A **Generate** button next to the HMAC signing secret: 32 bytes from SecureRandom, hex encoded, so nobody has to invent a passphrase. Copy puts it on the clipboard flagged as sensitive on Android 13 and later
+
+### Changed
+
+- The Screen Time day boundary is chosen with a clock instead of typed as a number, shown in the device's own 12 or 24 hour format. Stored exactly as before, as a whole hour
+- Three labels that were still English for Dutch and German users (the logs and about screens in the app switcher, the Quick Settings tile) are translated
+- The plain HTTP switch says plainly that it covers both tabs and leaves MQTT alone
+
 ## [1.14.0] - 2026-09-14
 
 ### Added

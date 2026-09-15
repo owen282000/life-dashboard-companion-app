@@ -37,10 +37,12 @@ is_allowlisted() {
 
 # Composables and calls that put text on screen. Matches a double-quoted literal of two or more
 # characters as the argument; stringResource(...) calls have no literal and never match.
+# Text( is anchored so ClipData.newPlainText("label", ...) does not match: that label names the
+# clip for the system, it is never shown.
 # `qsTile` / `label =` catches the Quick Settings tile, which is not Compose but is just as
 # visible. Animation labels (animateFloatAsState, updateTransition) are debug names that never
 # reach the screen, so they are skipped below rather than matched here.
-PATTERN='(Text\(|contentDescription = |Toast\.makeText\([^,]+, |label = )"[^"]{2,}"'
+PATTERN='((^|[^A-Za-z])Text\(|contentDescription = |Toast\.makeText\([^,]+, |label = )"[^"]{2,}"'
 
 violations=0
 report=""
