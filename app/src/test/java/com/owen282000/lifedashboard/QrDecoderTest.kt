@@ -37,6 +37,28 @@ class QrDecoderTest {
 
     private fun QrDecoder.decode(frame: Frame) = decode(frame.bytes, frame.stride, frame.width, frame.height)
 
+    /** Turns a frame the way a camera sensor does: on its side for a phone held upright. */
+    private fun Frame.turnedBySensor(degrees: Int): Frame {
+        val rotated = degrees == 90 || degrees == 270
+        val outWidth = if (rotated) height else width
+        val outHeight = if (rotated) width else height
+        val out = ByteArray(outWidth * outHeight)
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val value = bytes[y * stride + x]
+                // The inverse of what the decoder will do to put it back upright.
+                val target = when (degrees) {
+                    90 -> (outHeight - 1 - x) * outWidth + y
+                    180 -> (outHeight - 1 - y) * outWidth + (outWidth - 1 - x)
+                    270 -> x * outWidth + (outWidth - 1 - y)
+                    else -> y * outWidth + x
+                }
+                out[target] = value
+            }
+        }
+        return Frame(out, outWidth, outWidth, outHeight)
+    }
+
     @Test
     fun readsAPairingUrl() {
         // The shape the Home Assistant integration produces, secret and all.
@@ -86,6 +108,35 @@ class QrDecoderTest {
         assertNull(decoder.decode(bytes, 4, 8, 8))
         // Too few bytes for the stated size: ZXing would read past the end.
         assertNull(decoder.decode(bytes, 32, 32, 32))
+    }
+
+    @Test
+    fun readsAFrameTheSensorHandedOverSideways() {
+        // A phone held upright delivers frames on their side. ZXing reads a QR code at any
+        // angle from its finder patterns, so the decoder does not rotate; this pins that
+        // down, so nobody adds a per-frame rotation copy "to fix the scanner" again.
+        val url = "lifedashboard://pair#v=1&url=https%3A%2F%2Fha.example.com%2Fhook&secret=xyz"
+        val upright = render(url)
+        for (degrees in listOf(90, 180, 270)) {
+            assertEquals(
+                "a frame rotated $degrees should still decode",
+                url,
+                QrDecoder().decode(upright.turnedBySensor(degrees))
+            )
+        }
+    }
+
+    @Test
+    fun readsAFrameWhoseLastRowIsShort() {
+        // Camera buffers routinely end before the final row's padding, and demanding a
+        // full padded rectangle threw every real frame away.
+        val url = "lifedashboard://pair#v=1&url=https%3A%2F%2Fa.b%2Fc&secret=xyz"
+        val frame = render(url, stridePadding = 24)
+        val trimmed = frame.bytes.copyOf(frame.stride * (frame.height - 1) + frame.width)
+        assertEquals(
+            url,
+            QrDecoder().decode(trimmed, frame.stride, frame.width, frame.height)
+        )
     }
 
     private fun blank() = Frame(ByteArray(64 * 64) { 0xFF.toByte() }, 64, 64, 64)

@@ -16,6 +16,10 @@ import com.google.zxing.common.HybridBinarizer
  * here. Only QR is looked for: the app has no use for the other formats and every extra
  * one costs work on every frame.
  *
+ * Frames arrive in sensor orientation, on their side for a phone held upright. That is
+ * fine: a QR code carries its own orientation in its finder patterns and ZXing reads it
+ * at any angle, so nothing is rotated here.
+ *
  * Not thread safe. One instance belongs to one scanner screen, which decodes on a single
  * background thread.
  */
@@ -28,12 +32,16 @@ class QrDecoder {
     /**
      * The text of the code in this frame, or null when there is none.
      *
-     * [luminance] holds one byte per pixel, row by row, [rowStride] bytes apart. A camera
+     * [luminance] holds one byte per pixel, row by row, [rowStride] bytes apart: a camera
      * frame is usually padded, so the stride is not always the width.
      */
     fun decode(luminance: ByteArray, rowStride: Int, width: Int, height: Int): String? {
         if (width <= 0 || height <= 0 || rowStride < width) return null
-        if (luminance.size < rowStride * height) return null
+        // Enough rows to work with, without demanding a full padded rectangle. A camera
+        // buffer routinely ends before the last row's padding, and insisting on
+        // rowStride * height bytes threw every real frame away while the unit tests, which
+        // build perfectly padded frames, stayed green.
+        if (luminance.size < rowStride * (height - 1) + width) return null
 
         val source = PlanarYUVLuminanceSource(
             luminance,
