@@ -29,6 +29,7 @@ import com.owen282000.lifedashboard.screens.HealthConnectScreen
 import com.owen282000.lifedashboard.screens.LogsScreen
 import com.owen282000.lifedashboard.screens.OnboardingScreen
 import com.owen282000.lifedashboard.screens.PairingDialog
+import com.owen282000.lifedashboard.screens.ScanScreen
 import com.owen282000.lifedashboard.screens.ScreenTimeScreen
 import com.owen282000.lifedashboard.ui.theme.*
 import com.owen282000.lifedashboard.viewmodel.HealthConnectViewModel
@@ -48,6 +49,9 @@ class MainActivity : ComponentActivity() {
 
     /** A scanned or opened pairing link, waiting for the user to confirm or dismiss it. */
     private val pendingPairing = mutableStateOf<PairingLink?>(null)
+
+    /** Whether the QR scanner is open. The Activity owns it: pairing spans both tabs. */
+    private val scanning = mutableStateOf(false)
     private lateinit var permissionLauncher: androidx.activity.result.ActivityResultLauncher<Set<String>>
 
     private fun initializePermissionLauncher() {
@@ -81,11 +85,26 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(!preferencesManager.onboardingCompleted())
                 }
                 if (showOnboarding) {
-                    OnboardingScreen(onFinished = { showOnboarding = false })
+                    OnboardingScreen(
+                        onFinished = { showOnboarding = false },
+                        onScanRequested = { scanning.value = true }
+                    )
                 } else {
                     MainScreen(
                         activity = this@MainActivity,
                         permissionLauncher = permissionLauncher
+                    )
+                }
+
+                // Over the tabs and over the wizard: a scan from either lands in the same
+                // confirmation dialog as a link from the camera.
+                if (scanning.value) {
+                    ScanScreen(
+                        onScanned = { link ->
+                            scanning.value = false
+                            pendingPairing.value = link
+                        },
+                        onClose = { scanning.value = false }
                     )
                 }
 
@@ -275,9 +294,12 @@ class MainActivity : ComponentActivity() {
                             permissionLauncher = permissionLauncher,
                             onPermissionResult = { granted ->
                                 activity.permissionStatusCallback?.invoke(granted)
-                            }
+                            },
+                            onScanRequested = { activity.scanning.value = true }
                         )
-                        AppTab.ScreenTime -> ScreenTimeScreen()
+                        AppTab.ScreenTime -> ScreenTimeScreen(
+                            onScanRequested = { activity.scanning.value = true }
+                        )
                         AppTab.Logs -> LogsScreen()
                     }
                 }

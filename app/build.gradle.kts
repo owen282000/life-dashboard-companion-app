@@ -169,6 +169,14 @@ dependencies {
     implementation(libs.hivemq.mqtt)
     implementation(libs.kotlinx.serialization.json)
 
+    // Scanning a pairing QR code. The camera is only ever started from the scanner
+    // screen, and the permission is asked for there, never at startup.
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.zxing.core)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)

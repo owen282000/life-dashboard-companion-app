@@ -47,7 +47,10 @@ import java.time.LocalTime
 
 /** The Screen Time tab: stateful shell around [ScreenTimeContent]. */
 @Composable
-fun ScreenTimeScreen() {
+fun ScreenTimeScreen(
+    /** Opens the QR scanner; the Activity owns it, because pairing spans both tabs. */
+    onScanRequested: () -> Unit = {}
+) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val viewModel: ScreenTimeViewModel = viewModel(factory = ScreenTimeViewModel.factory(context))
@@ -73,7 +76,8 @@ fun ScreenTimeScreen() {
         onOpenUsageAccessSettings = viewModel::requestUsageAccess,
         onShareExport = { json, extension, mime ->
             ExportManager(context).shareFile(json, exportFileName("screen_time", extension), mime)
-        }
+        },
+        onScanRequested = onScanRequested
     )
 }
 
@@ -82,7 +86,8 @@ fun ScreenTimeContent(
     state: ScreenTimeUiState,
     actions: ScreenTimeActions,
     onOpenUsageAccessSettings: () -> Unit,
-    onShareExport: (json: String, extension: String, mime: String) -> Unit
+    onShareExport: (json: String, extension: String, mime: String) -> Unit,
+    onScanRequested: () -> Unit = {}
 ) {
     val accent = ScreenTimePrimary
     val draft = state.draft
@@ -171,7 +176,8 @@ fun ScreenTimeContent(
                 onRemoveUrl = actions::removeUrl,
                 onAddHeader = actions::addHeader,
                 onRemoveHeader = actions::removeHeader,
-                onSecretChange = actions::setSecret
+                onSecretChange = actions::setSecret,
+                onScanRequested = onScanRequested
             )
             GroupDivider()
             MqttRow(

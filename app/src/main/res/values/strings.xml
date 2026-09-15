@@ -399,4 +399,18 @@
     <string name="pairing_error_version">This code was made by a newer version. Update the app and scan again.</string>
     <string name="pairing_error_incomplete">This code is missing its address or its secret.</string>
     <string name="pairing_error_no_source">This receiver does not accept anything this app can send.</string>
+
+    <!-- QR scanner -->
+    <string name="scan_title">Scan a pairing code</string>
+    <string name="scan_hint">Point the camera at the code shown by the Life Dashboard integration in Home Assistant.</string>
+    <string name="scan_close">Close</string>
+    <string name="scan_not_a_code">That is not a Life Dashboard pairing code.</string>
+    <string name="scan_permission_needed">Camera access is needed to scan a code. You can also paste the address and the secret by hand.</string>
+    <string name="scan_permission_open_settings">Open settings</string>
+    <string name="scan_no_camera">This device has no camera. Paste the address and the secret by hand instead.</string>
+    <string name="scan_camera_failed">The camera could not be started.</string>
+    <string name="webhook_scan_button">Scan</string>
+    <string name="onboarding_scan_option">Scan a code from Home Assistant</string>
+    <string name="onboarding_scan_desc">The integration shows a QR code. Scanning it fills in the address and the signing secret for you.</string>
+    <string name="onboarding_scan_paired">Code read. The address and the secret are filled in.</string>
 </resources>

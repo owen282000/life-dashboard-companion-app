@@ -47,6 +47,18 @@
     <!-- Sync failure notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!--
+        Scanning a pairing QR code. Requested at the moment of scanning, never at
+        startup, and the camera is bound only while that screen is open.
+
+        Requesting CAMERA makes Google Play assume a back camera is required, which
+        would keep the app off devices that have none, so both features are declared
+        explicitly as optional: pairing by hand works without a camera.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <!-- Query for Health Connect -->
     <queries>
         <package android:name="com.google.android.apps.healthdata" />

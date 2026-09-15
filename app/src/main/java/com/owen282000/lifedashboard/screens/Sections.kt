@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -139,7 +141,8 @@ fun WebhookRow(
     onRemoveUrl: (Int) -> Unit,
     onAddHeader: (String, String) -> Unit,
     onRemoveHeader: (String) -> Unit,
-    onSecretChange: (String) -> Unit
+    onSecretChange: (String) -> Unit,
+    onScanRequested: () -> Unit
 ) {
     var newUrl by remember { mutableStateOf("") }
     var newHeaderKey by remember { mutableStateOf("") }
@@ -169,6 +172,25 @@ fun WebhookRow(
             AddButton(accent) {
                 onAddUrl(newUrl)
                 if (SettingsRules.isValidUrl(newUrl)) newUrl = ""
+            }
+        }
+
+        // Scanning the code Home Assistant shows beats typing a URL and 64 hex
+        // characters on a phone keyboard, which is where people give up.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = onScanRequested, contentPadding = PaddingValues(horizontal = 4.dp)) {
+                Icon(
+                    Icons.Outlined.QrCodeScanner,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    stringResource(R.string.webhook_scan_button),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = accent
+                )
             }
         }
 

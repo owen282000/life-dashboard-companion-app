@@ -63,7 +63,9 @@ private const val HEALTH_CONNECT_STORE_URL = "https://play.google.com/store/apps
 @Composable
 fun HealthConnectScreen(
     permissionLauncher: androidx.activity.result.ActivityResultLauncher<Set<String>>,
-    onPermissionResult: ((Boolean) -> Unit)? = null
+    onPermissionResult: ((Boolean) -> Unit)? = null,
+    /** Opens the QR scanner; the Activity owns it, because pairing spans both tabs. */
+    onScanRequested: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -119,7 +121,8 @@ fun HealthConnectScreen(
         },
         onShareExport = { json, extension, mime ->
             ExportManager(context).shareFile(json, exportFileName("health_data", extension), mime)
-        }
+        },
+        onScanRequested = onScanRequested
     )
 }
 
@@ -129,7 +132,8 @@ fun HealthConnectContent(
     actions: HealthActions,
     onOpenHealthConnect: () -> Unit,
     onInstallHealthConnect: () -> Unit,
-    onShareExport: (json: String, extension: String, mime: String) -> Unit
+    onShareExport: (json: String, extension: String, mime: String) -> Unit,
+    onScanRequested: () -> Unit = {}
 ) {
     val accent = HealthPrimary
     val draft = state.draft
@@ -216,7 +220,8 @@ fun HealthConnectContent(
                 onRemoveUrl = actions::removeUrl,
                 onAddHeader = actions::addHeader,
                 onRemoveHeader = actions::removeHeader,
-                onSecretChange = actions::setSecret
+                onSecretChange = actions::setSecret,
+                onScanRequested = onScanRequested
             )
             GroupDivider()
             MqttRow(

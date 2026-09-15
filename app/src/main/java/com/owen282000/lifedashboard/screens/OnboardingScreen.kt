@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
@@ -89,7 +90,11 @@ private val ChoiceShape = RoundedCornerShape(20.dp)
  * Every choice here is changeable later, and the whole thing can be skipped.
  */
 @Composable
-fun OnboardingScreen(onFinished: () -> Unit) {
+fun OnboardingScreen(
+    onFinished: () -> Unit,
+    /** Opens the QR scanner. Its result arrives as a pairing dialog over this screen. */
+    onScanRequested: () -> Unit = {}
+) {
     val context = LocalContext.current
     val preferencesManager = remember { PreferencesManager(context) }
     val scope = rememberCoroutineScope()
@@ -99,6 +104,9 @@ fun OnboardingScreen(onFinished: () -> Unit) {
 
     var useWebhook by remember { mutableStateOf(false) }
     var webhookUrl by remember { mutableStateOf("") }
+    // Typed in, or filled in by the pairing dialog after a scan. The wizard wrote URLs
+    // only until now, which left a scanned secret behind on a fresh install.
+    var webhookSecret by remember { mutableStateOf("") }
     var pingResult by remember { mutableStateOf<Boolean?>(null) }
     var pinging by remember { mutableStateOf(false) }
     var allowHttp by remember { mutableStateOf(preferencesManager.allowHttpWebhooks()) }
@@ -119,9 +127,16 @@ fun OnboardingScreen(onFinished: () -> Unit) {
     fun finish(applyChoices: Boolean) {
         if (applyChoices) {
             val url = webhookUrl.trim()
+            val secret = webhookSecret.trim()
             if (useWebhook && url.isNotBlank()) {
-                if (healthConnect) preferencesManager.setHealthWebhookUrls(listOf(url))
-                if (screenTime) preferencesManager.setScreenTimeWebhookUrls(listOf(url))
+                if (healthConnect) {
+                    preferencesManager.setHealthWebhookUrls(listOf(url))
+                    if (secret.isNotBlank()) preferencesManager.setHealthWebhookSecret(secret)
+                }
+                if (screenTime) {
+                    preferencesManager.setScreenTimeWebhookUrls(listOf(url))
+                    if (secret.isNotBlank()) preferencesManager.setScreenTimeWebhookSecret(secret)
+                }
             }
             if (useMqtt && mqttHost.isNotBlank()) {
                 preferencesManager.setSharedMqttBroker(
@@ -218,6 +233,20 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                             Headline(
                                 stringResource(R.string.onboarding_destination_title),
                                 stringResource(R.string.onboarding_destination_body)
+                            )
+                            // First, because it is the one route that needs no typing.
+                            // It only opens the scanner: what it finds still goes through
+                            // the confirmation dialog, which fills in the fields below.
+                            ChoiceCard(
+                                icon = Icons.Outlined.QrCodeScanner,
+                                title = stringResource(R.string.onboarding_scan_option),
+                                description = if (webhookSecret.isNotBlank()) {
+                                    stringResource(R.string.onboarding_scan_paired)
+                                } else {
+                                    stringResource(R.string.onboarding_scan_desc)
+                                },
+                                selected = webhookSecret.isNotBlank(),
+                                onClick = onScanRequested
                             )
                             ChoiceCard(
                                 icon = Icons.Outlined.Link,
