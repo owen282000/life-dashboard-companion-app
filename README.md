@@ -102,7 +102,7 @@ Every record carries a `uuid` for deduplication and a `source` package name. Use
 
 ## Privacy
 
-This app does **not** collect any data itself, does **not** send data anywhere except your configured webhook URLs or MQTT broker, and contains **no** analytics or tracking. Settings stay on your device. You are in full control of where your data goes. See [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
+This app does **not** collect any data itself, does **not** send data anywhere except your configured webhook URLs or MQTT broker, and contains **no** analytics or tracking. Settings stay on your device. You are in full control of where your data goes. See [PRIVACY.md](PRIVACY.md).
 
 ## Contributing
 

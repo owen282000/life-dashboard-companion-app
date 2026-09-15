@@ -2,6 +2,8 @@
 
 All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/). For older releases, see the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases).
 
+## [Unreleased]
+
 ## [1.14.0] - 2026-09-14
 
 ### Added
@@ -236,5 +238,23 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.6.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.14.0...HEAD
+[1.14.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.13.4...1.14.0
+[1.13.4]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.13.3...1.13.4
+[1.13.3]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.13.2...1.13.3
+[1.13.2]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.13.1...1.13.2
+[1.13.1]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.13.0...1.13.1
+[1.13.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.12.2...1.13.0
+[1.12.2]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.12.1...1.12.2
+[1.12.1]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.12.0...1.12.1
+[1.12.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.11.0...1.12.0
+[1.11.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.10.2...1.11.0
+[1.10.2]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.10.1...1.10.2
+[1.10.1]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.10.0...1.10.1
+[1.10.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.9.0...1.10.0
+[1.9.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.8.0...1.9.0
+[1.8.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.7.0...1.8.0
+[1.7.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.6.1...1.7.0
+[1.6.1]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.6.0...1.6.1
 [1.6.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.5.0...1.6.0
+[1.5.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.4.1...1.5.0

@@ -26,5 +26,6 @@ VERSION_CODE=$CODE
 PROPS
 
 ./scripts/generate-fastlane-changelogs.sh "$V"
+./scripts/update-changelog-links.sh
 echo "version.properties -> $V ($CODE)"
 echo "Now commit, then: git tag $V && git push --tags"
