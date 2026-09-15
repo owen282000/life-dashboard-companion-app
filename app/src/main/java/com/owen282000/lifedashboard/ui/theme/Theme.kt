@@ -20,35 +20,39 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = Color.Black,
     primaryContainer = PrimaryDark,
     onPrimaryContainer = Color.White,
-    secondary = SecondaryLight,
-    onSecondary = Color.Black,
-    secondaryContainer = SecondaryDark,
-    onSecondaryContainer = Color.White,
+    // The Material secondary role has to point somewhere, and it used to be an orange no
+    // component in the app ever rendered (verified by turning it magenta and photographing
+    // nine screens in both themes). Pointing it at the Screen Time accent means anything
+    // added later that reads the role lands on a palette colour rather than a dead one.
+    secondary = ScreenTimePrimary,
+    onSecondary = Color.White,
+    secondaryContainer = ScreenTimeContainerDark,
+    onSecondaryContainer = OnScreenTimeContainerDark,
     background = BackgroundDark,
     onBackground = TextPrimaryDark,
     surface = SurfaceDark,
     onSurface = TextPrimaryDark,
-    surfaceVariant = Color(0xFF1E2530),
+    surfaceVariant = SurfaceVariantDark,
     onSurfaceVariant = TextSecondaryDark,
     error = Error,
-    errorContainer = Color(0xFF4A1515),
-    onErrorContainer = Color(0xFFFCA5A5)
+    errorContainer = ErrorContainerDark,
+    onErrorContainer = OnErrorContainerDark
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
-    primaryContainer = Color(0xFFB2DFDB),
+    primaryContainer = PrimaryContainerLight,
     onPrimaryContainer = PrimaryDark,
-    secondary = Secondary,
+    secondary = ScreenTimePrimary,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFFFCCBC),
-    onSecondaryContainer = SecondaryDark,
+    secondaryContainer = ScreenTimeContainer,
+    onSecondaryContainer = OnScreenTimeContainer,
     background = BackgroundLight,
     onBackground = TextPrimary,
     surface = SurfaceLight,
     onSurface = TextPrimary,
-    surfaceVariant = Color(0xFFF1F5F9),
+    surfaceVariant = SurfaceVariantLight,
     onSurfaceVariant = TextSecondary,
     error = Error,
     errorContainer = ErrorContainer,
