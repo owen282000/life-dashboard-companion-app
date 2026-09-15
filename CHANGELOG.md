@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.16.2] - 2026-09-16
+
+### Fixed
+
+- The scanner in the app analysed camera frames at 640x480, which is not enough to read a pairing code through the softness of a hand-held camera: the phone's own camera app reads the same code instantly because it works at full resolution. Frames are now analysed at 720p, which roughly doubles the blur the code survives
+
 ## [1.16.1] - 2026-09-15
 
 ### Fixed
