@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.16.3] - 2026-09-16
+
+### Fixed
+
+- The scanner still read nothing where the phone's own camera app read the same code instantly. Measured against blurred frames rather than guessed at: what decides it is how much of the frame the code covers, not the resolution and not the length of the code. A code filling a quarter of the frame is unreadable at any resolution; one filling most of it survives several pixels of camera softness
+- The scanner now shows an outline for the code to fill and says that closer is better, pins autofocus to the middle of the frame rather than letting it settle on the text under the code, applies a modest zoom, and analyses at 960p
+
 ## [1.16.2] - 2026-09-16
 
 ### Fixed
