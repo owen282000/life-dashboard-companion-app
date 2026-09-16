@@ -320,23 +320,33 @@ class HealthConnectManager(private val context: Context) {
      * metrics whose type is enabled are requested, to stay within granted permissions.
      */
     suspend fun readDailyTotals(days: Int, enabledTypes: Set<HealthDataType>): List<DailyTotals> {
+        val today = java.time.LocalDate.now()
+        return readDailyTotalsBetween(today.minusDays(days.toLong()).atStartOfDay(), java.time.LocalDateTime.now(), enabledTypes)
+    }
+
+    /**
+     * The same totals for every local day between [start] and [end], one entry per day that
+     * has any of the enabled metrics. A backfill asks for the days its window touches, so a
+     * receiver gets each historical day's real total rather than the raw records' sum.
+     */
+    suspend fun readDailyTotalsBetween(
+        start: java.time.LocalDateTime,
+        end: java.time.LocalDateTime,
+        enabledTypes: Set<HealthDataType>
+    ): List<DailyTotals> {
         val metrics = buildSet {
             if (HealthDataType.STEPS in enabledTypes) add(StepsRecord.COUNT_TOTAL)
             if (HealthDataType.DISTANCE in enabledTypes) add(DistanceRecord.DISTANCE_TOTAL)
             if (HealthDataType.ACTIVE_CALORIES in enabledTypes) add(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)
             if (HealthDataType.TOTAL_CALORIES in enabledTypes) add(TotalCaloriesBurnedRecord.ENERGY_TOTAL)
         }
-        if (metrics.isEmpty()) return emptyList()
+        if (metrics.isEmpty() || !start.isBefore(end)) return emptyList()
 
         return try {
-            val today = java.time.LocalDate.now()
             val response = healthConnectClient.aggregateGroupByPeriod(
                 androidx.health.connect.client.request.AggregateGroupByPeriodRequest(
                     metrics = metrics,
-                    timeRangeFilter = TimeRangeFilter.between(
-                        today.minusDays(days.toLong()).atStartOfDay(),
-                        java.time.LocalDateTime.now()
-                    ),
+                    timeRangeFilter = TimeRangeFilter.between(start, end),
                     timeRangeSlicer = java.time.Period.ofDays(1)
                 )
             )

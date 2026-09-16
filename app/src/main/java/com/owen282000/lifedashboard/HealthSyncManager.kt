@@ -264,6 +264,20 @@ class HealthSyncManager(private val context: Context) {
             // per-type lastModifiedTime watermark; the tie-inclusive cap makes its strict '>'
             // filter safe, so repeated reads walk the window chunk by chunk.
             var cursor: Map<HealthDataType, Instant?> = enabledTypes.associateWith { null }
+            // The window's days as Health Connect counts them, whole days from local midnight
+            // to midnight, so a receiver gets each day's real total and not the sum of the raw
+            // records, which double counts a phone and a watch. A day cut by a window bound is
+            // asked for in full by both windows and arrives twice with the same figures.
+            val dailyTotals = if (preferencesManager.includeDailyTotals()) {
+                val zone = java.time.ZoneId.systemDefault()
+                val firstDay = windowStart.atZone(zone).toLocalDate().atStartOfDay()
+                val dayAfterLast = windowEnd.atZone(zone).toLocalDate().plusDays(1).atStartOfDay()
+                healthConnectManager.readDailyTotalsBetween(
+                    firstDay,
+                    minOf(dayAfterLast, java.time.LocalDateTime.now(zone)),
+                    enabledTypes
+                )
+            } else emptyList()
             for (pass in 1..MAX_PASSES_PER_BACKFILL_WINDOW) {
                 val readResult = healthConnectManager.readHealthData(
                     enabledTypes,
@@ -279,6 +293,8 @@ class HealthSyncManager(private val context: Context) {
                 val recordCount = countRecords(healthData)
                 val payload = buildJsonPayload(
                     healthData,
+                    // Once per window: the totals describe the days, not the chunk.
+                    dailyTotals = if (pass == 1) dailyTotals else emptyList(),
                     extraFields = mapOf(
                         "backfill" to JsonPrimitive(true),
                         "window_start" to JsonPrimitive(windowStart.toString()),

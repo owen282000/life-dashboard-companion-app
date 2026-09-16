@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-09-16
+
+### Added
+
+- A backfill now carries the daily totals for every day it covers, in the first
+  payload of each window. A receiver that keeps history, such as the Home Assistant
+  integration from 0.3.0, gets each past day's real step, distance and calorie total
+  from Health Connect's own deduplicated figures, instead of only today's. A day cut
+  by a window boundary is sent by both windows with the same numbers.
+
 ## [1.16.4] - 2026-09-16
 
 ### Fixed
