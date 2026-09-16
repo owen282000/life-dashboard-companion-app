@@ -40,10 +40,12 @@ jobs:
           languages: java-kotlin
           build-mode: manual
 
+      # Without --no-build-cache a source tree that was built before comes back
+      # FROM-CACHE task by task, nothing compiles, and CodeQL sees no Kotlin at all.
       - name: Build app for analysis
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-build-cache
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
