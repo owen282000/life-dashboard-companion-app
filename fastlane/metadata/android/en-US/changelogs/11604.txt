@@ -1,0 +1,3 @@
+Fixed:
+
+- The scanner could not read the pairing code Home Assistant shows in its dark theme, which draws light modules on a dark card. The decoder read dark-on-light only; it now tries both. This, not distance or resolution, is why the phone's own camera app read the same code instantly
