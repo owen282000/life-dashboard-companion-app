@@ -1,0 +1,4 @@
+Fixed:
+
+- The scanner still read nothing where the phone's own camera app read the same code instantly. Measured against blurred frames rather than guessed at: what decides it is how much of the frame the code covers, not the resolution and not the length of the code. A code filling a quarter of the frame is unreadable at any resolution; one filling most of it survives several pixels of ...
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
