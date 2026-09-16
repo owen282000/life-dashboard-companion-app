@@ -400,7 +400,7 @@
 
     <!-- QR scanner -->
     <string name="scan_title">Kopplungscode scannen</string>
-    <string name="scan_hint">Richte die Kamera auf den Code, den die Life-Dashboard-Integration in Home Assistant zeigt.</string>
+    <string name="scan_hint">Fülle den Rahmen mit dem Code, den die Life-Dashboard-Integration in Home Assistant zeigt. Näher ist besser.</string>
     <string name="scan_close">Schließen</string>
     <string name="scan_not_a_code">Das ist kein Life-Dashboard-Kopplungscode.</string>
     <string name="scan_permission_needed">Für das Scannen wird Zugriff auf die Kamera benötigt. Du kannst Adresse und Geheimnis auch von Hand eintragen.</string>

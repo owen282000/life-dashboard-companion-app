@@ -11,6 +11,7 @@ import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.core.resolutionselector.ResolutionSelector
@@ -18,9 +19,11 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -54,6 +57,7 @@ import com.owen282000.lifedashboard.PairingLinks
 import com.owen282000.lifedashboard.PairingParse
 import com.owen282000.lifedashboard.R
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * The camera, looking for a pairing code.
@@ -108,7 +112,7 @@ fun ScanScreen(
                     onClose = onClose
                 )
 
-                granted -> CameraPreview(
+                granted -> ScanViewfinder(
                     onText = { text ->
                         // Only a usable link closes the scanner. An unreadable one, and
                         // anything that is not ours, leaves the camera running: the user
@@ -160,6 +164,29 @@ fun ScanScreen(
     }
 }
 
+/**
+ * The preview with an outline around the area the code should fill.
+ *
+ * The outline is the whole point rather than decoration. Measured against softened
+ * frames: a code covering a quarter of the viewfinder is unreadable at any resolution,
+ * one covering most of it survives several pixels of camera softness. Nothing in the app
+ * can make up for standing too far away, so the frame asks the user to come closer.
+ */
+@Composable
+private fun ScanViewfinder(onText: (String) -> Unit, onFailed: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        CameraPreview(onText = onText, onFailed = onFailed)
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth(0.78f)
+                .aspectRatio(1f)
+                .border(2.dp, Color.White.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
+        )
+    }
+}
+
 /** The preview, with every frame offered to the decoder. */
 @Composable
 private fun CameraPreview(onText: (String) -> Unit, onFailed: () -> Unit) {
@@ -183,16 +210,17 @@ private fun CameraPreview(onText: (String) -> Unit, onFailed: () -> Unit) {
                     // Decode the newest frame and drop the backlog: a stale frame is a
                     // code the camera is no longer pointing at.
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    // CameraX analyses at 640x480 by default, which is not enough for a
-                    // pairing code: the URL makes a 69-module symbol, so half a 480-pixel
-                    // frame leaves 3.5 pixels per module and the modules blur together.
-                    // 720p doubles that. Measured, not guessed: at 480p the analyzer ran
-                    // 225 frames on a code filling the viewfinder without one decode.
+                    // CameraX analyses at 640x480 unless asked. Measured against a
+                    // softened frame, that reads a pairing code only when the code fills
+                    // most of the viewfinder; 960p roughly doubles the softness it
+                    // tolerates at every size. How much of the frame the code fills
+                    // matters more than either, which is what the frame outline and the
+                    // zoom below are for.
                     .setResolutionSelector(
                         ResolutionSelector.Builder()
                             .setResolutionStrategy(
                                 ResolutionStrategy(
-                                    Size(1280, 720),
+                                    Size(1280, 960),
                                     ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
                                 )
                             )
@@ -202,12 +230,30 @@ private fun CameraPreview(onText: (String) -> Unit, onFailed: () -> Unit) {
                     .also { it.setAnalyzer(executor, QrAnalyzer { text -> latestOnText(text) }) }
 
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
+                val camera = cameraProvider.bindToLifecycle(
                     lifecycleOwner,
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
                     analysis
                 )
+
+                // Keep the middle of the frame sharp. Autofocus otherwise settles on
+                // whatever has the most contrast, which next to a code on a screen is
+                // usually the text under it, and a soft code is an unreadable one.
+                val centre = previewView.meteringPointFactory.createPoint(0.5f, 0.5f)
+                camera.cameraControl.startFocusAndMetering(
+                    FocusMeteringAction.Builder(centre, FocusMeteringAction.FLAG_AF)
+                        .setAutoCancelDuration(3, TimeUnit.SECONDS)
+                        .build()
+                )
+
+                // A modest zoom, so a code held at a comfortable distance fills more of
+                // the frame. Measured: how much of the frame the code covers is the one
+                // thing that really buys blur tolerance, far more than resolution.
+                val maxZoom = camera.cameraInfo.zoomState.value?.maxZoomRatio ?: 1f
+                if (maxZoom > 1f) {
+                    camera.cameraControl.setZoomRatio(minOf(1.5f, maxZoom))
+                }
             }.onFailure {
                 Log.w(TAG, "Could not start the camera", it)
                 onFailed()

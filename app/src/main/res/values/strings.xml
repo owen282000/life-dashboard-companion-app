@@ -402,7 +402,7 @@
 
     <!-- QR scanner -->
     <string name="scan_title">Scan a pairing code</string>
-    <string name="scan_hint">Point the camera at the code shown by the Life Dashboard integration in Home Assistant.</string>
+    <string name="scan_hint">Fill the frame with the code shown by the Life Dashboard integration in Home Assistant. Closer is better.</string>
     <string name="scan_close">Close</string>
     <string name="scan_not_a_code">That is not a Life Dashboard pairing code.</string>
     <string name="scan_permission_needed">Camera access is needed to scan a code. You can also paste the address and the secret by hand.</string>

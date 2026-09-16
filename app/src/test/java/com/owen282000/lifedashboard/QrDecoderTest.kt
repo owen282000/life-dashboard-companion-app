@@ -140,4 +140,74 @@ class QrDecoderTest {
     }
 
     private fun blank() = Frame(ByteArray(64 * 64) { 0xFF.toByte() }, 64, 64, 64)
+
+    /**
+     * How much of the viewfinder a pairing code has to fill.
+     *
+     * The scanner read nothing in the field while the phone's own camera app read the
+     * same code instantly, and the reason turned out to be neither the resolution nor
+     * the size of the code: it is how much of the frame the code covers. Measured
+     * against blurred frames, a code covering a quarter of the frame fails at every
+     * resolution and every code length, and one covering most of it survives several
+     * pixels of softness.
+     *
+     * This pins the shape of that result, so the viewfinder outline and the zoom that
+     * exist because of it are not quietly removed as decoration.
+     */
+    @Test
+    fun aCodeMustFillMuchOfTheFrameToSurviveBlur() {
+        val url = "https://owen282000.github.io/life-dashboard-companion-app/pair" +
+            "#v=1&url=http%3A%2F%2F192.168.10.138%3A8123%2Fapi%2Fwebhook%2F" + "b".repeat(64) +
+            "&secret=" + "d".repeat(64) + "&name=Home%20Assistant"
+        val decoder = QrDecoder()
+
+        // A quarter of the frame: unreadable once the camera is not perfectly sharp.
+        val small = blurred(inFrame(render(url, scale = 6), fill = 0.25), radius = 2)
+        assertNull("a code this small should not survive blur", decoder.decode(small))
+
+        // Most of the frame: the same code, the same blur, read without trouble.
+        val large = blurred(inFrame(render(url, scale = 6), fill = 0.85), radius = 2)
+        assertEquals(url, decoder.decode(large))
+    }
+
+    /** Puts a rendered code on a frame of the size the analyser receives. */
+    private fun inFrame(code: Frame, fill: Double, frameWidth: Int = 1280, frameHeight: Int = 960): Frame {
+        val side = (minOf(frameWidth, frameHeight) * fill).toInt()
+        val bytes = ByteArray(frameWidth * frameHeight) { 0x40 } // a dark screen behind it
+        val left = (frameWidth - side) / 2
+        val top = (frameHeight - side) / 2
+        for (y in 0 until side) {
+            for (x in 0 until side) {
+                // Nearest-neighbour scaling is enough: the blur below is the point.
+                val sourceX = x * code.width / side
+                val sourceY = y * code.height / side
+                bytes[(top + y) * frameWidth + left + x] = code.bytes[sourceY * code.stride + sourceX]
+            }
+        }
+        return Frame(bytes, frameWidth, frameWidth, frameHeight)
+    }
+
+    /** A box blur, standing in for a camera that did not quite focus. */
+    private fun blurred(frame: Frame, radius: Int): Frame {
+        if (radius <= 0) return frame
+        val out = ByteArray(frame.bytes.size)
+        for (y in 0 until frame.height) {
+            for (x in 0 until frame.width) {
+                var total = 0
+                var count = 0
+                for (dy in -radius..radius) {
+                    for (dx in -radius..radius) {
+                        val sx = x + dx
+                        val sy = y + dy
+                        if (sx in 0 until frame.width && sy in 0 until frame.height) {
+                            total += frame.bytes[sy * frame.stride + sx].toInt() and 0xFF
+                            count++
+                        }
+                    }
+                }
+                out[y * frame.stride + x] = (total / count).toByte()
+            }
+        }
+        return Frame(out, frame.stride, frame.width, frame.height)
+    }
 }
