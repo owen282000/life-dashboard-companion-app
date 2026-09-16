@@ -58,9 +58,11 @@ Moving from another device? Import your settings under **About > Backup & restor
 
 Two routes, and neither needs YAML. The **Life Dashboard integration** (installed through
 HACS from [life-dashboard-ha](https://github.com/owen282000/life-dashboard-ha)) needs no
-broker at all and is paired by scanning a code. **MQTT** needs a broker Home Assistant
-already talks to, and publishes retained values that survive a restart. Pick one: running
-both gives you two devices holding the same numbers.
+broker at all, is paired by scanning a code, and writes every synced day into long-term
+statistics on its own date, so a backfill becomes history rather than one big number on
+today. **MQTT** needs a broker Home Assistant already talks to, and publishes retained
+latest values that survive a restart. Pick one: running both gives you two devices
+holding the same numbers.
 
 ### Pairing by QR code
 

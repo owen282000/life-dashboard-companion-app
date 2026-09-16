@@ -62,16 +62,25 @@ Two ways in, and neither needs YAML.
 **The Life Dashboard integration** receives the app's webhook directly, so no broker is
 needed at all, and pairing is a QR code the integration shows: point the phone's camera
 at it, or use the scan button in the app, and the address and the signing secret fill
-themselves in.
+themselves in. It is also the way that keeps history: every day the app sends lands in
+Home Assistant's long-term statistics on its own date, so a year of backfill shows up as a
+year of steps, sleep, heart rate and screen time per day, and the integration ships a
+dashboard to start from.
 
 [![Open the integration in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration)
 
-**MQTT** is the other way, and the better one if you already run a broker. Point the app
-at the MQTT broker Home Assistant already uses and tap **Sync Now**. MQTT Discovery creates one device with a sensor for every synced type that has a value: 24 of the 33 Health Connect types (today's totals for steps, distance and calories; the latest heart rate, weight, sleep duration, blood pressure, glucose, body composition and so on) plus screen time. Workouts, meals, mindfulness sessions and cycle tracking are events rather than values and stay webhook-only. No YAML, no server-side setup; states are retained, so they survive a restart.
-
 <p align="center">
-  <img src="docs/screenshots/home-assistant.png" alt="The Life Dashboard Companion device in Home Assistant with its sensors" width="720">
+  <img src="docs/screenshots/home-assistant-dashboard.png" alt="The integration's example dashboard in Home Assistant: tiles for today, the top apps on the phone, and a year of steps and heart rate from a backfill" width="900">
 </p>
+
+**MQTT** is the other way, for a setup that already runs a broker and only needs the
+latest values. Point the app at the MQTT broker Home Assistant already uses and tap
+**Sync Now**. MQTT Discovery creates one device with a sensor for every synced type that
+has a value: 24 of the 33 Health Connect types (today's totals for steps, distance and
+calories; the latest heart rate, weight, sleep duration, blood pressure, glucose, body
+composition and so on) plus screen time. Workouts, meals, mindfulness sessions and cycle
+tracking are events rather than values and stay webhook-only. No YAML, no server-side
+setup; states are retained, so they survive a restart.
 
 The two-minute walkthrough is in [docs/usage.md](docs/usage.md#phone-to-home-assistant-in-two-minutes); [docs/features.md](docs/features.md#home-assistant-and-mqtt) lists every sensor.
 

@@ -65,8 +65,10 @@ The two are complementary rather than rivals: keep the companion app for presenc
 
 Two ways in. The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha),
 installed through HACS, receives the webhook directly and needs no broker; it is paired by
-scanning a QR code. MQTT, described below, publishes retained values through Discovery and
-suits a setup that already has a broker. Either one, not both.
+scanning a QR code, keeps history in long-term statistics (a day per day, also for a
+backfill and for screen time), and comes with an example dashboard. MQTT, described below,
+publishes retained latest values through Discovery and suits a setup that already has a
+broker and does not need the history. Either one, not both.
 
 <img src="screenshots/mqtt.png" alt="The MQTT section in the app: broker host, port, optional credentials and a shared base topic" width="300" align="right">
 
