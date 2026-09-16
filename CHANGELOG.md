@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-09-16
+
+### Fixed
+
+- A backfill sent the daily totals only in the first payload of each window, so a
+  receiver saw the later chunks of a busy window as a window without totals and warned
+  about it. Every payload of a window now carries them; the figures are identical, and
+  a receiver that keeps history ignores a repeat.
+
 ## [1.17.0] - 2026-09-16
 
 ### Added

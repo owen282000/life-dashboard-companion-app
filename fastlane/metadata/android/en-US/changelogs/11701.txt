@@ -1,0 +1,6 @@
+Fixed:
+
+- A backfill sent the daily totals only in the first payload of each window, so a
+  receiver saw the later chunks of a busy window as a window without totals and warned
+  about it. Every payload of a window now carries them; the figures are identical, and
+  a receiver that keeps history ignores a repeat.

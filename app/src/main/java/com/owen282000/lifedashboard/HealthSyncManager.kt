@@ -293,8 +293,10 @@ class HealthSyncManager(private val context: Context) {
                 val recordCount = countRecords(healthData)
                 val payload = buildJsonPayload(
                     healthData,
-                    // Once per window: the totals describe the days, not the chunk.
-                    dailyTotals = if (pass == 1) dailyTotals else emptyList(),
+                    // In every chunk of the window, not only the first: a receiver cannot
+                    // tell a later chunk from a window without totals, and the same
+                    // figures twice cost a few bytes where a missing set costs a warning.
+                    dailyTotals = dailyTotals,
                     extraFields = mapOf(
                         "backfill" to JsonPrimitive(true),
                         "window_start" to JsonPrimitive(windowStart.toString()),

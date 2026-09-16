@@ -276,7 +276,7 @@ Skin temperature is reported as deltas from a per-record baseline, matching how 
 
 ### Daily totals
 
-When several apps write the same activity to Health Connect (phone and watch, or a mirroring app such as Health Sync), the raw records above contain each copy and adding them up double counts. The payload therefore also carries `daily_totals`, computed with Health Connect's aggregate API, which deduplicates across sources and matches what the Health Connect app shows. It covers yesterday and today, only for the enabled types, and can be switched off in the app. A backfill carries it for every day its window touches (from 1.17.0), in the first payload of each window, so a receiver that keeps history gets the real total for each past day; a day cut by a window boundary appears in both windows with the same figures.
+When several apps write the same activity to Health Connect (phone and watch, or a mirroring app such as Health Sync), the raw records above contain each copy and adding them up double counts. The payload therefore also carries `daily_totals`, computed with Health Connect's aggregate API, which deduplicates across sources and matches what the Health Connect app shows. It covers yesterday and today, only for the enabled types, and can be switched off in the app. A backfill carries it for every day its window touches (from 1.17.0), in every payload of the window, so a receiver that keeps history gets the real total for each past day; a day cut by a window boundary appears in both windows with the same figures.
 
 ```json
 "daily_totals": [
