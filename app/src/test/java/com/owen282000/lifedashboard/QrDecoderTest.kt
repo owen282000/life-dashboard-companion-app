@@ -210,4 +210,14 @@ class QrDecoderTest {
         }
         return Frame(out, frame.stride, frame.width, frame.height)
     }
+
+    @Test
+    fun readsACodeDrawnLightOnDark() {
+        // Home Assistant's dark theme draws the code as light modules on a dark card.
+        // This was the actual field failure: sharp, filling the frame, and unreadable.
+        val url = "lifedashboard://pair#v=1&url=https%3A%2F%2Fha.example.com%2Fhook&secret=xyz"
+        val frame = render(url)
+        val inverted = Frame(ByteArray(frame.bytes.size) { (frame.bytes[it].toInt() xor 0xFF).toByte() }, frame.stride, frame.width, frame.height)
+        assertEquals(url, QrDecoder().decode(inverted))
+    }
 }

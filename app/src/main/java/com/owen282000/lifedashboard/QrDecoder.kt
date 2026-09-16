@@ -26,7 +26,17 @@ import com.google.zxing.common.HybridBinarizer
 class QrDecoder {
 
     private val reader = MultiFormatReader().apply {
-        setHints(mapOf(DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE)))
+        setHints(
+            mapOf(
+                DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
+                // Home Assistant draws the pairing code in the theme's colours, so in
+                // dark mode it is light modules on a dark card. ZXing reads dark-on-light
+                // only unless told to try the inverse as well; without this the scanner
+                // read nothing from a sharp code filling the frame, while the phone's own
+                // camera app, which tries both, read it at once.
+                DecodeHintType.ALSO_INVERTED to true
+            )
+        )
     }
 
     /**
