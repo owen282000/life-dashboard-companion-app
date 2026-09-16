@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.16.4] - 2026-09-16
+
+### Fixed
+
+- The scanner could not read the pairing code Home Assistant shows in its dark theme, which draws light modules on a dark card. The decoder read dark-on-light only; it now tries both. This, not distance or resolution, is why the phone's own camera app read the same code instantly
+
 ## [1.16.3] - 2026-09-16
 
 ### Fixed
