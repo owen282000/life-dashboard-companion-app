@@ -1,0 +1,8 @@
+Added:
+
+- Deleting a record in Health Connect now reaches your webhook. The app follows Health
+  Connect's own change tracking and names the records that are gone in a
+  deleted_records list, so a receiver can drop exactly those. Apps that edit by
+  replacing, such as Cronometer, previously left both the old and the new record on the
+  receiver (#61).
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

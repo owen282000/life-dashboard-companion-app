@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-09-18
+
 ### Added
 
 - Deleting a record in Health Connect now reaches your webhook. The app follows Health
