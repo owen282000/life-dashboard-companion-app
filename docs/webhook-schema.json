@@ -19,6 +19,56 @@
         "screen_time"
       ]
     },
+    "sequence": {
+      "type": "integer",
+      "description": "Health Connect payloads only: increases with every payload this install sends. A receiver that keeps the highest sequence it has applied can ignore an older payload that arrives late after a retry. Absent on screen_time payloads, so treat a missing field as unknown rather than zero."
+    },
+    "deleted_records": {
+      "type": "array",
+      "description": "Records Health Connect deleted since the previous sync. Absent when there are none. A receiver should drop the record with this uuid from the named collection.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The payload key the record arrived under, e.g. nutrition"
+          },
+          "uuid": {
+            "type": "string",
+            "description": "The uuid the record was delivered with"
+          }
+        },
+        "required": [
+          "type",
+          "uuid"
+        ]
+      }
+    },
+    "deletions_unavailable": {
+      "type": "array",
+      "description": "Types whose deletion tracking was interrupted, because the phone did not sync for over 30 days. Deletions in that gap were never observed; reconcile these types against a completed backfill window instead. Absent when nothing was interrupted.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "backfill": {
+      "type": "boolean",
+      "description": "True on payloads from a one-time history export; absent on ordinary syncs"
+    },
+    "window_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Backfill only: start of the window this payload belongs to"
+    },
+    "window_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Backfill only: end of the window this payload belongs to"
+    },
+    "window_complete": {
+      "type": "boolean",
+      "description": "Backfill only: true on the last payload of a window, meaning every record the phone holds for that window has now been sent. A receiver may treat uuids it holds in that range that were not in the window as deleted. False means the window was split and more is coming."
+    },
     "_diagnostics": {
       "type": "object",
       "description": "Per-type read diagnostics; see README"

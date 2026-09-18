@@ -16,6 +16,9 @@ import java.time.Instant
 /** Max read+deliver passes per sync run, bounding worker time while draining a backlog (#38). */
 private const val MAX_SYNC_PASSES = 8
 
+/** For a payload that carries deletions and nothing else; see the end of [HealthSyncManager.performSync]. */
+private val EMPTY_HEALTH_DATA = HealthData()
+
 /**
  * Max read+deliver passes per backfill window. Generous: a 3-day window of 5-second heart rate
  * samples is ~52 batches of 1000; the bound only guards against a cursor that stops advancing.
@@ -103,6 +106,19 @@ class HealthSyncManager(private val context: Context) {
             // pass to pass, and stored again at the end so a window goes out once, complete.
             var carried = preferencesManager.getBucketCarry()
 
+            // Deletions are read once per sync, not per pass: the changes feed is consumed by
+            // reading it, so a second pass would find it empty and the first pass's deletions
+            // would be the only ones ever sent. They ride along on the first payload that goes
+            // out; passes after that carry none.
+            //
+            // What this sync reads is joined with anything an earlier sync read but could not
+            // deliver, and the whole lot stays in storage until a payload has actually been
+            // handed to the webhook. A sync that finds no records, or whose records all land in
+            // open buckets, ends without building a payload at all, and the feed cannot be read
+            // twice, so clearing them any earlier would lose them for good (issue #61).
+            var pendingDeletions = preferencesManager.getPendingDeletions().merge(readDeletions(enabledTypes))
+            preferencesManager.setPendingDeletions(pendingDeletions)
+
             for (pass in 1..MAX_SYNC_PASSES) {
                 // Re-read watermarks each pass; the previous pass advanced them.
                 val lastSyncTimestamps = enabledTypes.associateWith { type ->
@@ -126,6 +142,10 @@ class HealthSyncManager(private val context: Context) {
                 // MQTT-only setup: nothing to post, nothing to queue. The newest batch is
                 // published after the loop, like it is when webhooks are configured too.
                 if (webhookUrls.isEmpty()) {
+                    // MQTT publishes sensor states, which hold the latest value rather than a
+                    // record list, so there is nothing here for a deletion to withdraw. They
+                    // stay in storage rather than being dropped: a user who adds a webhook later
+                    // gets them on its first payload, and the feed they came from is gone.
                     SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, true)
                     SyncStatusStore.record(context, true, totalRecords, LogType.HEALTH_CONNECT)
                     LifetimeStats.recordDelivery(context, totalRecords, 0, LogType.HEALTH_CONNECT)
@@ -173,7 +193,18 @@ class HealthSyncManager(private val context: Context) {
                     continue
                 }
 
-                val jsonPayload = buildJsonPayload(healthData, dailyTotals = dailyTotals, resolved = resolved)
+                val jsonPayload = buildJsonPayload(
+                    healthData,
+                    dailyTotals = dailyTotals,
+                    resolved = resolved,
+                    deletions = pendingDeletions,
+                    sequence = preferencesManager.nextHealthSyncSequence()
+                )
+                // Held by this payload now, so a later pass of this same sync must not repeat
+                // them. Storage is only cleared once the payload is somewhere durable, below:
+                // a throw from the post would otherwise leave them in neither the webhook, the
+                // outbox, nor the feed they came from, which cannot be read twice.
+                pendingDeletions = DeletionSummary.EMPTY
 
                 val postResult = webhookManager.postData(jsonPayload)
                 SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
@@ -194,14 +225,67 @@ class HealthSyncManager(private val context: Context) {
                         recordCount = totalRecords,
                         nowMillis = System.currentTimeMillis()
                     )
+                    // On disk in the outbox now, so it will be delivered by a later drain.
+                    preferencesManager.setPendingDeletions(DeletionSummary.EMPTY)
                     queuedRecords = totalRecords
                     break
                 }
+                // Delivered.
+                preferencesManager.setPendingDeletions(DeletionSummary.EMPTY)
 
                 if (healthData.cappedTypes.isEmpty()) break
             }
 
-            if (!anyData) {
+            // A deletion is often the only thing that changed: removing a meal without adding
+            // one leaves nothing new to read, so the loop above ends without building a payload
+            // and the deletions would sit in storage until some later sync happens to carry
+            // records. That is the reported case in issue #61, so they get a payload of their
+            // own, carrying no records.
+            var deletionsDelivered = false
+            if (!pendingDeletions.isEmpty && webhookUrls.isNotEmpty()) {
+                val deletionPayload = buildJsonPayload(
+                    EMPTY_HEALTH_DATA,
+                    deletions = pendingDeletions,
+                    sequence = preferencesManager.nextHealthSyncSequence()
+                )
+                pendingDeletions = DeletionSummary.EMPTY
+
+                val webhookManager = WebhookManager(
+                    webhookUrls = webhookUrls,
+                    context = context,
+                    dataType = "health_connect",
+                    recordCount = 0,
+                    logType = LogType.HEALTH_CONNECT,
+                    customHeaders = preferencesManager.getHealthWebhookHeaders(),
+                    signingSecret = preferencesManager.getHealthWebhookSecret()
+                )
+                val postResult = webhookManager.postData(deletionPayload)
+                // Reported like any other delivery: a webhook that is down for a run of
+                // deletion-only syncs would otherwise never trip the failure notifier, and the
+                // dashboard would show a last sync that never moved while payloads went out.
+                SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
+                SyncStatusStore.record(context, postResult.isSuccess, 0, LogType.HEALTH_CONNECT)
+                if (postResult.isFailure) {
+                    PendingSyncStore.forContext(context).enqueue(
+                        payload = deletionPayload,
+                        dataType = "health_connect",
+                        logType = LogType.HEALTH_CONNECT.name,
+                        recordCount = 0,
+                        nowMillis = System.currentTimeMillis()
+                    )
+                    // queuedRecords stays as it was: it counts records waiting in the outbox,
+                    // and this payload has none, so setting it would tell the user "0 records
+                    // queued for retry". The outbox entry and the failure notifier above
+                    // already record that the delivery failed.
+                }
+                // Durable either way now: delivered, or on disk in the outbox.
+                preferencesManager.setPendingDeletions(DeletionSummary.EMPTY)
+                deletionsDelivered = true
+            }
+
+            // A sync that only withdrew records did do something, so it must not report "no new
+            // data": the user asked for a sync and one went out.
+            if (!anyData && !deletionsDelivered) {
                 return@withContext Result.success(HealthSyncResult.NoData)
             }
 
@@ -288,9 +372,21 @@ class HealthSyncManager(private val context: Context) {
                 val healthData = readResult.getOrElse {
                     return@withContext Result.failure(it)
                 }
-                if (isHealthDataEmpty(healthData)) break
+                // An empty read ends the window. On a later chunk that is ordinary: the previous
+                // chunk drained it and already carried window_complete. On the first chunk it
+                // means the window holds nothing, and that empty snapshot is worth sending,
+                // because it is what tells a receiver the window is genuinely empty rather than
+                // unreported (issue #61).
+                if (isHealthDataEmpty(healthData) && pass > 1) break
 
                 val recordCount = countRecords(healthData)
+                // Drained means every record the window holds has now been read. That is what
+                // window_complete claims, and a receiver acts on it by dropping ids it holds in
+                // the range that the window did not carry (issue #61), so it must never be
+                // claimed on a window that was merely abandoned: running out of passes leaves
+                // records unsent, and saying "complete" there would delete them on the receiver.
+                val drained = healthData.cappedTypes.isEmpty()
+                val isLastChunk = drained || pass == MAX_PASSES_PER_BACKFILL_WINDOW
                 val payload = buildJsonPayload(
                     healthData,
                     // In every chunk of the window, not only the first: a receiver cannot
@@ -300,7 +396,11 @@ class HealthSyncManager(private val context: Context) {
                     extraFields = mapOf(
                         "backfill" to JsonPrimitive(true),
                         "window_start" to JsonPrimitive(windowStart.toString()),
-                        "window_end" to JsonPrimitive(windowEnd.toString())
+                        "window_end" to JsonPrimitive(windowEnd.toString()),
+                        // False on every chunk but the one that drained the window. A receiver
+                        // that only ever sees false for a window knows the snapshot was cut
+                        // short and must not treat missing ids as deleted.
+                        "window_complete" to JsonPrimitive(drained)
                     ),
                     // A backfill window lies wholly in the past, so every bucket in it is
                     // closed; passing the window end as "now" says so without consulting the clock.
@@ -308,7 +408,8 @@ class HealthSyncManager(private val context: Context) {
                         healthData,
                         preferencesManager.getSeriesResolutions(),
                         now = windowEnd
-                    )
+                    ),
+                    sequence = preferencesManager.nextHealthSyncSequence()
                 )
                 val webhookManager = WebhookManager(
                     webhookUrls = webhookUrls,
@@ -330,7 +431,7 @@ class HealthSyncManager(private val context: Context) {
                 }
                 totalRecordsSent += recordCount
 
-                if (healthData.cappedTypes.isEmpty()) break
+                if (isLastChunk) break
                 cursor = cursor + healthData.watermarks
             }
 
@@ -369,6 +470,44 @@ class HealthSyncManager(private val context: Context) {
                 data.skinTemperature.isEmpty() && data.basalBodyTemperature.isEmpty() &&
                 data.intermenstrualBleeding.isEmpty() && data.ovulationTest.isEmpty() &&
                 data.cervicalMucus.isEmpty() && data.sexualActivity.isEmpty()
+    }
+
+    /**
+     * Collects the deletions Health Connect recorded for every enabled type since the last sync,
+     * and stores the token each type hands back (issue #61).
+     *
+     * Tokens are stored whatever the payload does afterwards: a token is a position in a feed
+     * that reading already consumed, so the old one is worth nothing. What the deletions
+     * themselves are worth is decided elsewhere; the caller keeps them in storage until a
+     * payload has taken them, because this read cannot be repeated.
+     */
+    private suspend fun readDeletions(enabledTypes: Set<HealthDataType>): DeletionSummary {
+        val now = System.currentTimeMillis()
+        val results = mutableMapOf<HealthDataType, ChangesResult>()
+
+        for (type in enabledTypes) {
+            val stored = preferencesManager.getHealthChangesToken(type)
+            val issuedAt = preferencesManager.getHealthChangesTokenIssuedAt(type)
+            // A token past its 30 days is refused anyway; treating it as absent registers a new
+            // one in the same call instead of spending a round trip to be told so.
+            val usable = if (DeletionTracking.isTokenUsable(stored, issuedAt, now)) stored else null
+
+            val result = healthConnectManager.readDeletions(type, usable)
+            // A type that errored keeps its token: the feed was not consumed, so the next sync
+            // can read the same position again.
+            if (result.nextToken != null) {
+                preferencesManager.setHealthChangesToken(type, result.nextToken, now)
+            }
+            // An expired token is reported even when the app decided that itself, as long as
+            // there was a token to expire; a first-ever token is not a gap, it is a start.
+            val expiredHere = result.expired || (stored != null && usable == null)
+            results[type] = result.copy(expired = expiredHere)
+        }
+
+        return DeletionSummary(
+            deleted = DeletionTracking.merge(results),
+            expiredTypes = DeletionTracking.expiredTypes(results)
+        )
     }
 
     private fun updateSyncTimestamps(data: HealthData, syncCounts: MutableMap<HealthDataType, Int>) {
@@ -484,13 +623,28 @@ class HealthSyncManager(private val context: Context) {
         healthData: HealthData,
         extraFields: Map<String, JsonPrimitive> = emptyMap(),
         dailyTotals: List<DailyTotals> = emptyList(),
-        resolved: ResolutionApplier = ResolutionApplier(emptyMap())
+        resolved: ResolutionApplier = ResolutionApplier(emptyMap()),
+        deletions: DeletionSummary = DeletionSummary.EMPTY,
+        /**
+         * Taken from the counter by every caller that sends. The preview passes null: taking a
+         * number there would leave a gap in the sequence a receiver sees, and looking is not
+         * sending.
+         */
+        sequence: Long? = null
     ): String {
         val json = buildJsonObject {
             put("timestamp", Instant.now().toString())
             put("app_version", getAppVersion())
             put("source", "health_connect")
+            // Strictly increasing per payload, so a retry that arrives after a newer payload is
+            // recognisable as stale instead of overwriting it (issue #61).
+            sequence?.let { put("sequence", it) }
             extraFields.forEach { (key, value) -> put(key, value) }
+
+            // deleted_records names what to remove; deletions_unavailable names the types the
+            // app could not observe, so a receiver reconciles those from a backfill snapshot
+            // instead of trusting an incremental payload that cannot have seen them.
+            DeletionTracking.payloadFields(deletions).forEach { (key, value) -> put(key, value) }
 
             // Series the user chose to bucket replace their raw array under the same key, and
             // _resolutions names the window each one used. Both are absent at raw resolution,

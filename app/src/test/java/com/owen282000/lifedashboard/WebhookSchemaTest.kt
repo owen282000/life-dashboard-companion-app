@@ -35,4 +35,23 @@ class WebhookSchemaTest {
         val missing = payloadKeys.filter { it !in declaredKeys }
         assertTrue("schema missing keys: $missing", missing.isEmpty())
     }
+
+    @Test
+    fun schemaDeclaresTheFieldsAReceiverReconcilesWith() {
+        // These carry no records but decide what a receiver does with the ones it has: what to
+        // drop (deleted_records), what it cannot know (deletions_unavailable), which payload is
+        // newer (sequence), and when a backfill window may be treated as a snapshot
+        // (window_complete). A receiver written against the schema must be able to find them.
+        val schemaFile = File("../docs/webhook-schema.json")
+        val schema = Json.parseToJsonElement(schemaFile.readText()).jsonObject
+        val declaredKeys = schema.getValue("properties").jsonObject.keys
+
+        val reconciliationKeys = listOf(
+            "sequence", "deleted_records", "deletions_unavailable",
+            "backfill", "window_start", "window_end", "window_complete"
+        )
+
+        val missing = reconciliationKeys.filter { it !in declaredKeys }
+        assertTrue("schema missing keys: $missing", missing.isEmpty())
+    }
 }

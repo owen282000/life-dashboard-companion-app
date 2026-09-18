@@ -3,8 +3,10 @@ package com.owen282000.lifedashboard
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.HealthConnectFeatures
+import androidx.health.connect.client.changes.DeletionChange
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.*
+import androidx.health.connect.client.request.ChangesTokenRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.owen282000.lifedashboard.NutritionSupport.toNutritionData
@@ -605,6 +607,71 @@ class HealthConnectManager(private val context: Context) {
         return healthConnectClient.permissionController.getGrantedPermissions()
     }
 
+    /**
+     * Reads the deletions Health Connect recorded for [type] since the token the app stored last
+     * time, and returns the token to store for next time (issue #61).
+     *
+     * A deletion leaves no record behind, so a read can never see it; only the changes API
+     * reports one, by the id of the record that is gone. Upsertions are ignored here: the normal
+     * read already carries them, and asking for them twice would only duplicate work.
+     *
+     * The first call for a type has no token, so it registers one and returns nothing. That is
+     * correct rather than unfortunate: Health Connect starts tracking from the moment a token is
+     * issued, and deletions from before that were never observable.
+     *
+     * A token Health Connect refuses (expired after about 30 days without a sync) yields
+     * [ChangesResult.expired] and a fresh token, so the caller can say in the payload that this
+     * type may have missed a deletion.
+     */
+    suspend fun readDeletions(type: HealthDataType, storedToken: String?): ChangesResult {
+        if (!isHealthConnectAvailable()) {
+            return ChangesResult(error = "Health Connect is not available")
+        }
+        val request = ChangesTokenRequest(recordTypes = setOf(type.recordClass))
+        return try {
+            if (storedToken == null) {
+                return ChangesResult(nextToken = healthConnectClient.getChangesToken(request))
+            }
+
+            val deleted = mutableListOf<DeletedRecord>()
+            var token: String = storedToken
+            var expired = false
+            // A changes feed is paged; hasMore says another page is waiting behind this token.
+            // The cap bounds the loop, because a feed that answered hasMore with a token it had
+            // already handed out would spin this coroutine forever and hang the sync.
+            var unread = false
+            for (page in 1..MAX_CHANGES_PAGES) {
+                val response = healthConnectClient.getChanges(token)
+                if (response.changesTokenExpired) {
+                    expired = true
+                    token = healthConnectClient.getChangesToken(request)
+                    break
+                }
+                response.changes.filterIsInstance<DeletionChange>().forEach { change ->
+                    deleted += DeletedRecord(DeletionTracking.payloadKey(type), change.recordId)
+                }
+                token = response.nextChangesToken
+                if (!response.hasMore) break
+                // Reading advanced the token past the pages already taken, so what is left
+                // cannot be read again from the old position. Stopping here silently would
+                // hand the receiver a deletion list that looks complete and is not; saying
+                // the type is unreconcilable is the honest answer (issue #61).
+                if (page == MAX_CHANGES_PAGES) unread = true
+            }
+            ChangesResult(
+                deleted = deleted,
+                nextToken = token,
+                // Both mean the same thing to a receiver: deletions exist for this type that
+                // the app cannot name, so reconcile it against a backfill window instead.
+                expired = expired || unread
+            )
+        } catch (e: Exception) {
+            // A type whose changes cannot be read must not fail the sync: the records themselves
+            // were read successfully, and a missing deletion is a smaller problem than no payload.
+            ChangesResult(error = e.message ?: e::class.java.simpleName)
+        }
+    }
+
     suspend fun requestPermissions(permissions: Set<String>): android.content.Intent {
         if (!isHealthConnectAvailable()) {
             throw IllegalStateException("Health Connect is not available on this device")
@@ -758,6 +825,13 @@ class HealthConnectManager(private val context: Context) {
 
     companion object {
         private const val LOOKBACK_HOURS = 168L // 7 days
+
+        /**
+         * Pages of one type's changes feed read per sync. Generous: a page holds many changes,
+         * and a month of deletions for one type fits well inside this. It exists to bound the
+         * loop, not to ration it.
+         */
+        private const val MAX_CHANGES_PAGES = 100
         private fun skippedWindowsNote(skippedWindows: Int): String? =
             if (skippedWindows > 0) {
                 "Skipped $skippedWindows unreadable window(s) of max " +

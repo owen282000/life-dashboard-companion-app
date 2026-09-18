@@ -9,7 +9,7 @@ Want a ready-made backend? [life-dashboard-stack](https://github.com/owen282000/
 - [Health Connect payload](#health-connect-payload)
   - [Activity](#activity) - [Body](#body) - [Body composition](#body-composition) - [Vitals](#vitals) - [Sleep](#sleep)
   - [Nutrition](#nutrition) - [Mindfulness](#mindfulness) - [Cycle tracking](#cycle-tracking) - [Metabolic and fitness](#metabolic-and-fitness)
-  - [Daily totals](#daily-totals) - [Data resolution](#data-resolution) - [Diagnostics](#diagnostics)
+  - [Daily totals](#daily-totals) - [Deletions](#deletions) - [Data resolution](#data-resolution) - [Diagnostics](#diagnostics)
 - [Screen Time payload](#screen-time-payload)
 - [Delivery, retries and signing](#delivery-retries-and-signing)
 - [Example backend integrations](#example-backend-integrations)
@@ -285,6 +285,35 @@ When several apps write the same activity to Health Connect (phone and watch, or
 ```
 
 Use `daily_totals` for day totals and the raw records for detail. Records that arrive late, for example a watch that uploads hours later with the original timestamps, are still delivered: the sync filters on each record's modification time, not on its timestamp. Because a batch is re-sent after a failed delivery and edited records are sent again, deduplicate on `uuid` server-side.
+
+### Deletions
+
+A record that is deleted in Health Connect leaves nothing behind for a sync to read, so a receiver that stores records would keep it forever. Apps that edit by replacing make this visible: Cronometer, for instance, deletes a meal and inserts a new one, which arrives as a second record with a different `uuid` while the original is still on the receiver.
+
+From 1.18.0 the app follows Health Connect's own change tracking and names the records that are gone:
+
+```json
+"deleted_records": [
+  { "type": "nutrition", "uuid": "0f7c...e91" }
+]
+```
+
+`type` is the payload key the record arrived under, so a receiver drops that `uuid` from that collection. The field is absent when nothing was deleted, and deletions ride along on the first payload of a sync.
+
+Two limits are worth building around:
+
+- **Tracking starts when the app first syncs a type**, so deletions from before that were never observable.
+- **Some syncs cannot vouch for a type**, and those are named in `deletions_unavailable`, a list of payload keys. It happens when Health Connect forgets a phone that has not synced for 30 days, when a type has more changes than one sync can read, and when a type cannot be read at all. In each case the app does not know what was deleted, so reconcile those types against a backfill window instead of trusting the incremental payload.
+
+```json
+"deletions_unavailable": ["nutrition", "hydration"]
+```
+
+A backfill window is the fallback, and says so explicitly. Every payload of a backfill carries `backfill`, `window_start` and `window_end`; the last payload of a window also carries `window_complete: true`, which means every record the phone holds for that window has now been sent. At that point a receiver may treat any `uuid` it holds inside the window that was not in the window as deleted. A window that was split into several payloads carries `window_complete: false` on all but the last, and a window that holds nothing still sends one payload with `window_complete: true`, which is what distinguishes an empty window from an unreported one.
+
+Every Health Connect payload also carries `sequence`, a counter that only goes up for a given install. The app drains its outbox before each sync, so payloads normally arrive in order, but a receiver behind several webhook URLs, a proxy or a retrying load balancer can still see an older one land after a newer one. Recording the highest sequence applied per install lets a receiver ignore the late one instead of letting it restore a record that was deleted since. Screen Time payloads carry no sequence, so treat the field as absent rather than zero.
+
+A deletion is often the only thing that changed, for instance when a meal is removed and nothing is added. Such a sync sends a payload with `deleted_records` and no record arrays at all, which is why a payload with no data is not necessarily an empty one.
 
 ### Data resolution
 

@@ -157,6 +157,22 @@ class PreferencesManager(context: Context) {
         private const val KEY_HEALTH_SYNC_INTERVAL_MINUTES = "health_sync_interval_minutes"
 
         /**
+         * Health Connect changes tokens, per type, with the time each was issued so an expired
+         * one can be recognised without spending a call (see [DeletionTracking]).
+         */
+        private const val KEY_HEALTH_CHANGES_TOKEN_PREFIX = "health_changes_token_"
+        private const val KEY_HEALTH_CHANGES_TOKEN_TS_PREFIX = "health_changes_token_ts_"
+
+        /** Monotonic counter stamped on every payload, so a retried older payload is recognisable. */
+        private const val KEY_HEALTH_SYNC_SEQUENCE = "health_sync_sequence"
+
+        /** Guards the sequence counter's read-modify-write against overlapping syncs. */
+        private val SEQUENCE_LOCK = Any()
+
+        /** Deletions read from the changes feed but not yet carried by a payload. */
+        private const val KEY_HEALTH_PENDING_DELETIONS = "health_pending_deletions"
+
+        /**
          * Schedule keys, per source. The interval keeps its own long-standing key above; mode,
          * times, days and the quiet window are suffixes on these prefixes, so both sources
          * share one implementation.
@@ -288,6 +304,67 @@ class PreferencesManager(context: Context) {
 
     fun setHealthLastSyncTimestamp(type: HealthDataType, timestamp: Long) {
         prefs.edit().putLong(KEY_HEALTH_LAST_SYNC_TS_PREFIX + type.name, timestamp).apply()
+    }
+
+    /** The stored changes token for [type], or null when there is none yet. */
+    fun getHealthChangesToken(type: HealthDataType): String? =
+        prefs.getString(KEY_HEALTH_CHANGES_TOKEN_PREFIX + type.name, null)
+
+    /** When the stored token was issued, in epoch milliseconds, or null when there is none. */
+    fun getHealthChangesTokenIssuedAt(type: HealthDataType): Long? {
+        val ts = prefs.getLong(KEY_HEALTH_CHANGES_TOKEN_TS_PREFIX + type.name, -1)
+        return if (ts == -1L) null else ts
+    }
+
+    /**
+     * Stores a changes token and the moment it was issued. Passing null for [token] forgets the
+     * type's token, which is what happens when Health Connect refuses an expired one.
+     */
+    fun setHealthChangesToken(type: HealthDataType, token: String?, issuedAtMs: Long) {
+        prefs.edit().apply {
+            if (token == null) {
+                remove(KEY_HEALTH_CHANGES_TOKEN_PREFIX + type.name)
+                remove(KEY_HEALTH_CHANGES_TOKEN_TS_PREFIX + type.name)
+            } else {
+                putString(KEY_HEALTH_CHANGES_TOKEN_PREFIX + type.name, token)
+                putLong(KEY_HEALTH_CHANGES_TOKEN_TS_PREFIX + type.name, issuedAtMs)
+            }
+        }.apply()
+    }
+
+    /**
+     * The next payload sequence number, incremented on every call. A receiver that keeps the
+     * highest sequence it has seen can ignore a retry that arrives after a newer payload.
+     *
+     * A manual sync from the UI can run while a scheduled one is in flight, and each holds its
+     * own PreferencesManager, so the read-modify-write is guarded by a lock on the class and
+     * committed synchronously: two payloads sharing a number would be exactly the ambiguity the
+     * number exists to remove, and a number handed out but lost to a process kill would repeat.
+     */
+    fun nextHealthSyncSequence(): Long = synchronized(SEQUENCE_LOCK) {
+        val next = prefs.getLong(KEY_HEALTH_SYNC_SEQUENCE, 0L) + 1
+        prefs.edit().putLong(KEY_HEALTH_SYNC_SEQUENCE, next).commit()
+        next
+    }
+
+    /**
+     * Deletions read from Health Connect that have not been handed to a payload yet.
+     *
+     * Reading the changes feed consumes it, so these cannot be read again: they are kept here
+     * until a payload carries them, and only then cleared (issue #61).
+     */
+    fun getPendingDeletions(): DeletionSummary {
+        val stored = prefs.getString(KEY_HEALTH_PENDING_DELETIONS, null) ?: return DeletionSummary.EMPTY
+        return runCatching { Json.decodeFromString<DeletionSummary>(stored) }
+            .getOrDefault(DeletionSummary.EMPTY)
+    }
+
+    fun setPendingDeletions(summary: DeletionSummary) {
+        if (summary.isEmpty) {
+            prefs.edit().remove(KEY_HEALTH_PENDING_DELETIONS).apply()
+            return
+        }
+        prefs.edit().putString(KEY_HEALTH_PENDING_DELETIONS, Json.encodeToString(summary)).apply()
     }
 
     fun getHealthWebhookHeaders(): Map<String, String> {

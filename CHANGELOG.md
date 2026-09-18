@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Deleting a record in Health Connect now reaches your webhook. The app follows Health
+  Connect's own change tracking and names the records that are gone in a
+  `deleted_records` list, so a receiver can drop exactly those. Apps that edit by
+  replacing, such as Cronometer, previously left both the old and the new record on the
+  receiver ([#61](https://github.com/owen282000/life-dashboard-companion-app/issues/61)).
+- Types whose deletion tracking was interrupted, which happens after 30 days without a
+  sync, are named in `deletions_unavailable`. Reconcile those against a backfill window
+  instead of the incremental payload.
+- The last payload of a backfill window carries `window_complete`, which makes the
+  window a snapshot: a receiver may treat records it holds in that range that were not
+  in the window as deleted. An empty window now sends one payload as well, so an empty
+  window is distinguishable from an unreported one.
+- Every Health Connect payload carries a `sequence` counter that only goes up, so a
+  retry that arrives after a newer payload can be recognised as stale instead of undoing
+  it. Previewing data does not take a number: looking is not sending.
+- A sync whose only change is a deletion, which is what removing a meal without adding
+  one looks like, now sends a payload carrying the deletion and no records, and reports
+  it like any other delivery instead of saying there was no new data. Deletions are kept
+  until a payload has actually been delivered or stored in the outbox, so a sync that
+  finds nothing to send, or one that is interrupted, hands them to the next sync instead
+  of losing them.
+
 ## [1.17.1] - 2026-09-16
 
 ### Fixed
