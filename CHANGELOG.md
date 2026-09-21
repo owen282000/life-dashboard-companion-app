@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Fixed
+
+- Background syncs could stall after 1.18.0 while a sync started from the app worked, and
+  opening the app delivered the backlog within a minute or two. The deletion step added
+  in 1.18.0 asks Health Connect about every enabled type before anything is delivered,
+  and a scheduled run that started with the phone dozing could sit in that step until
+  Android stopped the worker; Android then retried it with a growing delay, and it hung
+  again, until the app was in the foreground and Health Connect answered. The step now
+  has a limit of five seconds per type and twenty in total. A type that does not fit
+  keeps its place in the change feed, is named in `deletions_unavailable` for that
+  payload, and the records go out regardless.
+- A schedule with fixed times, chosen weekdays or quiet hours queues each run as the
+  previous one finishes. That enqueue was handed to a helper thread, which left a small
+  window in which the process could end before it happened. It is now done on the
+  worker's own thread, before the worker returns.
+
 ## [1.18.0] - 2026-09-18
 
 ### Added

@@ -33,7 +33,10 @@ import java.util.concurrent.TimeUnit
  * 2. A settings change never aborts a sync in flight. If a run is active, the change is left
  *    for that run to pick up when it finishes and re-reads the schedule.
  *
- * WorkManager's state is read on a background executor; nothing here blocks the caller.
+ * Calls from the UI ([reschedule]) read WorkManager's state on a background executor and return
+ * at once. A finishing worker ([onSyncFinished]) does the same work on its own thread, so the
+ * next link is queued before the worker returns. A run that Android stops is WorkManager's to
+ * retry, with backoff, and it does; the chain does not need a watchdog for that.
  */
 object SyncScheduler {
 
@@ -65,7 +68,11 @@ object SyncScheduler {
         if (TAG_SCHEDULED in tags) {
             appContext.appPreferences().setScheduleLastRun(source, System.currentTimeMillis())
         }
-        plan(appContext, source, finished = FinishedRun(workId, slotFromTags(tags)))
+        // On the worker's own thread, not the executor: a worker runs in the background already,
+        // and handing the successor to another thread left a window in which the process could
+        // end after the worker returned but before that thread had enqueued anything. Done here,
+        // the enqueue is committed before WorkManager processes the finish (1.18.1).
+        planNow(appContext, source, finished = FinishedRun(workId, slotFromTags(tags)))
     }
 
     private class FinishedRun(val id: UUID, val slot: Slot?)
@@ -73,20 +80,23 @@ object SyncScheduler {
     private enum class Slot { A, B }
 
     private fun plan(context: Context, source: LogType, finished: FinishedRun?) {
+        executor.execute { planNow(context, source, finished) }
+    }
+
+    /** The planning itself; blocks on WorkManager, so only from a background thread. */
+    private fun planNow(context: Context, source: LogType, finished: FinishedRun?) {
         val workManager = WorkManager.getInstance(context)
         val names = listOf(periodicName(source)) + Slot.entries.map { slotName(source, it) }
-        val futures = names.map { workManager.getWorkInfosForUniqueWork(it) }
+        val infos = names
+            .map { workManager.getWorkInfosForUniqueWork(it) }
+            .flatMap { runCatching { it.get() }.getOrDefault(emptyList()) }
+        val anotherRunIsActive = infos.any { it.state == WorkInfo.State.RUNNING && it.id != finished?.id }
+        if (anotherRunIsActive) return
 
-        executor.execute {
-            val infos = futures.flatMap { runCatching { it.get() }.getOrDefault(emptyList()) }
-            val anotherRunIsActive = infos.any { it.state == WorkInfo.State.RUNNING && it.id != finished?.id }
-            if (anotherRunIsActive) return@execute
-
-            val prefs = context.appPreferences()
-            val schedule = prefs.getSyncSchedule(source)
-            val lastRun = prefs.getScheduleLastRun(source)?.let { toLocalDateTime(it) }
-            apply(workManager, source, schedule, lastRun, finished?.slot)
-        }
+        val prefs = context.appPreferences()
+        val schedule = prefs.getSyncSchedule(source)
+        val lastRun = prefs.getScheduleLastRun(source)?.let { toLocalDateTime(it) }
+        apply(workManager, source, schedule, lastRun, finished?.slot)
     }
 
     private fun apply(

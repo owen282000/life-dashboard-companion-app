@@ -303,7 +303,7 @@ From 1.18.0 the app follows Health Connect's own change tracking and names the r
 Two limits are worth building around:
 
 - **Tracking starts when the app first syncs a type**, so deletions from before that were never observable.
-- **Some syncs cannot vouch for a type**, and those are named in `deletions_unavailable`, a list of payload keys. It happens when Health Connect forgets a phone that has not synced for 30 days, when a type has more changes than one sync can read, and when a type cannot be read at all. In each case the app does not know what was deleted, so reconcile those types against a backfill window instead of trusting the incremental payload.
+- **Some syncs cannot vouch for a type**, and those are named in `deletions_unavailable`, a list of payload keys. It happens when Health Connect forgets a phone that has not synced for 30 days, when a type has more changes than one sync can read, when a type cannot be read at all, and when Health Connect is too slow to answer within the time the sync allows the deletion step (five seconds per type, twenty in total, from 1.18.1). In the last case the type keeps its place in the change feed and is read on the next sync. In each case the app does not know what was deleted for that payload, so reconcile those types against a backfill window instead of trusting the incremental payload.
 
 ```json
 "deletions_unavailable": ["nutrition", "hydration"]

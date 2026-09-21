@@ -126,6 +126,33 @@ object DeletionTracking {
     const val TOKEN_MAX_AGE_DAYS = 30L
 
     /**
+     * How long one type's changes read may take, and how long the whole deletion step may take
+     * across every enabled type.
+     *
+     * The step runs before the first delivery and does one round trip to Health Connect per
+     * enabled type, up to 33. Warm, that is milliseconds each. A scheduled run that starts
+     * while the phone is dozing can find the service cold and a call that does not return, and
+     * a hang is not an exception, so without a bound the whole sync would sit there until
+     * Android stopped the worker, which delivers nothing at all. A type that does not fit keeps
+     * its token, so the next sync reads it from the same position; it only costs that type a
+     * turn in `deletions_unavailable`, which is the honest report (1.18.1, after a report of
+     * background syncs stalling on 1.18.0).
+     */
+    const val PER_TYPE_TIMEOUT_MS = 5_000L
+    const val TOTAL_BUDGET_MS = 20_000L
+
+    /**
+     * How long the next type may take given how much of the budget is already spent: the
+     * per-type limit, or whatever is left of the total if that is less, or zero when the total
+     * is gone, which the caller reads as "skip this type".
+     */
+    fun timeoutFor(
+        elapsedMs: Long,
+        perTypeMs: Long = PER_TYPE_TIMEOUT_MS,
+        totalMs: Long = TOTAL_BUDGET_MS
+    ): Long = minOf(perTypeMs, totalMs - elapsedMs).coerceAtLeast(0)
+
+    /**
      * The payload key each type's records are published under, which is also the key a receiver
      * stores them by. `deleted_records` uses these names so an entry points at the same
      * collection the record itself arrived in.

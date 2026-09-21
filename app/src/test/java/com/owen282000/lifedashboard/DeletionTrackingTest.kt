@@ -105,6 +105,34 @@ class DeletionTrackingTest {
     }
 
     @Test
+    fun `a type gets the per-type limit while the budget is fresh`() {
+        assertEquals(5_000L, DeletionTracking.timeoutFor(elapsedMs = 0, perTypeMs = 5_000, totalMs = 20_000))
+        assertEquals(5_000L, DeletionTracking.timeoutFor(elapsedMs = 14_000, perTypeMs = 5_000, totalMs = 20_000))
+    }
+
+    @Test
+    fun `the last type only gets what is left of the total`() {
+        // Otherwise the step could overrun the total by one full per-type limit, and the total
+        // is the promise made to the records waiting behind this step.
+        assertEquals(2_000L, DeletionTracking.timeoutFor(elapsedMs = 18_000, perTypeMs = 5_000, totalMs = 20_000))
+    }
+
+    @Test
+    fun `a spent budget gives zero, which means skip`() {
+        assertEquals(0L, DeletionTracking.timeoutFor(elapsedMs = 20_000, perTypeMs = 5_000, totalMs = 20_000))
+        // A clock that ran past the total must not produce a negative timeout.
+        assertEquals(0L, DeletionTracking.timeoutFor(elapsedMs = 25_000, perTypeMs = 5_000, totalMs = 20_000))
+    }
+
+    @Test
+    fun `the shipped budget fits every type in the warm case`() {
+        // 33 types at a warm round trip of well under a second each must never hit the total;
+        // the budget exists for a cold or dozing service, not for the normal sync.
+        val warmRoundTripMs = 300L
+        assertTrue(HealthDataType.entries.size * warmRoundTripMs < DeletionTracking.TOTAL_BUDGET_MS)
+    }
+
+    @Test
     fun `a type that could not be read is reported as unreconcilable too`() {
         // Its token is kept, so the next sync catches up, but this payload must not pass for a
         // complete picture: a receiver would keep records that were deleted.

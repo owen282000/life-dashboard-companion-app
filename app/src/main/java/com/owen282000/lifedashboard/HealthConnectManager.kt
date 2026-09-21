@@ -665,6 +665,10 @@ class HealthConnectManager(private val context: Context) {
                 // the app cannot name, so reconcile it against a backfill window instead.
                 expired = expired || unread
             )
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // A timeout or a stopped worker is not a failed read; it has to unwind, or the
+            // caller's loop would go on to the next type inside a cancelled scope.
+            throw e
         } catch (e: Exception) {
             // A type whose changes cannot be read must not fail the sync: the records themselves
             // were read successfully, and a missing deletion is a smaller problem than no payload.

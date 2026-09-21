@@ -5,6 +5,7 @@ import android.os.Build
 import com.owen282000.lifedashboard.NutritionSupport.putNutrition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -492,7 +493,17 @@ class HealthSyncManager(private val context: Context) {
             // one in the same call instead of spending a round trip to be told so.
             val usable = if (DeletionTracking.isTokenUsable(stored, issuedAt, now)) stored else null
 
-            val result = healthConnectManager.readDeletions(type, usable)
+            // Bounded per type and in total, so a Health Connect call that does not return
+            // cannot hold the records behind it; see DeletionTracking.PER_TYPE_TIMEOUT_MS. A
+            // type that runs out of time or budget errors out here, which keeps its token (the
+            // feed was not consumed) and names it in deletions_unavailable for this payload.
+            val timeoutMs = DeletionTracking.timeoutFor(System.currentTimeMillis() - now)
+            val result = if (timeoutMs == 0L) {
+                ChangesResult(error = "skipped: deletion budget spent")
+            } else {
+                withTimeoutOrNull(timeoutMs) { healthConnectManager.readDeletions(type, usable) }
+                    ?: ChangesResult(error = "timed out after $timeoutMs ms")
+            }
             // A type that errored keeps its token: the feed was not consumed, so the next sync
             // can read the same position again.
             if (result.nextToken != null) {
