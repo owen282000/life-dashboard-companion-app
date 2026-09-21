@@ -1,0 +1,7 @@
+Fixed:
+
+- Background syncs could stall after 1.18.0 while a sync started from the app worked, and
+  opening the app delivered the backlog within a minute or two. The deletion step added
+  in 1.18.0 asks Health Connect about every enabled type before anything is delivered,
+  and a scheduled run that started with the phone dozing could sit in that step until
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md

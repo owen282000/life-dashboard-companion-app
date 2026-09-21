@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-09-21
+
 ### Fixed
 
 - Background syncs could stall after 1.18.0 while a sync started from the app worked, and
