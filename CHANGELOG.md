@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Client certificates (mTLS) for webhooks, for a Home Assistant or receiver behind a
+  reverse proxy that requires one. Install the certificate in Android's credential store,
+  then pick it under Advanced settings in Health Connect or Screen Time; the choice applies
+  to both. Every webhook request presents it, including background syncs, and the picker
+  only appears again when you change it. The choice is device specific, so it is not part
+  of the settings backup. MQTT is unaffected.
+
 ## [1.18.1] - 2026-09-21
 
 ### Fixed

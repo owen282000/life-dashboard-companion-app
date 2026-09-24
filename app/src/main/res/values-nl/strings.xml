@@ -21,6 +21,11 @@
     <string name="webhook_add_a_url">Voeg een webhook-URL toe</string>
     <string name="webhook_allow_plain_http">Gewone HTTP-webhooks toestaan</string>
     <string name="webhook_allow_plain_http_description">Voor een webhook op je eigen netwerk of VPN zonder certificaat. HTTPS blijft de standaard, en deze ene schakelaar geldt voor zowel Health Connect als Screen Time. MQTT staat hier los van.</string>
+    <string name="client_cert_title">Clientcertificaat (mTLS)</string>
+    <string name="client_cert_none">Geen</string>
+    <string name="client_cert_description">Voor een server die een clientcertificaat vereist. Installeer het eerst in de Android-instellingen (Beveiliging, Versleuteling en inloggegevens, Certificaat installeren). Eén keer kiezen, daarna geldt het voor alle webhooks, ook op de achtergrond. MQTT staat hier los van.</string>
+    <string name="client_cert_choose">Kiezen</string>
+    <string name="client_cert_clear">Wissen</string>
     <string name="webhook_enter_header_name_and_value">Vul een headernaam en waarde in</string>
     <string name="webhook_enter_valid_url">Vul een geldige URL in</string>
     <string name="webhook_header_name">Headernaam</string>

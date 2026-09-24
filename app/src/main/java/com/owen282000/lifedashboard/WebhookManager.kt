@@ -22,11 +22,22 @@ class WebhookManager(
     private val signingSecret: String? = null
 ) {
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        .build()
+    /**
+     * Built per post, on the IO dispatcher: presenting a client certificate means loading it
+     * from KeyChain, which blocks and must not run on the main thread.
+     */
+    private fun buildClient(): OkHttpClient {
+        val builder = OkHttpClient.Builder()
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        val alias = context?.let { PreferencesManager(it).clientCertAlias() }
+        if (context != null && alias != null) {
+            val setup = ClientCertSupport.sslSetup(context, alias)
+            builder.sslSocketFactory(setup.socketFactory, setup.trustManager)
+        }
+        return builder.build()
+    }
 
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
@@ -41,11 +52,19 @@ class WebhookManager(
             )
         }
 
+        val client = try {
+            buildClient()
+        } catch (e: IOException) {
+            val timestamp = System.currentTimeMillis()
+            webhookUrls.forEach { logWebhookCall(it, timestamp, null, false, e.message, jsonPayload) }
+            return@withContext Result.failure<Unit>(e)
+        }
+
         var anySuccess = false
         var lastFailure: Exception? = null
 
         for (url in webhookUrls) {
-            val result = postToUrl(url, jsonPayload)
+            val result = postToUrl(client, url, jsonPayload)
             if (result.isSuccess) {
                 anySuccess = true
             } else {
@@ -60,7 +79,7 @@ class WebhookManager(
         }
     }
 
-    private suspend fun postToUrl(url: String, jsonPayload: String): Result<Unit> {
+    private suspend fun postToUrl(client: OkHttpClient, url: String, jsonPayload: String): Result<Unit> {
         val timestamp = System.currentTimeMillis()
 
         // HTTPS by default; plain HTTP only after the user opted in for private networks.

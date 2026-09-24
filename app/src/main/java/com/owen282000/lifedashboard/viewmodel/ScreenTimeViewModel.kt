@@ -24,6 +24,8 @@ data class ScreenTimeUiState(
     val draft: ScreenTimeDraft,
     val hasUsageAccess: Boolean = false,
     val allowHttpWebhooks: Boolean = false,
+    /** KeyChain alias of the client certificate (mTLS) presented to webhooks, null for none. */
+    val clientCertAlias: String? = null,
     val failureNotificationsEnabled: Boolean = false,
     val failureThreshold: Int = 3,
     val secretsUnavailable: Boolean = false,
@@ -54,6 +56,7 @@ interface ScreenTimeActions {
     fun setUseDayBoundary(enabled: Boolean)
     fun setMqtt(mqtt: MqttDraft)
     fun setAllowHttpWebhooks(enabled: Boolean)
+    fun setClientCertAlias(alias: String?)
     fun setFailureNotifications(enabled: Boolean)
     fun setFailureThreshold(threshold: Int)
     fun save()
@@ -80,6 +83,7 @@ class ScreenTimeViewModel(
                 draft = saved,
                 hasUsageAccess = ops.hasUsageAccess(),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
+                clientCertAlias = settings.clientCertAlias(),
                 failureNotificationsEnabled = settings.failureNotificationsEnabled(),
                 failureThreshold = settings.failureThreshold(),
                 secretsUnavailable = settings.secretsUnavailable,
@@ -142,6 +146,11 @@ class ScreenTimeViewModel(
         _state.update { it.copy(allowHttpWebhooks = enabled) }
     }
 
+    override fun setClientCertAlias(alias: String?) {
+        settings.setClientCertAlias(alias)
+        _state.update { it.copy(clientCertAlias = alias) }
+    }
+
     override fun setFailureNotifications(enabled: Boolean) {
         settings.setFailureNotificationsEnabled(enabled)
         _state.update { it.copy(failureNotificationsEnabled = enabled) }
@@ -175,7 +184,12 @@ class ScreenTimeViewModel(
     override fun reloadFromSettings() {
         val saved = settings.loadScreenTime()
         _state.update {
-            it.copy(saved = saved, draft = saved, allowHttpWebhooks = settings.allowHttpWebhooks())
+            it.copy(
+                saved = saved,
+                draft = saved,
+                allowHttpWebhooks = settings.allowHttpWebhooks(),
+                clientCertAlias = settings.clientCertAlias()
+            )
         }
     }
 

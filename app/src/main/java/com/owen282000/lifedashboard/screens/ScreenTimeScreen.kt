@@ -208,6 +208,12 @@ fun ScreenTimeContent(
                     accent,
                     actions::setAllowHttpWebhooks
                 )
+                ClientCertLine(
+                    alias = state.clientCertAlias,
+                    webhookUrl = state.draft.webhook.urls.firstOrNull(),
+                    accent = accent,
+                    onAliasChange = actions::setClientCertAlias
+                )
             }
             GroupDivider()
             NotificationsRow(

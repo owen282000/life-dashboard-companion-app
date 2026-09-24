@@ -203,4 +203,29 @@ class HealthConnectViewModelTest {
         assertEquals(UiMessage.BackfillComplete(30), vm.state.value.syncMessage)
         job.cancel()
     }
+
+    @Test
+    fun `the client certificate applies at once and is not an unsaved change`() {
+        val settings = FakeAppSettings().apply { certAlias = "home-cert" }
+        val vm = vm(settings)
+        assertEquals("home-cert", vm.state.value.clientCertAlias)
+
+        vm.setClientCertAlias("other-cert")
+        assertEquals("other-cert", settings.certAlias)
+        assertEquals("other-cert", vm.state.value.clientCertAlias)
+        assertFalse(vm.state.value.hasChanges)
+
+        vm.setClientCertAlias(null)
+        assertNull(settings.certAlias)
+        assertNull(vm.state.value.clientCertAlias)
+    }
+
+    @Test
+    fun `a client certificate picked on the other screen shows up after a reload`() {
+        val settings = FakeAppSettings()
+        val vm = vm(settings)
+        settings.certAlias = "home-cert"
+        vm.reloadFromSettings()
+        assertEquals("home-cert", vm.state.value.clientCertAlias)
+    }
 }

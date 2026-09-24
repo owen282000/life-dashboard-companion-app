@@ -10,7 +10,7 @@ Webhook auth headers, HMAC signing secrets and MQTT passwords are stored encrypt
 
 | Included | Not included |
 |---|---|
-| Webhook URLs, per-section | Sync watermarks (last-sync timestamps) |
+| Webhook URLs, per-section | Sync watermarks (last-sync timestamps), client certificate choice |
 | Custom headers | Webhook logs and raw payloads |
 | HMAC signing secrets | Lifetime statistics |
 | Sync intervals | Health Connect permissions |
@@ -19,6 +19,8 @@ Webhook auth headers, HMAC signing secrets and MQTT passwords are stored encrypt
 | Daily totals, plain HTTP, full payloads, day boundary, failure threshold | |
 
 Sync state is left out on purpose. Those watermarks describe how far *this* install has read from Health Connect; restoring them on another device would make the next sync skip everything written before the imported timestamp. After an import the new device syncs from its own starting point.
+
+The client certificate lives in Android's credential store and never leaves it, so an export could only carry its name, which means nothing on another phone. Install the certificate on the new device and pick it again under Advanced settings.
 
 Permissions are granted by Android, not by the app, so you still grant Health Connect access and usage access on the new device.
 
