@@ -148,6 +148,7 @@ class PreferencesManager(context: Context) {
 
         private const val KEY_INCLUDE_DAILY_TOTALS = "include_daily_totals"
         private const val KEY_ALLOW_HTTP_WEBHOOKS = "allow_http_webhooks"
+        private const val KEY_CLIENT_CERT_ALIAS = "client_cert_alias"
 
         /** Shared MQTT broker keys: mqtt_host, mqtt_port, mqtt_tls, mqtt_username, mqtt_password (securePrefs). */
         private const val SHARED_MQTT_PREFIX = "mqtt_"
@@ -392,6 +393,16 @@ class PreferencesManager(context: Context) {
 
     fun setAllowHttpWebhooks(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_ALLOW_HTTP_WEBHOOKS, enabled).apply()
+    }
+
+    /**
+     * KeyChain alias of the client certificate presented to webhooks (mTLS), or null for none.
+     * Device specific, so it is not part of the config backup.
+     */
+    fun clientCertAlias(): String? = prefs.getString(KEY_CLIENT_CERT_ALIAS, null)
+
+    fun setClientCertAlias(alias: String?) {
+        prefs.edit().putString(KEY_CLIENT_CERT_ALIAS, alias).apply()
     }
 
     fun setIncludeDailyTotals(enabled: Boolean) {

@@ -21,6 +21,11 @@
     <string name="webhook_add_a_url">Webhook-URL hinzufügen</string>
     <string name="webhook_allow_plain_http">Einfache HTTP-Webhooks erlauben</string>
     <string name="webhook_allow_plain_http_description">Für einen Webhook im eigenen LAN oder VPN ohne Zertifikat. HTTPS bleibt die Vorgabe, und dieser eine Schalter gilt für Health Connect und Screen Time. MQTT ist nicht betroffen.</string>
+    <string name="client_cert_title">Client-Zertifikat (mTLS)</string>
+    <string name="client_cert_none">Keines</string>
+    <string name="client_cert_description">Für einen Server, der ein Client-Zertifikat verlangt. Installiere es zuerst in den Android-Einstellungen (Sicherheit, Verschlüsselung &amp; Anmeldedaten, Zertifikat installieren). Einmal gewählt, gilt es für alle Webhooks, auch im Hintergrund. MQTT ist nicht betroffen.</string>
+    <string name="client_cert_choose">Wählen</string>
+    <string name="client_cert_clear">Entfernen</string>
     <string name="webhook_enter_header_name_and_value">Header-Name und -Wert eingeben</string>
     <string name="webhook_enter_valid_url">Gib eine gültige URL ein</string>
     <string name="webhook_header_name">Header-Name</string>

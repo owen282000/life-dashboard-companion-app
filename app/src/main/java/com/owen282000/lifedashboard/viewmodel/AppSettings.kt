@@ -26,6 +26,8 @@ interface AppSettings {
     fun setIncludeDailyTotals(enabled: Boolean)
     fun allowHttpWebhooks(): Boolean
     fun setAllowHttpWebhooks(enabled: Boolean)
+    fun clientCertAlias(): String?
+    fun setClientCertAlias(alias: String?)
     fun failureNotificationsEnabled(): Boolean
     fun setFailureNotificationsEnabled(enabled: Boolean)
     fun failureThreshold(): Int
@@ -95,6 +97,8 @@ class PreferencesAppSettings(
     override fun setIncludeDailyTotals(enabled: Boolean) = prefs.setIncludeDailyTotals(enabled)
     override fun allowHttpWebhooks() = prefs.allowHttpWebhooks()
     override fun setAllowHttpWebhooks(enabled: Boolean) = prefs.setAllowHttpWebhooks(enabled)
+    override fun clientCertAlias() = prefs.clientCertAlias()
+    override fun setClientCertAlias(alias: String?) = prefs.setClientCertAlias(alias)
     override fun failureNotificationsEnabled() = SyncFailureNotifier.isEnabled(context)
     override fun setFailureNotificationsEnabled(enabled: Boolean) = SyncFailureNotifier.setEnabled(context, enabled)
     override fun failureThreshold() = SyncFailureNotifier.getThreshold(context)

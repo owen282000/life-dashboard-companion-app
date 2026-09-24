@@ -41,6 +41,7 @@ What individual source apps do and do not write is collected in [DATA_SOURCES.md
 - **Retries with backoff** - transient failures are retried automatically; permanent errors fail fast
 - **Separate configuration** - different URLs, headers and signing secrets for Health and Screen Time
 - **HTTPS by default, plain HTTP on request** - `http://` URLs are refused unless "Allow plain HTTP webhooks" is switched on, for Home Assistant or receivers only reachable over a private LAN or VPN
+- **Client certificates (mTLS)** - present a certificate from Android's credential store to every webhook, for servers behind a reverse proxy that requires one
 
 Delivery details, retry rules and signature verification are described in [webhook.md](webhook.md#delivery-retries-and-signing).
 

@@ -32,6 +32,8 @@ data class HealthUiState(
     val grantedPermissions: Set<String> = emptySet(),
     val includeDailyTotals: Boolean = false,
     val allowHttpWebhooks: Boolean = false,
+    /** KeyChain alias of the client certificate (mTLS) presented to webhooks, null for none. */
+    val clientCertAlias: String? = null,
     val failureNotificationsEnabled: Boolean = false,
     val failureThreshold: Int = 3,
     val secretsUnavailable: Boolean = false,
@@ -69,6 +71,7 @@ interface HealthActions {
     fun setMqtt(mqtt: MqttDraft)
     fun setIncludeDailyTotals(enabled: Boolean)
     fun setAllowHttpWebhooks(enabled: Boolean)
+    fun setClientCertAlias(alias: String?)
     fun setFailureNotifications(enabled: Boolean)
     fun setFailureThreshold(threshold: Int)
     fun save()
@@ -106,6 +109,7 @@ class HealthConnectViewModel(
                 draft = saved,
                 includeDailyTotals = settings.includeDailyTotals(),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
+                clientCertAlias = settings.clientCertAlias(),
                 failureNotificationsEnabled = settings.failureNotificationsEnabled(),
                 failureThreshold = settings.failureThreshold(),
                 secretsUnavailable = settings.secretsUnavailable,
@@ -203,6 +207,11 @@ class HealthConnectViewModel(
         _state.update { it.copy(allowHttpWebhooks = enabled) }
     }
 
+    override fun setClientCertAlias(alias: String?) {
+        settings.setClientCertAlias(alias)
+        _state.update { it.copy(clientCertAlias = alias) }
+    }
+
     override fun setFailureNotifications(enabled: Boolean) {
         settings.setFailureNotificationsEnabled(enabled)
         _state.update { it.copy(failureNotificationsEnabled = enabled) }
@@ -239,7 +248,8 @@ class HealthConnectViewModel(
                 saved = saved,
                 draft = saved,
                 includeDailyTotals = settings.includeDailyTotals(),
-                allowHttpWebhooks = settings.allowHttpWebhooks()
+                allowHttpWebhooks = settings.allowHttpWebhooks(),
+                clientCertAlias = settings.clientCertAlias()
             )
         }
     }

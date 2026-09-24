@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -102,5 +103,21 @@ class ScreenTimeViewModelTest {
         assertEquals(UiMessage.PingDelivered, toasts.last())
         assertFalse(vm.state.value.isPinging)
         job.cancel()
+    }
+
+    @Test
+    fun `the client certificate is shared with the health screen`() {
+        val settings = FakeAppSettings().apply { certAlias = "home-cert" }
+        val vm = vm(settings)
+        assertEquals("home-cert", vm.state.value.clientCertAlias)
+
+        vm.setClientCertAlias(null)
+        assertNull(settings.certAlias)
+        assertNull(vm.state.value.clientCertAlias)
+        assertFalse(vm.state.value.hasChanges)
+
+        settings.certAlias = "other-cert"
+        vm.reloadFromSettings()
+        assertEquals("other-cert", vm.state.value.clientCertAlias)
     }
 }
