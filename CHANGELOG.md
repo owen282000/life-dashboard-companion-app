@@ -4,15 +4,28 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-09-26
+
 ### Added
 
 - Client certificates (mTLS) for webhooks, for a Home Assistant or receiver behind a
   reverse proxy that requires one. Install the certificate in Android's credential store,
   then pick it under Advanced settings in Health Connect or Screen Time; the choice applies
-  to both. Every webhook request presents it, including background syncs, and the picker
-  only appears again when you change it. The choice is device specific, so it is not part
-  of the settings export; on a phone restored from Android's backup the webhook log asks
-  you to choose the certificate again. MQTT is unaffected.
+  to both, and the Advanced row's summary names it. Every webhook request presents it,
+  including background syncs, and the picker only appears again when you change it. The
+  choice is device specific, so it is not part of the settings export; on a phone restored
+  from Android's backup the webhook log asks you to choose the certificate again. MQTT is
+  unaffected. Contributed by [majorcs](https://github.com/majorcs)
+  ([#69](https://github.com/owen282000/life-dashboard-companion-app/pull/69)).
+
+### Fixed
+
+- The plain HTTP switch and the client certificate are one setting for both tabs, but
+  a change on one tab only showed on the other after a restart. Both tabs now re-read
+  those two settings every time they come into view; an unsaved edit on the tab you
+  return to is kept.
+- A failure to set up the webhook client, other than a missing certificate, ended the
+  sync without a row in the webhook log. Every such failure is now logged per URL.
 
 ## [1.18.1] - 2026-09-21
 
