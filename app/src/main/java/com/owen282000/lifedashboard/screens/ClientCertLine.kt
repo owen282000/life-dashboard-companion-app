@@ -57,7 +57,7 @@ fun ClientCertLine(
         }
         TextButton(onClick = {
             val activity = context.findActivity() ?: return@TextButton
-            val uri = webhookUrl?.let { runCatching { Uri.parse(it) }.getOrNull() }
+            val uri = webhookUrl?.let { Uri.parse(it) }
             val main = Handler(Looper.getMainLooper())
             KeyChain.choosePrivateKeyAlias(
                 activity,
