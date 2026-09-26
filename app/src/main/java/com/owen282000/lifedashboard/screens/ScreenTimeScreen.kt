@@ -63,6 +63,8 @@ fun ScreenTimeScreen(
             delay(1000)
         }
     }
+    // See HealthConnectScreen: the settings both tabs show, re-read on every switch.
+    LaunchedEffect(Unit) { viewModel.refreshSharedSettings() }
     LaunchedEffect(Unit) {
         viewModel.toasts.collect { Toast.makeText(context, it.text(resources), Toast.LENGTH_SHORT).show() }
     }

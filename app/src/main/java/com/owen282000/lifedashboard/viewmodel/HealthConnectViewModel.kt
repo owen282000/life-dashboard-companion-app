@@ -131,6 +131,17 @@ class HealthConnectViewModel(
     private fun editWebhook(transform: (WebhookDraft) -> WebhookDraft) = editDraft { it.copy(webhook = transform(it.webhook)) }
 
     /** Re-reads availability and granted permissions; called on open and after a grant. */
+    /**
+     * Re-read the settings this tab shares with Screen Time (plain HTTP, client
+     * certificate), which that tab may have changed. The draft is left alone, so an
+     * unsaved edit here survives a look at the other tab.
+     */
+    fun refreshSharedSettings() {
+        _state.update {
+            it.copy(allowHttpWebhooks = settings.allowHttpWebhooks(), clientCertAlias = settings.clientCertAlias())
+        }
+    }
+
     fun refreshPermissions() {
         viewModelScope.launch {
             val availability = ops.availability()
