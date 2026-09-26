@@ -1,6 +1,7 @@
 package com.owen282000.lifedashboard
 
 import android.content.Context
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -52,11 +53,16 @@ class WebhookManager(
             )
         }
 
+        // Any failure to set up the client, not only the "certificate unavailable" IOException,
+        // is logged against every URL: nothing was sent, and the log is where the user looks.
         val client = try {
             buildClient()
-        } catch (e: IOException) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
             val timestamp = System.currentTimeMillis()
-            webhookUrls.forEach { logWebhookCall(it, timestamp, null, false, e.message, jsonPayload) }
+            val reason = e.message ?: e.javaClass.simpleName
+            webhookUrls.forEach { logWebhookCall(it, timestamp, null, false, reason, jsonPayload) }
             return@withContext Result.failure<Unit>(e)
         }
 
