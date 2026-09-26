@@ -44,6 +44,7 @@
     <string name="webhook_urls_title">Webhook-URL\'s</string>
 
     <!-- Gedeelde synchronisatiesectie, gebruikt door Health Connect en Schermtijd -->
+    <string name="sync_advanced_client_cert">Clientcertificaat</string>
     <string name="sync_advanced_https_only">Alleen HTTPS</string>
     <string name="sync_advanced_plain_http_allowed">Plain HTTP toegestaan</string>
     <string name="sync_advanced_title">Geavanceerd</string>

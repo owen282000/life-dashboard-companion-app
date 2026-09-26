@@ -44,6 +44,7 @@
     <string name="webhook_urls_title">Webhook-URLs</string>
 
     <!-- Gemeinsamer Synchronisierungsbereich, genutzt von Health Connect und Bildschirmzeit -->
+    <string name="sync_advanced_client_cert">Client-Zertifikat</string>
     <string name="sync_advanced_https_only">Nur HTTPS</string>
     <string name="sync_advanced_plain_http_allowed">Unverschlüsseltes HTTP erlaubt</string>
     <string name="sync_advanced_title">Erweitert</string>

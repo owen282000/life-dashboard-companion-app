@@ -197,7 +197,10 @@ fun ScreenTimeContent(
                 icon = Icons.Outlined.Tune,
                 accent = accent,
                 title = stringResource(R.string.sync_advanced_title),
-                subtitle = if (state.allowHttpWebhooks) stringResource(R.string.sync_advanced_plain_http_allowed) else stringResource(R.string.sync_advanced_https_only),
+                subtitle = listOfNotNull(
+                    if (state.allowHttpWebhooks) stringResource(R.string.sync_advanced_plain_http_allowed) else stringResource(R.string.sync_advanced_https_only),
+                    if (state.clientCertAlias != null) stringResource(R.string.sync_advanced_client_cert) else null
+                ).joinToString(", "),
                 expanded = advancedExpanded,
                 onToggle = { advancedExpanded = !advancedExpanded }
             ) {

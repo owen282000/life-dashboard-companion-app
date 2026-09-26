@@ -46,6 +46,7 @@
     <string name="webhook_urls_title">Webhook URLs</string>
 
     <!-- Shared sync section, used by Health Connect and Screen Time -->
+    <string name="sync_advanced_client_cert">Client certificate</string>
     <string name="sync_advanced_https_only">HTTPS only</string>
     <string name="sync_advanced_plain_http_allowed">Plain HTTP allowed</string>
     <string name="sync_advanced_title">Advanced</string>
