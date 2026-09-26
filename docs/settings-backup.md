@@ -20,7 +20,7 @@ Webhook auth headers, HMAC signing secrets and MQTT passwords are stored encrypt
 
 Sync state is left out on purpose. Those watermarks describe how far *this* install has read from Health Connect; restoring them on another device would make the next sync skip everything written before the imported timestamp. After an import the new device syncs from its own starting point.
 
-The client certificate lives in Android's credential store and never leaves it, so an export could only carry its name, which means nothing on another phone. Install the certificate on the new device and pick it again under Advanced settings.
+The client certificate lives in Android's credential store and never leaves it, so an export could only carry its name, which means nothing on another phone. Install the certificate on the new device and pick it again under Advanced settings. Android's own backup and device transfer do carry the name along with the other settings; until you pick the certificate again, the webhook log says it is unavailable and no webhook is sent.
 
 Permissions are granted by Android, not by the app, so you still grant Health Connect access and usage access on the new device.
 
