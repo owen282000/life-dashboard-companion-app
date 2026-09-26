@@ -109,6 +109,13 @@ class ScreenTimeViewModel(
         if (granted != _state.value.hasUsageAccess) _state.update { it.copy(hasUsageAccess = granted) }
     }
 
+    /** See HealthConnectViewModel.refreshSharedSettings: the two settings both tabs show. */
+    fun refreshSharedSettings() {
+        _state.update {
+            it.copy(allowHttpWebhooks = settings.allowHttpWebhooks(), clientCertAlias = settings.clientCertAlias())
+        }
+    }
+
     fun requestUsageAccess() {
         _openUsageAccess.tryEmit(Unit)
     }

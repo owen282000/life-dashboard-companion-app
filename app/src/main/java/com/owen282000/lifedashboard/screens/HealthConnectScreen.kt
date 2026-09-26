@@ -81,6 +81,10 @@ fun HealthConnectScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
+    // The plain HTTP switch and the client certificate are shared with the Screen Time tab,
+    // which may have changed them while this tab was away. Tabs are recomposed on every
+    // switch, so this runs each time the tab comes into view.
+    LaunchedEffect(Unit) { viewModel.refreshSharedSettings() }
     LaunchedEffect(Unit) {
         viewModel.toasts.collect { Toast.makeText(context, it.text(resources), Toast.LENGTH_SHORT).show() }
     }

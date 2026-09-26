@@ -221,6 +221,23 @@ class HealthConnectViewModelTest {
     }
 
     @Test
+    fun `shared settings changed on the other tab are picked up without touching the draft`() {
+        val settings = FakeAppSettings()
+        val vm = vm(settings)
+        vm.addUrl("https://example.org/hook")
+        assertTrue(vm.state.value.hasChanges)
+
+        settings.certAlias = "home-cert"
+        settings.allowHttp = true
+        vm.refreshSharedSettings()
+
+        assertEquals("home-cert", vm.state.value.clientCertAlias)
+        assertTrue(vm.state.value.allowHttpWebhooks)
+        assertTrue(vm.state.value.hasChanges)
+        assertEquals(listOf("https://example.org/hook"), vm.state.value.draft.webhook.urls)
+    }
+
+    @Test
     fun `a client certificate picked on the other screen shows up after a reload`() {
         val settings = FakeAppSettings()
         val vm = vm(settings)
