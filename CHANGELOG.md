@@ -11,7 +11,8 @@ All notable changes to this project are documented in this file. The format is b
   then pick it under Advanced settings in Health Connect or Screen Time; the choice applies
   to both. Every webhook request presents it, including background syncs, and the picker
   only appears again when you change it. The choice is device specific, so it is not part
-  of the settings backup. MQTT is unaffected.
+  of the settings export; on a phone restored from Android's backup the webhook log asks
+  you to choose the certificate again. MQTT is unaffected.
 
 ## [1.18.1] - 2026-09-21
 

@@ -139,6 +139,8 @@ Webhook URLs must use HTTPS unless you opt in. For a receiver that is only reach
 
 The certificate chosen under **Advanced > Client certificate (mTLS)** was removed from Android's credential store, or the app's access to it was revoked. No webhook is sent until this is fixed: install the certificate again if needed (Settings > Security > Encryption & credentials > Install a certificate) and pick it again with **Choose**, or **Clear** it when the server no longer requires one.
 
+The same message appears after moving to a new phone through Android's own backup or device transfer: the app's settings come along, the certificate itself never leaves the old phone, so the choice names a certificate the new phone does not have.
+
 ### Step, distance or calorie totals are far too high
 
 Health Connect usually holds the same activity from more than one app: the phone's step counter, the watch app, Samsung Health, or a mirroring app. Each copy is a record with its own `source`, and summing the raw records counts the activity two or three times. Use the [`daily_totals`](webhook.md#daily-totals) array for day totals (it is deduplicated by Health Connect itself) and deduplicate raw records on `uuid`, since a batch is re-sent after a failed delivery.
