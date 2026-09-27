@@ -51,6 +51,34 @@
         "type": "string"
       }
     },
+    "records_outside_window": {
+      "type": "object",
+      "description": "Per payload key, records that a source wrote or edited since the previous sync with a timestamp before the range this sync read (read_from in _diagnostics), so they are not in the payload: for instance a watch that uploads after more than a week away from the phone. A backfill of from to until sends them. Absent when there are none.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "How many such changes Health Connect reported"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of the oldest of them"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Where the range the sync read started"
+          }
+        },
+        "required": [
+          "count",
+          "from",
+          "until"
+        ]
+      }
+    },
     "backfill": {
       "type": "boolean",
       "description": "True on payloads from a one-time history export; absent on ordinary syncs"

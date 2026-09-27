@@ -47,7 +47,7 @@ class WebhookSchemaTest {
         val declaredKeys = schema.getValue("properties").jsonObject.keys
 
         val reconciliationKeys = listOf(
-            "sequence", "deleted_records", "deletions_unavailable",
+            "sequence", "deleted_records", "deletions_unavailable", "records_outside_window",
             "backfill", "window_start", "window_end", "window_complete",
             // What the phone can write and what it did with the last answer (Receive, 1.20.0).
             "writeback"

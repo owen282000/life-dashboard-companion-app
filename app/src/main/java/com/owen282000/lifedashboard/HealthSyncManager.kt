@@ -184,7 +184,7 @@ class HealthSyncManager(
                     // the app's own (Receive), the read left them out but moved the watermark
                     // past them, and without storing it here they would be read and counted
                     // again on every sync for the whole lookback window.
-                    updateSyncTimestamps(healthData, mutableMapOf())
+                    updateSyncTimestamps(healthData, mutableMapOf(), holdGapAnchors = webhookUrls.isNotEmpty())
                     break
                 }
                 anyData = true
@@ -231,7 +231,7 @@ class HealthSyncManager(
                 val bucketsToSend = resolved.series.values.sumOf { it.size }
                 if (recordsToSend == 0 && bucketsToSend == 0) {
                     val passCounts = mutableMapOf<HealthDataType, Int>()
-                    updateSyncTimestamps(healthData, passCounts)
+                    updateSyncTimestamps(healthData, passCounts, holdGapAnchors = true)
                     preferencesManager.setBucketCarry(carried)
                     passCounts.forEach { (type, count) -> syncCounts.merge(type, count, Int::plus) }
                     if (isLastPass) break
@@ -311,7 +311,8 @@ class HealthSyncManager(
             // one leaves nothing new to read, so the loop above ends without building a payload
             // and the deletions would sit in storage until some later sync happens to carry
             // records. That is the reported case in issue #61, so they get a payload of their
-            // own, carrying no records.
+            // own, carrying no records. So do records the read could not see (OutsideWindow),
+            // which may be all that a watch uploaded after a long time away.
             var deletionsDelivered = false
             if (!pendingDeletions.isEmpty && webhookUrls.isNotEmpty()) {
                 val deletionPayload = buildJsonPayload(
@@ -678,10 +679,13 @@ class HealthSyncManager(
             // type that runs out of time or budget errors out here, which keeps its token (the
             // feed was not consumed) and names it in deletions_unavailable for this payload.
             val timeoutMs = DeletionTracking.timeoutFor(System.currentTimeMillis() - now)
+            // Where this sync's read of the type starts, so the feed can name what changed
+            // before it: the read below never sees those records (see OutsideWindow).
+            val readFrom = LookbackWindow.of(Instant.ofEpochMilli(now), preferencesManager.getHealthCoveredUntil(type)).start
             val result = if (timeoutMs == 0L) {
                 ChangesResult(error = "skipped: deletion budget spent")
             } else {
-                withTimeoutOrNull(timeoutMs) { healthConnectManager.readDeletions(type, usable, ownRecordIds) }
+                withTimeoutOrNull(timeoutMs) { healthConnectManager.readDeletions(type, usable, ownRecordIds, readFrom) }
                     ?: ChangesResult(error = "timed out after $timeoutMs ms")
             }
             // An expired token is reported even when the app decided that itself, as long as
@@ -695,19 +699,27 @@ class HealthSyncManager(
             // for good, without naming the type in deletions_unavailable either.
             if (result.nextToken != null) {
                 val part = mapOf(type to results.getValue(type))
-                val found = DeletionSummary(DeletionTracking.merge(part), DeletionTracking.expiredTypes(part))
+                val found = DeletionTracking.summary(part)
                 if (!found.isEmpty) preferencesManager.setPendingDeletions(preferencesManager.getPendingDeletions().merge(found))
                 preferencesManager.setHealthChangesToken(type, result.nextToken, now)
             }
         }
 
-        return DeletionSummary(
-            deleted = DeletionTracking.merge(results),
-            expiredTypes = DeletionTracking.expiredTypes(results)
-        )
+        return DeletionTracking.summary(results)
     }
 
-    private fun updateSyncTimestamps(data: HealthData, syncCounts: MutableMap<HealthDataType, Int>) {
+    /**
+     * Stores what [data] moved: the watermarks and the lookback anchors. [holdGapAnchors] is for
+     * a pass that sends no payload to a webhook: a type whose range named a lookback gap keeps
+     * its anchor then, so the gap is named again in the next payload instead of never (see
+     * LookbackWindow.keepingGapsOpen). An MQTT-only setup has no payload to name it in and
+     * publishes the newest values only, which a gap in older records does not change.
+     */
+    private fun updateSyncTimestamps(
+        data: HealthData,
+        syncCounts: MutableMap<HealthDataType, Int>,
+        holdGapAnchors: Boolean = false
+    ) {
         // Watermarks are the max metadata.lastModifiedTime of each delivered batch, so late
         // backfills and edits (old record timestamps, recent modification) are caught by the
         // next sync instead of being skipped forever.
@@ -716,7 +728,8 @@ class HealthSyncManager(
         }
         // After the watermarks: a stop in between leaves the older anchor, which only reads a
         // wider range than needed, never a narrower one.
-        data.coveredUntil.forEach { (type, until) ->
+        val anchors = if (holdGapAnchors) LookbackWindow.keepingGapsOpen(data.coveredUntil, data.diagnostics) else data.coveredUntil
+        anchors.forEach { (type, until) ->
             preferencesManager.setHealthCoveredUntil(type, until)
         }
 

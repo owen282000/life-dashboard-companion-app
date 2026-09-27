@@ -86,6 +86,20 @@ class DeletionPayloadTest {
     }
 
     @Test
+    fun `records the read could not see are named per type with the range to backfill`() {
+        val from = java.time.Instant.parse("2026-09-17T08:00:00Z")
+        val until = java.time.Instant.parse("2026-09-20T12:00:00Z")
+        val json = fields(DeletionSummary(outsideWindow = mapOf("weight" to OutsideWindow(3, from.toEpochMilli(), until.toEpochMilli()))))
+
+        val entry = json.getValue("records_outside_window").jsonObject.getValue("weight").jsonObject
+        assertEquals("3", entry.getValue("count").jsonPrimitive.content)
+        assertEquals("2026-09-17T08:00:00Z", entry.getValue("from").jsonPrimitive.content)
+        assertEquals("2026-09-20T12:00:00Z", entry.getValue("until").jsonPrimitive.content)
+        assertFalse(json.containsKey("deleted_records"))
+        assertFalse(fields(DeletionSummary.EMPTY).containsKey("records_outside_window"))
+    }
+
+    @Test
     fun `the schema declares every field these payloads can produce`() {
         // A receiver written against the published schema has to be able to find them.
         val schema = Json.parseToJsonElement(File("../docs/webhook-schema.json").readText())
@@ -94,7 +108,8 @@ class DeletionPayloadTest {
         val emitted = fields(
             DeletionSummary(
                 deleted = listOf(deletion("nutrition", "a")),
-                expiredTypes = listOf("steps")
+                expiredTypes = listOf("steps"),
+                outsideWindow = mapOf("weight" to OutsideWindow(1, 0, 1))
             )
         ).keys
 

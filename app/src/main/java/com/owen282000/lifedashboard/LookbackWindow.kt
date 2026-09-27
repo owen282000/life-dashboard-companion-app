@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard
 
+import kotlinx.serialization.Serializable
 import java.time.Duration
 import java.time.Instant
 
@@ -48,14 +49,54 @@ object LookbackWindow {
     }
 
     /**
-     * The types a read at [readEnd] took completely: every enabled type that was neither cut by
-     * the per-sync cap (the rest of its backlog may be older than the next range) nor left
-     * unread. Only these move their [of] anchor to [readEnd].
+     * The anchors to store after a read at [readEnd] that used [anchors]. A type read
+     * completely moves its [of] anchor to [readEnd]. A type cut by the per-sync cap keeps the
+     * anchor this read used, since the rest of its backlog may be older than a later range:
+     * the stored one, or [readEnd] when it had none, so its range does not slide forward with
+     * "now" while the backlog drains. A type left unread stores nothing.
      */
     fun covered(
         enabled: Set<HealthDataType>,
         capped: Set<HealthDataType>,
         unread: Set<HealthDataType>,
-        readEnd: Instant
-    ): Map<HealthDataType, Instant> = (enabled - capped - unread).associateWith { readEnd }
+        readEnd: Instant,
+        anchors: Map<HealthDataType, Instant?> = emptyMap()
+    ): Map<HealthDataType, Instant> = (enabled - unread).associateWith { type ->
+        if (type in capped) anchors[type] ?: readEnd else readEnd
+    }
+
+    /**
+     * [anchors] without the types whose read named a [Window.gapFrom], for a sync that sends no
+     * payload: the gap is only named in a payload's `_diagnostics`, so moving the anchor
+     * without one would drop it unsaid. The next sync names the same gap again.
+     */
+    fun keepingGapsOpen(
+        anchors: Map<HealthDataType, Instant>,
+        diagnostics: Map<HealthDataType, TypeDiagnostics>
+    ): Map<HealthDataType, Instant> = anchors.filterKeys { diagnostics[it]?.lookbackGapFrom == null }
+
+    /**
+     * What of one type's changes the read over a range from [readFrom] cannot see: the
+     * [recordTimes] (time, or start time) of records a source wrote or edited since the last
+     * sync, before that range. Null when all of them are inside it.
+     */
+    fun outside(recordTimes: List<Instant>, readFrom: Instant): OutsideWindow? {
+        val before = recordTimes.filter { it < readFrom }
+        if (before.isEmpty()) return null
+        return OutsideWindow(before.size, before.min().toEpochMilli(), readFrom.toEpochMilli())
+    }
+}
+
+/**
+ * Changes of one type that the sync's read did not see: [count] records that a source wrote or
+ * edited long after their own time, timestamped from [fromMs] up to [untilMs], where the range
+ * the sync read started. A watch that was away from the phone for more than a week uploads
+ * such records while syncs run normally; the watermark moves past them on newer records, so
+ * only a backfill of that range sends them. Carried with the deletions, which come from the
+ * same changes feed and cannot be read twice either.
+ */
+@Serializable
+data class OutsideWindow(val count: Int, val fromMs: Long, val untilMs: Long) {
+    operator fun plus(other: OutsideWindow) =
+        OutsideWindow(count + other.count, minOf(fromMs, other.fromMs), maxOf(untilMs, other.untilMs))
 }

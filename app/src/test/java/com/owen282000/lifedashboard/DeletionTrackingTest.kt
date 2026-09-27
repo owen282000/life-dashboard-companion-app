@@ -167,6 +167,46 @@ class DeletionTrackingTest {
         assertTrue(DeletionSummary.EMPTY.isEmpty)
         assertFalse(DeletionSummary(deleted = listOf(deletion("steps", "a"))).isEmpty)
         assertFalse(DeletionSummary(expiredTypes = listOf("steps")).isEmpty)
+        assertFalse(DeletionSummary(outsideWindow = mapOf("weight" to OutsideWindow(1, 0, 1))).isEmpty)
+    }
+
+    @Test
+    fun `what the read could not see is carried and joined per type`() {
+        // It comes from the same changes feed as the deletions, which cannot be read twice, so
+        // a sync that builds no payload hands it to the next one like a deletion.
+        val carried = DeletionSummary(outsideWindow = mapOf("weight" to OutsideWindow(1, 500, 1_000)))
+        val fresh = DeletionSummary(
+            outsideWindow = mapOf(
+                "weight" to OutsideWindow(2, 700, 2_000),
+                "heart_rate" to OutsideWindow(4, 100, 2_000)
+            )
+        )
+
+        val merged = carried.merge(fresh)
+
+        assertEquals(
+            mapOf("heart_rate" to OutsideWindow(4, 100, 2_000), "weight" to OutsideWindow(3, 500, 2_000)),
+            merged.outsideWindow
+        )
+    }
+
+    @Test
+    fun `a summary names per type what the read could not see`() {
+        val results = mapOf(
+            HealthDataType.WEIGHT to ChangesResult(nextToken = "t", outsideWindow = OutsideWindow(1, 0, 10)),
+            HealthDataType.STEPS to ChangesResult(nextToken = "t")
+        )
+
+        assertEquals(mapOf("weight" to OutsideWindow(1, 0, 10)), DeletionTracking.summary(results).outsideWindow)
+    }
+
+    @Test
+    fun `a summary stored before this field existed still reads back`() {
+        val restored = kotlinx.serialization.json.Json.decodeFromString<DeletionSummary>(
+            """{"deleted":[{"type":"steps","uuid":"a"}],"expiredTypes":[]}"""
+        )
+
+        assertEquals(DeletionSummary(deleted = listOf(deletion("steps", "a"))), restored)
     }
 
     @Test
@@ -214,7 +254,8 @@ class DeletionTrackingTest {
         // It lives in preferences between syncs, so the round trip has to preserve it exactly.
         val summary = DeletionSummary(
             deleted = listOf(deletion("nutrition", "a"), deletion("steps", "b")),
-            expiredTypes = listOf("hydration")
+            expiredTypes = listOf("hydration"),
+            outsideWindow = mapOf("weight" to OutsideWindow(2, 100, 200))
         )
 
         val json = kotlinx.serialization.json.Json.encodeToString(summary)

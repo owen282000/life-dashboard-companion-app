@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.changes.DeletionChange
+import androidx.health.connect.client.changes.UpsertionChange
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.records.metadata.Device
@@ -212,7 +213,7 @@ class HealthConnectManager(
                 unreadTypes = unreadTypes.toSet(),
                 // A backfill reads history and moves nothing of the sync's, this included.
                 coveredUntil = if (windowStart != null) emptyMap() else
-                    LookbackWindow.covered(enabledTypes, cappedTypes, unreadTypes, endTime)
+                    LookbackWindow.covered(enabledTypes, cappedTypes, unreadTypes, endTime, coveredUntil)
             ))
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
@@ -728,8 +729,10 @@ class HealthConnectManager(
      * time, and returns the token to store for next time (issue #61).
      *
      * A deletion leaves no record behind, so a read can never see it; only the changes API
-     * reports one, by the id of the record that is gone. Upsertions are ignored here: the normal
-     * read already carries them, and asking for them twice would only duplicate work.
+     * reports one, by the id of the record that is gone. Upsertions are not sent from here: the
+     * normal read carries them. Only the ones timestamped before [readFrom], where that read's
+     * range starts, are counted into [ChangesResult.outsideWindow], because the read never sees
+     * them (see [OutsideWindow]).
      *
      * The first call for a type has no token, so it registers one and returns nothing. That is
      * correct rather than unfortunate: Health Connect starts tracking from the moment a token is
@@ -744,7 +747,12 @@ class HealthConnectManager(
      * tell that a deleted record came from Home Assistant in the first place; those are left
      * out, because Home Assistant withdrew them itself and does not need to hear it back.
      */
-    suspend fun readDeletions(type: HealthDataType, storedToken: String?, ownRecordIds: Set<String> = emptySet()): ChangesResult {
+    suspend fun readDeletions(
+        type: HealthDataType,
+        storedToken: String?,
+        ownRecordIds: Set<String> = emptySet(),
+        readFrom: Instant? = null
+    ): ChangesResult {
         if (!isHealthConnectAvailable()) {
             return ChangesResult(error = "Health Connect is not available")
         }
@@ -755,6 +763,7 @@ class HealthConnectManager(
             }
 
             val deleted = mutableListOf<DeletedRecord>()
+            var outside: OutsideWindow? = null
             var token: String = storedToken
             var expired = false
             // A changes feed is paged; hasMore says another page is waiting behind this token.
@@ -773,6 +782,13 @@ class HealthConnectManager(
                         deleted += DeletedRecord(DeletionTracking.payloadKey(type), change.recordId)
                     }
                 }
+                if (readFrom != null) {
+                    val times = response.changes.filterIsInstance<UpsertionChange>()
+                        .map { it.record }
+                        .filterNot { it.metadata.id in ownRecordIds || isOwnWrite(it) }
+                        .mapNotNull { recordTime(it) }
+                    LookbackWindow.outside(times, readFrom)?.let { outside = outside?.plus(it) ?: it }
+                }
                 token = response.nextChangesToken
                 if (!response.hasMore) break
                 // Reading advanced the token past the pages already taken, so what is left
@@ -786,7 +802,8 @@ class HealthConnectManager(
                 nextToken = token,
                 // Both mean the same thing to a receiver: deletions exist for this type that
                 // the app cannot name, so reconcile it against a backfill window instead.
-                expired = expired || unread
+                expired = expired || unread,
+                outsideWindow = outside
             )
         } catch (e: kotlinx.coroutines.CancellationException) {
             // A timeout or a stopped worker is not a failed read; it has to unwind, or the
@@ -797,6 +814,54 @@ class HealthConnectManager(
             // were read successfully, and a missing deletion is a smaller problem than no payload.
             ChangesResult(error = e.message ?: e::class.java.simpleName)
         }
+    }
+
+    /** Whether Receive wrote [record], as [ownRecordsPartition] decides it. */
+    private fun isOwnWrite(record: Record): Boolean = ResilientReadLogic.isReceiveWrite(
+        record.metadata.dataOrigin.packageName,
+        context.packageName,
+        record.metadata.clientRecordId
+    )
+
+    /**
+     * The time a read's range is matched on: an interval record's start, an instant record's
+     * time. Per class, because the library keeps the two interfaces internal.
+     */
+    private fun recordTime(record: Record): Instant? = when (record) {
+        is StepsRecord -> record.startTime
+        is SleepSessionRecord -> record.startTime
+        is HeartRateRecord -> record.startTime
+        is DistanceRecord -> record.startTime
+        is ActiveCaloriesBurnedRecord -> record.startTime
+        is TotalCaloriesBurnedRecord -> record.startTime
+        is ExerciseSessionRecord -> record.startTime
+        is HydrationRecord -> record.startTime
+        is NutritionRecord -> record.startTime
+        is MindfulnessSessionRecord -> record.startTime
+        is MenstruationPeriodRecord -> record.startTime
+        is SkinTemperatureRecord -> record.startTime
+        is WeightRecord -> record.time
+        is HeightRecord -> record.time
+        is BloodPressureRecord -> record.time
+        is BloodGlucoseRecord -> record.time
+        is OxygenSaturationRecord -> record.time
+        is BodyTemperatureRecord -> record.time
+        is RespiratoryRateRecord -> record.time
+        is RestingHeartRateRecord -> record.time
+        is BodyFatRecord -> record.time
+        is LeanBodyMassRecord -> record.time
+        is BoneMassRecord -> record.time
+        is BodyWaterMassRecord -> record.time
+        is HeartRateVariabilityRmssdRecord -> record.time
+        is MenstruationFlowRecord -> record.time
+        is BasalMetabolicRateRecord -> record.time
+        is Vo2MaxRecord -> record.time
+        is BasalBodyTemperatureRecord -> record.time
+        is IntermenstrualBleedingRecord -> record.time
+        is OvulationTestRecord -> record.time
+        is CervicalMucusRecord -> record.time
+        is SexualActivityRecord -> record.time
+        else -> null
     }
 
     // ==================== Write side (Receive, issue #62) ====================

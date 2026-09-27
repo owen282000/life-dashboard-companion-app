@@ -4,6 +4,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import java.time.Instant
 
 /**
  * Deletion propagation (issue #61).
@@ -42,12 +43,15 @@ data class ChangesResult(
     val deleted: List<DeletedRecord> = emptyList(),
     val nextToken: String? = null,
     val expired: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    /** Records the feed reported as written or edited before the range the sync reads, see [OutsideWindow]. */
+    val outsideWindow: OutsideWindow? = null
 )
 
 /**
- * What one sync found across every enabled type: the deletions to publish, and the types whose
- * token had expired so a receiver knows where a deletion could have been missed.
+ * What one sync found across every enabled type: the deletions to publish, the types whose
+ * token had expired so a receiver knows where a deletion could have been missed, and the
+ * records the feed named that the read could not see.
  *
  * Reading the changes feed consumes it, so a summary that was read but not delivered cannot be
  * read again. It is therefore carried across syncs until a payload actually goes out, the same
@@ -57,9 +61,11 @@ data class ChangesResult(
 @kotlinx.serialization.Serializable
 data class DeletionSummary(
     val deleted: List<DeletedRecord> = emptyList(),
-    val expiredTypes: List<String> = emptyList()
+    val expiredTypes: List<String> = emptyList(),
+    /** Per payload key, what the feed named that the read could not see, see [OutsideWindow]. */
+    val outsideWindow: Map<String, OutsideWindow> = emptyMap()
 ) {
-    val isEmpty: Boolean get() = deleted.isEmpty() && expiredTypes.isEmpty()
+    val isEmpty: Boolean get() = deleted.isEmpty() && expiredTypes.isEmpty() && outsideWindow.isEmpty()
 
     /**
      * This summary plus [other], without duplicates and in the same stable order a single sync
@@ -73,7 +79,10 @@ data class DeletionSummary(
             deleted = (deleted + other.deleted)
                 .distinctBy { it.type to it.uuid }
                 .sortedWith(compareBy({ it.type }, { it.uuid })),
-            expiredTypes = (expiredTypes + other.expiredTypes).distinct().sorted()
+            expiredTypes = (expiredTypes + other.expiredTypes).distinct().sorted(),
+            outsideWindow = (outsideWindow.keys + other.outsideWindow.keys).sorted().associateWith { type ->
+                listOfNotNull(outsideWindow[type], other.outsideWindow[type]).reduce(OutsideWindow::plus)
+            }
         )
     }
 
@@ -114,6 +123,23 @@ object DeletionTracking {
             put(
                 "deletions_unavailable",
                 buildJsonArray { summary.expiredTypes.forEach { add(JsonPrimitive(it)) } }
+            )
+        }
+        if (summary.outsideWindow.isNotEmpty()) {
+            put(
+                "records_outside_window",
+                buildJsonObject {
+                    summary.outsideWindow.toSortedMap().forEach { (type, outside) ->
+                        put(
+                            type,
+                            buildJsonObject {
+                                put("count", JsonPrimitive(outside.count))
+                                put("from", JsonPrimitive(Instant.ofEpochMilli(outside.fromMs).toString()))
+                                put("until", JsonPrimitive(Instant.ofEpochMilli(outside.untilMs).toString()))
+                            }
+                        )
+                    }
+                }
             )
         }
     }
@@ -231,4 +257,14 @@ object DeletionTracking {
             .keys
             .map { payloadKey(it) }
             .sorted()
+
+    /** Per payload key, the changes each type's read could not see, see [OutsideWindow]. */
+    fun outsideWindow(results: Map<HealthDataType, ChangesResult>): Map<String, OutsideWindow> =
+        results.mapNotNull { (type, result) -> result.outsideWindow?.let { payloadKey(type) to it } }
+            .toMap()
+            .toSortedMap()
+
+    /** Everything [results] hands a payload: deletions, the types that cannot vouch for theirs, and what the read could not see. */
+    fun summary(results: Map<HealthDataType, ChangesResult>): DeletionSummary =
+        DeletionSummary(merge(results), expiredTypes(results), outsideWindow(results))
 }

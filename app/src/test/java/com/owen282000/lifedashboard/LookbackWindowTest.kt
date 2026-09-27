@@ -63,13 +63,6 @@ class LookbackWindowTest {
     }
 
     @Test
-    fun `thirty days is within reach without the history permission`() {
-        // Health Connect lets an app read up to 30 days before its first grant, and that grant
-        // is never later than now, so the furthest start is always readable.
-        assertEquals(Duration.ofDays(30), LookbackWindow.MAX_REACH)
-    }
-
-    @Test
     fun `a clock set back since the last read does not move the range forward`() {
         val window = LookbackWindow.of(now, coveredUntil = now + Duration.ofHours(2))
         assertEquals(now - week, window.start)
@@ -79,27 +72,123 @@ class LookbackWindowTest {
     @Test
     fun `only types read completely move their anchor`() {
         val enabled = setOf(HealthDataType.STEPS, HealthDataType.HEART_RATE, HealthDataType.WEIGHT, HealthDataType.SLEEP)
+        val beforePause = now - Duration.ofDays(12)
         val covered = LookbackWindow.covered(
             enabled = enabled,
             capped = setOf(HealthDataType.HEART_RATE),
             unread = setOf(HealthDataType.WEIGHT),
-            readEnd = now
+            readEnd = now,
+            anchors = enabled.associateWith { beforePause }
         )
-        // A capped type still has a backlog, which may be older than the next range would be;
-        // an unread type was not read at all. Both keep the anchor they had.
-        assertEquals(mapOf(HealthDataType.STEPS to now, HealthDataType.SLEEP to now), covered)
+        // A capped type still has a backlog, which may be older than the next range would be,
+        // so it keeps its anchor; an unread type was not read at all and stores nothing.
+        assertEquals(
+            mapOf(HealthDataType.STEPS to now, HealthDataType.SLEEP to now, HealthDataType.HEART_RATE to beforePause),
+            covered
+        )
+    }
+
+    /** Stores what [covered] hands back, the way HealthSyncManager.updateSyncTimestamps does. */
+    private fun store(stored: MutableMap<HealthDataType, Instant?>, covered: Map<HealthDataType, Instant>) {
+        covered.forEach { (type, until) -> stored[type] = until }
     }
 
     @Test
     fun `a capped type keeps reading from before the pause until its backlog is drained`() {
-        val beforePause = now - Duration.ofDays(12)
-        // Pass one of the first sync after the pause: capped, so the anchor stays.
-        val first = LookbackWindow.of(now, beforePause)
         val hr = setOf(HealthDataType.HEART_RATE)
-        val stored = LookbackWindow.covered(hr, capped = hr, unread = emptySet(), readEnd = now)[HealthDataType.HEART_RATE]
-            ?: beforePause
-        // The next sync, an interval later, starts where the first did.
+        val stored = mutableMapOf<HealthDataType, Instant?>(HealthDataType.HEART_RATE to now - Duration.ofDays(12))
+        val first = LookbackWindow.of(now, stored[HealthDataType.HEART_RATE])
+        // Pass one of the first sync after the pause is capped.
+        store(stored, LookbackWindow.covered(hr, capped = hr, unread = emptySet(), readEnd = now, anchors = stored))
+        // The next sync, an interval later, is capped too and starts where the first did.
         val later = now + Duration.ofMinutes(15)
-        assertEquals(first.start, LookbackWindow.of(later, stored).start)
+        assertEquals(first.start, LookbackWindow.of(later, stored[HealthDataType.HEART_RATE]).start)
+        store(stored, LookbackWindow.covered(hr, capped = hr, unread = emptySet(), readEnd = later, anchors = stored))
+        // The sync that drains it moves the anchor on.
+        val drained = later + Duration.ofMinutes(15)
+        store(stored, LookbackWindow.covered(hr, capped = emptySet(), unread = emptySet(), readEnd = drained, anchors = stored))
+        assertEquals(drained, stored[HealthDataType.HEART_RATE])
     }
+
+    @Test
+    fun `a capped type without an anchor stops its range from sliding while the backlog drains`() {
+        // The first sync after the update, or a type never read completely: no stored anchor.
+        // The range must not trail "now" from one capped sync to the next, or the oldest part
+        // of the backlog falls out of it while the watermark moves past it.
+        val hr = setOf(HealthDataType.HEART_RATE)
+        val stored = mutableMapOf<HealthDataType, Instant?>()
+        val first = LookbackWindow.of(now, stored[HealthDataType.HEART_RATE])
+        store(stored, LookbackWindow.covered(hr, capped = hr, unread = emptySet(), readEnd = now, anchors = stored))
+
+        val later = now + Duration.ofHours(6)
+        assertEquals(first.start, LookbackWindow.of(later, stored[HealthDataType.HEART_RATE]).start)
+    }
+
+    @Test
+    fun `an unread type without an anchor stays without one`() {
+        // A type that cannot be read (no permission) would otherwise pin its range to its first
+        // sync and name a lookback gap three weeks later for data it never had access to.
+        val weight = setOf(HealthDataType.WEIGHT)
+        assertEquals(emptyMap<HealthDataType, Instant>(), LookbackWindow.covered(weight, emptySet(), unread = weight, readEnd = now))
+    }
+
+    @Test
+    fun `a sync without a payload keeps the anchor of a type whose gap it could not name`() {
+        val anchors = mapOf(HealthDataType.STEPS to now, HealthDataType.WEIGHT to now)
+        val diagnostics = mapOf(
+            HealthDataType.STEPS to diagnostics(gapFrom = null),
+            HealthDataType.WEIGHT to diagnostics(gapFrom = now - Duration.ofDays(47))
+        )
+        // Weight keeps its old anchor, so the next sync names the same gap in its payload.
+        assertEquals(mapOf(HealthDataType.STEPS to now), LookbackWindow.keepingGapsOpen(anchors, diagnostics))
+    }
+
+    @Test
+    fun `a gap stays named from one empty sync to the next until a payload carries it`() {
+        val beforePause = now - Duration.ofDays(40)
+        val stored = mutableMapOf<HealthDataType, Instant?>(HealthDataType.WEIGHT to beforePause)
+        val weight = setOf(HealthDataType.WEIGHT)
+        val window = LookbackWindow.of(now, stored[HealthDataType.WEIGHT])
+        val covered = LookbackWindow.covered(weight, emptySet(), emptySet(), now, stored)
+        store(stored, LookbackWindow.keepingGapsOpen(covered, mapOf(HealthDataType.WEIGHT to diagnostics(window.gapFrom))))
+
+        val later = now + Duration.ofMinutes(15)
+        assertEquals(window.gapFrom, LookbackWindow.of(later, stored[HealthDataType.WEIGHT]).gapFrom)
+    }
+
+    @Test
+    fun `a change timestamped before the range is counted, with the range it needs`() {
+        // A watch away from the phone for ten days uploads while syncs run normally: the range
+        // starts a week back, so the three oldest days are never read.
+        val readFrom = now - week
+        val times = listOf(now - Duration.ofDays(10), now - Duration.ofDays(8), now - Duration.ofDays(2), now - Duration.ofHours(1))
+        val outside = LookbackWindow.outside(times, readFrom)
+        assertEquals(OutsideWindow(2, (now - Duration.ofDays(10)).toEpochMilli(), readFrom.toEpochMilli()), outside)
+    }
+
+    @Test
+    fun `changes inside the range are not counted`() {
+        val readFrom = now - week
+        assertNull(LookbackWindow.outside(listOf(readFrom, now - Duration.ofDays(1)), readFrom))
+        assertNull(LookbackWindow.outside(emptyList(), readFrom))
+    }
+
+    @Test
+    fun `counts from two syncs join into one range`() {
+        val a = OutsideWindow(2, 100, 1_000)
+        val b = OutsideWindow(3, 50, 2_000)
+        assertEquals(OutsideWindow(5, 50, 2_000), a + b)
+    }
+
+    private fun diagnostics(gapFrom: Instant?) = TypeDiagnostics(
+        permissionGranted = true,
+        pageCount = 0,
+        rawRecordCount = 0,
+        filteredRecordCount = 0,
+        minTime = null,
+        maxTime = null,
+        lastSync = null,
+        error = null,
+        lookbackGapFrom = gapFrom
+    )
 }

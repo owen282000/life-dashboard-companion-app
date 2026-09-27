@@ -90,9 +90,10 @@ data class HealthData(
      */
     val unreadTypes: Set<HealthDataType> = emptySet(),
     /**
-     * The types this read took completely, with the moment it read up to: stored with the
-     * watermarks, the next sync's range reaches back from there (see [LookbackWindow]). Empty
-     * for a backfill.
+     * The lookback anchor to store per type: the moment this read went up to for a type it
+     * took completely, the anchor it used for a capped one (see [LookbackWindow.covered]).
+     * Stored with the watermarks, the next sync's range reaches back from there. Empty for a
+     * backfill.
      */
     val coveredUntil: Map<HealthDataType, Instant> = emptyMap()
 )

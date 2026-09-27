@@ -6,6 +6,8 @@ Life Dashboard Companion forwards what Health Connect and Android's usage statis
 
 Every sync reads each enabled type from Health Connect and keeps the records whose `metadata.lastModifiedTime` is newer than the per-type watermark from the previous delivered batch. The watermark is based on modification time, not on the record's own timestamp, so a record that a source app writes hours or days after the fact (with its original, older timestamp) is still delivered on the next sync after it appears. The query window starts a week before the previous sync that read the whole type, rather than a week before now, so this holds for records up to a week older than that sync, also when the phone did not sync for days in between. It reaches back 30 days at most. Edited records are re-sent the same way; deduplicate on `uuid` server-side.
 
+A record that a source writes more than a week after its own timestamp while the phone keeps syncing, for instance a watch that was away from the phone for ten days, falls before the query window and is not delivered. The sync does see it in Health Connect's change feed and names it in `records_outside_window` (see [webhook.md](webhook.md#deletions)), with the timestamp range a backfill of that period needs to send it.
+
 The `_diagnostics` block in every payload shows per type what Health Connect returned before and after that filter:
 
 | Field | Meaning |
@@ -17,7 +19,7 @@ The `_diagnostics` block in every payload shows per type what Health Connect ret
 | `min_time`, `max_time` | Timestamp range of the delivered records |
 | `last_sync` | The watermark this sync filtered against |
 | `read_from` | Start of the query window |
-| `lookback_gap_from` | Set only after a pause too long for the window: records timestamped from here to `read_from` that changed during the pause were not read; a backfill of that range sends them |
+| `lookback_gap_from` | Set only after a pause too long for the window: records timestamped from here to `read_from` that changed during the pause were not read; a backfill of that range sends them. Named until a payload has carried it |
 
 If `raw_latest_modified_time` is older than `last_sync`, Health Connect simply has nothing new for that type yet. That is the source app, not the filter.
 
