@@ -1118,13 +1118,6 @@ class HealthConnectManager(
          */
         const val HISTORY_PERMISSION = "android.permission.health.READ_HEALTH_DATA_HISTORY"
 
-        fun getPermissionsForTypes(types: Set<HealthDataType>): Set<String> {
-            val permissions = types.map { HealthPermission.getReadPermission(it.recordClass) }.toMutableSet()
-            permissions.add(BACKGROUND_PERMISSION)
-            permissions.add(HISTORY_PERMISSION)
-            return permissions
-        }
-
         // Derived from the enum so newly added data types can never be missing from the
         // permission request (a hand-maintained list had drifted to 23 of 33 types).
         val ALL_PERMISSIONS: Set<String> =

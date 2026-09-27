@@ -569,7 +569,6 @@ fun DataTypesRow(
     onToggle: () -> Unit,
     onToggleType: (HealthDataType, Boolean) -> Unit
 ) {
-    val hasAnyPermission = grantedPermissions.isNotEmpty()
     ExpandableRow(
         icon = Icons.Outlined.MonitorHeart,
         accent = accent,
@@ -581,7 +580,7 @@ fun DataTypesRow(
     ) {
         HealthDataType.entries.forEach { dataType ->
             val permission = HealthPermission.getReadPermission(dataType.recordClass)
-            val granted = permission in grantedPermissions || hasAnyPermission
+            val granted = permission in grantedPermissions
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

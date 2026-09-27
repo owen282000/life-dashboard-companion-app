@@ -1,0 +1,39 @@
+package com.owen282000.lifedashboard
+
+import androidx.health.connect.client.permission.HealthPermission
+
+/**
+ * What each Health Connect permission request asks for.
+ *
+ * A grant asks for what the setup uses and nothing more: the read permission of every enabled
+ * type, reading in the background only when a schedule syncs without the app open, and history
+ * only from the backfill that needs it. Asking for all 35 at once, reproductive data included,
+ * scared off a user who had picked 8 types in the wizard.
+ *
+ * Free of Android types apart from the permission names, so the sets are unit tested on the JVM.
+ */
+object HealthPermissionRequests {
+
+    fun readPermissions(types: Collection<HealthDataType>): Set<String> =
+        types.map { HealthPermission.getReadPermission(it.recordClass) }.toSet()
+
+    /**
+     * The Grant button, and a sync that finds nothing granted.
+     *
+     * No enabled type is the wizard's "choose later": every read permission is offered then,
+     * and what the user grants becomes the selection (HealthConnectViewModel.refreshPermissions).
+     */
+    fun forGrant(enabledTypes: Set<HealthDataType>, scheduled: Boolean): Set<String> {
+        val reads = readPermissions(enabledTypes.ifEmpty { HealthDataType.entries.toSet() })
+        return if (scheduled) reads + HealthConnectManager.BACKGROUND_PERMISSION else reads
+    }
+
+    /**
+     * History access, asked for from the backfill dialog: without it Health Connect shows only
+     * the 30 days before the first grant, so a 90 or 365 day backfill comes back short (#39).
+     * The enabled types' reads go along, so the request is never the extra permission on its
+     * own; Health Connect skips the ones already granted.
+     */
+    fun forHistory(enabledTypes: Set<HealthDataType>): Set<String> =
+        readPermissions(enabledTypes) + HealthConnectManager.HISTORY_PERMISSION
+}

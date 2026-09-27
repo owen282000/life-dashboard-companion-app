@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard.viewmodel
 
+import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.ReceiveStatus
@@ -8,6 +9,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -232,6 +234,54 @@ class HealthConnectViewModelTest {
         assertNull(vm.state.value.backfillProgress)
         assertEquals(UiMessage.BackfillComplete(90), vm.state.value.syncMessage)
         assertTrue(vm.state.value.canSync)
+    }
+
+    @Test
+    fun `grant asks for the enabled types and background reading, not every type`() = runTest {
+        val settings = FakeAppSettings(health = HealthDraft(WebhookDraft(), setOf(HealthDataType.STEPS, HealthDataType.WEIGHT), emptyMqtt()))
+        val vm = vm(settings, FakeHealthOps(granted = emptySet()))
+        val request = async(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.permissionRequests.first() }
+        vm.requestAccess()
+        assertEquals(
+            setOf("android.permission.health.READ_STEPS", "android.permission.health.READ_WEIGHT", HealthConnectManager.BACKGROUND_PERMISSION),
+            request.await()
+        )
+    }
+
+    @Test
+    fun `history access is asked for from the backfill dialog alone`() = runTest {
+        val settings = FakeAppSettings(health = HealthDraft(WebhookDraft(), setOf(HealthDataType.STEPS), emptyMqtt()))
+        val vm = vm(settings)
+        val request = async(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.permissionRequests.first() }
+        vm.requestHistoryPermission()
+        assertEquals(setOf("android.permission.health.READ_STEPS", HealthConnectManager.HISTORY_PERMISSION), request.await())
+    }
+
+    @Test
+    fun `a type without its read permission asks for it and goes on once it is granted`() = runTest {
+        val ops = FakeHealthOps(granted = setOf("android.permission.health.READ_STEPS"))
+        val vm = vm(ops = ops)
+        vm.refreshPermissions()
+
+        vm.toggleType(HealthDataType.WEIGHT, true)
+        assertEquals(HealthDataType.WEIGHT, vm.state.value.permissionPrompt)
+        assertFalse(HealthDataType.WEIGHT in vm.state.value.draft.enabledTypes)
+
+        val request = async(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.permissionRequests.first() }
+        vm.requestTypePermission()
+        assertEquals(setOf("android.permission.health.READ_WEIGHT"), request.await())
+        assertNull(vm.state.value.permissionPrompt)
+
+        ops.granted = ops.granted + "android.permission.health.READ_WEIGHT"
+        vm.refreshPermissions()
+        assertTrue(HealthDataType.WEIGHT in vm.state.value.draft.enabledTypes)
+
+        // A type whose permission is already there goes on without asking.
+        vm.toggleType(HealthDataType.STEPS, false)
+        assertFalse(HealthDataType.STEPS in vm.state.value.draft.enabledTypes)
+        vm.toggleType(HealthDataType.STEPS, true)
+        assertNull(vm.state.value.permissionPrompt)
+        assertTrue(HealthDataType.STEPS in vm.state.value.draft.enabledTypes)
     }
 
     @Test
