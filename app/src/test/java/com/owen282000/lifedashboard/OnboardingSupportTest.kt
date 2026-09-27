@@ -2,6 +2,7 @@ package com.owen282000.lifedashboard
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -88,5 +89,34 @@ class OnboardingSupportTest {
     fun `nothing is written without the webhook card or an address`() {
         assertFalse(OnboardingSupport.writesWebhook(false, "https://example.org/hook", "", null))
         assertFalse(OnboardingSupport.writesWebhook(true, "", "", null))
+    }
+
+    private val pairedHealthOnly = OnboardingSupport.WizardPairing(paired, setOf(PairingSource.HEALTH), seq = 1)
+
+    @Test
+    fun `a scanned address is shown for the sections the dialog wrote, not the wizard's`() {
+        assertEquals(
+            setOf(PairingSource.HEALTH),
+            OnboardingSupport.webhookSections(true, true, paired.url, paired.secret, pairedHealthOnly)
+        )
+        val both = pairedHealthOnly.copy(written = setOf(PairingSource.HEALTH, PairingSource.SCREEN_TIME))
+        assertEquals(both.written, OnboardingSupport.webhookSections(true, false, paired.url, paired.secret, both))
+    }
+
+    @Test
+    fun `an address edited after the scan is shown for the wizard's sources`() {
+        assertEquals(
+            setOf(PairingSource.HEALTH, PairingSource.SCREEN_TIME),
+            OnboardingSupport.webhookSections(true, true, "https://example.org/hook", paired.secret, pairedHealthOnly)
+        )
+        assertEquals(
+            setOf(PairingSource.SCREEN_TIME),
+            OnboardingSupport.webhookSections(false, true, "https://example.org/hook", "", null)
+        )
+    }
+
+    @Test
+    fun `pairing the same code again is a new event for the wizard`() {
+        assertNotEquals(pairedHealthOnly, pairedHealthOnly.copy(seq = 2))
     }
 }

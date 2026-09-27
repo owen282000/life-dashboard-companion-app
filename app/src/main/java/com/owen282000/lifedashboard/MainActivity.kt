@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
     private val scanning = mutableStateOf(false)
 
     /** The code last paired while the wizard is open, for the wizard to show. */
-    private val pairedInWizard = mutableStateOf<PairingLink?>(null)
+    private val pairedInWizard = mutableStateOf<OnboardingSupport.WizardPairing?>(null)
     private lateinit var permissionLauncher: androidx.activity.result.ActivityResultLauncher<Set<String>>
 
     private fun initializePermissionLauncher() {
@@ -184,7 +184,11 @@ class MainActivity : ComponentActivity() {
         // No ViewModel here: creating the tabs' ones now would load the settings before the
         // wizard writes its data types and MQTT broker, and the tabs would show those stale.
         if (inWizard) {
-            pairedInWizard.value = link
+            pairedInWizard.value = OnboardingSupport.WizardPairing(
+                link = link,
+                written = written,
+                seq = (pairedInWizard.value?.seq ?: 0) + 1
+            )
             Toast.makeText(
                 this,
                 getString(R.string.onboarding_pairing_done, getString(R.string.health_test_ping)),

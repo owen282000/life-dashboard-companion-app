@@ -73,7 +73,7 @@ import com.owen282000.lifedashboard.MqttBroker
 import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.OnboardingSupport
 import com.owen282000.lifedashboard.OnboardingSupport.Step
-import com.owen282000.lifedashboard.PairingLink
+import com.owen282000.lifedashboard.PairingSource
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.WebhookManager
@@ -97,7 +97,7 @@ fun OnboardingScreen(
     /** Opens the QR scanner. Its result arrives as a pairing dialog over this screen. */
     onScanRequested: () -> Unit = {},
     /** The code the pairing dialog last wrote, so this screen can show what it filled in. */
-    paired: PairingLink? = null
+    paired: OnboardingSupport.WizardPairing? = null
 ) {
     val context = LocalContext.current
     val preferencesManager = remember { PreferencesManager(context) }
@@ -130,8 +130,8 @@ fun OnboardingScreen(
     LaunchedEffect(paired) {
         if (paired == null) return@LaunchedEffect
         useWebhook = true
-        webhookUrl = paired.url
-        webhookSecret = paired.secret
+        webhookUrl = paired.link.url
+        webhookSecret = paired.link.secret
         allowHttp = preferencesManager.allowHttpWebhooks()
         pingResult = null
     }
@@ -144,7 +144,7 @@ fun OnboardingScreen(
         if (applyChoices) {
             val url = webhookUrl.trim()
             val secret = webhookSecret.trim()
-            if (OnboardingSupport.writesWebhook(useWebhook, url, secret, paired)) {
+            if (OnboardingSupport.writesWebhook(useWebhook, url, secret, paired?.link)) {
                 if (healthConnect) {
                     preferencesManager.setHealthWebhookUrls(listOf(url))
                     if (secret.isNotBlank()) preferencesManager.setHealthWebhookSecret(secret)
@@ -277,11 +277,18 @@ fun OnboardingScreen(
                                     onValueChange = { webhookUrl = it; pingResult = null },
                                     label = stringResource(R.string.webhook_add_a_url)
                                 )
+                                val sections = OnboardingSupport.webhookSections(
+                                    healthConnect,
+                                    screenTime,
+                                    webhookUrl.trim(),
+                                    webhookSecret.trim(),
+                                    paired
+                                )
                                 Text(
                                     stringResource(
                                         when {
-                                            healthConnect && screenTime -> R.string.onboarding_webhook_applied
-                                            healthConnect -> R.string.onboarding_webhook_applied_health
+                                            sections.size == 2 -> R.string.onboarding_webhook_applied
+                                            PairingSource.HEALTH in sections -> R.string.onboarding_webhook_applied_health
                                             else -> R.string.onboarding_webhook_applied_screen
                                         }
                                     ),
