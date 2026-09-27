@@ -145,8 +145,9 @@ class ScreenTimeManager(
                 val dayEnd = getDayEndMs(targetDate, zone)
 
                 // Pair resume and pause events per activity; see ScreenTimeSessions for the rules.
+                // Read from before the day starts, so a session that crosses it is found.
                 val events = mutableListOf<UsageEventSnapshot>()
-                val usageEvents = usageStatsManager.queryEvents(dayStart, dayEnd)
+                val usageEvents = usageStatsManager.queryEvents(ScreenTimeSessions.queryStartMs(dayStart), dayEnd)
                 val event = UsageEvents.Event()
                 while (usageEvents.hasNextEvent()) {
                     usageEvents.getNextEvent(event)

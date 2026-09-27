@@ -127,16 +127,50 @@ class ScreenTimeSessionsTest {
         assertEquals(12 * minute, today.getValue("com.example.weather").foregroundMs)
     }
 
-    @Test
-    fun timeBeforeDayStartIsNotCounted() {
-        val result = ScreenTimeSessions.aggregate(
-            listOf(
-                UsageEventSnapshot("com.example.weather", "Main", UsageEvents.Event.ACTIVITY_RESUMED, dayStart - 10 * minute),
-                ev(UsageEvents.Event.ACTIVITY_PAUSED, 5)
-            ),
-            dayStart, dayEnd, now
+    /** What ScreenTimeManager hands over for the day at [start]: the events UsageStatsManager returns for its query. */
+    private fun readDay(timeline: List<UsageEventSnapshot>, start: Long) =
+        ScreenTimeSessions.aggregate(
+            timeline.filter { it.timestampMs >= ScreenTimeSessions.queryStartMs(start) && it.timestampMs < start + 24 * 60 * minute },
+            start, start + 24 * 60 * minute, now
         )
-        assertEquals(5 * minute, result.getValue("com.example.weather").foregroundMs)
+
+    @Test
+    fun aSessionAcrossMidnightCountsOnBothDays() {
+        // 23:50 to 00:05: the query for the new day starts before midnight and finds the resume.
+        val timeline = listOf(ev(UsageEvents.Event.ACTIVITY_RESUMED, -10), ev(UsageEvents.Event.ACTIVITY_PAUSED, 5))
+
+        val today = readDay(timeline, dayStart).getValue("com.example.weather")
+        assertEquals(5 * minute, today.foregroundMs)
+        assertEquals(dayStart + 5 * minute, today.lastUsedMs)
+        assertEquals(10 * minute, readDay(timeline, dayStart - 24 * 60 * minute).getValue("com.example.weather").foregroundMs)
+    }
+
+    @Test
+    fun aSessionStillOpenFromBeforeMidnightIsLastUsedAtTheStartOfTheDay() {
+        val result = readDay(listOf(ev(UsageEvents.Event.ACTIVITY_RESUMED, -30)), dayStart).getValue("com.example.weather")
+        assertEquals(24 * 60 * minute, result.foregroundMs)
+        assertEquals(dayStart, result.lastUsedMs)
+    }
+
+    @Test
+    fun aSessionThatEndedBeforeMidnightIsNotCounted() {
+        val timeline = listOf(
+            ev(UsageEvents.Event.ACTIVITY_RESUMED, -40),
+            ev(UsageEvents.Event.ACTIVITY_PAUSED, -20),
+            ev(UsageEvents.Event.ACTIVITY_RESUMED, -15, pkg = "b"),
+            ev(UsageEvents.Event.SCREEN_NON_INTERACTIVE, -5, pkg = "android", cls = null),
+            ev(UsageEvents.Event.ACTIVITY_PAUSED, 30, pkg = "b")
+        )
+        assertEquals(emptyMap<String, PackageForeground>(), readDay(timeline, dayStart))
+    }
+
+    @Test
+    fun aResumeBeforeTheCarryOverIsNotRead() {
+        // A pause without its resume: on a phone without screen-off events an evening's missed
+        // pause must not open the whole next day.
+        val carryOver = ScreenTimeSessions.CARRY_OVER_MS / minute
+        val timeline = listOf(ev(UsageEvents.Event.ACTIVITY_RESUMED, -carryOver - 1), ev(UsageEvents.Event.ACTIVITY_PAUSED, 10 * 60))
+        assertNull(readDay(timeline, dayStart)["com.example.weather"])
     }
 
     @Test

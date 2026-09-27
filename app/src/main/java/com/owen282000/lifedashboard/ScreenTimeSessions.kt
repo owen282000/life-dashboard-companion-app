@@ -40,6 +40,22 @@ object ScreenTimeSessions {
     fun launcherPackages(homeActivities: List<Pair<String, String>>): Set<String> =
         homeActivities.filterNot { (_, activity) -> activity.endsWith(".FallbackHome") }.map { it.first }.toSet()
 
+    /**
+     * How long before the start of a day its events are read. A session that began before
+     * midnight (or the day boundary) and ended after it has its resume there; without it the
+     * pause has nothing to pair with and the minutes after midnight are lost. Bounded, so that
+     * on a phone before Android 9, which reports no screen off, an evening's missed pause cannot
+     * open the whole next day.
+     */
+    const val CARRY_OVER_MS = 6 * 60 * 60 * 1000L
+
+    /** Where to start reading the events of the day that starts at [dayStartMs]. */
+    fun queryStartMs(dayStartMs: Long): Long = dayStartMs - CARRY_OVER_MS
+
+    /**
+     * [events] are the day's events in time order, read from [queryStartMs]: the ones before
+     * [dayStartMs] only open sessions, whose time counts from the start of the day.
+     */
     fun aggregate(
         events: List<UsageEventSnapshot>,
         dayStartMs: Long,
@@ -99,8 +115,9 @@ object ScreenTimeSessions {
         // Still open when the events run out: count up to now, never past the end of the day.
         packageStart.keys.toList().forEach { close(it, minOf(dayEndMs, nowMs)) }
 
+        // A session carried over from before the day was in use when the day started.
         return foreground.mapValues { (packageName, ms) ->
-            PackageForeground(ms, lastUsed[packageName] ?: dayEndMs)
+            PackageForeground(ms, maxOf(lastUsed[packageName] ?: dayEndMs, dayStartMs))
         }
     }
 }
