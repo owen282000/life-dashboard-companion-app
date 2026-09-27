@@ -88,7 +88,13 @@ data class HealthData(
      * answer in time, or a read step that had used its budget. They keep their watermark and
      * come back empty, so an empty list here does not mean "nothing new" for them.
      */
-    val unreadTypes: Set<HealthDataType> = emptySet()
+    val unreadTypes: Set<HealthDataType> = emptySet(),
+    /**
+     * The types this read took completely, with the moment it read up to: stored with the
+     * watermarks, the next sync's range reaches back from there (see [LookbackWindow]). Empty
+     * for a backfill.
+     */
+    val coveredUntil: Map<HealthDataType, Instant> = emptyMap()
 )
 
 data class BasalMetabolicRateData(
@@ -184,7 +190,11 @@ data class TypeDiagnostics(
      * Records this app wrote itself (Receive, issue #62) that were new since the watermark and
      * left out of the payload: what came from Home Assistant does not go back to it.
      */
-    val ownRecordsSkipped: Int = 0
+    val ownRecordsSkipped: Int = 0,
+    /** Where this read's time range started, see [LookbackWindow]. */
+    val readFrom: Instant? = null,
+    /** Set when the range could not reach back far enough, see [LookbackWindow.Window.gapFrom]. */
+    val lookbackGapFrom: Instant? = null
 )
 
 data class StepsData(

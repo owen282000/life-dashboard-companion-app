@@ -71,7 +71,7 @@
     },
     "_diagnostics": {
       "type": "object",
-      "description": "Per-type read diagnostics; see README. Since 1.20.0 each entry also carries own_records_skipped: records this app wrote itself (Receive) that were left out of the payload."
+      "description": "Per-type read diagnostics; see README. Since 1.20.0 each entry also carries own_records_skipped: records this app wrote itself (Receive) that were left out of the payload. read_from is where the time range read for the type started; lookback_gap_from is null unless the phone did not sync for so long that the range could not reach back far enough, and then records timestamped from lookback_gap_from up to read_from that were written or edited in that time were not read (a backfill of that range recovers them)."
     },
     "writeback": {
       "type": "object",

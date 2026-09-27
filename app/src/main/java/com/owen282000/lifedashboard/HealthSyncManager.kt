@@ -50,7 +50,11 @@ class HealthSyncManager(
 
             val lastSyncTimestamps = enabledTypes.associateWith { type -> preferencesManager.getHealthWatermark(type) }
 
-            val healthDataResult = healthConnectManager.readHealthData(enabledTypes, lastSyncTimestamps)
+            val healthDataResult = healthConnectManager.readHealthData(
+                enabledTypes,
+                lastSyncTimestamps,
+                coveredUntil = enabledTypes.associateWith { preferencesManager.getHealthCoveredUntil(it) }
+            )
             if (healthDataResult.isFailure) {
                 return@withContext Result.failure(healthDataResult.exceptionOrNull() ?: Exception("Failed to read health data"))
             }
@@ -157,10 +161,15 @@ class HealthSyncManager(
             preferencesManager.setPendingDeletions(pendingDeletions)
 
             for (pass in 1..MAX_SYNC_PASSES) {
-                // Re-read watermarks each pass; the previous pass advanced them.
+                // Re-read watermarks each pass; the previous pass advanced them. The range each
+                // type is read over is stored alongside, see LookbackWindow.
                 val lastSyncTimestamps = enabledTypes.associateWith { type -> preferencesManager.getHealthWatermark(type) }
 
-                val healthDataResult = healthConnectManager.readHealthData(enabledTypes, lastSyncTimestamps)
+                val healthDataResult = healthConnectManager.readHealthData(
+                    enabledTypes,
+                    lastSyncTimestamps,
+                    coveredUntil = enabledTypes.associateWith { preferencesManager.getHealthCoveredUntil(it) }
+                )
                 if (healthDataResult.isFailure) {
                     if (anyData) break
                     return Result.failure(
@@ -690,6 +699,11 @@ class HealthSyncManager(
         // next sync instead of being skipped forever.
         data.watermarks.forEach { (type, watermark) ->
             preferencesManager.setHealthWatermark(type, watermark)
+        }
+        // After the watermarks: a stop in between leaves the older anchor, which only reads a
+        // wider range than needed, never a narrower one.
+        data.coveredUntil.forEach { (type, until) ->
+            preferencesManager.setHealthCoveredUntil(type, until)
         }
 
         if (data.steps.isNotEmpty()) {
@@ -1242,6 +1256,8 @@ class HealthSyncManager(
                             put("last_sync", diag.lastSync?.toString())
                             put("error", diag.error)
                             put("own_records_skipped", diag.ownRecordsSkipped)
+                            put("read_from", diag.readFrom?.toString())
+                            put("lookback_gap_from", diag.lookbackGapFrom?.toString())
                         }
                     }
                 }

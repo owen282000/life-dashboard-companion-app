@@ -184,6 +184,9 @@ class PreferencesManager(context: Context) {
         // Health Connect keys
         private const val KEY_HEALTH_LAST_SYNC_TS_PREFIX = "health_last_sync_ts_"
         private const val KEY_HEALTH_LAST_SYNC_TIE_PREFIX = "health_last_sync_tie_"
+
+        /** Per type, the last moment a sync read all of it, see [LookbackWindow]. */
+        private const val KEY_HEALTH_COVERED_UNTIL_PREFIX = "health_covered_until_"
         private const val KEY_HEALTH_SYNC_INTERVAL_MINUTES = "health_sync_interval_minutes"
 
         /**
@@ -353,6 +356,16 @@ class PreferencesManager(context: Context) {
             if (watermark.tieId == null) remove(KEY_HEALTH_LAST_SYNC_TIE_PREFIX + type.name)
             else putString(KEY_HEALTH_LAST_SYNC_TIE_PREFIX + type.name, watermark.tieId)
         }.apply()
+    }
+
+    /** The last moment a sync read all of [type], or null when none has yet, as after an update from an older version. */
+    fun getHealthCoveredUntil(type: HealthDataType): java.time.Instant? {
+        val ms = prefs.getLong(KEY_HEALTH_COVERED_UNTIL_PREFIX + type.name, -1)
+        return if (ms == -1L) null else java.time.Instant.ofEpochMilli(ms)
+    }
+
+    fun setHealthCoveredUntil(type: HealthDataType, until: java.time.Instant) {
+        prefs.edit().putLong(KEY_HEALTH_COVERED_UNTIL_PREFIX + type.name, until.toEpochMilli()).apply()
     }
 
     /** The stored changes token for [type], or null when there is none yet. */

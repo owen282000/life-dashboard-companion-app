@@ -366,12 +366,15 @@ Every payload ends with a `_diagnostics` object with one entry per enabled type,
     "min_time": null,
     "max_time": null,
     "last_sync": "2026-09-12T05:44:06.439Z",
-    "error": null
+    "error": null,
+    "own_records_skipped": 0,
+    "read_from": "2026-09-05T05:29:02.112Z",
+    "lookback_gap_from": null
   }
 }
 ```
 
-`raw_*` describes everything Health Connect returned for the query window; `filtered_record_count` and `min_time`/`max_time` describe what this payload delivered. When `raw_latest_modified_time` is older than `last_sync`, the source app has not written anything new yet. An `error` of "Health Connect did not return ... within 10 s" or "skipped: the read step used its budget" means Health Connect did not answer in time; that type keeps its place and the next sync reads it. See [DATA_SOURCES.md](DATA_SOURCES.md) for what individual source apps do and do not write.
+`raw_*` describes everything Health Connect returned for the query window; `filtered_record_count` and `min_time`/`max_time` describe what this payload delivered. When `raw_latest_modified_time` is older than `last_sync`, the source app has not written anything new yet. An `error` of "Health Connect did not return ... within 10 s" or "skipped: the read step used its budget" means Health Connect did not answer in time; that type keeps its place and the next sync reads it. `read_from` is where the query window started: a week before the last sync that read the whole type, so a phone that was off or asleep for a while still picks up what a watch wrote before the pause, reaching back 30 days at most. When a pause was longer than that, `lookback_gap_from` says from where: records timestamped between it and `read_from` that were written or edited during the pause were not read, and a backfill of that range sends them. It is null otherwise. See [DATA_SOURCES.md](DATA_SOURCES.md) for what individual source apps do and do not write.
 
 ## Screen Time payload
 
