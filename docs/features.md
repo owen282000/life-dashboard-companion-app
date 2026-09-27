@@ -4,7 +4,7 @@ Everything Life Dashboard Companion does, in detail. For setup and day-to-day us
 
 ## Health Connect integration
 
-Syncs data from Google Health Connect to your webhook, with a per-data-type toggle and permission management, and a configurable sync interval (minimum 15 minutes).
+Syncs data from Google Health Connect to your webhooks, the Home Assistant integration or MQTT, with a per-data-type toggle and permission management, and a configurable sync interval (minimum 15 minutes).
 
 ### 33 supported data types
 
@@ -56,7 +56,7 @@ The [Home Assistant companion app](https://companion.home-assistant.io/docs/core
 | Detail | Latest value or daily aggregate per sensor | Every record, with the source app and a stable id, plus deduplicated daily totals |
 | History | "Only the last 30 days of data is used" | Unlimited, with backfill of up to a year |
 | Screen time | Last used app; total screen-on time through History Stats | Foreground time per app, custom day boundary |
-| Destination | Your Home Assistant | Any webhook backend, plus MQTT with Home Assistant Discovery |
+| Destination | Your Home Assistant | Home Assistant through the Life Dashboard integration or MQTT Discovery, and any webhook backend |
 | Direction | Export only | Both: Health Connect to your server, and Home Assistant to Health Connect |
 | Delivery | Sensor updates | HMAC-signed webhooks, retries, store-and-forward outbox, delivery logs |
 | Android | 9+ on the Play build, 14+ otherwise | 8.0+ |
@@ -66,20 +66,21 @@ The two are complementary rather than rivals: keep the companion app for presenc
 ## Home Assistant and MQTT
 
 Two ways in. The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha),
-installed through HACS, receives the webhook directly and needs no broker; it is paired by
-scanning a QR code, keeps history in long-term statistics (a day per day, also for a
-backfill and for screen time), and comes with an example dashboard. MQTT, described below,
-publishes retained latest values through Discovery and suits a setup that already has a
-broker and does not need the history. Either one, not both.
+installed through HACS, is the recommended one: it receives the webhook directly and needs
+no broker; it is paired by scanning a QR code, keeps history in long-term statistics (a day
+per day, also for a backfill and for screen time), and comes with an example dashboard.
+MQTT, described below, is the alternative: it publishes retained latest values through
+Discovery and suits a setup that already has a broker and does not need the history.
+Either one, not both.
 
 <img src="screenshots/mqtt.png" alt="The MQTT section in the app: broker host, port, optional credentials and a shared base topic" width="300" align="right">
 
 <img src="screenshots/home-assistant.png" alt="The device Home Assistant creates from the app's MQTT discovery messages, with its sensors" width="560">
 
-- **MQTT publishing with Home Assistant Discovery** - point the app at your MQTT broker and sensors appear in Home Assistant automatically, grouped under one device: today's totals for steps, distance and calories, and the latest value for heart rate, sleep duration, weight, blood pressure and the other point-in-time types. No server-side configuration needed.
+- **MQTT publishing with Home Assistant Discovery** - point the app at your MQTT broker and sensors for 24 of the 33 types appear in Home Assistant automatically, grouped under one device: today's totals for steps, distance and calories, and the latest value for heart rate, sleep duration, weight, blood pressure and the other point-in-time types. No server-side configuration needed.
 - States and discovery configs are published retained, so values survive Home Assistant restarts
 - Optional TLS and username/password authentication; credentials are stored encrypted on-device
-- 24 of the 33 types get a sensor. Event-like types (exercise, nutrition, mindfulness, cycle tracking) remain webhook-only. Every publish carries the full set of sensors the app has mapped so far, so a new broker or a fresh Home Assistant sees the whole device after one sync
+- The other nine are event-like types (exercise, nutrition, mindfulness, cycle tracking) and remain webhook-only. Every publish carries the full set of sensors the app has mapped so far, so a new broker or a fresh Home Assistant sees the whole device after one sync
 - Screen Time publishes too: today's and yesterday's total minutes and today's most used app (top five apps as attributes), under the same Home Assistant device. Health Connect and Screen Time each have their own switch and base topic and share one broker connection by default; either section can switch to its own broker.
 - **Two phones on one broker**: give each a name under Advanced > Phone name. A named phone publishes under its own device (`Life Dashboard Companion (Pixel 8)`) and its own topics (`<base>/<slug>/<key>/state`); a phone without a name publishes exactly what it always did, so a household with one phone changes nothing.
 
@@ -132,9 +133,9 @@ The protocol is documented in [webhook.md](webhook.md#inbound-what-the-integrati
 
 ## Data tools
 
-- **Data preview** - view the exact JSON payload before syncing
-- **Export as CSV/JSON** - export sync logs via the Android share sheet
-- **Sync history dashboard** - overview of success rates, record counts and recent failures
+- **Data preview** - **View** on the Health and Screen Time tabs shows the exact JSON payload before syncing
+- **Export as CSV/JSON** - **Export** on the Health and Screen Time tabs shares the current data, and **Export logs** on the Logs tab the delivery log, via the Android share sheet. The file stays in the app's cache until Android clears it or the app is uninstalled; see [PRIVACY.md](../PRIVACY.md#what-stays-on-the-device)
+- **Sync history dashboard** - overview of success rates, record counts and recent failures on the Logs tab
 - **Settings backup and restore** - export every webhook, header, secret, MQTT broker and toggle as a JSON file, and import it on another device. See [settings-backup.md](settings-backup.md)
 
 ## General
