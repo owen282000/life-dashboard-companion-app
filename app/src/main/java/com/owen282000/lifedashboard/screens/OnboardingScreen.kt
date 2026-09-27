@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.MqttBroker
 import com.owen282000.lifedashboard.MqttSection
+import com.owen282000.lifedashboard.MqttSupport
 import com.owen282000.lifedashboard.OnboardingSupport
 import com.owen282000.lifedashboard.OnboardingSupport.Step
 import com.owen282000.lifedashboard.PairingSource
@@ -402,6 +403,14 @@ fun OnboardingScreen(
                                         checked = mqttTls,
                                         onCheckedChange = { mqttTls = it },
                                         colors = SwitchDefaults.colors(checkedTrackColor = Accent)
+                                    )
+                                }
+                                // The same hint as on the MQTT card: the wizard starts on 1883 without TLS.
+                                if (!mqttTls && mqttHost.isNotBlank() && !MqttSupport.isPrivateHost(mqttHost)) {
+                                    Text(
+                                        stringResource(R.string.mqtt_plaintext_public_host),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error
                                     )
                                 }
                                 FilledField(
