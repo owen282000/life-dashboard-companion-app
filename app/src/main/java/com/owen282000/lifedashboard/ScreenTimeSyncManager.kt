@@ -196,8 +196,8 @@ class ScreenTimeSyncManager(private val context: Context) {
                 put("device", device)
                 put("source", "screen_time")
                 // Strictly increasing per payload, so an older week that arrives after a newer
-                // one, from the outbox or a retry, is recognisable as stale instead of
-                // overwriting it.
+                // one, from the outbox or a retry, is recognisable as older: a receiver applies
+                // its days only where no newer week wrote them.
                 sequence?.let { put("sequence", it) }
 
                 putJsonArray("screen_time") {
