@@ -713,12 +713,6 @@ class HealthConnectManager(
         }
     }
 
-    suspend fun hasPermissions(requiredPermissions: Set<String> = ALL_PERMISSIONS): Boolean {
-        if (!isHealthConnectAvailable()) return false
-        val granted = healthConnectClient.permissionController.getGrantedPermissions()
-        return requiredPermissions.all { it in granted }
-    }
-
     suspend fun getGrantedPermissions(): Set<String> {
         if (!isHealthConnectAvailable()) return emptySet()
         return healthConnectClient.permissionController.getGrantedPermissions()
@@ -1183,8 +1177,9 @@ class HealthConnectManager(
          */
         const val HISTORY_PERMISSION = "android.permission.health.READ_HEALTH_DATA_HISTORY"
 
-        // Derived from the enum so newly added data types can never be missing from the
-        // permission request (a hand-maintained list had drifted to 23 of 33 types).
+        // Every permission the app can hold, derived from the enum so a new data type can never
+        // be missing (a hand-maintained list had drifted to 23 of 33 types). ManifestPermissionsTest
+        // checks it against the manifest; requests are built by HealthPermissionRequests.
         val ALL_PERMISSIONS: Set<String> =
             HealthDataType.entries.map { HealthPermission.getReadPermission(it.recordClass) }.toSet() +
                 setOf(BACKGROUND_PERMISSION, HISTORY_PERMISSION)
