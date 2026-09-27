@@ -4,6 +4,57 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Changed
+
+- Screen Time payloads now carry a top-level `sequence`, from the same counter Health Connect
+  payloads use, so it goes up across everything the phone sends. A receiver can tell from it
+  which Screen Time week is the newest when a week from the outbox arrives late. Because both
+  sources share the counter, the numbers in Health Connect payloads now skip wherever a
+  Screen Time payload went out in between; they still only go up, so keep the highest number
+  per source. Screen Time payloads from 1.20.0 and older have no `sequence`, and MQTT and the
+  in-app preview are unchanged.
+- Grant in the Health Connect tab asks for the data types you switched on, for example the 8
+  from the setup wizard, instead of all 35, together with background access, so a sync from
+  the Quick Settings tile, the automation broadcast or a schedule set up later can read. If
+  you chose "later" in the wizard, Grant still lists every type so you can pick them in
+  Health Connect. History access is only asked for by the "Grant history access" button in
+  the Backfill dialog. Nothing changes for anyone who already granted everything.
+- Switching on a data type you have not granted yet asks for that type's permission only, and
+  the switch turns on by itself once you grant it. The data type list shows a lock on every
+  type without permission; before, all types looked unlocked as soon as any permission was
+  granted.
+- The setup wizard, the About page and the destination step recommend the Life Dashboard
+  integration: install it from HACS, scan its code, and Home Assistant keeps the history in
+  its long-term statistics. The MQTT option is now called "MQTT broker", is meant for setups
+  that already run one, and says that only the latest value of each type is sent.
+- The outbox holds up to 700 undelivered Health Connect syncs, where it held 50 shared with
+  Screen Time: a week of failed syncs at the 15 minute interval, and more at longer
+  intervals. After a long outage the backlog is sent in turns of at most two minutes per
+  sync, so it can take a few syncs to clear.
+- During an outage Screen Time keeps only its newest week in the outbox, which covers all 7
+  days. When the server is back it gets one Screen Time payload instead of a stack of the
+  same week.
+- Each type's query window reaches back a week before the last sync that read the whole type,
+  instead of a week before now. A phone that did not sync for more than a week (deep sleep,
+  force-stopped, Health Connect not answering) therefore still sends what other apps wrote
+  during the pause for the days before it, up to 30 days back, and a backlog that takes
+  several syncs keeps that window until it is empty. When syncs run normally the window is
+  one sync interval longer than before; records already sent are not sent again. A type
+  switched on again after a long break, or given its permission back, catches up on 30 days
+  of changes instead of 7. The first sync after the update reads as before.
+- `_diagnostics` gives every type `read_from`, where its window started, and
+  `lookback_gap_from`, which is null unless a pause was longer than 30 days: it then names
+  the start of the range that may be missing, so it can be backfilled. A payload also names
+  records that another app wrote or edited long after their own time, too far back for the
+  window, in the new `records_outside_window`, per type with the count and the time range, so
+  a backfill of that range can send them. When nothing else goes out it is sent in a payload
+  of its own, as deletions are, and that sync reports success with 0 records.
+- The Tasker and MacroDroid broadcast `com.owen282000.lifedashboard.ACTION_SYNC` starts at
+  most one sync a minute: a second broadcast within a minute of the last accepted one is
+  ignored. The Quick Settings tile is not limited.
+- A settings export has a new per-section key, `urls_without_headers`, for the addresses that
+  get no custom headers (see Security).
+
 ### Fixed
 
 - A sync that Android stopped while the webhook was slow to answer showed up in the Logs tab
@@ -52,6 +103,61 @@ All notable changes to this project are documented in this file. The format is b
 - Time spent in the Settings app never counted as screen time. The app leaves launchers out,
   as Digital Wellbeing does, and Settings answers the same request as a launcher for the
   screen Android shows before the phone is unlocked after a restart.
+- Time in an app during a session that crossed midnight, or the day boundary you set, counted
+  only on the old day: a session from 23:50 to 00:10 gave 10 minutes to the old day and none
+  to the new one. It now gives 10 minutes to each. An app opened up to 6 hours before the day
+  starts is taken into account, and its "last used" on the new day is the start of that day.
+- The outbox could drop undelivered Health Connect syncs without a word once it was full.
+  Each dropped sync is now a failed row in the Logs tab, and a notification, "Health Connect
+  data was lost", counts them. It stays until you swipe it away, also after the next
+  successful delivery, and appears even with "Notify after failed syncs" off. The same goes
+  for Screen Time days that fall out of the queued week before they were delivered.
+- A crash or power loss while the outbox was being written could lose the payload being
+  queued.
+- Tapping the Quick Settings tile while a scheduled Screen Time sync was running sent the
+  week twice at the same time. The second sync now waits and then runs.
+- Starting a backfill while a sync ran (Sync Now, a scheduled sync, the tile or the
+  broadcast) ran both side by side. The backfill now shows "Backfill waits for the running
+  sync to finish..." and starts by itself when the sync ends. Sync Now is disabled while a
+  backfill runs, and a scheduled or tile sync waits until the backfill is done.
+- Scanning a Home Assistant code in the setup wizard did not look like it worked. The scan
+  card now says "Code read", the Webhook card opens with the paired address and a working
+  Send Test Ping button, and the summary shows the address instead of "Destination: not yet".
+  The test ping is signed with the paired secret, and the message after pairing names the
+  real button: "Send Test Ping" in the wizard, "Test ping" on the tabs.
+- Finishing the wizard added the paired address to a section you had left unchecked in the
+  pairing dialog. It now keeps the sections you chose there.
+- The privacy policy link on Health Connect's permission screen opened the app's home screen.
+  It now opens a Privacy policy screen in the app, in English, Dutch or German: what the app
+  reads and writes, where the data goes, what stays on the phone, your control and a contact,
+  with a link to the full policy on GitHub. Back returns to Health Connect. The Privacy
+  policy card in About opens the same screen.
+- On the nights summer time starts or ends, fixed sync times such as 07:00 ran an hour early
+  or late, and "every N minutes" schedules with a weekday filter or quiet hours got uneven
+  gaps. Fixed times now keep their time, a time in the hour that is skipped in March, such as
+  02:30, runs at 03:30, and a time in the hour that repeats in October runs once.
+- Adding a webhook address by hand that was already in the section's list added it a second
+  time, so every payload went there twice. It is now kept once.
+
+### Security
+
+- A webhook that answers with a redirect (301, 302, 303, 307 or 308) is no longer followed,
+  so a payload, its signature and the custom headers do not go to an address you did not
+  enter. The delivery fails without retries, the payload stays in the outbox, and the log
+  says where the redirect pointed. If your server redirects, for example from http to https
+  or to add a trailing slash, enter the final address as the webhook URL; until then its
+  syncs fail.
+- A webhook address added by QR pairing no longer gets the section's custom headers, such as
+  API keys; addresses you typed yourself get them as before. While the section has headers,
+  the Webhook card says so under a paired address. To send the headers there anyway, remove
+  the address and type it in by hand. Addresses paired before this update are not marked and
+  keep their headers. Importing a settings file without secrets no longer sends the headers
+  already on the phone to addresses they did not go to before.
+- The MQTT card and the setup wizard show a red hint when TLS is off and the broker is not on
+  your LAN or VPN, such as broker.hivemq.com or a public IP address. Addresses like
+  192.168.x.x, homeassistant, *.local and Tailscale do not trigger it.
+- Exported logs, data and settings backups no longer pile up in the app's cache: each export
+  replaces the previous file, and one older than a day is removed when the app starts.
 
 ## [1.20.0] - 2026-09-26
 
