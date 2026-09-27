@@ -1,12 +1,11 @@
-Life Dashboard Companion syncs your Health Connect and Screen Time data to your own server via webhooks, or straight into Home Assistant over MQTT. Built for self-hosted dashboards and quantified-self projects that refuse third-party clouds.
+Life Dashboard Companion syncs your Health Connect and Screen Time data into Home Assistant, or to your own server via webhooks. Built for self-hosted dashboards and quantified-self projects that refuse third-party clouds.
 
 Your data goes to YOUR endpoints and nowhere else. The app contains no analytics, no trackers, and no third-party SDKs.
 
-Home Assistant / MQTT:
-- Point the app at your MQTT broker and every synced data type appears in Home Assistant automatically via MQTT Discovery, grouped under one device, with no server-side configuration
-- States and discovery configs are published retained, so values survive Home Assistant restarts
-- Optional TLS and username/password authentication; credentials are stored encrypted on-device
-- Receive: a scale or blood pressure monitor paired with Home Assistant can write its measurements into Health Connect through the Life Dashboard integration (weight, height, body composition, blood pressure), per type and only when you switch it on
+Home Assistant:
+- Recommended: the Life Dashboard integration, installed through HACS. Pair by scanning the QR code it shows; no broker and no YAML. Every synced day lands in Home Assistant's long-term statistics on its own date, so a backfill becomes a year of history
+- Receive: a scale or blood pressure monitor paired with Home Assistant can write its measurements into Health Connect through the integration (weight, height, body composition, blood pressure), per type and only when you switch it on
+- Alternative: MQTT Discovery, for a setup that already runs a broker and only needs the latest values. 24 of the 33 data types plus screen time appear as sensors under one device; workouts, meals, mindfulness and cycle tracking are not published over MQTT. States are retained, with optional TLS and username/password authentication
 
 Health Connect:
 - 33 data types: steps, sleep with stages, heart rate, HRV, blood pressure, blood glucose, VO2 max, skin temperature, full cycle tracking, and more
@@ -14,7 +13,7 @@ Health Connect:
 - Incremental sync with per-type watermarks; resilient against malformed records from source apps
 
 Screen Time:
-- App usage statistics with a configurable day boundary (night-owl friendly), published to your webhooks and to MQTT
+- App usage statistics with a configurable day boundary (night-owl friendly), sent to Home Assistant, your webhooks and MQTT
 
 Webhooks:
 - Multiple URLs, custom headers, and optional HMAC-SHA256 payload signing so your server can verify the sender
@@ -30,4 +29,4 @@ Also: settings backup and restore (password-encrypted when secrets are included)
 
 Supply-chain transparency: releases are built by public CI, signed, and carry verifiable sigstore build provenance. The project holds an OpenSSF Best Practices badge.
 
-Requires the Google Health Connect app. An iOS companion app with a compatible payload is available for mixed households.
+Requires the Google Health Connect app. An iOS companion app with a compatible payload is available for mixed households; it sends to webhooks and MQTT, and does not pair with the Home Assistant integration yet.
