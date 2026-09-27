@@ -285,6 +285,64 @@ class OutboxTest {
     }
 
     /**
+     * A full outbox drops its oldest Health Connect payload, never silently: a row in the Logs
+     * tab with that payload's records, and a loss notification that the delivery after the
+     * outage does not take away, since the records stay lost.
+     */
+    @Test
+    fun aFullOutboxReportsWhatItDrops() = runBlocking {
+        TestSetup.health(receiver, setOf(STEPS))
+        val store = PendingSyncStore.forContext(context)
+        val hourAgo = System.currentTimeMillis() - 60 * 60 * 1000
+        repeat(PendingSyncStore.MAX_HEALTH_ITEMS) { i ->
+            store.enqueue("""{"timestamp":"2026-01-01T00:00:00Z","sequence":$i}""", "health_connect", LogType.HEALTH_CONNECT.name, i + 1, hourAgo + i)
+        }
+        fixture.insert(fixture.steps(12, ago(30), ago(20)))
+        receiver.respond(TestSetup.HEALTH_PATH, 503)
+
+        TestSetup.syncManager().performSync().getOrThrow()
+
+        val queued = store.peekAll()
+        assertEquals(PendingSyncStore.MAX_HEALTH_ITEMS, queued.size)
+        assertTrue("the oldest went", queued.none { it.createdAt == hourAgo })
+        val row = context.appPreferences().getWebhookLogs(LogType.HEALTH_CONNECT).single { it.errorMessage.orEmpty().startsWith("Dropped from the outbox") }
+        assertEquals("the dropped payload's records", 1, row.recordCount)
+        assertTrue(row.rawPayload.orEmpty(), row.rawPayload.orEmpty().contains("\"sequence\":0"))
+        assertTrue("a loss notification", lossNotificationShows())
+
+        // Home Assistant is back. Only the sync's own payload is left to drain, to spare 700 posts.
+        queued.filter { it.createdAt < hourAgo + PendingSyncStore.MAX_HEALTH_ITEMS }.forEach { store.remove(it.id) }
+        receiver.respond(TestSetup.HEALTH_PATH, 200)
+        TestSetup.syncManager().performSync().getOrThrow()
+
+        assertEquals(0, store.size())
+        assertEquals("the drain delivered, the streak is over", 0, TestSetup.streak("HEALTH_CONNECT"))
+        assertTrue("the records are still lost, so the notification stays", lossNotificationShows())
+    }
+
+    private fun lossNotificationShows(): Boolean =
+        context.getSystemService(android.app.NotificationManager::class.java).activeNotifications.any { it.id == 4001 + 20 + LogType.HEALTH_CONNECT.ordinal }
+
+    /**
+     * Two failed Screen Time syncs leave one queued week, the newer one: it carries all 7 days,
+     * so it replaces the week before it, and within the week nothing is reported lost.
+     */
+    @Test
+    fun aFailedScreenTimeWeekReplacesTheQueuedOne() = runBlocking {
+        ScreenTimeUse.ensureToday()
+        TestSetup.screenTime(receiver)
+        receiver.respond(TestSetup.SCREEN_PATH, 503)
+        ScreenTimeSyncManager(context).performSync().getOrThrow()
+        val first = Conservation.parse(PendingSyncStore.forContext(context).peekAll().single().payload).num("sequence")!!.toLong()
+
+        ScreenTimeSyncManager(context).performSync().getOrThrow()
+
+        val queued = PendingSyncStore.forContext(context).peekAll().single()
+        assertTrue("the newer week is kept", Conservation.parse(queued.payload).num("sequence")!!.toLong() > first)
+        assertTrue(context.appPreferences().getWebhookLogs(LogType.SCREEN_TIME).none { it.errorMessage.orEmpty().startsWith("Replaced in the outbox") })
+    }
+
+    /**
      * F5. A sync that only drains the outbox did deliver: the failure streak ends and "Last
      * sync" moves. Red on main: PendingDrainer tells neither SyncFailureNotifier nor
      * SyncStatusStore, so after an outage without new data the failure notification stays.
