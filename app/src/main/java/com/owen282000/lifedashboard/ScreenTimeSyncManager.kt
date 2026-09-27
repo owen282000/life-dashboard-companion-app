@@ -103,6 +103,7 @@ class ScreenTimeSyncManager(private val context: Context) {
                 recordCount = totalApps,
                 logType = LogType.SCREEN_TIME,
                 customHeaders = preferencesManager.getScreenTimeWebhookHeaders(),
+                urlsWithoutHeaders = preferencesManager.getScreenTimeUrlsWithoutHeaders(),
                 signingSecret = preferencesManager.getScreenTimeWebhookSecret()
             )
 

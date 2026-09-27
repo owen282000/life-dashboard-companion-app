@@ -61,7 +61,8 @@ class PreferencesAppSettings(
         webhook = WebhookDraft(
             urls = prefs.getHealthWebhookUrls(),
             headers = prefs.getHealthWebhookHeaders(),
-            secret = prefs.getHealthWebhookSecret() ?: ""
+            secret = prefs.getHealthWebhookSecret() ?: "",
+            urlsWithoutHeaders = prefs.getHealthUrlsWithoutHeaders()
         ),
         enabledTypes = prefs.getHealthEnabledDataTypes(),
         resolutions = prefs.getSeriesResolutions(),
@@ -74,6 +75,7 @@ class PreferencesAppSettings(
         prefs.setHealthEnabledDataTypes(draft.enabledTypes)
         prefs.setSeriesResolutions(draft.resolutions)
         prefs.setHealthWebhookHeaders(draft.webhook.headers)
+        prefs.setHealthUrlsWithoutHeaders(draft.webhook.urlsWithoutHeaders)
         prefs.setHealthWebhookSecret(draft.webhook.secret.trim())
         val mqtt = draft.mqtt.withPort()
         prefs.setMqttSection(MqttSection.HEALTH, mqtt.section)
@@ -86,7 +88,8 @@ class PreferencesAppSettings(
         webhook = WebhookDraft(
             urls = prefs.getScreenTimeWebhookUrls(),
             headers = prefs.getScreenTimeWebhookHeaders(),
-            secret = prefs.getScreenTimeWebhookSecret() ?: ""
+            secret = prefs.getScreenTimeWebhookSecret() ?: "",
+            urlsWithoutHeaders = prefs.getScreenTimeUrlsWithoutHeaders()
         ),
         dayBoundaryHour = prefs.getScreenTimeDayBoundaryHour().toString(),
         useDayBoundary = prefs.useScreenTimeDayBoundary(),
@@ -99,6 +102,7 @@ class PreferencesAppSettings(
         prefs.setScreenTimeDayBoundaryHour(dayBoundaryHour)
         prefs.setUseScreenTimeDayBoundary(draft.useDayBoundary)
         prefs.setScreenTimeWebhookHeaders(draft.webhook.headers)
+        prefs.setScreenTimeUrlsWithoutHeaders(draft.webhook.urlsWithoutHeaders)
         prefs.setScreenTimeWebhookSecret(draft.webhook.secret.trim())
         val mqtt = draft.mqtt.withPort()
         prefs.setMqttSection(MqttSection.SCREEN_TIME, mqtt.section)

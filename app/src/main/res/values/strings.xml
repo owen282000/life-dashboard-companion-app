@@ -43,6 +43,7 @@
     <string name="webhook_shared_secret">Shared secret</string>
     <string name="webhook_url_placeholder">https://...</string>
     <string name="webhook_urls_configured">%1$d configured</string>
+    <string name="webhook_url_without_headers">Paired by QR code: custom headers are not sent here</string>
     <string name="webhook_urls_title">Webhook URLs</string>
 
     <!-- Shared sync section, used by Health Connect and Screen Time -->

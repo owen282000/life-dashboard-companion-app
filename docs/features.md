@@ -35,7 +35,7 @@ What individual source apps do and do not write is collected in [DATA_SOURCES.md
 - **Pairing by QR code** - the [Home Assistant integration](https://github.com/owen282000/life-dashboard-ha) shows a code; the phone's camera or the scanner in the app fills in the address and the secret, after one confirmation. See [Pairing by QR code](usage.md#pairing-by-qr-code)
 - **HMAC signing** with a generated secret: one tap produces 32 bytes of entropy as hex, and the same value on your server verifies every `X-Signature`
 - **Multiple webhook URLs** - send to several endpoints simultaneously
-- **Custom headers** - auth tokens, API keys, or any custom HTTP header, per category
+- **Custom headers** - auth tokens, API keys, or any custom HTTP header, per category, sent to the URLs you typed in and never to one that QR pairing added
 - **HMAC payload signing** - optional `X-Signature` header so your server can verify the sender
 - **Test ping** - send a small test payload to verify your server setup without waiting for real data
 - **Retries with backoff** - transient failures are retried automatically; permanent errors fail fast

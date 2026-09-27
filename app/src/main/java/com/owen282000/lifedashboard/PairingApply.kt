@@ -1,7 +1,12 @@
 package com.owen282000.lifedashboard
 
 /** What one webhook section holds today, as far as pairing cares. */
-data class SectionWebhook(val urls: List<String>, val secret: String?)
+data class SectionWebhook(
+    val urls: List<String>,
+    val secret: String?,
+    /** URLs that get none of the section's custom headers, see [WebhookSupport.headersFor]. */
+    val urlsWithoutHeaders: Set<String> = emptySet()
+)
 
 /** What pairing would change per section, so the dialog can say it before anything happens. */
 data class SectionChange(
@@ -27,8 +32,8 @@ data class PairingChoice(
 interface PairingStore {
     fun health(): SectionWebhook
     fun screenTime(): SectionWebhook
-    fun setHealth(urls: List<String>, secret: String)
-    fun setScreenTime(urls: List<String>, secret: String)
+    fun setHealth(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>)
+    fun setScreenTime(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>)
     fun setAllowPlainHttp(enabled: Boolean)
 }
 
@@ -39,6 +44,10 @@ interface PairingStore {
  * agrees to them. The address is appended, not replaced: someone feeding a second receiver
  * keeps it. The secret is replaced, because a section holds exactly one and the new
  * receiver would otherwise be signed for with the old one and refused.
+ *
+ * A third one shows on the Webhook card afterwards: an address pairing adds gets none of the
+ * section's custom headers. Those were typed for the receivers already there, and a pairing
+ * link can come from anyone, so an API key never follows a scanned code to its host.
  */
 object PairingApply {
 
@@ -61,13 +70,13 @@ object PairingApply {
 
         if (choice.health && PairingSource.HEALTH in link.sources) {
             val current = store.health()
-            store.setHealth(withUrl(current.urls, link.url), link.secret)
+            store.setHealth(withUrl(current.urls, link.url), link.secret, withoutHeaders(current, link.url))
             written += PairingSource.HEALTH
         }
 
         if (choice.screenTime && PairingSource.SCREEN_TIME in link.sources) {
             val current = store.screenTime()
-            store.setScreenTime(withUrl(current.urls, link.url), link.secret)
+            store.setScreenTime(withUrl(current.urls, link.url), link.secret, withoutHeaders(current, link.url))
             written += PairingSource.SCREEN_TIME
         }
 
@@ -83,4 +92,8 @@ object PairingApply {
 
     private fun withUrl(urls: List<String>, url: String): List<String> =
         if (url in urls) urls else urls + url
+
+    /** Only an address pairing adds is marked: one the user typed in already keeps its headers. */
+    private fun withoutHeaders(current: SectionWebhook, url: String): Set<String> =
+        if (url in current.urls) current.urlsWithoutHeaders else current.urlsWithoutHeaders + url
 }

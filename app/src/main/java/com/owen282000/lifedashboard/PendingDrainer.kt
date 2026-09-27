@@ -53,6 +53,8 @@ object PendingDrainer {
                 logType = logType,
                 customHeaders = if (isScreenTime) preferencesManager.getScreenTimeWebhookHeaders()
                                 else preferencesManager.getHealthWebhookHeaders(),
+                urlsWithoutHeaders = if (isScreenTime) preferencesManager.getScreenTimeUrlsWithoutHeaders()
+                                     else preferencesManager.getHealthUrlsWithoutHeaders(),
                 signingSecret = if (isScreenTime) preferencesManager.getScreenTimeWebhookSecret()
                                 else preferencesManager.getHealthWebhookSecret()
             )

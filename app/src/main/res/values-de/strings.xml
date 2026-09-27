@@ -41,6 +41,7 @@
     <string name="webhook_shared_secret">Gemeinsamer Schlüssel</string>
     <string name="webhook_url_placeholder">https://...</string>
     <string name="webhook_urls_configured">%1$d konfiguriert</string>
+    <string name="webhook_url_without_headers">Per QR-Code gekoppelt: eigene Header werden hier nicht gesendet</string>
     <string name="webhook_urls_title">Webhook-URLs</string>
 
     <!-- Gemeinsamer Synchronisierungsbereich, genutzt von Health Connect und Bildschirmzeit -->

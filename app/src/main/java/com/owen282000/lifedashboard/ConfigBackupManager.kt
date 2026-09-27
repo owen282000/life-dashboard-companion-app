@@ -30,13 +30,15 @@ class ConfigBackupManager(private val context: Context) {
                 LogType.HEALTH_CONNECT,
                 webhookUrls = prefs.getHealthWebhookUrls(),
                 headers = prefs.getHealthWebhookHeaders(),
-                signingSecret = prefs.getHealthWebhookSecret()
+                signingSecret = prefs.getHealthWebhookSecret(),
+                urlsWithoutHeaders = prefs.getHealthUrlsWithoutHeaders()
             ),
             screenTime = sectionConfig(
                 LogType.SCREEN_TIME,
                 webhookUrls = prefs.getScreenTimeWebhookUrls(),
                 headers = prefs.getScreenTimeWebhookHeaders(),
-                signingSecret = prefs.getScreenTimeWebhookSecret()
+                signingSecret = prefs.getScreenTimeWebhookSecret(),
+                urlsWithoutHeaders = prefs.getScreenTimeUrlsWithoutHeaders()
             ),
             mqtt = MqttConfig(
                 shared = BrokerConfig.from(prefs.getSharedMqttBroker()),
@@ -80,6 +82,14 @@ class ConfigBackupManager(private val context: Context) {
      */
     fun import(backup: ConfigBackup) {
         with(backup.health) {
+            // Worked out against the device before its URLs and headers are replaced.
+            prefs.setHealthUrlsWithoutHeaders(
+                urlsWithoutHeadersOnImport(
+                    prefs.getHealthWebhookUrls(),
+                    prefs.getHealthUrlsWithoutHeaders(),
+                    prefs.getHealthWebhookHeaders().isNotEmpty()
+                )
+            )
             prefs.setHealthWebhookUrls(webhookUrls)
             if (headers.isNotEmpty()) prefs.setHealthWebhookHeaders(headers)
             if (!signingSecret.isNullOrBlank()) prefs.setHealthWebhookSecret(signingSecret)
@@ -88,6 +98,13 @@ class ConfigBackupManager(private val context: Context) {
         }
 
         with(backup.screenTime) {
+            prefs.setScreenTimeUrlsWithoutHeaders(
+                urlsWithoutHeadersOnImport(
+                    prefs.getScreenTimeWebhookUrls(),
+                    prefs.getScreenTimeUrlsWithoutHeaders(),
+                    prefs.getScreenTimeWebhookHeaders().isNotEmpty()
+                )
+            )
             prefs.setScreenTimeWebhookUrls(webhookUrls)
             if (headers.isNotEmpty()) prefs.setScreenTimeWebhookHeaders(headers)
             if (!signingSecret.isNullOrBlank()) prefs.setScreenTimeWebhookSecret(signingSecret)
@@ -170,13 +187,15 @@ class ConfigBackupManager(private val context: Context) {
         source: LogType,
         webhookUrls: List<String>,
         headers: Map<String, String>,
-        signingSecret: String?
+        signingSecret: String?,
+        urlsWithoutHeaders: Set<String>
     ): SectionConfig {
         val schedule = prefs.getSyncSchedule(source)
         return SectionConfig(
             webhookUrls = webhookUrls,
             headers = headers,
             signingSecret = signingSecret,
+            urlsWithoutHeaders = webhookUrls.filter { it in urlsWithoutHeaders },
             syncIntervalMinutes = schedule.intervalMinutes,
             syncMode = schedule.mode.name,
             syncTimes = SyncSchedule.formatTimes(schedule.times),

@@ -96,6 +96,31 @@ class HealthConnectViewModelTest {
     }
 
     @Test
+    fun `a paired URL keeps going without headers until it is typed in by hand`() = runTest {
+        val paired = "https://paired.example/hook"
+        val settings = FakeAppSettings(
+            health = HealthDraft(
+                WebhookDraft(urls = listOf("https://mine/hook", paired), headers = mapOf("X-Api-Key" to "k"), urlsWithoutHeaders = setOf(paired)),
+                emptySet(),
+                emptyMqtt()
+            )
+        )
+        val vm = vm(settings)
+
+        // Adding a header is no reason to send it to the paired URL.
+        vm.addHeader("Authorization", "Bearer t")
+        assertEquals(setOf(paired), vm.state.value.draft.webhook.urlsWithoutHeaders)
+
+        // Removing it forgets the mark; typing it in again is the user's own choice.
+        vm.removeUrl(1)
+        assertTrue(vm.state.value.draft.webhook.urlsWithoutHeaders.isEmpty())
+        vm.addUrl(paired)
+        vm.save()
+        assertEquals(listOf("https://mine/hook", paired), settings.health.webhook.urls)
+        assertTrue(settings.health.webhook.urlsWithoutHeaders.isEmpty())
+    }
+
+    @Test
     fun `invalid URLs are rejected with a message instead of being added`() = runTest {
         val vm = vm()
         val toasts = mutableListOf<UiMessage>()

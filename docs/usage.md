@@ -75,6 +75,11 @@ will be replaced, and offers to allow plain HTTP when the address is an internal
 schedule, stays a choice on the tabs: a scanned code only ever fills in the address and
 the secret.
 
+An address added by pairing gets none of the section's custom headers. Those were typed for
+the receivers you entered yourself, and a code can come from anyone, so an API key never
+follows a scanned code to its host. The address says so on the Webhook card while the
+section has headers. To send them there anyway, remove the address and type it in by hand.
+
 Without the app installed, the code opens a page that explains where to get it. The secret
 travels in the part of the link after the `#`, which a browser never sends to any server.
 

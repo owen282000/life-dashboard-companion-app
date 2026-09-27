@@ -137,10 +137,10 @@ class ScreenTimeViewModel(
             _toasts.tryEmit(UiMessage.InvalidUrl)
             return
         }
-        editWebhook { it.copy(urls = it.urls + url.trim()) }
+        editWebhook { it.withUrl(url.trim()) }
     }
 
-    override fun removeUrl(index: Int) = editWebhook { it.copy(urls = it.urls.filterIndexed { i, _ -> i != index }) }
+    override fun removeUrl(index: Int) = editWebhook { it.withoutUrlAt(index) }
 
     override fun addHeader(key: String, value: String) {
         if (key.isBlank() || value.isBlank()) {

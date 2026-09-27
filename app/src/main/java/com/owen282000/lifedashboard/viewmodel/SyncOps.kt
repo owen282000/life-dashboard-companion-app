@@ -76,6 +76,7 @@ class RealHealthOps(private val context: Context) : HealthOps {
             recordCount = 0,
             logType = LogType.HEALTH_CONNECT,
             customHeaders = webhook.headers,
+            urlsWithoutHeaders = webhook.urlsWithoutHeaders,
             signingSecret = webhook.secret.trim().ifBlank { null }
         ).postData(testPingPayload("health_connect")).map { }
     } catch (e: kotlinx.coroutines.CancellationException) {
@@ -98,6 +99,7 @@ class RealScreenTimeOps(private val context: Context, private val prefs: Prefere
             recordCount = 0,
             logType = LogType.SCREEN_TIME,
             customHeaders = webhook.headers,
+            urlsWithoutHeaders = webhook.urlsWithoutHeaders,
             signingSecret = webhook.secret.trim().ifBlank { null }
         ).postData(testPingPayload("screen_time")).map { }
     } catch (e: kotlinx.coroutines.CancellationException) {

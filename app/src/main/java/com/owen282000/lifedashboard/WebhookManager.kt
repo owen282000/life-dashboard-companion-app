@@ -47,6 +47,8 @@ class WebhookManager(
     private val recordCount: Int? = null,
     private val logType: LogType = LogType.HEALTH_CONNECT,
     private val customHeaders: Map<String, String> = emptyMap(),
+    /** URLs that get none of [customHeaders]: the ones QR pairing added, see [WebhookSupport.headersFor]. */
+    private val urlsWithoutHeaders: Set<String> = emptySet(),
     private val signingSecret: String? = null,
     /**
      * The one URL that gets the `writeback` block and whose response is read. Every other URL
@@ -149,7 +151,8 @@ class WebhookManager(
             val requestBuilder = Request.Builder()
                 .url(url)
                 .post(requestBody)
-            customHeaders.forEach { (key, value) -> requestBuilder.header(key, value) }
+            WebhookSupport.headersFor(url, customHeaders, urlsWithoutHeaders)
+                .forEach { (key, value) -> requestBuilder.header(key, value) }
             val requestSignature = if (!signingSecret.isNullOrBlank()) WebhookSupport.signature(jsonPayload, signingSecret) else null
             if (requestSignature != null) {
                 requestBuilder.header(WebhookSupport.SIGNATURE_HEADER, requestSignature)

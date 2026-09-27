@@ -76,6 +76,15 @@ object WebhookSupport {
     fun refusesPayload(statusCode: Int?): Boolean = statusCode == 400 || statusCode == 413 || statusCode == 422
 
     /**
+     * The custom headers one URL gets. A section's headers were typed for the URLs the user
+     * entered by hand; a URL that QR pairing added is in [urlsWithoutHeaders] and gets none,
+     * so a pairing link to a foreign host, even one the user confirmed, never receives the
+     * API keys configured for the others.
+     */
+    fun headersFor(url: String, headers: Map<String, String>, urlsWithoutHeaders: Set<String>): Map<String, String> =
+        if (url in urlsWithoutHeaders) emptyMap() else headers
+
+    /**
      * The log line for a 3xx, which is never followed (see WebhookManager.buildClient). Names
      * the host the redirect pointed at, so the user can put the final address in the settings.
      */

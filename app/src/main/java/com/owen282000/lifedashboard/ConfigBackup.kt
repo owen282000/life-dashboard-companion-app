@@ -85,11 +85,35 @@ data class SectionConfig(
     @SerialName("sync_times") val syncTimes: String? = null,
     @SerialName("sync_days") val syncDays: String? = null,
     @SerialName("quiet_from") val quietFrom: String? = null,
-    @SerialName("quiet_to") val quietTo: String? = null
+    @SerialName("quiet_to") val quietTo: String? = null,
+    /**
+     * The URLs QR pairing added, which get none of [headers] (see WebhookSupport.headersFor).
+     * Not a secret, so it stays in an export without secrets. Absent in an older backup, which
+     * reads as empty: that version sent the headers to every URL.
+     */
+    @SerialName("urls_without_headers") val urlsWithoutHeaders: List<String> = emptyList()
 ) {
     fun containsSecrets(): Boolean = !signingSecret.isNullOrBlank() || headers.isNotEmpty()
 
     fun withoutSecrets(): SectionConfig = copy(headers = emptyMap(), signingSecret = null)
+
+    /**
+     * Which of this backup's URLs get no custom headers once it is imported. Headers in the
+     * backup were set for its own URLs, so its own list holds. A backup without headers keeps
+     * the ones already on the device, which were set for the device's URLs: an imported URL
+     * those did not go to before gets none of them now either.
+     */
+    fun urlsWithoutHeadersOnImport(
+        deviceUrls: List<String>,
+        deviceUrlsWithoutHeaders: Set<String>,
+        deviceHasHeaders: Boolean
+    ): Set<String> {
+        val keepsDeviceHeaders = headers.isEmpty() && deviceHasHeaders
+        return webhookUrls.filter { url ->
+            url in urlsWithoutHeaders ||
+                (keepsDeviceHeaders && (url !in deviceUrls || url in deviceUrlsWithoutHeaders))
+        }.toSet()
+    }
 }
 
 /** One broker's connection details. */

@@ -20,8 +20,18 @@ import java.time.LocalTime
 data class WebhookDraft(
     val urls: List<String> = emptyList(),
     val headers: Map<String, String> = emptyMap(),
-    val secret: String = ""
-)
+    val secret: String = "",
+    /** URLs QR pairing added, which get none of [headers], see WebhookSupport.headersFor. */
+    val urlsWithoutHeaders: Set<String> = emptySet()
+) {
+    /** A URL typed in by hand gets the headers, even one that pairing added before. */
+    fun withUrl(url: String): WebhookDraft = copy(urls = urls + url, urlsWithoutHeaders = urlsWithoutHeaders - url)
+
+    fun withoutUrlAt(index: Int): WebhookDraft {
+        val remaining = urls.filterIndexed { i, _ -> i != index }
+        return copy(urls = remaining, urlsWithoutHeaders = urlsWithoutHeaders.filter { it in remaining }.toSet())
+    }
+}
 
 data class MqttDraft(
     val section: MqttSectionSettings,

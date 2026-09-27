@@ -10,19 +10,23 @@ private class FakePairingStore(
     var healthSecret: String? = null,
     var screenTimeUrls: List<String> = emptyList(),
     var screenTimeSecret: String? = null,
-    var plainHttpAllowed: Boolean = false
+    var plainHttpAllowed: Boolean = false,
+    var healthWithoutHeaders: Set<String> = emptySet(),
+    var screenTimeWithoutHeaders: Set<String> = emptySet()
 ) : PairingStore {
-    override fun health() = SectionWebhook(healthUrls, healthSecret)
-    override fun screenTime() = SectionWebhook(screenTimeUrls, screenTimeSecret)
+    override fun health() = SectionWebhook(healthUrls, healthSecret, healthWithoutHeaders)
+    override fun screenTime() = SectionWebhook(screenTimeUrls, screenTimeSecret, screenTimeWithoutHeaders)
 
-    override fun setHealth(urls: List<String>, secret: String) {
+    override fun setHealth(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>) {
         healthUrls = urls
         healthSecret = secret
+        healthWithoutHeaders = urlsWithoutHeaders
     }
 
-    override fun setScreenTime(urls: List<String>, secret: String) {
+    override fun setScreenTime(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>) {
         screenTimeUrls = urls
         screenTimeSecret = secret
+        screenTimeWithoutHeaders = urlsWithoutHeaders
     }
 
     override fun setAllowPlainHttp(enabled: Boolean) {
@@ -164,5 +168,29 @@ class PairingApplyTest {
             setOf(PairingSource.SCREEN_TIME),
             PairingApply.offered(link.copy(sources = setOf(PairingSource.SCREEN_TIME)))
         )
+    }
+
+    @Test
+    fun aPairedAddressGetsNoCustomHeaders() {
+        // A phishing code the user confirms must not receive the API keys typed for the others.
+        val store = FakePairingStore(healthUrls = listOf("https://my.server/hook"))
+
+        PairingApply.apply(link, both, store)
+
+        assertEquals(setOf(link.url), store.healthWithoutHeaders)
+        assertEquals(setOf(link.url), store.screenTimeWithoutHeaders)
+        val headers = mapOf("Authorization" to "Bearer key")
+        assertEquals(headers, WebhookSupport.headersFor("https://my.server/hook", headers, store.healthWithoutHeaders))
+        assertEquals(emptyMap<String, String>(), WebhookSupport.headersFor(link.url, headers, store.healthWithoutHeaders))
+    }
+
+    @Test
+    fun anAddressTypedInBeforeKeepsItsHeaders() {
+        // Pairing adds nothing here, so it takes nothing away either.
+        val store = FakePairingStore(healthUrls = listOf(link.url), healthWithoutHeaders = setOf("https://old/hook"))
+
+        PairingApply.apply(link, both.copy(screenTime = false), store)
+
+        assertEquals(setOf("https://old/hook"), store.healthWithoutHeaders)
     }
 }

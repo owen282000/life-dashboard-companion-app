@@ -168,7 +168,13 @@ fun WebhookRow(
         onToggle = onToggle
     ) {
         webhook.urls.forEachIndexed { index, url ->
-            ListLine(text = url, onRemove = { onRemoveUrl(index) })
+            // Said only while there are headers to hold back: without any it changes nothing.
+            val withoutHeaders = webhook.headers.isNotEmpty() && url in webhook.urlsWithoutHeaders
+            ListLine(
+                text = url,
+                secondary = if (withoutHeaders) stringResource(R.string.webhook_url_without_headers) else null,
+                onRemove = { onRemoveUrl(index) }
+            )
         }
         // Typing a URL and 64 hex characters on a phone keyboard is where people give up,
         // so on an empty card scanning leads. Once a receiver is set up it steps back into

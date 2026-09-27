@@ -41,6 +41,7 @@
     <string name="webhook_shared_secret">Gedeeld geheim</string>
     <string name="webhook_url_placeholder">https://...</string>
     <string name="webhook_urls_configured">%1$d ingesteld</string>
+    <string name="webhook_url_without_headers">Gekoppeld via QR-code: eigen headers gaan hier niet heen</string>
     <string name="webhook_urls_title">Webhook-URL\'s</string>
 
     <!-- Gedeelde synchronisatiesectie, gebruikt door Health Connect en Schermtijd -->

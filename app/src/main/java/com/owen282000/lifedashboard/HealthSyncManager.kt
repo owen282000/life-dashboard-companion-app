@@ -249,6 +249,7 @@ class HealthSyncManager(
                     recordCount = totalRecords,
                     logType = LogType.HEALTH_CONNECT,
                     customHeaders = preferencesManager.getHealthWebhookHeaders(),
+                    urlsWithoutHeaders = preferencesManager.getHealthUrlsWithoutHeaders(),
                     signingSecret = preferencesManager.getHealthWebhookSecret(),
                     source = sourcePost
                 )
@@ -317,6 +318,7 @@ class HealthSyncManager(
                     recordCount = 0,
                     logType = LogType.HEALTH_CONNECT,
                     customHeaders = preferencesManager.getHealthWebhookHeaders(),
+                    urlsWithoutHeaders = preferencesManager.getHealthUrlsWithoutHeaders(),
                     signingSecret = preferencesManager.getHealthWebhookSecret(),
                     source = sourcePost
                 )
@@ -438,6 +440,7 @@ class HealthSyncManager(
         recordCount = 0,
         logType = LogType.HEALTH_CONNECT,
         customHeaders = preferencesManager.getHealthWebhookHeaders(),
+        urlsWithoutHeaders = preferencesManager.getHealthUrlsWithoutHeaders(),
         signingSecret = preferencesManager.getHealthWebhookSecret(),
         source = post,
         logSuccess = false
@@ -557,6 +560,7 @@ class HealthSyncManager(
                     recordCount = recordCount,
                     logType = LogType.HEALTH_CONNECT,
                     customHeaders = preferencesManager.getHealthWebhookHeaders(),
+                    urlsWithoutHeaders = preferencesManager.getHealthUrlsWithoutHeaders(),
                     signingSecret = preferencesManager.getHealthWebhookSecret()
                 )
                 val postResult = webhookManager.postData(payload)

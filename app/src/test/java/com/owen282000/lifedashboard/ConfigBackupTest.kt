@@ -24,7 +24,8 @@ class ConfigBackupTest {
             syncTimes = "08:00,21:00",
             syncDays = "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY",
             quietFrom = "23:00",
-            quietTo = "07:00"
+            quietTo = "07:00",
+            urlsWithoutHeaders = listOf("https://backup.example.com/h")
         ),
         screenTime = SectionConfig(
             webhookUrls = listOf("https://example.com/screen"),
@@ -114,6 +115,7 @@ class ConfigBackupTest {
             listOf("https://example.com/health", "https://backup.example.com/h"),
             stripped.health.webhookUrls
         )
+        assertEquals(listOf("https://backup.example.com/h"), stripped.health.urlsWithoutHeaders)
         assertEquals("mqtt.local", stripped.mqtt.shared.host)
         assertEquals(8883, stripped.mqtt.shared.port)
         assertTrue(stripped.mqtt.shared.useTls)
@@ -220,6 +222,8 @@ class ConfigBackupTest {
         assertNull(restored.health.syncMode)
         assertNull(restored.health.syncTimes)
         assertNull(restored.health.quietFrom)
+        // That version sent the headers to every URL.
+        assertTrue(restored.health.urlsWithoutHeaders.isEmpty())
         assertNull(restored.options.seriesResolutions)
         // Absent, not defaulted: an import must leave the phone name, Receive and its ledger alone.
         assertNull(restored.options.phoneName)
@@ -252,5 +256,39 @@ class ConfigBackupTest {
         assertNull(fromBackup.copy(useTls = false).toBroker(onDevice, backupHasSecrets = false).password)
         assertNull(fromBackup.toBroker(onDevice, backupHasSecrets = true).username)
         assertEquals("new", fromBackup.copy(username = "new").toBroker(onDevice, backupHasSecrets = true).username)
+    }
+
+    @Test
+    fun aBackupWithHeadersKeepsItsOwnListOfUrlsWithoutThem() {
+        // Its headers were set for its own URLs; what is on the device does not matter.
+        val section = fullBackup().health
+
+        val marked = section.urlsWithoutHeadersOnImport(
+            deviceUrls = listOf("https://device/hook"),
+            deviceUrlsWithoutHeaders = setOf("https://example.com/health"),
+            deviceHasHeaders = true
+        )
+
+        assertEquals(setOf("https://backup.example.com/h"), marked)
+    }
+
+    @Test
+    fun theHeadersKeptOnTheDeviceGoOnlyWhereTheyWentBefore() {
+        // A backup without secrets keeps the device's headers. They were set for the device's
+        // own URLs, so a URL new to the device, or one pairing added there, gets none.
+        val section = SectionConfig(
+            webhookUrls = listOf("https://mine/hook", "https://paired/hook", "https://shared-setup/hook")
+        )
+
+        val marked = section.urlsWithoutHeadersOnImport(
+            deviceUrls = listOf("https://mine/hook", "https://paired/hook"),
+            deviceUrlsWithoutHeaders = setOf("https://paired/hook"),
+            deviceHasHeaders = true
+        )
+
+        assertEquals(setOf("https://paired/hook", "https://shared-setup/hook"), marked)
+        // With no headers on the device nothing is held back: headers typed in later are
+        // typed for the URLs on screen, like on a fresh install.
+        assertTrue(section.urlsWithoutHeadersOnImport(emptyList(), emptySet(), deviceHasHeaders = false).isEmpty())
     }
 }

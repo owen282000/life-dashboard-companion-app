@@ -227,6 +227,10 @@ class PreferencesManager(context: Context) {
         private const val KEY_HEALTH_WEBHOOK_SECRET = "health_webhook_secret"
         private const val KEY_SCREENTIME_WEBHOOK_SECRET = "screentime_webhook_secret"
 
+        // URLs that get no custom headers (the ones QR pairing added); not secret themselves
+        private const val KEY_HEALTH_URLS_WITHOUT_HEADERS = "health_webhook_urls_without_headers"
+        private const val KEY_SCREENTIME_URLS_WITHOUT_HEADERS = "screentime_webhook_urls_without_headers"
+
         // Shared keys
         private const val KEY_KEEP_FULL_PAYLOADS = "keep_full_payloads"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
@@ -424,6 +428,24 @@ class PreferencesManager(context: Context) {
     fun setHealthWebhookHeaders(headers: Map<String, String>) {
         val headersJson = Json.encodeToString(headers)
         securePrefs.edit().putString(KEY_HEALTH_WEBHOOK_HEADERS, headersJson).apply()
+    }
+
+    /** Health URLs that get none of the custom headers, see [WebhookSupport.headersFor]. */
+    fun getHealthUrlsWithoutHeaders(): Set<String> = urlSet(KEY_HEALTH_URLS_WITHOUT_HEADERS)
+
+    fun setHealthUrlsWithoutHeaders(urls: Set<String>) = putUrlSet(KEY_HEALTH_URLS_WITHOUT_HEADERS, urls)
+
+    private fun urlSet(key: String): Set<String> {
+        val stored = prefs.getString(key, null) ?: return emptySet()
+        return runCatching { Json.decodeFromString<List<String>>(stored).toSet() }.getOrDefault(emptySet())
+    }
+
+    private fun putUrlSet(key: String, urls: Set<String>) {
+        if (urls.isEmpty()) {
+            prefs.edit().remove(key).apply()
+            return
+        }
+        prefs.edit().putString(key, Json.encodeToString(urls.toList())).apply()
     }
 
     /** Daily deduplicated totals in the payload (aggregate API merges phone + watch). */
@@ -644,6 +666,11 @@ class PreferencesManager(context: Context) {
         securePrefs.edit().putString(KEY_SCREENTIME_WEBHOOK_HEADERS, headersJson).apply()
     }
 
+    /** Screen Time URLs that get none of the custom headers, see [WebhookSupport.headersFor]. */
+    fun getScreenTimeUrlsWithoutHeaders(): Set<String> = urlSet(KEY_SCREENTIME_URLS_WITHOUT_HEADERS)
+
+    fun setScreenTimeUrlsWithoutHeaders(urls: Set<String>) = putUrlSet(KEY_SCREENTIME_URLS_WITHOUT_HEADERS, urls)
+
     fun getScreenTimeWebhookSecret(): String? {
         return securePrefs.getString(KEY_SCREENTIME_WEBHOOK_SECRET, null)?.takeIf { it.isNotBlank() }
     }
@@ -717,23 +744,25 @@ class PreferencesManager(context: Context) {
     // so the rules in PairingApply stay unit-testable without SharedPreferences.
 
     fun healthSectionWebhook(): SectionWebhook =
-        SectionWebhook(getHealthWebhookUrls(), getHealthWebhookSecret())
+        SectionWebhook(getHealthWebhookUrls(), getHealthWebhookSecret(), getHealthUrlsWithoutHeaders())
 
     fun screenTimeSectionWebhook(): SectionWebhook =
-        SectionWebhook(getScreenTimeWebhookUrls(), getScreenTimeWebhookSecret())
+        SectionWebhook(getScreenTimeWebhookUrls(), getScreenTimeWebhookSecret(), getScreenTimeUrlsWithoutHeaders())
 
     fun asPairingStore(): PairingStore = object : PairingStore {
         override fun health() = healthSectionWebhook()
         override fun screenTime() = screenTimeSectionWebhook()
 
-        override fun setHealth(urls: List<String>, secret: String) {
+        override fun setHealth(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>) {
             setHealthWebhookUrls(urls)
             setHealthWebhookSecret(secret)
+            setHealthUrlsWithoutHeaders(urlsWithoutHeaders)
         }
 
-        override fun setScreenTime(urls: List<String>, secret: String) {
+        override fun setScreenTime(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>) {
             setScreenTimeWebhookUrls(urls)
             setScreenTimeWebhookSecret(secret)
+            setScreenTimeUrlsWithoutHeaders(urlsWithoutHeaders)
         }
 
         override fun setAllowPlainHttp(enabled: Boolean) = setAllowHttpWebhooks(enabled)
