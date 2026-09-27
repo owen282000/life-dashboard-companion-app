@@ -127,7 +127,7 @@ The protocol is documented in [webhook.md](webhook.md#inbound-what-the-integrati
 
 - **Home screen widget** - last sync result and records delivered today at a glance
 - **Quick Settings tile** - trigger an immediate sync from the notification shade
-- **Tasker / MacroDroid support** - trigger syncs with an explicit broadcast intent: `com.owen282000.lifedashboard.ACTION_SYNC`
+- **Tasker / MacroDroid support** - trigger syncs with an explicit broadcast intent: `com.owen282000.lifedashboard.ACTION_SYNC`. Any app can send it, so it only starts a normal sync of what you configured, and a broadcast within a minute of the last accepted one is ignored
 - **Failure notifications** - local notification after repeated failed syncs, with a configurable threshold
 
 ## Data tools
