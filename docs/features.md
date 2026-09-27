@@ -134,7 +134,7 @@ The protocol is documented in [webhook.md](webhook.md#inbound-what-the-integrati
 ## Data tools
 
 - **Data preview** - **View** on the Health and Screen Time tabs shows the exact JSON payload before syncing
-- **Export as CSV/JSON** - **Export** on the Health and Screen Time tabs shares the current data, and **Export logs** on the Logs tab the delivery log, via the Android share sheet. The file stays in the app's cache until Android clears it or the app is uninstalled; see [PRIVACY.md](../PRIVACY.md#what-stays-on-the-device)
+- **Export as CSV/JSON** - **Export** on the Health and Screen Time tabs shares the current data, and **Export logs** on the Logs tab the delivery log, via the Android share sheet. The file stays in the app's cache until the next export replaces it, or until the app starts more than a day later; see [PRIVACY.md](../PRIVACY.md#what-stays-on-the-device)
 - **Sync history dashboard** - overview of success rates, record counts and recent failures on the Logs tab
 - **Settings backup and restore** - export every webhook, header, secret, MQTT broker and toggle as a JSON file, and import it on another device. See [settings-backup.md](settings-backup.md)
 

@@ -34,7 +34,7 @@ If you install the app from the Google Play Store, the store itself may collect 
 
 Uninstalling the app removes all of this.
 
-Exports are files you create yourself: health data, screen time, logs, or your settings. The app writes each one to its own cache folder and hands it to the Android share sheet; the copy in the cache stays there until Android clears the cache or you uninstall the app, and the app you share it with keeps its own copy under its own rules.
+Exports are files you create yourself: health data, screen time, logs, or your settings. The app writes each one to its own cache folder and hands it to the Android share sheet. The copy in the cache stays until your next export replaces it, or until the app starts more than a day later and removes it. The app you share it with keeps its own copy under its own rules.
 
 A settings export with secrets is encrypted with the password you chose. Without secrets it is plain JSON, and that still includes your webhook URLs and MQTT hosts. A webhook URL can be a credential in itself: a Home Assistant automation's `/api/webhook/<id>` address, for instance, accepts anything posted to it. Share such a file only with someone you would give that access to.
 
