@@ -34,6 +34,6 @@ The companion app is already installed for most people and is enough for "curren
 
 ## Setting up the Home Assistant side
 
-The same for every brand, and it takes two minutes: [Phone to Home Assistant in two minutes](../usage.md#phone-to-home-assistant-in-two-minutes). After that, the brand page tells you which switch to flip in the brand's own app, and what to expect.
+The same for every brand: [Phone to Home Assistant](../usage.md#with-the-integration). Count on 15 to 30 minutes the first time. After that, the brand page tells you which switch to flip in the brand's own app, and what to expect.
 
 Something missing or wrong for your brand? Corrections are welcome as an issue or pull request, and [DATA_SOURCES.md](../DATA_SOURCES.md) collects what users found per source app.

@@ -6,7 +6,7 @@ waiting for a reply.
 ## Setting it up
 
 [docs/usage.md](../docs/usage.md) covers installation, the first-run wizard, and getting data
-into Home Assistant in about two minutes. [docs/features.md](../docs/features.md) lists what
+into Home Assistant step by step. [docs/features.md](../docs/features.md) lists what
 the app can do, and [docs/webhook.md](../docs/webhook.md) documents every field it sends.
 
 ## Something is not working

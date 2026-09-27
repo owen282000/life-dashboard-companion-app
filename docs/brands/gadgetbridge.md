@@ -14,7 +14,7 @@ In Gadgetbridge: **Settings > External Integrations > Health Connect**, enable t
 
 ## Step 2: the app and the integration
 
-Install Life Dashboard Companion and pair it with the Home Assistant integration: [Phone to Home Assistant in two minutes](../usage.md#phone-to-home-assistant-in-two-minutes). Turn on the types below in the app, grant their Health Connect permissions, and tap **Sync Now**.
+Install Life Dashboard Companion and pair it with the Home Assistant integration: [Phone to Home Assistant](../usage.md#with-the-integration). Turn on the types below in the app, grant their Health Connect permissions, and tap **Sync Now**.
 
 ## What comes through
 

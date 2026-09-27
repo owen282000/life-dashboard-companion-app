@@ -40,23 +40,48 @@ After the wizard:
 2. **Grant Usage Access** for Screen Time - go to Settings when prompted
 3. **Add webhook headers** (optional) - auth tokens or API keys
 4. **Set the sync schedule** - an interval (minimum 15 minutes) or fixed times of day, per tab, with optional weekdays and quiet hours
-5. **Tap "Preview Data"** to inspect the payload, then **"Sync Now"** to send
+5. **Tap "View"** to inspect the payload, then **"Sync Now"** to send
 
-The **Send Test Ping** button, in the wizard and on both tabs, confirms your server accepts a POST before waiting for real data.
+**Send Test Ping** in the wizard, and **Test ping** on both tabs, confirm your server accepts a POST before waiting for real data.
 
 To see exactly what the app sends before you build a receiver, run `python3 scripts/webhook-receiver.py` on a laptop on the same Wi-Fi (it prints its LAN address), add `http://<that address>:8765/health` as a webhook URL, switch on **Advanced > Allow plain HTTP**, and tap Test ping. Every POST is printed with its headers and appended to `received.jsonl`; pass `--secret <your HMAC secret>` to verify signatures.
 
 Moving from another device? Import your settings under **About > Backup & restore** instead of typing everything again; see [settings-backup.md](settings-backup.md).
 
-## Phone to Home Assistant in two minutes
+## Phone to Home Assistant
 
 Two routes, and neither needs YAML. The **Life Dashboard integration** (installed through
-HACS from [life-dashboard-ha](https://github.com/owen282000/life-dashboard-ha)) needs no
-broker at all, is paired by scanning a code, and writes every synced day into long-term
-statistics on its own date, so a backfill becomes history rather than one big number on
-today. **MQTT** needs a broker Home Assistant already talks to, and publishes retained
-latest values that survive a restart. Pick one: running both gives you two devices
-holding the same numbers.
+HACS from [life-dashboard-ha](https://github.com/owen282000/life-dashboard-ha)) is the
+recommended one: it needs no broker at all, is paired by scanning a code, and writes every
+synced day into long-term statistics on its own date, so a backfill becomes history rather
+than one big number on today. **MQTT** is the alternative for a setup that already has a
+broker Home Assistant talks to, and publishes retained latest values that survive a
+restart. Pick one: running both gives you two devices holding the same numbers.
+
+### With the integration
+
+You need Home Assistant 2026.3 or newer with [HACS](https://hacs.xyz) installed, and the
+app on the phone. Count on 15 to 30 minutes the first time, and longer if HACS is not
+installed yet. The pairing itself is the quick part: once Home Assistant shows the code,
+the phone is set up in a minute.
+
+1. **Add the repository to HACS.** Use the
+   [Open in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration)
+   link, or in HACS open the menu, pick **Custom repositories** and add
+   `https://github.com/owen282000/life-dashboard-ha` with the type **Integration**. The
+   integration is not in the default HACS list yet.
+2. **Download** Life Dashboard in HACS.
+3. **Restart Home Assistant.** A new integration is only loaded at startup.
+4. **Add the integration.** Settings > Devices & services > Add integration, search for
+   **Life Dashboard** and give the phone a name. The address is filled in with the one your
+   browser is using; the phone has to be able to reach it.
+5. **Scan the QR code** the dialog shows, with the phone's camera or with **Scan a pairing
+   code** in the app, and tap **Pair**. [Pairing by QR code](#pairing-by-qr-code) below
+   has the details.
+6. **Grant and sync.** On the Health tab tap **Grant**, switch on the types you want, and
+   tap **Sync Now**. The phone appears under Settings > Devices & services > Life Dashboard
+   with a sensor for each type it sent. For screen time, allow usage access on the Screen
+   Time tab and sync there too; for the past, tap **Backfill** on the Health tab.
 
 ### Pairing by QR code
 
