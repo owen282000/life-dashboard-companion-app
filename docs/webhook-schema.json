@@ -21,7 +21,7 @@
     },
     "sequence": {
       "type": "integer",
-      "description": "Health Connect payloads only: increases with every payload this install sends. A receiver that keeps the highest sequence it has applied can ignore an older payload that arrives late after a retry. Absent on screen_time payloads, so treat a missing field as unknown rather than zero."
+      "description": "Increases with every payload this install sends, health_connect and screen_time alike (one counter, so per source it can skip). A receiver that keeps the highest sequence it has applied per source can ignore an older payload that arrives late after a retry. Optional: 1.20.0 and older send none on screen_time payloads and healthkit_ios may omit it, so treat a missing field as unknown rather than zero."
     },
     "deleted_records": {
       "type": "array",

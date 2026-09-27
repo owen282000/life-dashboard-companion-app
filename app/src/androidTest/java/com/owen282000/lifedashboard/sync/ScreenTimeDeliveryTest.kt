@@ -39,9 +39,9 @@ class ScreenTimeDeliveryTest {
 
     /**
      * T25. One POST to the Screen Time URL with that section's secret and headers, the device,
-     * no sequence and no writeback block even with Receive on, one to eight days with unique
+     * a sequence and no writeback block even with Receive on, one to eight days with unique
      * dates and every app at least a minute, valid against the schema. A second sync sends the
-     * week again. Without usage access the sync says so.
+     * week again with a higher sequence. Without usage access the sync says so.
      */
     @Test
     fun screenTimePayload() = runBlocking {
@@ -59,7 +59,7 @@ class ScreenTimeDeliveryTest {
         val body = Conservation.parse(post.text)
         assertEquals("screen_time", body.str("source"))
         assertEquals("${Build.MANUFACTURER} ${Build.MODEL}", body.str("device"))
-        assertNull(body["sequence"])
+        val sequence = body.num("sequence")!!.toLong()
         assertNull(body["writeback"])
         val days = body.arr("screen_time").orEmpty().map { it as JsonObject }
         assertTrue("1 to 8 days, got ${days.size}", days.size in 1..8)
@@ -70,6 +70,8 @@ class ScreenTimeDeliveryTest {
 
         ScreenTimeSyncManager(context).performSync().getOrThrow()
         assertEquals("the week goes out again", 2, receiver.exchanges.size)
+        val again = Conservation.parse(receiver.exchanges.last().text).num("sequence")!!.toLong()
+        assertTrue("a newer week has a higher sequence", again > sequence)
 
         ScreenTimeUse.shell("appops set ${context.packageName} GET_USAGE_STATS deny")
         try {

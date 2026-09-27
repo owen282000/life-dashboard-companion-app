@@ -385,6 +385,11 @@ class PreferencesManager(context: Context) {
      * The next payload sequence number, incremented on every call. A receiver that keeps the
      * highest sequence it has seen can ignore a retry that arrives after a newer payload.
      *
+     * Screen Time payloads take their number here too, so it goes up across everything the
+     * install sends: a receiver that keeps one highest number per install then never mistakes
+     * a Screen Time payload for an old one. Per source the numbers can skip; they still only
+     * go up.
+     *
      * A manual sync from the UI can run while a scheduled one is in flight, and each holds its
      * own PreferencesManager, so the read-modify-write is guarded by a lock on the class and
      * committed synchronously: two payloads sharing a number would be exactly the ambiguity the

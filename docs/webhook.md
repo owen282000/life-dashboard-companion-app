@@ -312,7 +312,7 @@ Two limits are worth building around:
 
 A backfill window is the fallback, and says so explicitly. Every payload of a backfill carries `backfill`, `window_start` and `window_end`; the last payload of a window also carries `window_complete: true`, which means every record the phone holds for that window has now been sent. At that point a receiver may treat any `uuid` it holds inside the window that was not in the window as deleted. A window that was split into several payloads carries `window_complete: false` on all but the last, and a window that holds nothing still sends one payload with `window_complete: true`, which is what distinguishes an empty window from an unreported one.
 
-Every Health Connect payload also carries `sequence`, a counter that only goes up for a given install. The app drains its outbox before each sync, so payloads normally arrive in order, but a receiver behind several webhook URLs, a proxy or a retrying load balancer can still see an older one land after a newer one. Recording the highest sequence applied per install lets a receiver ignore the late one instead of letting it restore a record that was deleted since. Screen Time payloads carry no sequence, so treat the field as absent rather than zero.
+Every Health Connect payload also carries `sequence`, a counter that only goes up for a given install. The app drains its outbox before each sync, so payloads normally arrive in order, but a receiver behind several webhook URLs, a proxy or a retrying load balancer can still see an older one land after a newer one. Recording the highest sequence applied per install lets a receiver ignore the late one instead of letting it restore a record that was deleted since. Screen Time payloads take their number from the same counter (1.20.0 and older send none), so keep the highest per install and `source`: per source the numbers only go up but can skip. The field is optional, also in the iOS app's payloads, so treat a missing one as unknown rather than zero.
 
 A deletion is often the only thing that changed, for instance when a meal is removed and nothing is added. Such a sync sends a payload with `deleted_records` and no record arrays at all, which is why a payload with no data is not necessarily an empty one.
 
@@ -381,6 +381,7 @@ Every payload ends with a `_diagnostics` object with one entry per enabled type,
   "app_version": "1.2.0",
   "device": "Google Pixel 8",
   "source": "screen_time",
+  "sequence": 42,
   "screen_time": [
     {
       "date": "2025-02-05",
@@ -398,7 +399,7 @@ Every payload ends with a `_diagnostics` object with one entry per enabled type,
 }
 ```
 
-Minutes are foreground time per app, derived from Android's activity resume, pause and stop events; background time is not counted. A session also ends on screen off, keyguard and shutdown, System UI and the launcher are excluded, and apps with under one minute per day are omitted, so totals are comparable to Digital Wellbeing (with a custom day boundary they will not match its midnight day exactly). Every sync recomputes and re-sends the last 7 days from the device's event log, so store per date and let the newest payload win.
+Minutes are foreground time per app, derived from Android's activity resume, pause and stop events; background time is not counted. A session also ends on screen off, keyguard and shutdown, System UI and the launcher are excluded, and apps with under one minute per day are omitted, so totals are comparable to Digital Wellbeing (with a custom day boundary they will not match its midnight day exactly). Every sync recomputes and re-sends the last 7 days from the device's event log, so store per date and let the newest payload win. A week that failed waits in the outbox and can arrive after a newer one, so the newest is the one with the highest `sequence`, not the one that arrived last (see [Deletions](#deletions) for the counter).
 
 ## Delivery, retries and signing
 
