@@ -16,8 +16,12 @@ import com.owen282000.lifedashboard.harness.Witness
 import com.owen282000.lifedashboard.harness.arr
 import com.owen282000.lifedashboard.harness.num
 import com.owen282000.lifedashboard.harness.str
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
+import mockwebserver3.MockResponse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -25,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
+import java.util.concurrent.CopyOnWriteArrayList
 
 /** Screen Time over the webhook, with the emulator's own usage (ScreenTimeUse). */
 @RunWith(AndroidJUnit4::class)
@@ -79,5 +84,35 @@ class ScreenTimeDeliveryTest {
         } finally {
             ScreenTimeUse.allowUsageAccess()
         }
+    }
+
+    /**
+     * T54. Two Screen Time syncs started together, as the tile and the worker can, take turns:
+     * with every answer held for a second, the second POST arrives only after the first was
+     * answered, and the sequences rise in the order they arrived.
+     */
+    @Test
+    fun concurrentSyncsTakeTurns() = runBlocking {
+        ScreenTimeUse.ensureToday()
+        TestSetup.screenTime(receiver)
+        // Arrival, answer and sequence of each POST, noted in the handler itself because the
+        // receiver logs an exchange only once it has been answered.
+        val posts = CopyOnWriteArrayList<Triple<Long, Long, Long>>()
+        receiver.route(TestSetup.SCREEN_PATH) { request ->
+            val arrived = System.currentTimeMillis()
+            Thread.sleep(1_000)
+            val sequence = Conservation.parse(request.body!!.utf8()).num("sequence")!!.toLong()
+            posts += Triple(arrived, System.currentTimeMillis(), sequence)
+            MockResponse(code = 200)
+        }
+
+        List(2) { async(Dispatchers.IO) { ScreenTimeSyncManager(context).performSync() } }
+            .awaitAll()
+            .forEach { it.getOrThrow() }
+
+        assertEquals(2, posts.size)
+        val (first, second) = posts.sortedBy { it.first }
+        assertTrue("the second POST waits for the first answer", second.first >= first.second)
+        assertTrue("sequences rise in arrival order", second.third > first.third)
     }
 }
