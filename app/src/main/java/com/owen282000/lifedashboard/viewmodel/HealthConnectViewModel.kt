@@ -127,7 +127,7 @@ interface HealthActions {
     fun dismissBackfillDialog()
     fun backfill(days: Int)
 
-    /** The Grant button: the enabled types' reads, and background reading when a schedule needs it. */
+    /** The Grant button: the enabled types' reads and background reading. */
     fun requestAccess()
 
     /** History access for a backfill past 30 days; asked for from the backfill dialog only. */
@@ -498,10 +498,7 @@ class HealthConnectViewModel(
 
     private fun readPermission(type: HealthDataType) = HealthPermission.getReadPermission(type.recordClass)
 
-    /** Background reading only when the schedule on screen will sync without the app open. */
-    private fun accessPermissions(): Set<String> = _state.value.draft.let { draft ->
-        HealthPermissionRequests.forGrant(draft.enabledTypes, scheduled = !draft.schedule.wouldNeverRun())
-    }
+    private fun accessPermissions(): Set<String> = HealthPermissionRequests.forGrant(_state.value.draft.enabledTypes)
 
     override fun requestAccess() {
         _permissionRequests.tryEmit(accessPermissions())

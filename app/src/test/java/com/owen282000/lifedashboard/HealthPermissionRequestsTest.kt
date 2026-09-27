@@ -12,7 +12,7 @@ class HealthPermissionRequestsTest {
 
     @Test
     fun `grant asks for the reads of the enabled types and nothing else they did not pick`() {
-        val requested = HealthPermissionRequests.forGrant(OnboardingSupport.ESSENTIAL_TYPES, scheduled = true)
+        val requested = HealthPermissionRequests.forGrant(OnboardingSupport.ESSENTIAL_TYPES)
         assertEquals(HealthPermissionRequests.readPermissions(OnboardingSupport.ESSENTIAL_TYPES) + background, requested)
         assertEquals(OnboardingSupport.ESSENTIAL_TYPES.size + 1, requested.size)
         assertFalse("android.permission.health.READ_SEXUAL_ACTIVITY" in requested)
@@ -20,18 +20,16 @@ class HealthPermissionRequestsTest {
     }
 
     @Test
-    fun `background reading is asked for only when a schedule syncs without the app`() {
-        val types = setOf(HealthDataType.STEPS)
-        assertTrue(background in HealthPermissionRequests.forGrant(types, scheduled = true))
+    fun `background reading always goes along because the tile and broadcast sync from a worker too`() {
         assertEquals(
-            setOf("android.permission.health.READ_STEPS"),
-            HealthPermissionRequests.forGrant(types, scheduled = false)
+            setOf("android.permission.health.READ_STEPS", background),
+            HealthPermissionRequests.forGrant(setOf(HealthDataType.STEPS))
         )
     }
 
     @Test
     fun `no enabled type offers every read so the grant becomes the selection`() {
-        val requested = HealthPermissionRequests.forGrant(emptySet(), scheduled = true)
+        val requested = HealthPermissionRequests.forGrant(emptySet())
         assertEquals(HealthConnectManager.ALL_PERMISSIONS - history, requested)
     }
 
@@ -43,7 +41,7 @@ class HealthPermissionRequestsTest {
 
     @Test
     fun `no request ever asks to write`() {
-        val all = HealthPermissionRequests.forGrant(emptySet(), scheduled = true) +
+        val all = HealthPermissionRequests.forGrant(emptySet()) +
             HealthPermissionRequests.forHistory(HealthDataType.entries.toSet())
         assertTrue(all.none { it.startsWith("android.permission.health.WRITE_") })
     }

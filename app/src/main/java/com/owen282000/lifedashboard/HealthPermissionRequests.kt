@@ -6,8 +6,7 @@ import androidx.health.connect.client.permission.HealthPermission
  * What each Health Connect permission request asks for.
  *
  * A grant asks for what the setup uses and nothing more: the read permission of every enabled
- * type, reading in the background only when a schedule syncs without the app open, and history
- * only from the backfill that needs it. Asking for all 35 at once, reproductive data included,
+ * type, reading in the background, and history only from the backfill that needs it. Asking for all 35 at once, reproductive data included,
  * scared off a user who had picked 8 types in the wizard.
  *
  * Free of Android types apart from the permission names, so the sets are unit tested on the JVM.
@@ -22,11 +21,14 @@ object HealthPermissionRequests {
      *
      * No enabled type is the wizard's "choose later": every read permission is offered then,
      * and what the user grants becomes the selection (HealthConnectViewModel.refreshPermissions).
+     *
+     * Background reading always goes along: every sync but Sync Now runs in a worker, the
+     * schedule and also the quick settings tile and the automation broadcast, and nothing
+     * would ask again once reads are granted.
      */
-    fun forGrant(enabledTypes: Set<HealthDataType>, scheduled: Boolean): Set<String> {
-        val reads = readPermissions(enabledTypes.ifEmpty { HealthDataType.entries.toSet() })
-        return if (scheduled) reads + HealthConnectManager.BACKGROUND_PERMISSION else reads
-    }
+    fun forGrant(enabledTypes: Set<HealthDataType>): Set<String> =
+        readPermissions(enabledTypes.ifEmpty { HealthDataType.entries.toSet() }) +
+            HealthConnectManager.BACKGROUND_PERMISSION
 
     /**
      * History access, asked for from the backfill dialog: without it Health Connect shows only
