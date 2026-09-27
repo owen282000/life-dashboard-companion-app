@@ -24,6 +24,14 @@ object PendingDrainer {
     const val REFUSED_MAX_AGE_MS = 7L * 24 * 60 * 60 * 1000
 
     /**
+     * How long one drain may post before it leaves the rest to the next sync. A full outbox
+     * holds 700 payloads, which at a second a post to a remote Home Assistant would outlast
+     * WorkManager's 10 minutes and hold the Screen Time sync on [lock] meanwhile. The same
+     * 2 minutes as the read step's budget; a backlog of a week clears in a few syncs.
+     */
+    const val DRAIN_BUDGET_MS = 120_000L
+
+    /**
      * One drain at a time. The health and Screen Time syncs both drain first and can run
      * together (the tile starts both), and two drains would post the same item twice and
      * count its records twice.
@@ -38,7 +46,9 @@ object PendingDrainer {
         if (items.isEmpty()) return
 
         val preferencesManager = PreferencesManager(context)
+        val startedAt = System.currentTimeMillis()
         for (item in items) {
+            if (System.currentTimeMillis() - startedAt >= DRAIN_BUDGET_MS) break
             val isScreenTime = item.logType == LogType.SCREEN_TIME.name
             val logType = if (isScreenTime) LogType.SCREEN_TIME else LogType.HEALTH_CONNECT
             val urls = if (isScreenTime) preferencesManager.getScreenTimeWebhookUrls()
