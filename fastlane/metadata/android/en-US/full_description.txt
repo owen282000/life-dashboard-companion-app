@@ -17,7 +17,7 @@ Screen Time:
 
 Webhooks:
 - Multiple URLs, custom headers, and optional HMAC-SHA256 payload signing so your server can verify the sender
-- Automatic retries with exponential backoff, plus a store-and-forward outbox so nothing is lost when your server is down
+- Automatic retries with exponential backoff, plus an outbox that holds undelivered syncs for up to a week while your server is down
 - Detailed delivery logs with payload inspection in the app
 
 Automation:
