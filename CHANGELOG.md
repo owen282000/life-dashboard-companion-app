@@ -4,15 +4,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-09-27
+
 ### Changed
 
-- Screen Time payloads now carry a top-level `sequence`, from the same counter Health Connect
-  payloads use, so it goes up across everything the phone sends. A receiver can tell from it
-  which Screen Time week is the newest when a week from the outbox arrives late. Because both
-  sources share the counter, the numbers in Health Connect payloads now skip wherever a
-  Screen Time payload went out in between; they still only go up, so keep the highest number
-  per source. Screen Time payloads from 1.20.0 and older have no `sequence`, and MQTT and the
-  in-app preview are unchanged.
+- The setup wizard, the About page and the destination step recommend the Life Dashboard
+  integration: install it from HACS, scan its code, and Home Assistant keeps the history in
+  its long-term statistics. The MQTT option is now called "MQTT broker", is meant for setups
+  that already run one, and says that only the latest value of each type is sent.
 - Grant in the Health Connect tab asks for the data types you switched on, for example the 8
   from the setup wizard, instead of all 35, together with background access, so a sync from
   the Quick Settings tile, the automation broadcast or a schedule set up later can read. If
@@ -23,10 +22,6 @@ All notable changes to this project are documented in this file. The format is b
   the switch turns on by itself once you grant it. The data type list shows a lock on every
   type without permission; before, all types looked unlocked as soon as any permission was
   granted.
-- The setup wizard, the About page and the destination step recommend the Life Dashboard
-  integration: install it from HACS, scan its code, and Home Assistant keeps the history in
-  its long-term statistics. The MQTT option is now called "MQTT broker", is meant for setups
-  that already run one, and says that only the latest value of each type is sent.
 - The outbox holds up to 700 undelivered Health Connect syncs, where it held 50 shared with
   Screen Time: a week of failed syncs at the 15 minute interval, and more at longer
   intervals. After a long outage the backlog is sent in turns of at most two minutes per
@@ -49,6 +44,13 @@ All notable changes to this project are documented in this file. The format is b
   window, in the new `records_outside_window`, per type with the count and the time range, so
   a backfill of that range can send them. When nothing else goes out it is sent in a payload
   of its own, as deletions are, and that sync reports success with 0 records.
+- Screen Time payloads now carry a top-level `sequence`, from the same counter Health Connect
+  payloads use, so it goes up across everything the phone sends. A receiver can tell from it
+  which Screen Time week is the newest when a week from the outbox arrives late. Because both
+  sources share the counter, the numbers in Health Connect payloads now skip wherever a
+  Screen Time payload went out in between; they still only go up, so keep the highest number
+  per source. Screen Time payloads from 1.20.0 and older have no `sequence`, and MQTT and the
+  in-app preview are unchanged.
 - The Tasker and MacroDroid broadcast `com.owen282000.lifedashboard.ACTION_SYNC` starts at
   most one sync a minute: a second broadcast within a minute of the last accepted one is
   ignored. The Quick Settings tile is not limited.

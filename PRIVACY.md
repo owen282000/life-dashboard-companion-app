@@ -2,7 +2,7 @@
 
 Life Dashboard Companion is a self-hosting tool. It reads health and screen time data on your Android device and sends it to servers that you configure. It can also take measurements that your own Home Assistant sends back and write them into Health Connect, for the types you switch on. The developer never receives, stores or sees any of your data.
 
-Last updated 27 September 2026, for version 1.20.1.
+Last updated 27 September 2026, for version 1.21.0.
 
 ## What the app reads
 

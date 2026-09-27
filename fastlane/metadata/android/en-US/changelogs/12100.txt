@@ -1,0 +1,7 @@
+Changed:
+
+- The setup wizard, the About page and the destination step recommend the Life Dashboard
+  integration: install it from HACS, scan its code, and Home Assistant keeps the history in
+  its long-term statistics. The MQTT option is now called "MQTT broker", is meant for setups
+  that already run one, and says that only the latest value of each type is sent.
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
