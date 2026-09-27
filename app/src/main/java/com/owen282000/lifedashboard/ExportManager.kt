@@ -64,8 +64,11 @@ class ExportManager(private val context: Context) {
     }
 
     fun shareFile(content: String, filename: String, mimeType: String, title: String = "Export logs") {
-        val cacheDir = File(context.cacheDir, "exports")
+        val cacheDir = exportsDir(context)
         cacheDir.mkdirs()
+        // One export at a time: the previous one has been handed to its share target already,
+        // and left alone it would sit in the cache with health data until Android clears it.
+        deleteExportsOlderThan(cacheDir, cutoffMillis = Long.MAX_VALUE)
 
         val file = File(cacheDir, filename)
         file.writeText(content)
@@ -85,6 +88,28 @@ class ExportManager(private val context: Context) {
         val chooserIntent = Intent.createChooser(shareIntent, title)
         chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(chooserIntent)
+    }
+
+    companion object {
+        /** How long an export may outlive its share, for a target that reads it late. */
+        private const val MAX_EXPORT_AGE_MILLIS = 24 * 60 * 60 * 1000L
+
+        private fun exportsDir(context: Context) = File(context.cacheDir, "exports")
+
+        /**
+         * Removes exports older than a day; called at app start, so an export that is never
+         * followed by another does not stay behind either.
+         */
+        fun removeStaleExports(context: Context) {
+            deleteExportsOlderThan(exportsDir(context), cutoffMillis = System.currentTimeMillis() - MAX_EXPORT_AGE_MILLIS)
+        }
+
+        /** Deletes every file in [dir] last written before [cutoffMillis]; a missing dir is fine. */
+        internal fun deleteExportsOlderThan(dir: File, cutoffMillis: Long) {
+            dir.listFiles()?.forEach { file ->
+                if (file.isFile && file.lastModified() < cutoffMillis) file.delete()
+            }
+        }
     }
 
     private fun csvEscape(value: String): String {

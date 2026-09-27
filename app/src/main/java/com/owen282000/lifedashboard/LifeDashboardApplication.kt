@@ -14,6 +14,8 @@ class LifeDashboardApplication : Application() {
         // periodic work, a schedule with times, weekdays or quiet hours becomes self-repeating
         // one-time work. See SyncScheduler.
         SyncScheduler.rescheduleAll(this)
+
+        ExportManager.removeStaleExports(this)
     }
 
     fun scheduleHealthSyncWork() = SyncScheduler.reschedule(this, LogType.HEALTH_CONNECT)
