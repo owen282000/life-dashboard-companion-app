@@ -276,7 +276,7 @@
     <string name="screentime_permission_not_granted">Toestemming niet verleend</string>
 
     <!-- Onboarding-wizard -->
-    <string name="onboarding_destination_body">Kies er een of allebei. Je kunt bestemmingen altijd toevoegen of wijzigen in de tabs Gezondheid en Schermtijd.</string>
+    <string name="onboarding_destination_body">Voor Home Assistant is de code van de integratie scannen de aangeraden route. Je kunt bestemmingen altijd toevoegen of wijzigen in de tabs Gezondheid en Schermtijd.</string>
     <string name="onboarding_destination_title">Waar moet je data naartoe?</string>
     <string name="onboarding_done_body">Er resten twee dingen, allebei op de hoofdschermen: geef Health Connect-toestemmingen, en sta toegang tot app-gebruik toe voor schermtijd. Tik daarna op Nu synchroniseren.</string>
     <string name="onboarding_done_short">Wat nog rest staat op de hoofdschermen; tik daarna op Nu synchroniseren.</string>
@@ -288,8 +288,8 @@
     <string name="onboarding_features_body">Kies er een of allebei. Elk heeft een eigen tab, permissies en instellingen.</string>
     <string name="onboarding_features_title">Wat wil je synchroniseren?</string>
     <string name="onboarding_get_started">Aan de slag</string>
-    <string name="onboarding_mqtt_desc">Sensors verschijnen automatisch in Home Assistant via MQTT Discovery</string>
-    <string name="onboarding_mqtt_option">MQTT / Home Assistant</string>
+    <string name="onboarding_mqtt_desc">Draai je al een broker? Sensors verschijnen automatisch in Home Assistant via MQTT Discovery. Alleen de laatste waarde per type gaat mee, dus eerdere dagen worden niet aangevuld.</string>
+    <string name="onboarding_mqtt_option">MQTT-broker</string>
     <string name="onboarding_next">Volgende</string>
     <string name="onboarding_open_app">Open de app</string>
     <string name="onboarding_skip">Setup overslaan</string>
@@ -319,7 +319,7 @@
     <string name="onboarding_webhook_applied_screen">Gebruikt voor Schermtijd</string>
     <string name="onboarding_webhook_desc">POST JSON naar je eigen server of dashboard-backend</string>
     <string name="onboarding_webhook_option">Webhook</string>
-    <string name="onboarding_welcome_body">Life Dashboard Companion stuurt je Health Connect- en schermtijddata naar een plek die jij beheert: je eigen webhook-backend, of Home Assistant via MQTT. Met de Home Assistant-integratie werkt het ook andersom: een weegschaal of bloeddrukmeter die met Home Assistant praat, komt in Health Connect terecht. Geen cloud ertussen. Drie korte vragen en je draait.</string>
+    <string name="onboarding_welcome_body">Life Dashboard Companion stuurt je Health Connect- en schermtijddata naar een plek die jij beheert: Home Assistant via de Life Dashboard-integratie, je eigen webhook-backend, of een MQTT-broker. De integratie bewaart de historie in de langetermijnstatistieken van Home Assistant, en werkt ook andersom: een weegschaal of bloeddrukmeter die met Home Assistant praat, komt in Health Connect terecht. Geen cloud ertussen. Drie korte vragen en je draait.</string>
     <string name="onboarding_welcome_title">Jouw gezondheidsdata, jouw server</string>
 
     <!-- Redesigned main screens -->
@@ -345,7 +345,7 @@
     <!-- About screen -->
     <string name="about_title">Over</string>
     <string name="about_back">Terug</string>
-    <string name="about_description">Stuurt je Health Connect- en schermtijddata naar je eigen webhook-backend of naar Home Assistant via MQTT, en kan metingen uit je eigen Home Assistant terug in Health Connect zetten. Geen cloud ertussen.</string>
+    <string name="about_description">Stuurt je Health Connect- en schermtijddata naar Home Assistant via de Life Dashboard-integratie, naar je eigen webhook-backend of naar een MQTT-broker, en kan metingen uit je eigen Home Assistant terug in Health Connect zetten. Geen cloud ertussen.</string>
     <string name="about_privacy_title">Privacy en beveiliging</string>
     <string name="about_backup_title">Back-up en herstel</string>
     <string name="about_f_steps">Stappen, afstand, calorieën</string>
@@ -485,6 +485,6 @@
     <string name="webhook_scan_lead">Koppelcode scannen</string>
     <string name="webhook_scan_button">Scannen</string>
     <string name="onboarding_scan_option">Code uit Home Assistant scannen</string>
-    <string name="onboarding_scan_desc">De integratie toont een QR-code. Door die te scannen worden het adres en het ondertekeningsgeheim voor je ingevuld.</string>
+    <string name="onboarding_scan_desc">Aangeraden voor Home Assistant. Installeer de Life Dashboard-integratie via HACS en scan de QR-code die ze toont: het adres en het ondertekeningsgeheim worden voor je ingevuld, en Home Assistant bewaart de historie in zijn langetermijnstatistieken.</string>
     <string name="onboarding_scan_paired">Code gelezen. Het adres en het geheim zijn ingevuld.</string>
 </resources>

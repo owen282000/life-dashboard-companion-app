@@ -276,7 +276,7 @@
     <string name="screentime_permission_not_granted">Berechtigung nicht erteilt</string>
 
     <!-- Onboarding-Assistent -->
-    <string name="onboarding_destination_body">Wähle eins oder beides. Ziele kannst du jederzeit in den Tabs Gesundheit und Bildschirmzeit ändern.</string>
+    <string name="onboarding_destination_body">Für Home Assistant ist das Scannen des Codes der Integration der empfohlene Weg. Ziele kannst du jederzeit in den Tabs Gesundheit und Bildschirmzeit ändern.</string>
     <string name="onboarding_destination_title">Wohin sollen deine Daten?</string>
     <string name="onboarding_done_body">Zwei Dinge bleiben, beide auf den Hauptbildschirmen: Health Connect-Berechtigungen erteilen und Nutzungszugriff für die Bildschirmzeit erlauben. Danach auf Jetzt synchronisieren tippen.</string>
     <string name="onboarding_done_short">Was bleibt, findest du auf den Hauptbildschirmen; dann auf Jetzt synchronisieren tippen.</string>
@@ -288,8 +288,8 @@
     <string name="onboarding_features_body">Wähle eins oder beides. Jedes hat einen eigenen Tab, Berechtigungen und Einstellungen.</string>
     <string name="onboarding_features_title">Was möchtest du synchronisieren?</string>
     <string name="onboarding_get_started">Los geht\'s</string>
-    <string name="onboarding_mqtt_desc">Sensoren erscheinen automatisch in Home Assistant via MQTT Discovery</string>
-    <string name="onboarding_mqtt_option">MQTT / Home Assistant</string>
+    <string name="onboarding_mqtt_desc">Läuft bei dir schon ein Broker? Sensoren erscheinen automatisch in Home Assistant via MQTT Discovery. Nur der letzte Wert je Typ wird gesendet, frühere Tage werden also nicht nachgetragen.</string>
+    <string name="onboarding_mqtt_option">MQTT-Broker</string>
     <string name="onboarding_next">Weiter</string>
     <string name="onboarding_open_app">App öffnen</string>
     <string name="onboarding_skip">Einrichtung überspringen</string>
@@ -319,7 +319,7 @@
     <string name="onboarding_webhook_applied_screen">Für Bildschirmzeit</string>
     <string name="onboarding_webhook_desc">POST JSON an deinen eigenen Server oder dein Dashboard-Backend</string>
     <string name="onboarding_webhook_option">Webhook</string>
-    <string name="onboarding_welcome_body">Life Dashboard Companion sendet deine Health Connect- und Bildschirmzeitdaten an einen Ort, den du kontrollierst: dein eigenes Webhook-Backend oder Home Assistant über MQTT. Mit der Home-Assistant-Integration geht es auch umgekehrt: Eine Waage oder ein Blutdruckmessgerät, das mit Home Assistant spricht, landet in Health Connect. Keine Cloud dazwischen. Drei kurze Fragen, und es läuft.</string>
+    <string name="onboarding_welcome_body">Life Dashboard Companion sendet deine Health Connect- und Bildschirmzeitdaten an einen Ort, den du kontrollierst: Home Assistant über die Life-Dashboard-Integration, dein eigenes Webhook-Backend oder einen MQTT-Broker. Die Integration bewahrt den Verlauf in den Langzeitstatistiken von Home Assistant auf und geht auch umgekehrt: Eine Waage oder ein Blutdruckmessgerät, das mit Home Assistant spricht, landet in Health Connect. Keine Cloud dazwischen. Drei kurze Fragen, und es läuft.</string>
     <string name="onboarding_welcome_title">Deine Gesundheitsdaten, dein Server</string>
 
     <!-- Redesigned main screens -->
@@ -345,7 +345,7 @@
     <!-- About screen -->
     <string name="about_title">Über</string>
     <string name="about_back">Zurück</string>
-    <string name="about_description">Sendet deine Health Connect- und Bildschirmzeitdaten an dein eigenes Webhook-Backend oder an Home Assistant über MQTT und kann Messwerte aus deinem eigenen Home Assistant zurück in Health Connect schreiben. Keine Cloud dazwischen.</string>
+    <string name="about_description">Sendet deine Health Connect- und Bildschirmzeitdaten über die Life-Dashboard-Integration an Home Assistant, an dein eigenes Webhook-Backend oder an einen MQTT-Broker und kann Messwerte aus deinem eigenen Home Assistant zurück in Health Connect schreiben. Keine Cloud dazwischen.</string>
     <string name="about_privacy_title">Datenschutz und Sicherheit</string>
     <string name="about_backup_title">Sicherung und Wiederherstellung</string>
     <string name="about_f_steps">Schritte, Distanz, Kalorien</string>
@@ -485,6 +485,6 @@
     <string name="webhook_scan_lead">Kopplungscode scannen</string>
     <string name="webhook_scan_button">Scannen</string>
     <string name="onboarding_scan_option">Code aus Home Assistant scannen</string>
-    <string name="onboarding_scan_desc">Die Integration zeigt einen QR-Code. Durch das Scannen werden Adresse und Signaturgeheimnis für dich eingetragen.</string>
+    <string name="onboarding_scan_desc">Empfohlen für Home Assistant. Installiere die Life-Dashboard-Integration über HACS und scanne den QR-Code, den sie zeigt: Adresse und Signaturgeheimnis werden für dich eingetragen, und Home Assistant bewahrt den Verlauf in seinen Langzeitstatistiken auf.</string>
     <string name="onboarding_scan_paired">Code gelesen. Adresse und Geheimnis sind eingetragen.</string>
 </resources>
