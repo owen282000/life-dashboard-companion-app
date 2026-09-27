@@ -51,6 +51,32 @@ object MqttSupport {
         return plain.replace(Regex("[^a-z0-9_]+"), "_").trim('_').ifEmpty { null }
     }
 
+    /**
+     * Whether a broker host is on the home network or a VPN, going by its name or address
+     * alone (no DNS lookup): private and loopback IPv4 ranges, Tailscale's 100.64.0.0/10,
+     * IPv6 loopback, unique local and link-local, a name without a dot, and the usual LAN
+     * suffixes. Anything else may be across the internet, where plain MQTT on 1883 carries
+     * the password and the retained health values unencrypted, so the settings warn about it.
+     */
+    fun isPrivateHost(host: String): Boolean {
+        val name = host.trim().lowercase(java.util.Locale.ROOT).removeSurrounding("[", "]").removeSuffix(".")
+        if (name.isEmpty() || name == "localhost") return true
+        if (':' in name) {
+            return name == "::1" || name.startsWith("fc") || name.startsWith("fd") ||
+                listOf("fe8", "fe9", "fea", "feb").any { name.startsWith(it) }
+        }
+        val octets = name.split('.').map { it.toIntOrNull() }
+        if (octets.size == 4 && octets.all { it != null && it in 0..255 }) {
+            val (a, b) = octets.map { it!! }
+            return a == 10 || a == 127 || (a == 172 && b in 16..31) || (a == 192 && b == 168) ||
+                (a == 169 && b == 254) || (a == 100 && b in 64..127)
+        }
+        if ('.' !in name) return true
+        return PRIVATE_SUFFIXES.any { name.endsWith(it) }
+    }
+
+    private val PRIVATE_SUFFIXES = listOf(".local", ".lan", ".home", ".internal", ".home.arpa", ".localdomain", ".ts.net")
+
     /** The Home Assistant device id: the fixed one, or with the phone's slug behind it. */
     fun deviceId(slug: String?): String = if (slug == null) DEVICE_ID else "${DEVICE_ID}_$slug"
 

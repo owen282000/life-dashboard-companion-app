@@ -207,6 +207,7 @@
     <string name="mqtt_port">Port</string>
     <string name="mqtt_title">MQTT</string>
     <string name="mqtt_tls">TLS</string>
+    <string name="mqtt_plaintext_public_host">Without TLS your data and broker password cross the internet unencrypted. Turn on TLS, usually on port 8883.</string>
     <string name="mqtt_use_shared_broker">Use the shared broker</string>
     <string name="mqtt_use_shared_broker_off">This section connects to its own broker; %1$s keeps the shared one</string>
     <string name="mqtt_use_shared_broker_on">One connection for Health Connect and Screen Time; the fields below edit it for both</string>

@@ -299,4 +299,21 @@ class MqttSupportTest {
         assertEquals("1650", MqttSupport.num(1650.4, 0))
         assertEquals("36.6", MqttSupport.num(36.6))
     }
+
+    @Test
+    fun aBrokerOnTheHomeNetworkOrAVpnIsPrivate() {
+        listOf(
+            "192.168.1.10", "10.0.0.2", "172.16.0.1", "172.31.255.1", "127.0.0.1", "169.254.1.1",
+            "100.101.102.103", "homeassistant", "localhost", "ha.local", "broker.lan", "mqtt.home.arpa",
+            "pi.ts.net", "::1", "[fd00::1]", "fe80::1", " 192.168.1.10 ", "HA.LOCAL."
+        ).forEach { assertTrue(it, MqttSupport.isPrivateHost(it)) }
+    }
+
+    @Test
+    fun aBrokerAcrossTheInternetIsNot() {
+        listOf(
+            "broker.hivemq.com", "mqtt.example.com", "8.8.8.8", "172.32.0.1", "100.128.0.1",
+            "192.169.1.1", "2001:db8::1", "local.example.com"
+        ).forEach { assertFalse(it, MqttSupport.isPrivateHost(it)) }
+    }
 }

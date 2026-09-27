@@ -439,6 +439,13 @@ fun MqttRow(
                 colors = SwitchDefaults.colors(checkedTrackColor = accent)
             )
         }
+        if (!broker.useTls && broker.host.isNotBlank() && !MqttSupport.isPrivateHost(broker.host)) {
+            Text(
+                stringResource(R.string.mqtt_plaintext_public_host),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
         FilledField(
             value = broker.username ?: "",
             onValueChange = { onChange(mqtt.withActiveBroker(broker.copy(username = it.ifBlank { null }))) },

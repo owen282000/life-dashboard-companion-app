@@ -205,6 +205,7 @@
     <string name="mqtt_port">Poort</string>
     <string name="mqtt_title">MQTT</string>
     <string name="mqtt_tls">TLS</string>
+    <string name="mqtt_plaintext_public_host">Zonder TLS gaan je gegevens en het brokerwachtwoord onversleuteld over het internet. Zet TLS aan, meestal op poort 8883.</string>
     <string name="mqtt_use_shared_broker">Gebruik de gedeelde broker</string>
     <string name="mqtt_use_shared_broker_off">Deze sectie verbindt met een eigen broker; %1$s houdt de gedeelde</string>
     <string name="mqtt_use_shared_broker_on">Eén verbinding voor Health Connect en Schermtijd; de velden hieronder passen hem voor beide aan</string>
