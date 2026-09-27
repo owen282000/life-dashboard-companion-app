@@ -3,6 +3,10 @@ package com.owen282000.lifedashboard
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
@@ -26,15 +30,20 @@ class PendingSyncStore(private val dir: File) {
         val logType: String,
         val recordCount: Int,
         val createdAt: Long,
-        val attempts: Int = 0
+        val attempts: Int = 0,
+        /**
+         * Screen Time only: the first day (yyyy-MM-dd) no delivery has covered yet. Carried over
+         * from the snapshot this one replaced, since that snapshot and the days it held are gone.
+         */
+        val undeliveredSince: String? = null
     )
 
     private val json = Json { ignoreUnknownKeys = true }
 
     /**
-     * Queues a payload and returns what the cap of its source pushed out, oldest first. Their
-     * records are gone for good (the watermarks moved on when they were read), so the caller
-     * reports them: see [Companion.enqueue].
+     * Queues a payload and returns what it pushed out undelivered, oldest first. Their records
+     * are gone for good (the watermarks moved on when they were read), so the caller reports
+     * them: see [Companion.enqueue].
      */
     fun enqueue(payload: String, dataType: String, logType: String, recordCount: Int, nowMillis: Long): List<PendingItem> {
         dir.mkdirs()
@@ -46,6 +55,7 @@ class PendingSyncStore(private val dir: File) {
             recordCount = recordCount,
             createdAt = nowMillis
         )
+        if (logType == LogType.SCREEN_TIME.name) return replaceSnapshot(item)
         write(item)
         return enforceCap(item)
     }
@@ -102,20 +112,46 @@ class PendingSyncStore(private val dir: File) {
     }
 
     /**
-     * Bounds on-device storage per source, so one source never pushes out the other's
-     * payloads. Beyond the cap the oldest go, never the item just written.
+     * Bounds on-device storage for Health Connect, apart from Screen Time, so one source never
+     * pushes out the other's payloads. Beyond the cap the oldest go, never the item just written.
      */
     private fun enforceCap(item: PendingItem): List<PendingItem> {
-        val isScreenTime = item.logType == LogType.SCREEN_TIME.name
-        val cap = if (isScreenTime) MAX_SCREEN_TIME_ITEMS else MAX_HEALTH_ITEMS
         // Counting files is enough while the whole outbox fits, which spares reading every payload.
-        if (size() <= cap) return emptyList()
+        if (size() <= MAX_HEALTH_ITEMS) return emptyList()
         val same = peekAll().filter { it.logType == item.logType }
-        if (same.size <= cap) return emptyList()
-        val pushedOut = same.filter { it.id != item.id }.take(same.size - cap)
+        if (same.size <= MAX_HEALTH_ITEMS) return emptyList()
+        val pushedOut = same.filter { it.id != item.id }.take(same.size - MAX_HEALTH_ITEMS)
         pushedOut.forEach { remove(it.id) }
-        // A Screen Time snapshot carries all 7 days, so the one it replaced lost nothing.
-        return if (isScreenTime) emptyList() else pushedOut
+        return pushedOut
+    }
+
+    /**
+     * A Screen Time snapshot carries the last 7 days, so it replaces the one queued before it
+     * instead of queuing another. That loses nothing while no undelivered day falls out of the
+     * 7: only after more than a week without a delivery does a replaced snapshot hold a day the
+     * new one lacks, and then it is returned to be reported. The undelivered days start at the
+     * newest day of the first snapshot that failed, where the last delivery, normally one sync
+     * earlier, left off.
+     */
+    private fun replaceSnapshot(item: PendingItem): List<PendingItem> {
+        val queued = peekAll().filter { it.logType == item.logType }
+        val days = screenTimeDays(item.payload)
+        val since = (queued.map { it.undeliveredSince ?: screenTimeDays(it.payload).maxOrNull() } + days.maxOrNull())
+            .filterNotNull()
+            .minOrNull()
+        write(item.copy(undeliveredSince = since))
+        queued.forEach { remove(it.id) }
+        if (since == null) return emptyList()
+        return queued.filter { old -> screenTimeDays(old.payload).any { it >= since && it !in days } }
+    }
+
+    /** The dates a Screen Time payload holds, yyyy-MM-dd so they sort as text; none when it does not parse. */
+    private fun screenTimeDays(payload: String): List<String> = try {
+        json.parseToJsonElement(payload).jsonObject["screen_time"]?.jsonArray
+            ?.mapNotNull { it.jsonObject["date"]?.jsonPrimitive?.contentOrNull }
+            .orEmpty()
+    } catch (e: Exception) {
+        emptyList()
     }
 
     companion object {
@@ -128,17 +164,14 @@ class PendingSyncStore(private val dir: File) {
          */
         const val MAX_HEALTH_ITEMS = 700
 
-        /** Every Screen Time snapshot carries the full 7 days, so the newest replaces the one queued. */
-        const val MAX_SCREEN_TIME_ITEMS = 1
-
         private const val STALE_TEMP_MS = 60L * 60 * 1000
 
         fun forContext(context: android.content.Context): PendingSyncStore =
             PendingSyncStore(File(context.filesDir, "pending_sync"))
 
         /**
-         * Queues a payload in the app's outbox and reports each payload the cap pushed out: a
-         * row in the Logs tab, and a notification, since their records are lost.
+         * Queues a payload in the app's outbox and reports each payload it pushed out
+         * undelivered: a row in the Logs tab, and a notification, since their records are lost.
          */
         fun enqueue(
             context: android.content.Context,
@@ -154,6 +187,8 @@ class PendingSyncStore(private val dir: File) {
             val preferencesManager = PreferencesManager(context)
             val urls = if (source == LogType.SCREEN_TIME) preferencesManager.getScreenTimeWebhookUrls()
                        else preferencesManager.getHealthWebhookUrls()
+            val reason = if (source == LogType.SCREEN_TIME) context.getString(R.string.outbox_replaced_log)
+                         else context.getString(R.string.outbox_dropped_log, MAX_HEALTH_ITEMS)
             for (item in dropped) {
                 preferencesManager.addWebhookLog(
                     WebhookLog(
@@ -162,7 +197,7 @@ class PendingSyncStore(private val dir: File) {
                         url = urls.joinToString(", "),
                         statusCode = null,
                         success = false,
-                        errorMessage = context.getString(R.string.outbox_dropped_log, MAX_HEALTH_ITEMS),
+                        errorMessage = reason,
                         dataType = item.dataType,
                         recordCount = item.recordCount,
                         rawPayload = item.payload,

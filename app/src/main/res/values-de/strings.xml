@@ -103,10 +103,11 @@
     </plurals>
     <string name="outbox_dropped_title">%1$s-Daten sind verloren gegangen</string>
     <plurals name="outbox_dropped_text">
-        <item quantity="one">Die Warteschlange nicht zugestellter Syncs war voll, daher wurde %1$d verworfen. Details stehen in den Logs.</item>
-        <item quantity="other">Die Warteschlange nicht zugestellter Syncs war voll, daher wurden %1$d verworfen. Details stehen in den Logs.</item>
+        <item quantity="one">%1$d nicht zugestellter Sync wurde aus der Warteschlange verworfen, daher sind seine Datensätze verloren. Details stehen in den Logs.</item>
+        <item quantity="other">%1$d nicht zugestellte Syncs wurden aus der Warteschlange verworfen, daher sind ihre Datensätze verloren. Details stehen in den Logs.</item>
     </plurals>
     <string name="outbox_dropped_log">Aus der Warteschlange entfernt: sie war voll (%1$d nicht zugestellte Syncs), daher sind diese Datensätze verloren</string>
+    <string name="outbox_replaced_log">In der Warteschlange durch einen neueren Snapshot ersetzt, der die ältesten nicht zugestellten Tage nicht mehr enthält, daher sind diese verloren</string>
     <string name="sync_advanced_title">Erweitert</string>
     <string name="sync_data_preview_title">Datenvorschau</string>
     <string name="sync_export_data">Daten exportieren</string>

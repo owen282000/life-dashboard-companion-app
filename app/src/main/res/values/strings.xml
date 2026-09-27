@@ -105,10 +105,11 @@
     </plurals>
     <string name="outbox_dropped_title">%1$s data was lost</string>
     <plurals name="outbox_dropped_text">
-        <item quantity="one">The outbox of undelivered syncs was full, so %1$d of them was dropped. Check the logs for details.</item>
-        <item quantity="other">The outbox of undelivered syncs was full, so %1$d of them were dropped. Check the logs for details.</item>
+        <item quantity="one">%1$d undelivered sync was dropped from the outbox, so its records are lost. Check the logs for details.</item>
+        <item quantity="other">%1$d undelivered syncs were dropped from the outbox, so their records are lost. Check the logs for details.</item>
     </plurals>
     <string name="outbox_dropped_log">Dropped from the outbox: it was full (%1$d undelivered syncs), so its records are lost</string>
+    <string name="outbox_replaced_log">Replaced in the outbox by a newer snapshot, which no longer covers its oldest undelivered days, so those are lost</string>
     <string name="sync_advanced_title">Advanced</string>
     <string name="sync_data_preview_title">Data Preview</string>
     <string name="sync_export_data">Export Data</string>

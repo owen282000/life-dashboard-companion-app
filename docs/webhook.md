@@ -402,7 +402,7 @@ Every payload ends with a `_diagnostics` object with one entry per enabled type,
 }
 ```
 
-Minutes are foreground time per app, derived from Android's activity resume, pause and stop events; background time is not counted. A session also ends on screen off, keyguard and shutdown, System UI and the launcher are excluded, and apps with under one minute per day are omitted, so totals are comparable to Digital Wellbeing (with a custom day boundary they will not match its midnight day exactly). Every sync recomputes and re-sends the last 7 days from the device's event log, so store per date and let the newest payload win. A week that failed waits in the outbox and can arrive after a newer one, so the newest is the one with the highest `sequence`, not the one that arrived last (see [Deletions](#deletions) for the counter).
+Minutes are foreground time per app, derived from Android's activity resume, pause and stop events; background time is not counted. A session also ends on screen off, keyguard and shutdown, System UI and the launcher are excluded, and apps with under one minute per day are omitted, so totals are comparable to Digital Wellbeing (with a custom day boundary they will not match its midnight day exactly). Every sync recomputes and re-sends the last 7 days from the device's event log, so store per date and let the newest payload win. The newest week that failed waits in the outbox and can arrive after a newer one, so the newest is the one with the highest `sequence`, not the one that arrived last (see [Deletions](#deletions) for the counter).
 
 ## Delivery, retries and signing
 
@@ -413,6 +413,8 @@ Failed posts are retried up to 3 times with exponential backoff (1s, 2s), but on
 Redirects are not followed. Following one would send the body, the signature and your custom headers to wherever the redirect points, another host or a plain `http://` address, past the check that only looked at the URL you entered. A 3xx answer counts as a failed delivery, and the log names the host it pointed at: enter that final address as the webhook URL instead.
 
 A payload that failed is kept in an outbox on the phone and sent again, oldest first, at the start of the next sync, with the settings the app has by then. The drain stops at the first payload that fails again, so the order holds while a receiver is down or misconfigured. One kind of refusal is skipped instead: HTTP 400, 413 and 422 say the receiver refuses this payload rather than every payload, so the payloads queued after it are sent anyway and may arrive before it (use `sequence` to order them). A skipped payload stays queued, in case the refusal came from a bug on the receiving side that an update fixes, and is dropped with a log row after a week.
+
+The outbox holds up to 700 Health Connect payloads, a week of 15-minute syncs; beyond that the oldest is dropped, with a log row and a notification. Screen Time keeps only its newest failed week, which replaces the one queued before it, so expect gaps in its `sequence`; after more than a week without a delivery, days that fall out of that week are lost, again with a log row and a notification. One sync drains for at most 2 minutes and leaves the rest to the next.
 
 When an HMAC signing secret is configured (under Webhook Headers in the app), every POST includes:
 

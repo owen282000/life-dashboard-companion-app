@@ -140,7 +140,8 @@ class ScreenTimeSyncManager(private val context: Context) {
             preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis())
 
             if (postResult.isFailure) {
-                PendingSyncStore.forContext(context).enqueue(
+                PendingSyncStore.enqueue(
+                    context = context,
                     payload = jsonPayload,
                     dataType = "screen_time",
                     logType = LogType.SCREEN_TIME.name,

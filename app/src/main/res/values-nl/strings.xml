@@ -103,10 +103,11 @@
     </plurals>
     <string name="outbox_dropped_title">%1$s-data is verloren gegaan</string>
     <plurals name="outbox_dropped_text">
-        <item quantity="one">De wachtrij van niet-afgeleverde syncs was vol, dus er is %1$d weggegooid. Bekijk de logs voor details.</item>
-        <item quantity="other">De wachtrij van niet-afgeleverde syncs was vol, dus er zijn %1$d weggegooid. Bekijk de logs voor details.</item>
+        <item quantity="one">Er is %1$d niet-afgeleverde sync uit de wachtrij verwijderd, dus de records ervan zijn verloren. Bekijk de logs voor details.</item>
+        <item quantity="other">Er zijn %1$d niet-afgeleverde syncs uit de wachtrij verwijderd, dus de records ervan zijn verloren. Bekijk de logs voor details.</item>
     </plurals>
     <string name="outbox_dropped_log">Uit de wachtrij verwijderd: die was vol (%1$d niet-afgeleverde syncs), dus deze records zijn verloren</string>
+    <string name="outbox_replaced_log">In de wachtrij vervangen door een nieuwere snapshot, die de oudste niet-afgeleverde dagen niet meer bevat, dus die zijn verloren</string>
     <string name="sync_advanced_title">Geavanceerd</string>
     <string name="sync_data_preview_title">Voorbeeld van data</string>
     <string name="sync_export_data">Data exporteren</string>

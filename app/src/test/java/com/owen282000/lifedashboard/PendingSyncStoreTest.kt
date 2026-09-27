@@ -61,6 +61,67 @@ class PendingSyncStoreTest {
         assertEquals("health is untouched by the Screen Time cap", listOf("h1", "s2"), store.peekAll().map { it.payload })
     }
 
+    /** A Screen Time payload holding the 7 days that end on [last], as the sync builds it. */
+    private fun week(last: String): String {
+        val end = java.time.LocalDate.parse(last)
+        val days = (0L until 7L).joinToString(",") { """{"date":"${end.minusDays(it)}","apps":[]}""" }
+        return """{"source":"screen_time","screen_time":[$days]}"""
+    }
+
+    @Test
+    fun screenTimeReplacementWithinTheWeekLosesNothing() {
+        val store = store()
+        store.enqueue(week("2026-09-01"), "screen_time", "SCREEN_TIME", 1, nowMillis = 100)
+        store.enqueue(week("2026-09-03"), "screen_time", "SCREEN_TIME", 1, nowMillis = 200)
+        val dropped = store.enqueue(week("2026-09-07"), "screen_time", "SCREEN_TIME", 1, nowMillis = 300)
+        assertEquals("every undelivered day since 09-01 is still in the newest week", emptyList<String>(), dropped.map { it.payload })
+        val queued = store.peekAll().single()
+        assertEquals(week("2026-09-07"), queued.payload)
+        assertEquals("the first undelivered day is carried over", "2026-09-01", queued.undeliveredSince)
+    }
+
+    @Test
+    fun screenTimeReplacementPastAWeekReportsTheSnapshotWhoseDaysFellOut() {
+        val store = store()
+        store.enqueue(week("2026-09-01"), "screen_time", "SCREEN_TIME", 1, nowMillis = 100)
+        assertEquals(emptyList<String>(), store.enqueue(week("2026-09-07"), "screen_time", "SCREEN_TIME", 1, nowMillis = 200))
+        // 09-08 starts at 09-02: 09-01 was never delivered and is in no queued week any more.
+        val dropped = store.enqueue(week("2026-09-08"), "screen_time", "SCREEN_TIME", 1, nowMillis = 300)
+        assertEquals(listOf(week("2026-09-07")), dropped.map { it.payload })
+        // A later replacement on the same day loses nothing new.
+        assertEquals(emptyList<String>(), store.enqueue(week("2026-09-08"), "screen_time", "SCREEN_TIME", 2, nowMillis = 400))
+        assertEquals(1, store.size())
+    }
+
+    @Test
+    fun screenTimeDaysDeliveredBeforeTheOutageAreNotReported() {
+        val store = store()
+        // The first failure is on 09-10: its older days went out with the delivery before it.
+        store.enqueue(week("2026-09-10"), "screen_time", "SCREEN_TIME", 1, nowMillis = 100)
+        val dropped = store.enqueue(week("2026-09-11"), "screen_time", "SCREEN_TIME", 1, nowMillis = 200)
+        assertEquals("09-04 fell out, but it was delivered before 09-10", emptyList<String>(), dropped.map { it.payload })
+    }
+
+    @Test
+    fun screenTimeSnapshotsQueuedBeforeTheUpgradeCollapseIntoOne() {
+        val store = store()
+        // Up to 1.20 every failed Screen Time sync queued its own week, without undeliveredSince.
+        store.enqueue("h1", "health_connect", "HEALTH_CONNECT", 1, nowMillis = 50)
+        val dir = tmp.root.resolve("pending")
+        listOf("2026-09-01", "2026-09-05", "2026-09-10").forEachIndexed { i, last ->
+            java.io.File(dir, "old$i.json").writeText(
+                """{"id":"old$i","payload":${kotlinx.serialization.json.JsonPrimitive(week(last))},"dataType":"screen_time","logType":"SCREEN_TIME","recordCount":1,"createdAt":${100 + i}}"""
+            )
+        }
+        val dropped = store.enqueue(week("2026-09-10"), "screen_time", "SCREEN_TIME", 1, nowMillis = 200)
+        assertEquals(
+            "the weeks that held 09-01 to 09-03 are reported, the other lost nothing",
+            listOf(week("2026-09-01"), week("2026-09-05")),
+            dropped.map { it.payload }
+        )
+        assertEquals(listOf("HEALTH_CONNECT", "SCREEN_TIME"), store.peekAll().map { it.logType })
+    }
+
     @Test
     fun screenTimeSnapshotInTheSameMillisecondStillWins() {
         val store = store()

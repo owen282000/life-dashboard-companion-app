@@ -51,10 +51,6 @@ object SyncFailureNotifier {
                 prefs.edit().putInt(key, 0).apply()
                 NotificationManagerCompat.from(context).cancel(notificationId(logType))
             }
-            if (prefs.getInt(KEY_DROPPED_PREFIX + logType.name, 0) > 0) {
-                prefs.edit { putInt(KEY_DROPPED_PREFIX + logType.name, 0) }
-                NotificationManagerCompat.from(context).cancel(droppedNotificationId(logType))
-            }
             return
         }
 
@@ -94,16 +90,19 @@ object SyncFailureNotifier {
     private fun droppedNotificationId(logType: LogType) = NOTIFICATION_ID + 20 + logType.ordinal
 
     /**
-     * A full outbox dropped [count] undelivered payloads, and their records with them. Lost data
-     * is worse than a failing sync, so this does not wait for the threshold: it notifies at once
-     * and keeps a running total until a delivery succeeds, updating one notification quietly.
+     * The outbox dropped [count] undelivered payloads, and their records with them. Lost data is
+     * worse than a failing sync, so this does not wait for the threshold or the "Notify after
+     * failed syncs" switch: it notifies at once, updating one notification quietly. A delivery
+     * does not clear it, since the records stay lost, and the Logs tab soon rotates the rows
+     * that name them: it stays until the user dismisses it, and counts up while it shows.
      */
     fun notifyOutboxDropped(context: Context, logType: LogType, count: Int) {
         val prefs = prefs(context)
-        val total = prefs.getInt(KEY_DROPPED_PREFIX + logType.name, 0) + count
+        val showing = context.getSystemService(NotificationManager::class.java)
+            .activeNotifications.any { it.id == droppedNotificationId(logType) }
+        val total = (if (showing) prefs.getInt(KEY_DROPPED_PREFIX + logType.name, 0) else 0) + count
         prefs.edit { putInt(KEY_DROPPED_PREFIX + logType.name, total) }
 
-        if (!isEnabled(context)) return
         if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
         ) {
