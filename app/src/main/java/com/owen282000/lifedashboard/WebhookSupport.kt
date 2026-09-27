@@ -84,14 +84,50 @@ object WebhookSupport {
     fun headersFor(url: String, headers: Map<String, String>, urlsWithoutHeaders: Set<String>): Map<String, String> =
         if (url in urlsWithoutHeaders) emptyMap() else headers
 
+    /** Redirects one delivery follows at most, all on the same host. */
+    const val MAX_REDIRECTS = 5
+
     /**
-     * The log line for a 3xx, which is never followed (see WebhookManager.buildClient). Names
-     * the host the redirect pointed at, so the user can put the final address in the settings.
+     * Where a delivery to [from] follows a redirect to [location], or null when it must not.
+     * The body, the signature and the custom headers go along, so only the same host is
+     * followed: the same port, or http on port 80 moving up to https on 443. Another host, a
+     * step down from https to http, or plain http without the opt-in is not, because that
+     * would reach an address the user never entered, past the checks made on the one they did.
+     * [location] may be relative, as the Location header allows.
+     */
+    fun followableRedirect(from: String, location: String?, allowHttp: Boolean): String? {
+        if (location.isNullOrBlank()) return null
+        val base = runCatching { java.net.URI(from.trim()) }.getOrNull() ?: return null
+        val target = runCatching { base.resolve(location.trim()) }.getOrNull() ?: return null
+        val fromScheme = base.scheme?.lowercase() ?: return null
+        val toScheme = target.scheme?.lowercase() ?: return null
+        if (toScheme != "http" && toScheme != "https") return null
+        val host = target.host ?: return null
+        if (!host.equals(base.host, ignoreCase = true)) return null
+        if (fromScheme == "https" && toScheme == "http") return null
+        val fromPort = effectivePort(base.port, fromScheme)
+        val toPort = effectivePort(target.port, toScheme)
+        val upgrade = fromScheme == "http" && toScheme == "https" && fromPort == 80 && toPort == 443
+        if (fromPort != toPort && !upgrade) return null
+        val resolved = target.toString()
+        return if (cleartextBlockReason(resolved, allowHttp) == null) resolved else null
+    }
+
+    private fun effectivePort(port: Int, scheme: String): Int =
+        if (port != -1) port else if (scheme == "https") 443 else 80
+
+    /**
+     * The log line for a 3xx that was not followed (see [followableRedirect]). Names the host
+     * the redirect pointed at, so the user can put the final address in the settings.
      */
     fun redirectMessage(statusCode: Int, targetHost: String?): String {
         val target = targetHost?.let { "to $it " } ?: ""
-        return "HTTP $statusCode: redirect ${target}not followed, so nothing was sent there. Enter the final address as the webhook URL."
+        return "HTTP $statusCode: redirect ${target}not followed, so nothing was sent there. Only a redirect on the same host is followed; enter the final address as the webhook URL."
     }
+
+    /** The note on a delivery that arrived after a redirect, so the user can skip the extra request. */
+    fun redirectNote(target: String): String =
+        "Redirected to $target; enter that address as the webhook URL to skip the extra request"
 
     const val CLEARTEXT_BLOCKED_MESSAGE =
         "Plain HTTP is blocked. Enable \"Allow plain HTTP webhooks\" in the app for endpoints on a private LAN or VPN, or use HTTPS."

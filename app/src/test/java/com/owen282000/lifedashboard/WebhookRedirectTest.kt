@@ -15,9 +15,11 @@ import org.junit.Test
 import java.net.InetAddress
 
 /**
- * A redirect is never followed: the body, the signature and the custom headers go to the
- * configured URL only, and the delivery fails with a message that names the target host.
- * Runs the client WebhookManager builds (without a certificate) against two local servers.
+ * OkHttp never follows a redirect itself. A delivery follows one on the same host, with the
+ * same POST, body, signature and headers; a redirect to another host is not followed, and the
+ * delivery fails with a message that names it. Runs the client WebhookManager builds (without
+ * a certificate) against two local servers, which OkHttp sees as two hosts: same address,
+ * another port.
  */
 class WebhookRedirectTest {
 
@@ -127,5 +129,47 @@ class WebhookRedirectTest {
         assertTrue(failure?.message, failure?.message?.contains("to ${elsewhere.hostName} ") == true)
         assertEquals(1, receiver.requestCount)
         assertEquals(0, elsewhere.requestCount)
+    }
+
+    @Test
+    fun postDataFollowsAPermanentRedirectOnTheSameHostWithTheSamePost() = runTest {
+        receiver.enqueue(MockResponse.Builder().code(308).addHeader("Location", "/moved").build())
+        receiver.enqueue(MockResponse.Builder().code(200).build())
+
+        assertTrue(manager(listOf(receiver.url("/hook").toString())).postData("""{"a":1}""").isSuccess)
+
+        val first = receiver.takeRequest()
+        val second = receiver.takeRequest()
+        assertEquals("/moved", second.url.encodedPath)
+        assertEquals("POST", second.method)
+        assertEquals("""{"a":1}""", second.body?.utf8())
+        assertEquals(first.headers[WebhookSupport.SIGNATURE_HEADER], second.headers[WebhookSupport.SIGNATURE_HEADER])
+        assertEquals("secret-key", second.headers["X-Api-Key"])
+    }
+
+    @Test
+    fun postDataKeepsThePostOnAMovedPermanently() = runTest {
+        // OkHttp would turn this into a GET without a body and report the 200 as a success.
+        receiver.enqueue(MockResponse.Builder().code(301).addHeader("Location", receiver.url("/hook/").toString()).build())
+        receiver.enqueue(MockResponse.Builder().code(200).build())
+
+        assertTrue(manager(listOf(receiver.url("/hook").toString())).postData("{}").isSuccess)
+
+        receiver.takeRequest()
+        val second = receiver.takeRequest()
+        assertEquals("POST", second.method)
+        assertEquals("{}", second.body?.utf8())
+    }
+
+    @Test
+    fun postDataStopsFollowingAfterTheLimit() = runTest {
+        repeat(WebhookSupport.MAX_REDIRECTS + 1) {
+            receiver.enqueue(MockResponse.Builder().code(307).addHeader("Location", "/loop").build())
+        }
+
+        val result = manager(listOf(receiver.url("/hook").toString())).postData("{}")
+
+        assertTrue(result.isFailure)
+        assertEquals(WebhookSupport.MAX_REDIRECTS + 1, receiver.requestCount)
     }
 }

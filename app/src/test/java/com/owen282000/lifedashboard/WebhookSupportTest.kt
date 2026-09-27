@@ -82,4 +82,35 @@ class WebhookSupportTest {
         // Without a Location header it still says what happened.
         assertTrue(WebhookSupport.redirectMessage(302, null).startsWith("HTTP 302: redirect not followed"))
     }
+
+    @Test
+    fun aRedirectOnTheSameHostIsFollowed() {
+        assertEquals(
+            "https://ha.example/api/webhook/abc/",
+            WebhookSupport.followableRedirect("https://ha.example/api/webhook/abc", "/api/webhook/abc/", allowHttp = false)
+        )
+        assertEquals(
+            "https://HA.example/next",
+            WebhookSupport.followableRedirect("https://ha.example/hook", "https://HA.example/next", allowHttp = false)
+        )
+    }
+
+    @Test
+    fun aRedirectFromHttpUpToHttpsOnTheSameHostIsFollowed() {
+        assertEquals(
+            "https://ha.example/hook",
+            WebhookSupport.followableRedirect("http://ha.example/hook", "https://ha.example/hook", allowHttp = true)
+        )
+    }
+
+    @Test
+    fun aRedirectElsewhereIsNotFollowed() {
+        // Another host, another port, a step down to http, and plain http without the opt-in.
+        assertNull(WebhookSupport.followableRedirect("https://ha.example/hook", "https://evil.example/hook", allowHttp = true))
+        assertNull(WebhookSupport.followableRedirect("https://ha.example/hook", "https://ha.example:8443/hook", allowHttp = true))
+        assertNull(WebhookSupport.followableRedirect("https://ha.example/hook", "http://ha.example/hook", allowHttp = true))
+        assertNull(WebhookSupport.followableRedirect("http://10.0.0.2:8123/hook", "/other", allowHttp = false))
+        assertNull(WebhookSupport.followableRedirect("https://ha.example/hook", null, allowHttp = false))
+        assertNull(WebhookSupport.followableRedirect("https://ha.example/hook", "ftp://ha.example/hook", allowHttp = false))
+    }
 }

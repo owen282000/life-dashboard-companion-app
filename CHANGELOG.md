@@ -141,12 +141,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Security
 
-- A webhook that answers with a redirect (301, 302, 303, 307 or 308) is no longer followed,
-  so a payload, its signature and the custom headers do not go to an address you did not
-  enter. The delivery fails without retries, the payload stays in the outbox, and the log
-  says where the redirect pointed. If your server redirects, for example from http to https
-  or to add a trailing slash, enter the final address as the webhook URL; until then its
-  syncs fail.
+- A webhook that answers with a redirect is followed only on the same host, for example from
+  http to https or to add a trailing slash, and the payload goes there as the same POST with
+  its signature and headers; before, a 301 or 302 turned it into a GET without the payload
+  that still counted as delivered. The log notes the new address so you can enter it and
+  skip the extra request. A redirect to another host, or from https down to http, is not
+  followed, so a payload and your custom headers never reach an address you did not enter:
+  that delivery fails without retries, the payload stays in the outbox, and the log says
+  where the redirect pointed.
 - A webhook address added by QR pairing no longer gets the section's custom headers, such as
   API keys; addresses you typed yourself get them as before. While the section has headers,
   the Webhook card says so under a paired address. To send the headers there anyway, remove

@@ -150,37 +150,56 @@ class WebhookManager(
 
         return try {
             val requestBody = jsonPayload.toRequestBody(jsonMediaType)
-            val requestBuilder = Request.Builder()
-                .url(url)
-                .post(requestBody)
-            WebhookSupport.headersFor(url, customHeaders, urlsWithoutHeaders)
-                .forEach { (key, value) -> requestBuilder.header(key, value) }
+            val headers = WebhookSupport.headersFor(url, customHeaders, urlsWithoutHeaders)
             val requestSignature = if (!signingSecret.isNullOrBlank()) WebhookSupport.signature(jsonPayload, signingSecret) else null
-            if (requestSignature != null) {
-                requestBuilder.header(WebhookSupport.SIGNATURE_HEADER, requestSignature)
+
+            // The same POST for the configured URL and for a redirect on its host: OkHttp would
+            // turn a 301 or 302 into a GET without the body and report that as a success.
+            fun requestTo(target: String): Request {
+                val requestBuilder = Request.Builder()
+                    .url(target)
+                    .post(requestBody)
+                headers.forEach { (key, value) -> requestBuilder.header(key, value) }
+                if (requestSignature != null) {
+                    requestBuilder.header(WebhookSupport.SIGNATURE_HEADER, requestSignature)
+                }
+                return requestBuilder.build()
             }
-            val request = requestBuilder.build()
 
             var lastException: Exception? = null
             var statusCode: Int? = null
             var errorMessage: String? = null
             for (attempt in 1..MAX_RETRIES) {
                 try {
-                    // Suspends rather than blocks: a stopped worker cancels the call itself
-                    // instead of waiting out the read timeout of up to 10 seconds.
-                    client.newCall(request).executeAsync().use { response ->
-                        statusCode = response.code
-                        if (response.isSuccessful) {
-                            // Only the source URL's body is read, and only up to the cap; a
-                            // body that is cut off is handed over as oversized rather than as
-                            // a truncated document that would fail its signature anyway.
-                            val sourceResponse = if (readResponse) readSourceResponse(response, requestSignature) else null
-                            val note = if (attempt > 1) "Recovered on attempt $attempt of $MAX_RETRIES" else null
-                            logWebhookCall(url, timestamp, statusCode, true, null, jsonPayload, note)
-                            return Result.success(sourceResponse)
-                        }
-                        errorMessage = failureMessage(response)
-                        lastException = IOException(errorMessage)
+                    var target = url
+                    var redirects = 0
+                    while (true) {
+                        // Suspends rather than blocks: a stopped worker cancels the call itself
+                        // instead of waiting out the read timeout of up to 10 seconds.
+                        val next = client.newCall(requestTo(target)).executeAsync().use { response ->
+                            statusCode = response.code
+                            if (response.code in 300..399 && redirects < WebhookSupport.MAX_REDIRECTS) {
+                                WebhookSupport.followableRedirect(target, response.header("Location"), allowHttp)
+                                    ?.let { return@use it }
+                            }
+                            if (response.isSuccessful) {
+                                // Only the source URL's body is read, and only up to the cap; a
+                                // body that is cut off is handed over as oversized rather than as
+                                // a truncated document that would fail its signature anyway.
+                                val sourceResponse = if (readResponse) readSourceResponse(response, requestSignature) else null
+                                val note = listOfNotNull(
+                                    if (attempt > 1) "Recovered on attempt $attempt of $MAX_RETRIES" else null,
+                                    if (target != url) WebhookSupport.redirectNote(target) else null
+                                ).joinToString(". ").ifEmpty { null }
+                                logWebhookCall(url, timestamp, statusCode, true, null, jsonPayload, note)
+                                return Result.success(sourceResponse)
+                            }
+                            errorMessage = failureMessage(response)
+                            lastException = IOException(errorMessage)
+                            null
+                        } ?: break
+                        target = next
+                        redirects++
                     }
                     // Client errors (401, 404, ...) will not change on retry; fail fast so the
                     // sync is not delayed by pointless backoff.
@@ -290,10 +309,12 @@ class WebhookManager(
             // fails is still tried on the next address (fast fallback is separate from this),
             // and one that drops is retried by the app with its backoff.
             .retryOnConnectionFailure(false)
-            // A redirect is not followed: OkHttp would repeat the body, the signature and the
+            // OkHttp does not follow redirects: it would repeat the body, the signature and the
             // custom headers to wherever the Location points, another host or plain http://,
-            // past the cleartext check that only saw the configured URL. A 3xx fails the
-            // delivery instead, and the log names where it pointed.
+            // past the cleartext check that only saw the configured URL, and it turns a POST
+            // into a GET on 301 and 302. postToUrl follows a redirect on the same host itself
+            // (WebhookSupport.followableRedirect); any other 3xx fails the delivery, and the
+            // log names where it pointed.
             .followRedirects(false)
             .followSslRedirects(false)
 
