@@ -35,7 +35,7 @@ Permissions are granted by Android, not by the app, so you still grant Health Co
 
 **With secrets** the file is encrypted with AES-256-GCM under a key derived from your password (PBKDF2-HMAC-SHA256, 210,000 iterations). It is saved as `life-dashboard-config.encrypted.json`. There is no recovery if you lose the password: without it the file cannot be decrypted.
 
-**Without secrets** the file is plain JSON (`life-dashboard-config.json`) holding URLs, MQTT hosts, topics and options but no credentials. This is the one to share when you want to hand someone your setup without handing over access to your endpoints.
+**Without secrets** the file is plain JSON (`life-dashboard-config.json`) holding URLs, MQTT hosts, topics and options, but no passwords, headers or HMAC secrets. It still contains your webhook URLs, and a URL can be a credential in itself: a Home Assistant `/api/webhook/<id>` address accepts anything posted to it. Share the file only with someone you would give that access to.
 
 ## Importing
 
