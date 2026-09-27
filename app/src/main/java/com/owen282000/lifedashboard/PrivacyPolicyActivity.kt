@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Tune
@@ -114,6 +115,7 @@ private fun PrivacyPolicyScreen(onBack: () -> Unit) {
             PolicySection(Icons.Outlined.CloudUpload, stringResource(R.string.privacy_where_title), stringResource(R.string.privacy_where_body))
             PolicySection(Icons.Outlined.Storage, stringResource(R.string.privacy_device_title), stringResource(R.string.privacy_device_body))
             PolicySection(Icons.Outlined.Tune, stringResource(R.string.privacy_control_title), stringResource(R.string.privacy_control_body))
+            PolicySection(Icons.Outlined.MailOutline, stringResource(R.string.privacy_contact_title), stringResource(R.string.privacy_contact_body))
 
             PremiumCard(shape = RoundedCornerShape(16.dp)) {
                 Row(
