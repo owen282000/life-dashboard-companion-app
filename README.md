@@ -49,7 +49,7 @@ Already using the Home Assistant companion app's health sensors? [See how this c
 
 1. Install the latest APK from [Releases](https://github.com/owen282000/life-dashboard-companion-app/releases/latest)
 2. Grant Health Connect permissions and, for Screen Time, Usage Access
-3. Enter your webhook URL (or point the app at your MQTT broker)
+3. Scan the Life Dashboard integration's pairing code in Home Assistant ([how](docs/usage.md#with-the-integration)), or enter your webhook URL or MQTT broker
 4. Tap **View** to inspect the payload, then **Sync Now**
 
 The full walkthrough, requirements and troubleshooting are in [docs/usage.md](docs/usage.md).

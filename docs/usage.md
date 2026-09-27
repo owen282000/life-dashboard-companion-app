@@ -5,7 +5,7 @@
 - Android 8.0+ (minSdk 26); some Health Connect features need a recent Android version
 - The [Health Connect](https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata) app installed
 - Usage access permission, for the Screen Time feature
-- A webhook endpoint, or an MQTT broker for the Home Assistant route
+- Home Assistant with the Life Dashboard integration (HACS), a webhook endpoint, or an MQTT broker
 
 ## Install
 
@@ -32,7 +32,7 @@ More on the project layout and the build in [building.md](building.md).
 
 ## First run
 
-The first launch opens a short setup wizard. It asks three questions and nothing else: what to sync (Health Connect, Screen Time, or both), where the data should go (a webhook URL with a test ping, an MQTT broker for Home Assistant, or both) and, when Health Connect is in, which data types to start with (the essentials, all 33, or none yet). The destination only applies to the sources you picked. Everything it sets can be changed later on the Health and Screen Time tabs, and **Skip setup** takes you straight to those tabs.
+The first launch opens a short setup wizard. It asks three questions and nothing else: what to sync (Health Connect, Screen Time, or both), where the data should go (scan the Home Assistant integration's pairing code, which is recommended, a webhook URL with a test ping, an MQTT broker, or a combination) and, when Health Connect is in, which data types to start with (the essentials, all 33, or none yet). The destination only applies to the sources you picked. Everything it sets can be changed later on the Health and Screen Time tabs, and **Skip setup** takes you straight to those tabs.
 
 After the wizard:
 
