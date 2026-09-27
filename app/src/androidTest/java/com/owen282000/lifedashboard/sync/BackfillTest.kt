@@ -1,10 +1,13 @@
 package com.owen282000.lifedashboard.sync
 
+import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType.STEPS
 import com.owen282000.lifedashboard.HealthDataType.WEIGHT
+import com.owen282000.lifedashboard.HealthSyncManager
 import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.PendingSyncStore
 import com.owen282000.lifedashboard.SyncStatusStore
@@ -12,17 +15,25 @@ import com.owen282000.lifedashboard.WriteBackType
 import com.owen282000.lifedashboard.appPreferences
 import com.owen282000.lifedashboard.harness.AppStateRule
 import com.owen282000.lifedashboard.harness.Conservation
+import com.owen282000.lifedashboard.harness.HcCall
+import com.owen282000.lifedashboard.harness.HcCalls
 import com.owen282000.lifedashboard.harness.HcFixture
 import com.owen282000.lifedashboard.harness.HcFixture.Companion.ago
 import com.owen282000.lifedashboard.harness.Receiver
 import com.owen282000.lifedashboard.harness.Schema
+import com.owen282000.lifedashboard.harness.SlowHealthConnectClient
 import com.owen282000.lifedashboard.harness.TestSetup
 import com.owen282000.lifedashboard.harness.Witness
 import com.owen282000.lifedashboard.harness.arr
 import com.owen282000.lifedashboard.harness.num
 import com.owen282000.lifedashboard.harness.str
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -32,6 +43,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Backfill: a one-time export of history in three-day windows, each drained in capped chunks.
@@ -121,5 +133,37 @@ class BackfillTest {
         assertEquals(0, PendingSyncStore.forContext(context).size())
         assertEquals("three attempts at the first window, none at the next", 3, receiver.exchanges.size)
         assertEquals(1, receiver.exchanges.map { Conservation.parse(it.text).str("window_start") }.distinct().size)
+    }
+
+    /**
+     * A backfill started while a sync runs waits for it, says so, and posts only after it. Both
+     * draw from the same sequence counter, so side by side they would interleave. The helper and
+     * the screen are tested on the JVM; this proves performBackfill really takes the sync lock.
+     */
+    @Test
+    fun backfillWaitsForARunningSync() = runBlocking {
+        TestSetup.health(receiver, setOf(STEPS))
+        fixture.assertNoForeignRecords(StepsRecord::class)
+        fixture.insert(fixture.steps(10, ago(30), ago(20)))
+        val slow = SlowHealthConnectClient(HealthConnectClient.getOrCreate(context), delayMs = 5_000)
+        slow.held += HcCall.READ_RECORDS
+        val readsBefore = HcCalls.snapshot()[HcCall.READ_RECORDS] ?: 0
+
+        val sync = async(Dispatchers.IO) { HealthSyncManager(context, HealthConnectManager(context) { slow }).performSync() }
+        withTimeout(10_000) { while ((HcCalls.snapshot()[HcCall.READ_RECORDS] ?: 0) == readsBefore) delay(20) }
+        val waits = CopyOnWriteArrayList<Boolean>()
+        val backfill = async(Dispatchers.IO) { TestSetup.syncManager().performBackfill(3, onWaiting = { waits += it }) }
+        withTimeout(10_000) { while (waits.isEmpty()) delay(20) }
+
+        assertEquals("the backfill says it waits", listOf(true), waits.toList())
+        assertFalse("the sync still runs", sync.isCompleted)
+        assertEquals("nothing posted yet", 0, receiver.exchanges.size)
+        slow.held.clear()
+
+        withTimeout(60_000) { sync.await().getOrThrow() }
+        assertEquals(1, withTimeout(60_000) { backfill.await().getOrThrow() })
+        assertEquals(listOf(true, false), waits.toList())
+        val flags = receiver.exchanges.map { Conservation.parse(it.text).num("backfill") }
+        assertEquals("the sync's post first, then the backfill's", listOf(null, "true"), flags)
     }
 }
