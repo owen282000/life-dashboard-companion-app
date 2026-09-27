@@ -26,7 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.PhoneAndroid
@@ -374,7 +374,7 @@ fun OnboardingScreen(
                             }
 
                             ChoiceCard(
-                                icon = Icons.Outlined.Home,
+                                icon = Icons.Outlined.Hub,
                                 title = stringResource(R.string.onboarding_mqtt_option),
                                 description = stringResource(R.string.onboarding_mqtt_desc),
                                 selected = useMqtt,
