@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard
 
+import kotlinx.coroutines.test.runTest
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import okhttp3.Request
@@ -7,6 +8,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -84,5 +86,46 @@ class WebhookRedirectTest {
         post().use { response ->
             assertEquals("HTTP 401: Client Error", WebhookManager.failureMessage(response))
         }
+    }
+
+    /** The manager as a sync builds it, but allowed to reach the local http:// servers. */
+    private fun manager(urls: List<String>, urlsWithoutHeaders: Set<String> = emptySet()) = WebhookManager(
+        webhookUrls = urls,
+        customHeaders = mapOf("X-Api-Key" to "secret-key"),
+        urlsWithoutHeaders = urlsWithoutHeaders,
+        signingSecret = "s3cret",
+        allowHttpOverride = true
+    )
+
+    @Test
+    fun postDataSendsNoCustomHeaderToAPairedUrl() = runTest {
+        val typed = receiver.url("/typed").toString()
+        val paired = elsewhere.url("/paired").toString()
+        receiver.enqueue(MockResponse.Builder().code(200).build())
+        elsewhere.enqueue(MockResponse.Builder().code(200).build())
+
+        assertTrue(manager(listOf(typed, paired), urlsWithoutHeaders = setOf(paired)).postData("{}").isSuccess)
+
+        assertEquals("secret-key", receiver.takeRequest().headers["X-Api-Key"])
+        val pairedRequest = elsewhere.takeRequest()
+        assertNull(pairedRequest.headers["X-Api-Key"])
+        // The signature is the receiver's own business and still goes along.
+        assertTrue(pairedRequest.headers[WebhookSupport.SIGNATURE_HEADER] != null)
+    }
+
+    @Test
+    fun postDataFailsOnARedirectWithoutFollowingOrRetryingIt() = runTest {
+        receiver.enqueue(
+            MockResponse.Builder().code(307).addHeader("Location", elsewhere.url("/stolen").toString()).build()
+        )
+
+        val result = manager(listOf(receiver.url("/hook").toString())).postData("{}")
+
+        assertTrue(result.isFailure)
+        val failure = result.exceptionOrNull()
+        assertFalse(failure is PayloadRefusedException)
+        assertTrue(failure?.message, failure?.message?.contains("to ${elsewhere.hostName} ") == true)
+        assertEquals(1, receiver.requestCount)
+        assertEquals(0, elsewhere.requestCount)
     }
 }

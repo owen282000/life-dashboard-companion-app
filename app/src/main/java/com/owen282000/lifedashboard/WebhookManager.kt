@@ -60,7 +60,9 @@ class WebhookManager(
      * so a successful one writes no log row and counts nowhere; a failed one is still logged,
      * because that is where the user looks when Receive stops.
      */
-    private val logSuccess: Boolean = true
+    private val logSuccess: Boolean = true,
+    /** Replaces the user's "Allow plain HTTP" setting when set; for tests against a local http:// server. */
+    private val allowHttpOverride: Boolean? = null
 ) {
 
     /**
@@ -140,7 +142,7 @@ class WebhookManager(
         val timestamp = System.currentTimeMillis()
 
         // HTTPS by default; plain HTTP only after the user opted in for private networks.
-        val allowHttp = context?.let { PreferencesManager(it).allowHttpWebhooks() } ?: false
+        val allowHttp = allowHttpOverride ?: context?.let { PreferencesManager(it).allowHttpWebhooks() } ?: false
         WebhookSupport.cleartextBlockReason(url, allowHttp)?.let { reason ->
             logWebhookCall(url, timestamp, null, false, reason, jsonPayload)
             return Result.failure(IOException(reason))
