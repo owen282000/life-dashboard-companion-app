@@ -23,7 +23,9 @@ interface HealthOps {
     suspend fun grantedPermissions(): Set<String>
     suspend fun sync(): Result<HealthSyncResult>
     suspend fun preview(): Result<String>
-    suspend fun backfill(days: Int, onProgress: (done: Int, total: Int) -> Unit): Result<Int>
+
+    /** [onWaiting] is true while the backfill waits for a sync that holds the lock, false once it starts. */
+    suspend fun backfill(days: Int, onWaiting: (Boolean) -> Unit, onProgress: (done: Int, total: Int) -> Unit): Result<Int>
     suspend fun testPing(webhook: WebhookDraft): Result<Unit>
 
     /** Package names of other apps that wrote [type] to Health Connect in the last week (Receive, issue #62). */
@@ -65,8 +67,8 @@ class RealHealthOps(private val context: Context) : HealthOps {
     override suspend fun sync() = HealthSyncManager(context).performSync()
     override suspend fun preview() = HealthSyncManager(context).previewData()
     override suspend fun otherSourcesWriting(type: WriteBackType) = HealthConnectManager(context).otherSourcesWriting(type)
-    override suspend fun backfill(days: Int, onProgress: (Int, Int) -> Unit) =
-        HealthSyncManager(context).performBackfill(days, onProgress)
+    override suspend fun backfill(days: Int, onWaiting: (Boolean) -> Unit, onProgress: (Int, Int) -> Unit) =
+        HealthSyncManager(context).performBackfill(days, onWaiting, onProgress)
 
     override suspend fun testPing(webhook: WebhookDraft): Result<Unit> = try {
         WebhookManager(

@@ -30,7 +30,7 @@ private val EMPTY_HEALTH_DATA = HealthData()
  */
 private const val MAX_PASSES_PER_BACKFILL_WINDOW = 400
 
-/** Serialises [HealthSyncManager.performSync] across every caller in the process. */
+/** Serialises [HealthSyncManager.performSync] and [HealthSyncManager.performBackfill] across every caller in the process. */
 private val SYNC_LOCK = Mutex()
 
 class HealthSyncManager(
@@ -95,6 +95,7 @@ class HealthSyncManager(
      * One sync at a time per process. A manual sync, the tile, the broadcast and the worker
      * can all start one, and two running together would read and write the watermarks, the
      * Receive ledger and the pending acks over each other; the second simply waits its turn.
+     * A backfill holds the same lock, so a sync started during one waits for it to end.
      */
     suspend fun performSync(): Result<HealthSyncResult> = withContext(Dispatchers.IO) {
         SYNC_LOCK.withLock { performSyncLocked() }
@@ -466,10 +467,23 @@ class HealthSyncManager(
      * bounds so receivers can distinguish them; records still carry uuids, so re-received
      * overlaps deduplicate server-side. Stops at the first failed delivery so a rerun can
      * resume; [onProgress] reports (completedWindows, totalWindows).
+     *
+     * Holds the sync lock for its whole run. It draws the same sequence numbers a sync does,
+     * and a sync beside it would interleave its payloads and counters with the backfill's; so a
+     * backfill waits for a running sync, and a sync waits for the backfill. [onWaiting] says
+     * true when the backfill has to wait, and false once it may start.
      */
     suspend fun performBackfill(
         days: Int,
+        onWaiting: (Boolean) -> Unit = {},
         onProgress: (Int, Int) -> Unit = { _, _ -> }
+    ): Result<Int> = withContext(Dispatchers.IO) {
+        SYNC_LOCK.withLockReportingWait(onWaiting) { performBackfillLocked(days, onProgress) }
+    }
+
+    private suspend fun performBackfillLocked(
+        days: Int,
+        onProgress: (Int, Int) -> Unit
     ): Result<Int> = withContext(Dispatchers.IO) {
         val webhookUrls = preferencesManager.getHealthWebhookUrls()
         if (webhookUrls.isEmpty()) {

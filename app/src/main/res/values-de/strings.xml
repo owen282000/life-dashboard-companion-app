@@ -140,6 +140,7 @@
     <string name="health_backfill_history_permission_warning">Health Connect liest nur die letzten 30 Tage, bis du den Verlaufszugriff erteilst.</string>
     <string name="health_backfill_progress">Nachtragen %1$d/%2$d...</string>
     <string name="health_backfill_title">Verlauf nachtragen</string>
+    <string name="health_backfill_waiting">Nachtragen wartet, bis die laufende Synchronisierung fertig ist...</string>
     <string name="health_connect_not_available">Health Connect ist nicht verfügbar</string>
     <string name="health_connect_not_available_short">Health Connect nicht verfügbar</string>
     <string name="health_connect_not_installed">Health Connect ist nicht installiert</string>

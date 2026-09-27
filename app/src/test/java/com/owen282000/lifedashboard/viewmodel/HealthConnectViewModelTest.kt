@@ -4,6 +4,7 @@ import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.WriteBackType
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -212,6 +213,25 @@ class HealthConnectViewModelTest {
         vm.backfill(90)
         assertNull(vm.state.value.backfillProgress)
         assertEquals(UiMessage.BackfillComplete(90), vm.state.value.syncMessage)
+    }
+
+    @Test
+    fun `a backfill started during a sync says it waits, and sync now stays off while it runs`() = runTest {
+        val running = CompletableDeferred<Unit>()
+        val vm = vm(ops = FakeHealthOps().apply { runningSync = running })
+        vm.refreshPermissions()
+        vm.addUrl("https://example.org/hook")
+        assertTrue(vm.state.value.canSync)
+
+        vm.backfill(90)
+        assertTrue(vm.state.value.backfillWaiting)
+        assertFalse(vm.state.value.canSync)
+
+        running.complete(Unit)
+        assertFalse(vm.state.value.backfillWaiting)
+        assertNull(vm.state.value.backfillProgress)
+        assertEquals(UiMessage.BackfillComplete(90), vm.state.value.syncMessage)
+        assertTrue(vm.state.value.canSync)
     }
 
     @Test

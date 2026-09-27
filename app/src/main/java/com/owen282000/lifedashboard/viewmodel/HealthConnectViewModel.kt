@@ -54,6 +54,8 @@ data class HealthUiState(
     val isPinging: Boolean = false,
     val isExporting: Boolean = false,
     val backfillProgress: Pair<Int, Int>? = null,
+    /** The backfill waits for a sync that is running; it starts by itself once that ends. */
+    val backfillWaiting: Boolean = false,
     /** The line under the sync actions; stays until the next action replaces it. */
     val syncMessage: UiMessage? = null,
     val previewData: String? = null,
@@ -79,8 +81,12 @@ data class HealthUiState(
         saved.webhook.secret.isNotBlank() && WriteBackPayload.sourceUrlChoice(saved.webhook.urls) != SourceUrlChoice.None
     val hasAnyPermission: Boolean get() = grantedPermissions.isNotEmpty()
 
-    /** A phone that only receives has nothing to read, but every sync is still the round trip that fetches measurements. */
-    val canSync: Boolean get() = !isSyncing && draft.hasDestination && (draft.enabledTypes.isNotEmpty() || receive.enabled)
+    /**
+     * A phone that only receives has nothing to read, but every sync is still the round trip that fetches measurements.
+     * A running backfill holds the sync lock, so a sync started then would only wait for it.
+     */
+    val canSync: Boolean get() =
+        !isSyncing && backfillProgress == null && draft.hasDestination && (draft.enabledTypes.isNotEmpty() || receive.enabled)
 }
 
 /** Everything the Health Connect screen can ask for; the view model implements it, previews can fake it. */
@@ -455,10 +461,15 @@ class HealthConnectViewModel(
         if (_state.value.backfillProgress != null) return
         viewModelScope.launch {
             _state.update { it.copy(backfillProgress = 0 to 1) }
-            val result = ops.backfill(days) { done, total -> _state.update { it.copy(backfillProgress = done to total) } }
+            val result = ops.backfill(
+                days,
+                onWaiting = { waiting -> _state.update { it.copy(backfillWaiting = waiting) } },
+                onProgress = { done, total -> _state.update { it.copy(backfillProgress = done to total) } }
+            )
             _state.update {
                 it.copy(
                     backfillProgress = null,
+                    backfillWaiting = false,
                     syncMessage = result.fold(
                         onSuccess = { count -> UiMessage.BackfillComplete(count) },
                         onFailure = { e -> UiMessage.SyncFailed(e.message ?: "") }

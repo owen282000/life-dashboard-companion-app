@@ -9,6 +9,7 @@ import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
 import com.owen282000.lifedashboard.WriteBackType
+import kotlinx.coroutines.CompletableDeferred
 
 internal fun emptyMqtt() = MqttDraft.from(
     MqttSectionSettings(enabled = false, useSharedBroker = true, ownBroker = MqttBroker("", 1883, false, null, null), baseTopic = "lifedashboard"),
@@ -77,11 +78,15 @@ internal class FakeHealthOps(
     var otherSources: List<String> = emptyList()
 ) : HealthOps {
     var syncs = 0
+
+    /** When set, the backfill waits on it the way it waits for a sync that holds the lock. */
+    var runningSync: CompletableDeferred<Unit>? = null
     override suspend fun availability() = availability
     override suspend fun grantedPermissions() = granted
     override suspend fun sync(): Result<HealthSyncResult> { syncs++; return syncResult }
     override suspend fun preview() = previewResult
-    override suspend fun backfill(days: Int, onProgress: (Int, Int) -> Unit): Result<Int> {
+    override suspend fun backfill(days: Int, onWaiting: (Boolean) -> Unit, onProgress: (Int, Int) -> Unit): Result<Int> {
+        runningSync?.let { onWaiting(true); it.await(); onWaiting(false) }
         onProgress(1, 2); onProgress(2, 2)
         return Result.success(days)
     }

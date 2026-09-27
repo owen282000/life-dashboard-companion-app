@@ -142,6 +142,7 @@
     <string name="health_backfill_history_permission_warning">Health Connect limits reads to the last 30 days until you grant history access.</string>
     <string name="health_backfill_progress">Backfilling %1$d/%2$d...</string>
     <string name="health_backfill_title">Backfill history</string>
+    <string name="health_backfill_waiting">Backfill waits for the running sync to finish...</string>
     <string name="health_connect_not_available">Health Connect is not available</string>
     <string name="health_connect_not_available_short">Health Connect not available</string>
     <string name="health_connect_not_installed">Health Connect is not installed</string>

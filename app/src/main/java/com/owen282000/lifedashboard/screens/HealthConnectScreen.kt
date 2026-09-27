@@ -325,7 +325,8 @@ fun HealthConnectContent(
         }
         state.backfillProgress?.let { (done, total) ->
             Text(
-                stringResource(R.string.health_backfill_progress, done, total),
+                if (state.backfillWaiting) stringResource(R.string.health_backfill_waiting)
+                else stringResource(R.string.health_backfill_progress, done, total),
                 style = MaterialTheme.typography.bodySmall,
                 color = accent,
                 modifier = Modifier.padding(horizontal = 4.dp)
