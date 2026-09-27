@@ -103,7 +103,8 @@ the secret.
 An address added by pairing gets none of the section's custom headers. Those were typed for
 the receivers you entered yourself, and a code can come from anyone, so an API key never
 follows a scanned code to its host. The address says so on the Webhook card while the
-section has headers. To send them there anyway, remove the address and type it in by hand.
+section has headers. To send them there anyway, type the address in by hand: it stays in
+the list once and from then on gets the headers.
 
 Without the app installed, the code opens a page that explains where to get it. The secret
 travels in the part of the link after the `#`, which a browser never sends to any server.
@@ -131,7 +132,7 @@ measurements** is on, which is what the integration's **Send history to phone** 
 The MQTT route needs no YAML and no server-side setup beyond a broker Home Assistant already talks to.
 
 1. In Home Assistant, install the **Mosquitto broker** add-on (Settings > Add-ons) and add the **MQTT** integration if it is not there yet. Create a user for the app under Settings > People, or in the add-on's login list; a dedicated account keeps the app's credentials out of your own.
-2. In the app, open the Health tab, expand **MQTT**, switch on **Enable MQTT publishing** and fill in the broker host (the Home Assistant IP on your LAN, or its hostname), port 1883 and that username and password. Screen Time shares the broker by default. Port 1883 is plain MQTT, fine on your own network; a broker reached over the internet needs **TLS** on (usually port 8883), and the card says so below the port while TLS is off and the host is not a LAN or VPN address.
+2. In the app, open the Health tab, expand **MQTT**, switch on **Enable MQTT publishing** and fill in the broker host (the Home Assistant IP on your LAN, or its hostname), port 1883 and that username and password. Screen Time shares the broker by default. Port 1883 is plain MQTT, fine on your own network; a broker reached over the internet needs **TLS** on (usually port 8883), and the card and the setup wizard say so below the port while TLS is off and the host is not a LAN or VPN address.
 3. Tap **Sync Now**. Within a few seconds Settings > Devices & services > MQTT lists a device named **Life Dashboard Companion** with a sensor for every synced type that has a value: 24 of the 33 Health Connect types (today's steps, distance and calories, the latest heart rate, weight, sleep duration, blood pressure and the other measurements) plus screen time. Workouts, meals, mindfulness sessions and cycle tracking are events and stay webhook-only.
 
 Two phones on the same broker? Give each one a name under **Advanced > Phone name**. A named phone becomes its own device, **Life Dashboard Companion (Pixel 8)**, with its own topics under the base topic; a phone without a name keeps publishing exactly as before, so nothing changes for a household with one phone. When you name or rename a phone, its next publish clears the retained topics of the old device, but Home Assistant keeps the device itself: delete the old **Life Dashboard Companion** under Settings > Devices & services > MQTT once the new one has appeared. With two phones that both still publish nameless, name both before the first one syncs, or expect the other's device to drop out of Home Assistant until its next publish brings it back.

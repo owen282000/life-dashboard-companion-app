@@ -124,6 +124,24 @@ class HealthConnectViewModelTest {
     }
 
     @Test
+    fun `typing a paired URL in again lifts its mark without listing it twice`() = runTest {
+        val paired = "https://paired.example/hook"
+        val settings = FakeAppSettings(
+            health = HealthDraft(
+                WebhookDraft(urls = listOf("https://mine/hook", paired), headers = mapOf("X-Api-Key" to "k"), urlsWithoutHeaders = setOf(paired)),
+                emptySet(),
+                emptyMqtt()
+            )
+        )
+        val vm = vm(settings)
+
+        vm.addUrl(paired)
+        vm.save()
+        assertEquals(listOf("https://mine/hook", paired), settings.health.webhook.urls)
+        assertTrue(settings.health.webhook.urlsWithoutHeaders.isEmpty())
+    }
+
+    @Test
     fun `invalid URLs are rejected with a message instead of being added`() = runTest {
         val vm = vm()
         val toasts = mutableListOf<UiMessage>()

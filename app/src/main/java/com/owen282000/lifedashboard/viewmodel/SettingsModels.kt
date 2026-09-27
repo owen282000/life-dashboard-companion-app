@@ -24,8 +24,13 @@ data class WebhookDraft(
     /** URLs QR pairing added, which get none of [headers], see WebhookSupport.headersFor. */
     val urlsWithoutHeaders: Set<String> = emptySet()
 ) {
-    /** A URL typed in by hand gets the headers, even one that pairing added before. */
-    fun withUrl(url: String): WebhookDraft = copy(urls = urls + url, urlsWithoutHeaders = urlsWithoutHeaders - url)
+    /**
+     * A URL typed in by hand gets the headers, even one that pairing added before. One that is
+     * already in the list is not added twice (every payload would go to it twice): typing a
+     * paired address in again only lifts its mark.
+     */
+    fun withUrl(url: String): WebhookDraft =
+        copy(urls = if (url in urls) urls else urls + url, urlsWithoutHeaders = urlsWithoutHeaders - url)
 
     fun withoutUrlAt(index: Int): WebhookDraft {
         val remaining = urls.filterIndexed { i, _ -> i != index }
