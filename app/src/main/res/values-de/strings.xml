@@ -373,6 +373,22 @@
     <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_bpm">%1$d BPM</string>
+
+    <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
+    <string name="privacy_title">Datenschutzerklärung</string>
+    <string name="privacy_intro">Life Dashboard Companion ist ein Werkzeug zum Selbsthosten. Die App liest Gesundheits- und Bildschirmzeitdaten auf diesem Telefon und sendet sie nur an Server, die du selbst einrichtest. Der Entwickler erhält, speichert oder sieht keine deiner Daten.</string>
+    <string name="privacy_reads_title">Was die App liest</string>
+    <string name="privacy_reads_body">Health-Connect-Datensätze, nur für die Typen, die du einschaltest, und erst nachdem du die Berechtigung erteilst. App-Nutzungsstatistiken für Bildschirmzeit, über den Nutzungszugriff. Mit der Verlaufsberechtigung auch Datensätze, die älter als 30 Tage sind, für ein einmaliges Nachladen.</string>
+    <string name="privacy_writes_title">Was die App schreibt</string>
+    <string name="privacy_writes_body">Nichts, außer du schaltest Empfangen ein. Dann schreibt sie die Messwerte, die dein eigenes Home Assistant sendet, in Health Connect: Gewicht, Größe, Körperfett, fettfreie Masse, Knochenmasse, Körperwasser und Blutdruck, jeweils mit eigenem Schalter und eigener Berechtigung. Sie kann nur Datensätze ändern, die sie selbst geschrieben hat.</string>
+    <string name="privacy_where_title">Wohin die Daten gehen</string>
+    <string name="privacy_where_body">Nur an die Ziele, die du selbst einträgst: deine eigenen Webhook-URLs und deinen eigenen MQTT-Broker. Die App kontaktiert keinen anderen Server. Es gibt keine Analysen, keine Absturzberichtsdienste und keine Werbe-SDKs.</string>
+    <string name="privacy_device_title">Was auf diesem Telefon bleibt</string>
+    <string name="privacy_device_body">Deine Einstellungen, mit Geheimnissen in verschlüsseltem Speicher, der nicht in die Cloud-Sicherung kommt. Der Sync-Fortschritt, damit jeder Datensatz einmal gesendet wird. Ein Protokoll der letzten 100 Zustellungen, das du löschen kannst, und Payloads, die noch nicht zugestellt werden konnten. Wenn du die App deinstallierst, wird all das entfernt.</string>
+    <string name="privacy_control_title">Du behältst die Kontrolle</string>
+    <string name="privacy_control_body">Alles ist freiwillig und umkehrbar: welche Typen gelesen werden, wohin sie gehen, wie oft und was geschrieben wird. Entziehst du eine Berechtigung in Android, stoppen die zugehörigen Lese- und Schreibvorgänge sofort.</string>
+    <string name="privacy_full">Vollständige Datenschutzerklärung lesen</string>
+    <string name="privacy_full_sub">PRIVACY.md auf GitHub</string>
     <string name="nerd_title">Nerd-Statistiken</string>
     <string name="nerd_secret">Du hast das Geheimnis gefunden</string>
     <string name="nerd_empty">Noch keine Syncs. Komm zurück, wenn deine Daten fließen.</string>

@@ -373,6 +373,22 @@
     <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
     <string name="about_version">Versie %1$s</string>
     <string name="about_bpm">%1$d BPM</string>
+
+    <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
+    <string name="privacy_title">Privacybeleid</string>
+    <string name="privacy_intro">Life Dashboard Companion is een tool voor self-hosting. De app leest gezondheids- en schermtijddata op deze telefoon en stuurt die alleen naar servers die je zelf instelt. De ontwikkelaar ontvangt, bewaart of ziet nooit iets van je data.</string>
+    <string name="privacy_reads_title">Wat de app leest</string>
+    <string name="privacy_reads_body">Health Connect-records, alleen voor de types die je aanzet en pas nadat je toestemming geeft. App-gebruiksstatistieken voor Schermtijd, via gebruikstoegang. Met de geschiedenistoestemming ook records ouder dan 30 dagen, voor een eenmalige backfill.</string>
+    <string name="privacy_writes_title">Wat de app schrijft</string>
+    <string name="privacy_writes_body">Niets, tenzij je Ontvangen aanzet. Dan schrijft de app de metingen die je eigen Home Assistant stuurt naar Health Connect: gewicht, lengte, vetpercentage, vetvrije massa, botmassa, lichaamswater en bloeddruk, elk met een eigen schakelaar en een eigen toestemming. De app kan alleen records wijzigen die hij zelf heeft geschreven.</string>
+    <string name="privacy_where_title">Waar het heen gaat</string>
+    <string name="privacy_where_body">Alleen naar de bestemmingen die je zelf invult: je eigen webhook-URL\'s en je eigen MQTT-broker. De app neemt met geen enkele andere server contact op. Er zijn geen analytics, geen crashrapportagediensten en geen advertentie-SDK\'s.</string>
+    <string name="privacy_device_title">Wat op deze telefoon blijft</string>
+    <string name="privacy_device_body">Je instellingen, met geheimen in versleutelde opslag die buiten de cloudback-up blijft. De sync-voortgang, zodat elk record één keer wordt verstuurd. Een log van de laatste 100 leveringen, dat je kunt wissen, en payloads die nog niet konden worden afgeleverd. Als je de app verwijdert, verdwijnt dit allemaal.</string>
+    <string name="privacy_control_title">Jij houdt de controle</string>
+    <string name="privacy_control_body">Alles is opt-in en terug te draaien: welke types worden gelezen, waar ze heen gaan, hoe vaak en wat er wordt geschreven. Trek je een toestemming in Android in, dan stoppen de bijbehorende lees- en schrijfacties meteen.</string>
+    <string name="privacy_full">Lees het volledige privacybeleid</string>
+    <string name="privacy_full_sub">PRIVACY.md op GitHub</string>
     <string name="nerd_title">Nerd-stats</string>
     <string name="nerd_secret">Je hebt het geheim gevonden</string>
     <string name="nerd_empty">Nog geen syncs. Kom terug als je data is gaan stromen.</string>

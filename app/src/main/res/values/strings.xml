@@ -375,6 +375,22 @@
     <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_bpm">%1$d BPM</string>
+
+    <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
+    <string name="privacy_title">Privacy policy</string>
+    <string name="privacy_intro">Life Dashboard Companion is a self-hosting tool. It reads health and screen time data on this phone and sends it only to servers you set up yourself. The developer never receives, stores or sees any of your data.</string>
+    <string name="privacy_reads_title">What the app reads</string>
+    <string name="privacy_reads_body">Health Connect records, only for the types you switch on and only after you grant the permission. App usage statistics for Screen Time, through usage access. With the history permission, records older than 30 days for a one-off backfill.</string>
+    <string name="privacy_writes_title">What the app writes</string>
+    <string name="privacy_writes_body">Nothing, unless you switch on Receive. Then it writes the measurements your own Home Assistant sends into Health Connect: weight, height, body fat, lean body mass, bone mass, body water mass and blood pressure, each behind its own switch and its own permission. It can only change records it wrote itself.</string>
+    <string name="privacy_where_title">Where it goes</string>
+    <string name="privacy_where_body">Only to the destinations you enter: your own webhook URLs and your own MQTT broker. The app contacts no other server. There are no analytics, no crash reporting services and no advertising SDKs.</string>
+    <string name="privacy_device_title">What stays on this phone</string>
+    <string name="privacy_device_body">Your settings, with secrets in encrypted storage that is left out of cloud backup. Sync progress, so each record is sent once. A log of the last 100 deliveries, which you can clear, and payloads that could not be delivered yet. Uninstalling the app removes all of it.</string>
+    <string name="privacy_control_title">Your control</string>
+    <string name="privacy_control_body">Everything is opt-in and reversible: which types are read, where they go, how often, and what is written. Revoking a permission in Android stops the matching reads and writes immediately.</string>
+    <string name="privacy_full">Read the full privacy policy</string>
+    <string name="privacy_full_sub">PRIVACY.md on GitHub</string>
     <string name="nerd_title">Nerd Stats</string>
     <string name="nerd_secret">You found the secret</string>
     <string name="nerd_empty">No syncs yet. Come back when your data has started flowing.</string>

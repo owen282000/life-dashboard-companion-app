@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Favorite
@@ -294,7 +295,9 @@ class AboutActivity : ComponentActivity() {
                     LinkCard(Icons.Outlined.BugReport, stringResource(R.string.about_report), stringResource(R.string.about_report_sub), "$REPO_URL/issues/new")
                     LinkCard(Icons.Outlined.Code, stringResource(R.string.about_github), "owen282000/life-dashboard-companion-app", REPO_URL)
                     LinkCard(Icons.Outlined.LocalCafe, stringResource(R.string.about_coffee), stringResource(R.string.about_coffee_sub), "https://ko-fi.com/owen282000")
-                    LinkCard(Icons.Outlined.PrivacyTip, stringResource(R.string.about_privacy_policy), stringResource(R.string.about_privacy_policy_sub), "$REPO_URL/blob/main/PRIVACY.md")
+                    TapCard(Icons.Outlined.PrivacyTip, stringResource(R.string.about_privacy_policy), stringResource(R.string.about_privacy_policy_sub), Icons.AutoMirrored.Filled.KeyboardArrowRight) {
+                        context.startActivity(Intent(context, PrivacyPolicyActivity::class.java))
+                    }
                     LinkCard(Icons.Outlined.Gavel, stringResource(R.string.about_licence), stringResource(R.string.about_licence_sub), "$REPO_URL/blob/main/LICENSE")
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -308,10 +311,18 @@ class AboutActivity : ComponentActivity() {
 @Composable
 private fun LinkCard(icon: ImageVector, title: String, subtitle: String, url: String) {
     val context = LocalContext.current
+    TapCard(icon, title, subtitle, Icons.AutoMirrored.Filled.OpenInNew) {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    }
+}
+
+/** A tappable card with a trailing hint of where it leads: out to the browser or into the app. */
+@Composable
+private fun TapCard(icon: ImageVector, title: String, subtitle: String, trailing: ImageVector, onClick: () -> Unit) {
     PremiumCard(shape = RoundedCornerShape(16.dp)) {
         Row(
             modifier = Modifier
-                .clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                .clickable(onClick = onClick)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -322,7 +333,7 @@ private fun LinkCard(icon: ImageVector, title: String, subtitle: String, url: St
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Icon(
-                Icons.AutoMirrored.Filled.OpenInNew,
+                trailing,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)

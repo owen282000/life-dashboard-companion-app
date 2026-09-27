@@ -148,6 +148,21 @@
             android:exported="false"
             android:label="@string/activity_about_label" />
 
+        <!--
+            The privacy policy, also what Health Connect opens from the privacy policy link on
+            its permission screen. Up to Android 13 it sends ACTION_SHOW_PERMISSIONS_RATIONALE
+            straight to this activity; from Android 14 it goes through the alias below. The
+            screen shows only static text, so being exported without a permission is safe.
+        -->
+        <activity
+            android:name=".PrivacyPolicyActivity"
+            android:exported="true"
+            android:label="@string/privacy_title">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+
         <!-- File Provider for export sharing -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -192,16 +207,12 @@
             </intent-filter>
         </service>
 
-        <!-- Health Connect Permission Activity -->
+        <!-- Health Connect's privacy policy link on Android 14+, shown by PrivacyPolicyActivity -->
         <activity-alias
             android:name="ViewPermissionUsageActivity"
             android:exported="true"
-            android:targetActivity=".MainActivity"
+            android:targetActivity=".PrivacyPolicyActivity"
             android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
-            <intent-filter>
-                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
-            </intent-filter>
-            <!-- For Android 14+ -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW_PERMISSION_USAGE"/>
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS"/>
