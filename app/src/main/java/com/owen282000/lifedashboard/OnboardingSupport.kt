@@ -44,4 +44,14 @@ object OnboardingSupport {
         TypePreset.ESSENTIALS -> ESSENTIAL_TYPES
         TypePreset.LATER -> emptySet()
     }
+
+    /**
+     * Whether finishing the wizard writes its webhook into the sections. Not when it is
+     * exactly what a scanned code already stored: pairing wrote it into the sections picked
+     * in its dialog, and writing it again here would add the ones left out there.
+     */
+    fun writesWebhook(useWebhook: Boolean, url: String, secret: String, paired: PairingLink?): Boolean {
+        if (!useWebhook || url.isBlank()) return false
+        return paired == null || url != paired.url || secret != paired.secret
+    }
 }

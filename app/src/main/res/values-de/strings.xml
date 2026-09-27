@@ -467,7 +467,7 @@
     <string name="pairing_already_paired">Dieser Bereich sendet bereits hierhin. Es ändert sich nichts.</string>
     <string name="pairing_types_note">Welche Datentypen gesendet werden, und wann, bleibt deine Wahl auf den Tabs. Das Koppeln füllt nur die Adresse und das Geheimnis ein.</string>
     <string name="pairing_confirm">Koppeln</string>
-    <string name="pairing_done">Gekoppelt. Tippe auf dem Tab auf Test, um die Verbindung zu prüfen.</string>
+    <string name="pairing_done">Gekoppelt. Tippe auf dem Tab auf %1$s, um die Verbindung zu prüfen.</string>
     <string name="pairing_nothing_selected">Wähle mindestens einen Bereich.</string>
     <string name="pairing_error_version">Dieser Code stammt von einer neueren Version. Aktualisiere die App und scanne erneut.</string>
     <string name="pairing_error_incomplete">In diesem Code fehlt die Adresse oder das Geheimnis.</string>
@@ -487,4 +487,5 @@
     <string name="onboarding_scan_option">Code aus Home Assistant scannen</string>
     <string name="onboarding_scan_desc">Empfohlen für Home Assistant. Installiere die Life-Dashboard-Integration über HACS und scanne den QR-Code, den sie zeigt: Adresse und Signaturgeheimnis werden für dich eingetragen, und Home Assistant bewahrt den Verlauf in seinen Langzeitstatistiken auf.</string>
     <string name="onboarding_scan_paired">Code gelesen. Adresse und Geheimnis sind eingetragen.</string>
+    <string name="onboarding_pairing_done">Gekoppelt. Tippe unter der Adresse auf %1$s, um die Verbindung zu prüfen.</string>
 </resources>

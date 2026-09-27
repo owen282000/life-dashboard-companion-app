@@ -1,6 +1,7 @@
 package com.owen282000.lifedashboard
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -59,5 +60,33 @@ class OnboardingSupportTest {
         assertEquals(OnboardingSupport.Step.WELCOME, withHc.first())
         assertEquals(OnboardingSupport.Step.DONE, withHc.last())
         assertEquals(OnboardingSupport.Step.DONE, withoutHc.last())
+    }
+
+    private val paired = PairingLink(
+        url = "http://192.168.10.138:8123/api/webhook/abc",
+        secret = "s3cret",
+        name = "Home Assistant",
+        sources = setOf(PairingSource.HEALTH)
+    )
+
+    @Test
+    fun `a scanned code is not written a second time on finish`() {
+        assertFalse(OnboardingSupport.writesWebhook(true, paired.url, paired.secret, paired))
+    }
+
+    @Test
+    fun `an address changed after the scan is written on finish`() {
+        assertTrue(OnboardingSupport.writesWebhook(true, "https://example.org/hook", paired.secret, paired))
+    }
+
+    @Test
+    fun `a typed address without a scan is written on finish`() {
+        assertTrue(OnboardingSupport.writesWebhook(true, "https://example.org/hook", "", null))
+    }
+
+    @Test
+    fun `nothing is written without the webhook card or an address`() {
+        assertFalse(OnboardingSupport.writesWebhook(false, "https://example.org/hook", "", null))
+        assertFalse(OnboardingSupport.writesWebhook(true, "", "", null))
     }
 }

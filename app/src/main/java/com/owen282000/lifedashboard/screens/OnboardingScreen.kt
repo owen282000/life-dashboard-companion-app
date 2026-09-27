@@ -45,6 +45,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,6 +73,7 @@ import com.owen282000.lifedashboard.MqttBroker
 import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.OnboardingSupport
 import com.owen282000.lifedashboard.OnboardingSupport.Step
+import com.owen282000.lifedashboard.PairingLink
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.WebhookManager
@@ -93,7 +95,9 @@ private val ChoiceShape = RoundedCornerShape(20.dp)
 fun OnboardingScreen(
     onFinished: () -> Unit,
     /** Opens the QR scanner. Its result arrives as a pairing dialog over this screen. */
-    onScanRequested: () -> Unit = {}
+    onScanRequested: () -> Unit = {},
+    /** The code the pairing dialog last wrote, so this screen can show what it filled in. */
+    paired: PairingLink? = null
 ) {
     val context = LocalContext.current
     val preferencesManager = remember { PreferencesManager(context) }
@@ -120,6 +124,18 @@ fun OnboardingScreen(
 
     var preset by remember { mutableStateOf(OnboardingSupport.TypePreset.ESSENTIALS) }
 
+    // Pairing writes the settings itself, the same as from the tabs; the wizard only takes
+    // over what it wrote, as the tabs' ViewModels reload it, so the card and the summary
+    // stop saying nothing happened.
+    LaunchedEffect(paired) {
+        if (paired == null) return@LaunchedEffect
+        useWebhook = true
+        webhookUrl = paired.url
+        webhookSecret = paired.secret
+        allowHttp = preferencesManager.allowHttpWebhooks()
+        pingResult = null
+    }
+
     var stepIndex by remember { mutableStateOf(0) }
     val steps = OnboardingSupport.stepsFor(healthConnect)
     val step = steps[stepIndex.coerceIn(0, steps.lastIndex)]
@@ -128,7 +144,7 @@ fun OnboardingScreen(
         if (applyChoices) {
             val url = webhookUrl.trim()
             val secret = webhookSecret.trim()
-            if (useWebhook && url.isNotBlank()) {
+            if (OnboardingSupport.writesWebhook(useWebhook, url, secret, paired)) {
                 if (healthConnect) {
                     preferencesManager.setHealthWebhookUrls(listOf(url))
                     if (secret.isNotBlank()) preferencesManager.setHealthWebhookSecret(secret)
@@ -316,7 +332,9 @@ fun OnboardingScreen(
                                                         context = context,
                                                         dataType = "test",
                                                         recordCount = 0,
-                                                        logType = LogType.HEALTH_CONNECT
+                                                        logType = LogType.HEALTH_CONNECT,
+                                                        // Signed like the tabs' ping, so a paired receiver can check it.
+                                                        signingSecret = webhookSecret.trim().ifBlank { null }
                                                     ).postData(payload).isSuccess
                                                 } catch (e: kotlinx.coroutines.CancellationException) {
                                                     throw e

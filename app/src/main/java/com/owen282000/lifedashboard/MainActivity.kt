@@ -52,6 +52,9 @@ class MainActivity : ComponentActivity() {
 
     /** Whether the QR scanner is open. The Activity owns it: pairing spans both tabs. */
     private val scanning = mutableStateOf(false)
+
+    /** The code last paired while the wizard is open, for the wizard to show. */
+    private val pairedInWizard = mutableStateOf<PairingLink?>(null)
     private lateinit var permissionLauncher: androidx.activity.result.ActivityResultLauncher<Set<String>>
 
     private fun initializePermissionLauncher() {
@@ -87,7 +90,8 @@ class MainActivity : ComponentActivity() {
                 if (showOnboarding) {
                     OnboardingScreen(
                         onFinished = { showOnboarding = false },
-                        onScanRequested = { scanning.value = true }
+                        onScanRequested = { scanning.value = true },
+                        paired = pairedInWizard.value
                     )
                 } else {
                     MainScreen(
@@ -118,7 +122,7 @@ class MainActivity : ComponentActivity() {
                         onDismiss = { pendingPairing.value = null },
                         onConfirm = { choice ->
                             pendingPairing.value = null
-                            applyPairing(link, choice)
+                            applyPairing(link, choice, inWizard = showOnboarding)
                             // During onboarding the wizard stays open: its data-types step
                             // is still worth answering, and finishing it never clears what
                             // pairing just wrote.
@@ -172,16 +176,33 @@ class MainActivity : ComponentActivity() {
      * store (the screens create them with viewModel(factory = ...) and there is no
      * NavHost), so these are the instances the tabs are showing.
      */
-    private fun applyPairing(link: PairingLink, choice: PairingChoice) {
+    private fun applyPairing(link: PairingLink, choice: PairingChoice, inWizard: Boolean) {
         val written = PairingApply.apply(link, choice, preferencesManager.asPairingStore())
         if (written.isEmpty()) return
+
+        // The wizard re-reads it instead, and its toast names the wizard's own test button.
+        // No ViewModel here: creating the tabs' ones now would load the settings before the
+        // wizard writes its data types and MQTT broker, and the tabs would show those stale.
+        if (inWizard) {
+            pairedInWizard.value = link
+            Toast.makeText(
+                this,
+                getString(R.string.onboarding_pairing_done, getString(R.string.health_test_ping)),
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
 
         ViewModelProvider(this, HealthConnectViewModel.factory(this))[HealthConnectViewModel::class.java]
             .reloadFromSettings()
         ViewModelProvider(this, ScreenTimeViewModel.factory(this))[ScreenTimeViewModel::class.java]
             .reloadFromSettings()
 
-        Toast.makeText(this, R.string.pairing_done, Toast.LENGTH_LONG).show()
+        Toast.makeText(
+            this,
+            getString(R.string.pairing_done, getString(R.string.sync_action_ping)),
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
