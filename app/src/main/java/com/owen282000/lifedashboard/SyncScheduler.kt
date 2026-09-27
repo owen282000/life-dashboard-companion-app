@@ -10,8 +10,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import java.time.DayOfWeek
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.UUID
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -95,7 +95,7 @@ object SyncScheduler {
 
         val prefs = context.appPreferences()
         val schedule = prefs.getSyncSchedule(source)
-        val lastRun = prefs.getScheduleLastRun(source)?.let { toLocalDateTime(it) }
+        val lastRun = prefs.getScheduleLastRun(source)?.let { toZonedDateTime(it) }
         apply(workManager, source, schedule, lastRun, finished?.slot)
     }
 
@@ -103,7 +103,7 @@ object SyncScheduler {
         workManager: WorkManager,
         source: LogType,
         schedule: SyncSchedule,
-        lastRun: LocalDateTime?,
+        lastRun: ZonedDateTime?,
         ownSlot: Slot?
     ) {
         // The finishing run's own slot completes by itself; cancelling it would only log noise.
@@ -130,7 +130,7 @@ object SyncScheduler {
         // Likewise the other way around: the periodic chain has to go, or both would run.
         workManager.cancelUniqueWork(periodicName(source))
 
-        val delay = schedule.delayFrom(LocalDateTime.now(), lastRun) ?: return
+        val delay = schedule.delayFrom(ZonedDateTime.now(), lastRun) ?: return
         val nextSlot = if (ownSlot == Slot.A) Slot.B else Slot.A
         otherSlots.filter { it != nextSlot }.forEach { workManager.cancelUniqueWork(slotName(source, it)) }
 
@@ -169,8 +169,8 @@ object SyncScheduler {
         else -> null
     }
 
-    private fun toLocalDateTime(epochMillis: Long): LocalDateTime =
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault())
+    private fun toZonedDateTime(epochMillis: Long): ZonedDateTime =
+        Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault())
 }
 
 /**

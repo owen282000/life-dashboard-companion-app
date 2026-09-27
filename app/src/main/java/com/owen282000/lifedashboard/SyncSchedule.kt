@@ -4,6 +4,7 @@ import java.time.DayOfWeek
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZonedDateTime
 
 /**
  * When the next background sync should run. Two modes: a fixed interval (what the app has
@@ -61,18 +62,15 @@ data class SyncSchedule(
      */
     fun nextRun(after: LocalDateTime, lastRun: LocalDateTime? = null): LocalDateTime? {
         if (hasNothingToRun) return null
-        val candidate = when (mode) {
-            SyncMode.INTERVAL -> intervalCandidate(after, lastRun)
-            SyncMode.TIMES -> maxOf(after, lastRun?.plusMinutes(1) ?: after)
-        }
-        return firstAllowed(candidate)
+        return firstAllowed(maxOf(after, lastRun?.plusMinutes(minutesAfterLastRun) ?: after))
     }
 
-    /** Interval mode: [intervalMinutes] after the last run, or right now when there was none. */
-    private fun intervalCandidate(after: LocalDateTime, lastRun: LocalDateTime?): LocalDateTime {
-        val due = lastRun?.plusMinutes(intervalMinutes.toLong()) ?: after
-        return maxOf(due, after)
-    }
+    /** How far past the last run the next one may start: the interval, or the one-minute floor. */
+    private val minutesAfterLastRun: Long
+        get() = when (mode) {
+            SyncMode.INTERVAL -> intervalMinutes.toLong()
+            SyncMode.TIMES -> 1L
+        }
 
     /**
      * Walks forward from [candidate] until a moment passes both filters.
@@ -121,9 +119,24 @@ data class SyncSchedule(
         return if (sameDay > current) sameDay else current.toLocalDate().plusDays(1).atTime(quiet.to)
     }
 
-    /** Delay until the next run, never negative, or null when the schedule never runs. */
-    fun delayFrom(now: LocalDateTime, lastRun: LocalDateTime? = null): Duration? =
-        nextRun(now, lastRun)?.let { maxOf(Duration.between(now, it), Duration.ZERO) }
+    /**
+     * Delay until the next run, never negative, or null when the schedule never runs.
+     *
+     * Zoned, because a delay is real time and the schedule is wall-clock time: on the night the
+     * clocks change, 00:30 to 07:00 is five and a half hours in March and seven and a half in
+     * October, and a plain difference of local times ran every fixed time an hour late or early.
+     * The interval is counted on the same real timeline, so it stays 60 minutes across the
+     * change. A time in the skipped hour runs that far past the jump (02:30 becomes 03:30); one
+     * in the repeated hour prefers the offset of now, so it is not taken for the pass that is
+     * already over.
+     */
+    fun delayFrom(now: ZonedDateTime, lastRun: ZonedDateTime? = null): Duration? {
+        val due = lastRun?.plusMinutes(minutesAfterLastRun)
+        val from = if (due != null && due.isAfter(now)) due else now
+        val next = nextRun(from.toLocalDateTime()) ?: return null
+        val nextZoned = ZonedDateTime.ofLocal(next, from.zone, from.offset)
+        return maxOf(Duration.between(now, nextZoned), Duration.ZERO)
+    }
 
     companion object {
         const val DEFAULT_INTERVAL_MINUTES = 60

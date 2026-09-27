@@ -9,11 +9,18 @@ import java.time.DayOfWeek
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 class SyncScheduleTest {
 
     private fun at(text: String) = LocalDateTime.parse(text)
     private fun time(text: String): LocalTime = LocalTime.parse(text)
+    private fun utc(text: String): ZonedDateTime = at(text).atZone(ZoneOffset.UTC)
+
+    /** An instant written with its offset, so a moment in the repeated hour is unambiguous. */
+    private fun amsterdam(text: String): ZonedDateTime = ZonedDateTime.parse(text).withZoneSameInstant(AMSTERDAM)
 
     // ==================== Interval mode ====================
 
@@ -215,13 +222,61 @@ class SyncScheduleTest {
     @Test
     fun `the delay is the distance to the next run and never negative`() {
         val schedule = SyncSchedule(mode = SyncMode.TIMES, times = listOf(time("08:00")))
-        assertEquals(Duration.ofMinutes(30), schedule.delayFrom(at("2026-09-14T07:30:00")))
-        assertEquals(Duration.ZERO, schedule.delayFrom(at("2026-09-14T08:00:00")))
+        assertEquals(Duration.ofMinutes(30), schedule.delayFrom(utc("2026-09-14T07:30:00")))
+        assertEquals(Duration.ZERO, schedule.delayFrom(utc("2026-09-14T08:00:00")))
     }
 
     @Test
     fun `a schedule that never runs has no delay`() {
-        assertNull(SyncSchedule(days = emptySet()).delayFrom(at("2026-09-14T10:00:00")))
+        assertNull(SyncSchedule(days = emptySet()).delayFrom(utc("2026-09-14T10:00:00")))
+    }
+
+    // ==================== Clock changes (Europe/Amsterdam, 2026) ====================
+    // Summer time starts on Sunday 29 March (02:00 becomes 03:00) and ends on Sunday
+    // 25 October (03:00 becomes 02:00).
+
+    @Test
+    fun `a fixed time on the night summer time starts is an hour closer`() {
+        val schedule = SyncSchedule(mode = SyncMode.TIMES, times = listOf(time("07:00")))
+        val delay = schedule.delayFrom(amsterdam("2026-03-29T00:30:00+01:00"))
+        assertEquals(Duration.ofMinutes(5 * 60 + 30), delay)
+    }
+
+    @Test
+    fun `a fixed time on the night summer time ends is an hour further`() {
+        val schedule = SyncSchedule(mode = SyncMode.TIMES, times = listOf(time("07:00")))
+        val delay = schedule.delayFrom(amsterdam("2026-10-25T00:30:00+02:00"))
+        assertEquals(Duration.ofMinutes(7 * 60 + 30), delay)
+    }
+
+    @Test
+    fun `a fixed time in the skipped hour runs at the same time past the jump`() {
+        // 02:30 does not exist that night; the run comes at 03:30, an hour after 01:30.
+        val schedule = SyncSchedule(mode = SyncMode.TIMES, times = listOf(time("02:30")))
+        val delay = schedule.delayFrom(amsterdam("2026-03-29T01:30:00+01:00"))
+        assertEquals(Duration.ofMinutes(60), delay)
+    }
+
+    @Test
+    fun `a fixed time in the repeated hour is not taken for the pass already over`() {
+        // 02:10 on the second pass: 02:30 is twenty minutes away, not twenty minutes ago.
+        val schedule = SyncSchedule(mode = SyncMode.TIMES, times = listOf(time("02:30")))
+        val delay = schedule.delayFrom(amsterdam("2026-10-25T02:10:00+01:00"))
+        assertEquals(Duration.ofMinutes(20), delay)
+    }
+
+    @Test
+    fun `an interval stays real minutes across both clock changes`() {
+        // A quiet window makes this a per-run schedule, the kind that goes through delayFrom.
+        val schedule = SyncSchedule(
+            mode = SyncMode.INTERVAL,
+            intervalMinutes = 60,
+            quietWindow = QuietWindow(time("12:00"), time("13:00"))
+        )
+        val spring = amsterdam("2026-03-29T01:30:00+01:00")
+        assertEquals(Duration.ofMinutes(60), schedule.delayFrom(now = spring, lastRun = spring))
+        val autumn = amsterdam("2026-10-25T02:30:00+02:00")
+        assertEquals(Duration.ofMinutes(60), schedule.delayFrom(now = autumn, lastRun = autumn))
     }
 
     // ==================== Serialization ====================
@@ -245,5 +300,9 @@ class SyncScheduleTest {
         assertEquals(setOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY), SyncSchedule.parseDays("MONDAY,FRIDAY"))
         assertEquals(DayOfWeek.entries.toSet(), SyncSchedule.parseDays(null))
         assertEquals(emptySet<DayOfWeek>(), SyncSchedule.parseDays(SyncSchedule.formatDays(emptySet())))
+    }
+
+    private companion object {
+        val AMSTERDAM: ZoneId = ZoneId.of("Europe/Amsterdam")
     }
 }
