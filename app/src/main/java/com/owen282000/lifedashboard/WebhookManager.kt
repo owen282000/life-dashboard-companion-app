@@ -66,16 +66,7 @@ class WebhookManager(
      * from KeyChain, which blocks and must not run on the main thread.
      */
     private fun buildClient(): OkHttpClient {
-        val builder = OkHttpClient.Builder()
-            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            // The app retries on its own terms (postToUrl), so OkHttp must not add its own
-            // attempts underneath: it repeats a 408 once inside every attempt, which made a
-            // request timeout six requests instead of three (F8 of P2-4). A connection that
-            // fails is still tried on the next address (fast fallback is separate from this),
-            // and one that drops is retried by the app with its backoff.
-            .retryOnConnectionFailure(false)
+        val builder = baseClientBuilder()
         val alias = context?.let { PreferencesManager(it).clientCertAlias() }
         if (context != null && alias != null) {
             val setup = ClientCertSupport.sslSetup(context, alias)
@@ -183,8 +174,8 @@ class WebhookManager(
                             logWebhookCall(url, timestamp, statusCode, true, null, jsonPayload, note)
                             return Result.success(sourceResponse)
                         }
-                        lastException = IOException("HTTP ${response.code}: ${response.message}")
-                        errorMessage = "HTTP ${response.code}: ${response.message}"
+                        errorMessage = failureMessage(response)
+                        lastException = IOException(errorMessage)
                     }
                     // Client errors (401, 404, ...) will not change on retry; fail fast so the
                     // sync is not delayed by pointless backoff.
@@ -282,5 +273,32 @@ class WebhookManager(
         private const val TIMEOUT_SECONDS = 10L
         private const val MAX_RETRIES = 3
         private const val INITIAL_RETRY_DELAY_MS = 1000L
+
+        /** Everything about the client except the certificate, which needs a Context. */
+        internal fun baseClientBuilder(): OkHttpClient.Builder = OkHttpClient.Builder()
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            // The app retries on its own terms (postToUrl), so OkHttp must not add its own
+            // attempts underneath: it repeats a 408 once inside every attempt, which made a
+            // request timeout six requests instead of three (F8 of P2-4). A connection that
+            // fails is still tried on the next address (fast fallback is separate from this),
+            // and one that drops is retried by the app with its backoff.
+            .retryOnConnectionFailure(false)
+            // A redirect is not followed: OkHttp would repeat the body, the signature and the
+            // custom headers to wherever the Location points, another host or plain http://,
+            // past the cleartext check that only saw the configured URL. A 3xx fails the
+            // delivery instead, and the log names where it pointed.
+            .followRedirects(false)
+            .followSslRedirects(false)
+
+        /** The log line for a response that was not a success. */
+        internal fun failureMessage(response: okhttp3.Response): String =
+            if (response.code in 300..399) {
+                val target = response.header("Location")?.let { response.request.url.resolve(it)?.host }
+                WebhookSupport.redirectMessage(response.code, target)
+            } else {
+                "HTTP ${response.code}: ${response.message}"
+            }
     }
 }

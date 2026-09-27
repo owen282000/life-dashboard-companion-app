@@ -211,6 +211,8 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    // WebhookRedirectTest: what goes over the wire when a receiver answers with a redirect.
+    testImplementation(libs.okhttp.mockwebserver3)
     // The instrumented suite (scripts/instrumented.sh). None of this reaches a release build.
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.test.runner)

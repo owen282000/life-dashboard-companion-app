@@ -75,6 +75,15 @@ object WebhookSupport {
      */
     fun refusesPayload(statusCode: Int?): Boolean = statusCode == 400 || statusCode == 413 || statusCode == 422
 
+    /**
+     * The log line for a 3xx, which is never followed (see WebhookManager.buildClient). Names
+     * the host the redirect pointed at, so the user can put the final address in the settings.
+     */
+    fun redirectMessage(statusCode: Int, targetHost: String?): String {
+        val target = targetHost?.let { "to $it " } ?: ""
+        return "HTTP $statusCode: redirect ${target}not followed, so nothing was sent there. Enter the final address as the webhook URL."
+    }
+
     const val CLEARTEXT_BLOCKED_MESSAGE =
         "Plain HTTP is blocked. Enable \"Allow plain HTTP webhooks\" in the app for endpoints on a private LAN or VPN, or use HTTPS."
 

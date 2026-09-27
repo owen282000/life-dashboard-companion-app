@@ -73,4 +73,13 @@ class WebhookSupportTest {
         assertNull(WebhookSupport.cleartextBlockReason("https://example.com/hook", allowHttp = false))
         assertNull(WebhookSupport.cleartextBlockReason("https://example.com/hook", allowHttp = true))
     }
+
+    @Test
+    fun aRedirectMessageNamesTheTargetHost() {
+        val message = WebhookSupport.redirectMessage(307, "evil.example")
+        assertTrue(message.startsWith("HTTP 307"))
+        assertTrue(message.contains("to evil.example"))
+        // Without a Location header it still says what happened.
+        assertTrue(WebhookSupport.redirectMessage(302, null).startsWith("HTTP 302: redirect not followed"))
+    }
 }
