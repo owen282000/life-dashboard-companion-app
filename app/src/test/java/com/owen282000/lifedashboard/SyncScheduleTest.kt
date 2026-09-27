@@ -266,6 +266,17 @@ class SyncScheduleTest {
     }
 
     @Test
+    fun `a fixed time that ran on the first pass of the repeated hour does not run again`() {
+        // 02:30 ran at 02:30:30+02:00; a re-plan at 02:10+01:00 waits for 02:30 the next night.
+        val schedule = SyncSchedule(mode = SyncMode.TIMES, times = listOf(time("02:30")))
+        val delay = schedule.delayFrom(
+            now = amsterdam("2026-10-25T02:10:00+01:00"),
+            lastRun = amsterdam("2026-10-25T02:30:30+02:00")
+        )
+        assertEquals(Duration.ofHours(24).plusMinutes(20), delay)
+    }
+
+    @Test
     fun `an interval stays real minutes across both clock changes`() {
         // A quiet window makes this a per-run schedule, the kind that goes through delayFrom.
         val schedule = SyncSchedule(

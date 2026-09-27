@@ -128,12 +128,15 @@ data class SyncSchedule(
      * The interval is counted on the same real timeline, so it stays 60 minutes across the
      * change. A time in the skipped hour runs that far past the jump (02:30 becomes 03:30); one
      * in the repeated hour prefers the offset of now, so it is not taken for the pass that is
-     * already over.
+     * already over. Times mode also keeps the wall-clock floor of [nextRun]: a slot that ran on
+     * the first pass of the repeated hour does not run again on the second.
      */
     fun delayFrom(now: ZonedDateTime, lastRun: ZonedDateTime? = null): Duration? {
         val due = lastRun?.plusMinutes(minutesAfterLastRun)
         val from = if (due != null && due.isAfter(now)) due else now
-        val next = nextRun(from.toLocalDateTime()) ?: return null
+        val wallClockLastRun = lastRun?.takeIf { mode == SyncMode.TIMES }
+            ?.withZoneSameInstant(from.zone)?.toLocalDateTime()
+        val next = nextRun(from.toLocalDateTime(), wallClockLastRun) ?: return null
         val nextZoned = ZonedDateTime.ofLocal(next, from.zone, from.offset)
         return maxOf(Duration.between(now, nextZoned), Duration.ZERO)
     }
