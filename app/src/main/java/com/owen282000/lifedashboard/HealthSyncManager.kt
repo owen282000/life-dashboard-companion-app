@@ -278,7 +278,8 @@ class HealthSyncManager(
                 }
 
                 if (postResult.isFailure) {
-                    PendingSyncStore.forContext(context).enqueue(
+                    PendingSyncStore.enqueue(
+                        context = context,
                         payload = jsonPayload,
                         dataType = "health_connect",
                         logType = LogType.HEALTH_CONNECT.name,
@@ -333,7 +334,8 @@ class HealthSyncManager(
                     receive(writeBack, sourcePost, postResult)
                 }
                 if (postResult.isFailure) {
-                    PendingSyncStore.forContext(context).enqueue(
+                    PendingSyncStore.enqueue(
+                        context = context,
                         payload = deletionPayload,
                         dataType = "health_connect",
                         logType = LogType.HEALTH_CONNECT.name,

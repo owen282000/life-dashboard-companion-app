@@ -40,14 +40,61 @@ class PendingSyncStoreTest {
     }
 
     @Test
-    fun capDropsTheOldestBeyondFiftyItems() {
+    fun healthCapDropsTheOldestAndReturnsThem() {
         val store = store()
-        repeat(PendingSyncStore.MAX_ITEMS + 5) { i ->
+        val dropped = (0 until PendingSyncStore.MAX_HEALTH_ITEMS + 2).flatMap { i ->
             store.enqueue("p$i", "health_connect", "HEALTH_CONNECT", 1, nowMillis = i.toLong())
         }
+        assertEquals("the caller gets what was dropped, to report it", listOf("p0", "p1"), dropped.map { it.payload })
         val items = store.peekAll()
-        assertEquals(PendingSyncStore.MAX_ITEMS, items.size)
-        assertEquals("p5", items.first().payload)
+        assertEquals(PendingSyncStore.MAX_HEALTH_ITEMS, items.size)
+        assertEquals("p2", items.first().payload)
+    }
+
+    @Test
+    fun screenTimeSnapshotReplacesItsPredecessorWithoutReportingIt() {
+        val store = store()
+        store.enqueue("h1", "health_connect", "HEALTH_CONNECT", 3, nowMillis = 100)
+        store.enqueue("s1", "screen_time", "SCREEN_TIME", 10, nowMillis = 200)
+        val dropped = store.enqueue("s2", "screen_time", "SCREEN_TIME", 12, nowMillis = 300)
+        assertEquals("the newest carries all 7 days, so nothing was lost", emptyList<String>(), dropped.map { it.payload })
+        assertEquals("health is untouched by the Screen Time cap", listOf("h1", "s2"), store.peekAll().map { it.payload })
+    }
+
+    @Test
+    fun screenTimeSnapshotInTheSameMillisecondStillWins() {
+        val store = store()
+        store.enqueue("s1", "screen_time", "SCREEN_TIME", 10, nowMillis = 200)
+        store.enqueue("s2", "screen_time", "SCREEN_TIME", 12, nowMillis = 200)
+        assertEquals(listOf("s2"), store.peekAll().map { it.payload })
+    }
+
+    @Test
+    fun recordAttemptDoesNotBringBackAReplacedItem() {
+        val store = store()
+        store.enqueue("s1", "screen_time", "SCREEN_TIME", 10, nowMillis = 200)
+        val draining = store.peekAll().single()
+        store.enqueue("s2", "screen_time", "SCREEN_TIME", 12, nowMillis = 300)
+        store.recordAttempt(draining)
+        assertEquals(listOf("s2"), store.peekAll().map { it.payload })
+    }
+
+    @Test
+    fun writesLeaveNoTempFileAndStaleOnesAreCleared() {
+        val dir = tmp.newFolder("pending3")
+        val store = PendingSyncStore(dir)
+        store.enqueue("p1", "health_connect", "HEALTH_CONNECT", 1, nowMillis = 100)
+        store.recordAttempt(store.peekAll().single())
+        assertEquals(listOf("json"), dir.listFiles()!!.map { it.extension })
+
+        // What a crash between writing and renaming leaves behind.
+        val stale = java.io.File(dir, "crashed.tmp").apply { writeText("{\"id\":") }
+        stale.setLastModified(System.currentTimeMillis() - 2 * 60 * 60 * 1000)
+        val fresh = java.io.File(dir, "writing.tmp").apply { writeText("{\"id\":") }
+        assertEquals(listOf("p1"), store.peekAll().map { it.payload })
+        assertTrue("a stale temp file is cleared", !stale.exists())
+        assertTrue("one being written right now is left alone", fresh.exists())
+        assertEquals(1, store.size())
     }
 
     @Test

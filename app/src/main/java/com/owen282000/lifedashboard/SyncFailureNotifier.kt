@@ -51,6 +51,10 @@ object SyncFailureNotifier {
                 prefs.edit().putInt(key, 0).apply()
                 NotificationManagerCompat.from(context).cancel(notificationId(logType))
             }
+            if (prefs.getInt(KEY_DROPPED_PREFIX + logType.name, 0) > 0) {
+                prefs.edit { putInt(KEY_DROPPED_PREFIX + logType.name, 0) }
+                NotificationManagerCompat.from(context).cancel(droppedNotificationId(logType))
+            }
             return
         }
 
@@ -84,6 +88,41 @@ object SyncFailureNotifier {
     }
 
     private fun notificationId(logType: LogType) = NOTIFICATION_ID + logType.ordinal
+
+    private const val KEY_DROPPED_PREFIX = "outbox_dropped_"
+
+    private fun droppedNotificationId(logType: LogType) = NOTIFICATION_ID + 20 + logType.ordinal
+
+    /**
+     * A full outbox dropped [count] undelivered payloads, and their records with them. Lost data
+     * is worse than a failing sync, so this does not wait for the threshold: it notifies at once
+     * and keeps a running total until a delivery succeeds, updating one notification quietly.
+     */
+    fun notifyOutboxDropped(context: Context, logType: LogType, count: Int) {
+        val prefs = prefs(context)
+        val total = prefs.getInt(KEY_DROPPED_PREFIX + logType.name, 0) + count
+        prefs.edit { putInt(KEY_DROPPED_PREFIX + logType.name, total) }
+
+        if (!isEnabled(context)) return
+        if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        ensureChannel(context)
+        val categoryName = when (logType) {
+            LogType.HEALTH_CONNECT -> "Health Connect"
+            LogType.SCREEN_TIME -> "Screen Time"
+        }
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_notify_error)
+            .setContentTitle(context.getString(R.string.outbox_dropped_title, categoryName))
+            .setContentText(context.resources.getQuantityString(R.plurals.outbox_dropped_text, total, total))
+            .setOnlyAlertOnce(true)
+            .setAutoCancel(true)
+            .build()
+        NotificationManagerCompat.from(context).notify(droppedNotificationId(logType), notification)
+    }
 
     /** Its own streak next to the two sync categories: a failing Receive must not hide behind a healthy webhook. */
     private const val RECEIVE_STREAK_KEY = KEY_STREAK_PREFIX + "RECEIVE"
