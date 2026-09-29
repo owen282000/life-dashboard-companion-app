@@ -190,6 +190,8 @@ The same message appears after moving to a new phone through Android's own backu
 
 Health Connect usually holds the same activity from more than one app: the phone's step counter, the watch app, Samsung Health, or a mirroring app. Each copy is a record with its own `source`, and summing the raw records counts the activity two or three times. Use the [`daily_totals`](webhook.md#daily-totals) array for day totals (it is deduplicated by Health Connect itself) and deduplicate raw records on `uuid`, since a batch is re-sent after a failed delivery.
 
+A single source can also write two records for the same interval, with different `uuid`s and the same value. That has been observed with UREVO (`com.urevo.app`). Deduplicating on `uuid` is still the right way to ignore a re-sent payload; for session totals, drop extra records that match on source, type, interval and value. Do not fill a missing session metric from `daily_totals`: those are the whole day's figures, including other activity. [DATA_SOURCES.md](DATA_SOURCES.md#urevo-comurevoapp) has a synthetic example.
+
 ### Nightly metrics (HRV, respiratory rate, sleep) arrive hours after waking
 
 Watch apps such as Fitbit write the night's results to Health Connect only when they sync in the morning, sometimes an hour or more after you wake up. Until then the records do not exist in Health Connect, and [`_diagnostics`](webhook.md#diagnostics) shows `raw_record_count` unchanged and `raw_latest_modified_time` older than `last_sync`. They are delivered on the first sync after the source writes them; no data is lost.

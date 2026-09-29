@@ -62,6 +62,8 @@ Every Health Connect payload has these top-level fields:
 
 Only enabled data types are included. Every record additionally carries a `uuid` (the stable Health Connect record id, useful for server-side deduplication since batches can be re-sent) and a `source` field with the package name of the app that wrote it to Health Connect (e.g. `"source": "com.zepp.app"`), so backends receiving data from multiple sources (phone, watch, third-party apps) can tell records apart. These are omitted from the examples below for brevity. Each array contains records with the following fields.
 
+Deduplicating on `uuid` ignores a retransmitted copy of the **same** Health Connect record. It does not collapse **separate** records that happen to share source, type, interval and value; some producers write those, with different UUIDs. The app delivers both, because they are distinct rows in Health Connect. A receiver that sums session distance, steps or calories may still need to treat that fingerprint as one measurement. See [DATA_SOURCES.md](DATA_SOURCES.md#urevo-comurevoapp) for an observed case.
+
 ### Activity
 
 **Steps**
@@ -285,7 +287,7 @@ When several apps write the same activity to Health Connect (phone and watch, or
 ]
 ```
 
-Use `daily_totals` for day totals and the raw records for detail. Records that arrive late, for example a watch that uploads hours later with the original timestamps, are still delivered: the sync filters on each record's modification time, not on its timestamp. Because a batch is re-sent after a failed delivery and edited records are sent again, deduplicate on `uuid` server-side.
+Use `daily_totals` for day totals and the raw records for detail. They are not measurements of a single exercise session: a day can include other activities and other sources. Records that arrive late, for example a watch that uploads hours later with the original timestamps, are still delivered: the sync filters on each record's modification time, not on its timestamp. Because a batch is re-sent after a failed delivery and edited records are sent again, deduplicate on `uuid` server-side.
 
 ### Deletions
 

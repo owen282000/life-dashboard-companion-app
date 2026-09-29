@@ -129,7 +129,7 @@ Every record carries a `uuid` for deduplication and a `source` package name. Use
 | [docs/webhook.md](docs/webhook.md) | Complete payload reference, delivery, retries, HMAC signing, backend examples |
 | [docs/settings-backup.md](docs/settings-backup.md) | Exporting and importing your configuration between devices |
 | [docs/brands/](docs/brands/README.md) | Fitbit, Garmin, Samsung and Gadgetbridge into Home Assistant without a cloud login, one page per brand |
-| [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | What Fitbit, Cronometer, Health Sync, Zepp and Garmin do and do not write |
+| [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | What Fitbit, Cronometer, Health Sync, Zepp, Garmin and UREVO do and do not write |
 | [PRIVACY.md](PRIVACY.md) | What the app reads, stores and sends, and to whom (nobody but you) |
 | [AI_POLICY.md](AI_POLICY.md) | How AI assistance is used in building the app, and the rules for contributions |
 | [docs/building.md](docs/building.md) | Build, project layout, contributing |

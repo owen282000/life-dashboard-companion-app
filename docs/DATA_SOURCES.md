@@ -41,9 +41,58 @@ Nutrition records mirrored by Health Sync carry only calories, the macros, fibre
 
 Upload watch data to Health Connect hours later with the original timestamps. The modification-time watermark picks those records up on the next sync.
 
+### UREVO (`com.urevo.app`)
+
+The UREVO Android app writes treadmill sessions into Health Connect. Observed on a Foldi 3S with that app as the source:
+
+| Type | Observed |
+|---|---|
+| Exercise sessions | Yes |
+| Distance | Yes |
+| Steps | Yes |
+| Total calories | Yes |
+| Speed | Not observed |
+
+The companion app only forwards what Health Connect holds, so actual treadmill speed is not in the payload unless some other app writes it. Do not infer speed, distance or calories from a planned workout.
+
+**Duplicate metric records.** One physical session was observed as a single Exercise record plus two Distance, two Steps and two Total Calories records. Each pair had different Health Connect UUIDs and the same `source`, type, start time, end time and value. Deduplicating only on `uuid` still double-counts if a receiver sums those records. For session totals, treat identical source, type, interval and value as one measurement and keep the UUIDs as provenance. This was seen with UREVO; it is not assumed for every Health Connect producer.
+
+Synthetic example of that shape (not a real session):
+
+```json
+{
+  "exercise": [
+    {
+      "type": "walking",
+      "start_time": "2026-01-10T16:00:00Z",
+      "end_time": "2026-01-10T16:35:00Z",
+      "duration_seconds": 2100,
+      "source": "com.urevo.app",
+      "uuid": "synthetic-exercise"
+    }
+  ],
+  "steps": [
+    { "count": 3750, "start_time": "2026-01-10T16:00:00Z", "end_time": "2026-01-10T16:35:00Z", "source": "com.urevo.app", "uuid": "synthetic-steps-a" },
+    { "count": 3750, "start_time": "2026-01-10T16:00:00Z", "end_time": "2026-01-10T16:35:00Z", "source": "com.urevo.app", "uuid": "synthetic-steps-b" }
+  ],
+  "distance": [
+    { "meters": 2760, "start_time": "2026-01-10T16:00:00Z", "end_time": "2026-01-10T16:35:00Z", "source": "com.urevo.app", "uuid": "synthetic-distance-a" },
+    { "meters": 2760, "start_time": "2026-01-10T16:00:00Z", "end_time": "2026-01-10T16:35:00Z", "source": "com.urevo.app", "uuid": "synthetic-distance-b" }
+  ],
+  "total_calories": [
+    { "calories": 239.7, "start_time": "2026-01-10T16:00:00Z", "end_time": "2026-01-10T16:35:00Z", "source": "com.urevo.app", "uuid": "synthetic-calories-a" },
+    { "calories": 239.7, "start_time": "2026-01-10T16:00:00Z", "end_time": "2026-01-10T16:35:00Z", "source": "com.urevo.app", "uuid": "synthetic-calories-b" }
+  ]
+}
+```
+
+A receiver that stores both steps records and adds them reports 7500 steps for a 3750-step session. The same doubling applies to distance (5520 m instead of 2760 m) and total calories (479.4 instead of 239.7).
+
+**Session association.** For the observed UREVO data, the Exercise record is a useful session anchor. Matching Distance, Steps and Total Calories records shared that producer and the exact start and end times. `daily_totals` are Health Connect's whole-day aggregates across sources and activities; they are not measurements of one exercise session.
+
 ### Several sources for the same activity
 
-Phone, watch app, Samsung Health or a mirroring app can each write their own copy of the same steps, distance or calories. Adding up the raw records then counts the same activity two or three times. The `daily_totals` array, on by default, uses Health Connect's aggregate API, which deduplicates across sources, and matches what the Health Connect app shows. Use it for day totals and keep the raw records for detail.
+Phone, watch app, Samsung Health or a mirroring app can each write their own copy of the same steps, distance or calories. Adding up the raw records then counts the same activity two or three times. The `daily_totals` array, on by default, uses Health Connect's aggregate API, which deduplicates across sources, and matches what the Health Connect app shows. Use it for day totals and keep the raw records for detail. A single source can also write two records for the same interval (see [UREVO](#urevo-comurevoapp) above); `daily_totals` still does not turn those into a per-session figure.
 
 ## Screen time (UsageStatsManager)
 
