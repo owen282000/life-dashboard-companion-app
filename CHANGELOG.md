@@ -4,10 +4,6 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
-### Documentation
-
-- UREVO (`com.urevo.app`) Health Connect types, and that some of its session metrics arrive as duplicate records with different UUIDs
-
 ## [1.21.2] - 2026-09-28
 
 ### Fixed
