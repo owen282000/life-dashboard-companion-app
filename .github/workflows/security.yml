@@ -66,7 +66,7 @@ jobs:
       # The only place secrets are scanned. build.yml used to run this too, on the same push,
       # which doubled the runtime of every build for an identical result.
       - name: Detect secrets with TruffleHog
-        uses: trufflesecurity/trufflehog@f714bf454f350590f4a24c3ddb1aef02c35bf5b6 # v3.97.5
+        uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85 # v3.97.9
         with:
           path: ./
           version: 3.97.0
