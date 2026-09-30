@@ -60,6 +60,8 @@ Every Health Connect payload has these top-level fields:
 }
 ```
 
+The iOS app sends the same shape from Apple Health, with `"source": "healthkit_ios"`, so one receiver can take both. Its [payload reference](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/webhook.md) documents the iOS side and most of where it differs.
+
 Only enabled data types are included. Every record additionally carries a `uuid` (the stable Health Connect record id, useful for server-side deduplication since batches can be re-sent) and a `source` field with the package name of the app that wrote it to Health Connect (e.g. `"source": "com.zepp.app"`), so backends receiving data from multiple sources (phone, watch, third-party apps) can tell records apart. These are omitted from the examples below for brevity. Each array contains records with the following fields.
 
 Deduplicating on `uuid` ignores a retransmitted copy of the **same** Health Connect record. It does not collapse **separate** records that happen to share source, type, interval and value; some producers write those, with different UUIDs. The app delivers both, because they are distinct rows in Health Connect. A receiver that sums session distance, steps or calories may still need to treat that fingerprint as one measurement. See [DATA_SOURCES.md](DATA_SOURCES.md#urevo-comurevoapp) for an observed case.
@@ -88,8 +90,10 @@ Deduplicating on `uuid` ignores a retransmitted copy of the **same** Health Conn
 
 **Exercise Sessions**
 ```json
-{ "type": "running", "start_time": "2025-02-05T07:00:00Z", "end_time": "2025-02-05T08:00:00Z", "duration_seconds": 3600 }
+{ "type": "56", "start_time": "2025-02-05T07:00:00Z", "end_time": "2025-02-05T08:00:00Z", "duration_seconds": 3600 }
 ```
+
+`type` is Health Connect's exercise type constant as a string: `"56"` is running, `"79"` walking, and the full list is in [`ExerciseSessionRecord`](https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/ExerciseSessionRecord). The iOS app sends a name instead, such as `"running"`.
 
 ### Body
 
@@ -146,6 +150,8 @@ Deduplicating on `uuid` ignores a retransmitted copy of the **same** Health Conn
 ```json
 { "heart_rate_variability_millis": 42.5, "time": "2025-02-05T07:00:00Z" }
 ```
+
+This is RMSSD, the measure Health Connect stores. The iOS app sends SDNN, the one Apple Health stores, under the same key; the two are not the same number.
 
 **Blood Pressure**
 ```json
@@ -279,7 +285,7 @@ Skin temperature is reported as deltas from a per-record baseline, matching how 
 
 ### Daily totals
 
-When several apps write the same activity to Health Connect (phone and watch, or a mirroring app such as Health Sync), the raw records above contain each copy and adding them up double counts. The payload therefore also carries `daily_totals`, computed with Health Connect's aggregate API, which deduplicates across sources and matches what the Health Connect app shows. It counts every stretch of time once: where records overlap, the app highest in Health Connect's priority list for that category counts, and between records of one app the one written last. Records that do not overlap all count, so a copy that a source writes into the wrong minute is in the total too (see [DATA_SOURCES.md](DATA_SOURCES.md#gadgetbridge-nodomainfreeyourgadgetgadgetbridge)). An app that is not in that priority list does not count at all; Health Connect normally adds an app there when it is allowed to write. It covers yesterday and today, only for the enabled types, and can be switched off in the app. A backfill carries it for every day its window touches (from 1.17.0), in every payload of the window, so a receiver that keeps history gets the real total for each past day; a day cut by a window boundary appears in both windows with the same figures.
+When several apps write the same activity to Health Connect (phone and watch, or a mirroring app such as Health Sync), the raw records above contain each copy and adding them up double counts. The payload therefore also carries `daily_totals`, computed with Health Connect's aggregate API, which deduplicates across sources and matches what the Health Connect app shows. It counts every stretch of time once: where records overlap, the app highest in Health Connect's priority list for that category counts, and between records of one app the one written last. Records that do not overlap all count, so a copy that a source writes into the wrong minute is in the total too (see [DATA_SOURCES.md](DATA_SOURCES.md#gadgetbridge-nodomainfreeyourgadgetgadgetbridge)). An app that is not in that priority list does not count at all; Health Connect normally adds an app there when it is allowed to write. It covers today and the two days before, only for the enabled types, and can be switched off in the app. A backfill carries it for every day its window touches (from 1.17.0), in every payload of the window, so a receiver that keeps history gets the real total for each past day; a day cut by a window boundary appears in both windows with the same figures.
 
 ```json
 "daily_totals": [
@@ -324,7 +330,7 @@ The same change feed shows records that a source wrote or edited long after thei
 
 A backfill window is the fallback, and says so explicitly. Every payload of a backfill carries `backfill`, `window_start` and `window_end`; the last payload of a window also carries `window_complete: true`, which means every record the phone holds for that window has now been sent. At that point a receiver may treat any `uuid` it holds inside the window that was not in the window as deleted. A window that was split into several payloads carries `window_complete: false` on all but the last, and a window that holds nothing still sends one payload with `window_complete: true`, which is what distinguishes an empty window from an unreported one.
 
-Every Health Connect payload also carries `sequence`, a counter that only goes up for a given install. The app drains its outbox before each sync, so payloads normally arrive in order, but a receiver behind several webhook URLs, a proxy or a retrying load balancer can still see an older one land after a newer one. Recording the highest sequence applied per install and `source` lets a receiver ignore the late one instead of letting it restore a record that was deleted since. Screen Time payloads take their number from the same counter (1.20.0 and older send none), so per source the numbers only go up but can skip, and one highest number per install would wrongly ignore a Screen Time week that waited in the outbox while a Health Connect payload went ahead of it. Screen Time is compared per date rather than per payload, see [Screen Time payload](#screen-time-payload). The field is optional, also in the iOS app's payloads, so treat a missing one as unknown rather than zero.
+Every Health Connect payload also carries `sequence`, a counter that only goes up for a given install. The app drains its outbox before each sync, so payloads normally arrive in order, but a receiver behind several webhook URLs, a proxy or a retrying load balancer can still see an older one land after a newer one. Recording the highest sequence applied per install and `source` lets a receiver ignore the late one instead of letting it restore a record that was deleted since. Screen Time payloads take their number from the same counter (1.20.0 and older send none), so per source the numbers only go up but can skip, and one highest number per install would wrongly ignore a Screen Time week that waited in the outbox while a Health Connect payload went ahead of it. Screen Time is compared per date rather than per payload, see [Screen Time payload](#screen-time-payload). The field is optional, and the iOS app does not send it, so treat a missing one as unknown rather than zero.
 
 A deletion is often the only thing that changed, for instance when a meal is removed and nothing is added. Such a sync sends a payload with `deleted_records` and no record arrays at all, which is why a payload with no data is not necessarily an empty one.
 

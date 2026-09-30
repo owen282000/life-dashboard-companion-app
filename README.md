@@ -41,7 +41,7 @@
 - **33 health data types** - all major Health Connect types, per-type toggles
 - **Modern UI** - Jetpack Compose and Material 3, with dark mode
 
-Also on iPhone? [Life Dashboard Companion for iOS](https://github.com/owen282000/life-dashboard-companion-app-ios) sends a compatible payload from Apple Health (HealthKit) to a webhook or over MQTT, so both apps can feed the same backend. It does not pair with the Home Assistant integration yet ([life-dashboard-ha#1](https://github.com/owen282000/life-dashboard-ha/issues/1)).
+Also on iPhone? [Life Dashboard Companion for iOS](https://github.com/owen282000/life-dashboard-companion-app-ios) sends a compatible payload from Apple Health (HealthKit) to a webhook or over MQTT, so both apps can feed the same backend. Since its 1.4.0 it pairs with the Home Assistant integration (0.7.1 or newer) by QR code too, and sends daily totals, deletions and backfill; the integration treats both apps alike, except that screen time and receiving measurements from Home Assistant are Android only. A [settings backup](docs/settings-backup.md#files-from-the-iphone-app) moves between the two apps.
 
 Already using the Home Assistant companion app's health sensors? [See how this compares](docs/features.md#how-this-compares-to-the-home-assistant-companion-app): 33 types instead of 25, full history instead of 30 days, writing into Health Connect, and screen time per app next to your health data. And [why this is not part of the companion app](#why-is-this-not-part-of-the-companion-app).
 
@@ -61,14 +61,15 @@ No backend yet? [life-dashboard-stack](https://github.com/owen282000/life-dashbo
 Two ways in, and neither needs YAML.
 
 **The Life Dashboard integration** receives the app's webhook directly, so no broker is
-needed at all, and pairing is a QR code the integration shows: point the phone's camera
-at it, or use the scan button in the app, and the address and the signing secret fill
-themselves in. It is also the way that keeps history: every day the app sends lands in
-Home Assistant's long-term statistics on its own date, so a year of backfill shows up as a
-year of steps, sleep, heart rate and screen time per day, and the integration ships a
-dashboard to start from. Since 1.20.0 it also works the other way: measurements from a
-scale or a blood pressure monitor that Home Assistant knows are written into Health Connect,
-per type and behind that type's own write permission.
+needed at all, and pairing is a QR code the integration shows: use the scan button in the
+app, or point the phone's camera at it (on an iPhone that opens a page with a button into
+the app), and the address and the signing secret fill themselves in. It is also the way
+that keeps history: every day the app sends lands in Home Assistant's long-term statistics
+on its own date, so a year of backfill shows up as a year of steps, sleep, heart rate and
+screen time per day, and the integration ships a dashboard to start from. Since 1.20.0 it
+also works the other way: measurements from a scale or a blood pressure monitor that Home
+Assistant knows are written into Health Connect, per type and behind that type's own write
+permission.
 
 [![Open the integration in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration)
 

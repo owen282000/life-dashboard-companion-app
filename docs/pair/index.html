@@ -9,7 +9,9 @@
 
   With the app installed on Android, the camera opens the app directly through an App
   Link and this page is never shown. It is the fallback: the app is missing, or the
-  link was opened in a browser that does not verify App Links.
+  link was opened in a browser that does not verify App Links. On an iPhone the camera
+  always lands here, and the button hands the fragment to the iOS app through its
+  lifedashboard:// scheme.
 -->
 <html lang="en">
 <head>
@@ -51,19 +53,29 @@
        before it writes anything.</p>
     <a id="open" class="btn primary" href="#">Open in the app</a>
     <a id="open-scheme" class="btn" href="#">Open in the app (other browsers)</a>
-    <p class="muted" style="margin-top:20px">No app yet?</p>
-    <a class="btn" href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest">Install from GitHub Releases</a>
-    <p class="muted"><a href="https://github.com/ImranR98/Obtainium">Obtainium</a> can install and update it from GitHub as well.</p>
+    <div id="install-android">
+      <p class="muted" style="margin-top:20px">No app yet?</p>
+      <a class="btn" href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest">Install from GitHub Releases</a>
+      <p class="muted"><a href="https://github.com/ImranR98/Obtainium">Obtainium</a> can install and update it from GitHub as well.</p>
+    </div>
+    <div id="install-ios" hidden>
+      <p class="muted" style="margin-top:20px">No app yet?</p>
+      <a class="btn" href="https://github.com/owen282000/life-dashboard-companion-app-ios">The iOS app on GitHub</a>
+      <p class="muted">There is no App Store build: you build it with Xcode and install it on
+         your own iPhone, as its README explains.</p>
+    </div>
     <small>This page never sees your secret. It stays in the part of the link after the
       <code>#</code>, which your browser keeps to itself. Installed the app after opening
-      this page? Scan the code again, or use the camera button in the app.</small>
+      this page? Scan the code again, or tap <strong>Scan a pairing code</strong> on the
+      Webhook card in the app (the QR icon by the address field once a webhook is set).</small>
   </section>
 
   <section id="bad" hidden>
     <h1>Not a pairing link</h1>
     <p id="bad-reason" class="muted"></p>
     <p>Scan the QR code shown by the Life Dashboard integration in Home Assistant, or
-       use the camera button on the Webhook card in the app.</p>
+       tap <strong>Scan a pairing code</strong> on the Webhook card in the app (the QR icon
+       by the address field once a webhook is set).</p>
   </section>
 
   <section id="about" hidden>
@@ -71,7 +83,7 @@
     <p>This address is where the app's pairing QR codes point. Opened on its own it does
        nothing; scanned from Home Assistant it hands the app a webhook address and a
        signing secret.</p>
-    <a class="btn primary" href="https://github.com/owen282000/life-dashboard-companion-app">About the app</a>
+    <a id="about-link" class="btn primary" href="https://github.com/owen282000/life-dashboard-companion-app">About the app</a>
   </section>
 </main>
 
@@ -81,9 +93,17 @@
   var PACKAGE = "com.owen282000.lifedashboard";
   var SCHEME = "lifedashboard";
 
+  var IOS_REPO = "https://github.com/owen282000/life-dashboard-companion-app-ios";
+
   function show(id) {
     ["pair", "bad", "about"].forEach(function (s) { document.getElementById(s).hidden = s !== id; });
   }
+
+  // Safari cannot open an intent:// link, so an iPhone or iPad gets the iOS app's links.
+  // An iPad asking for the desktop site reports itself as a Mac, but one with touch.
+  var ios = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+            (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  if (ios) document.getElementById("about-link").setAttribute("href", IOS_REPO);
 
   var raw = window.location.hash.slice(1);
   if (!raw) { show("about"); return; }
@@ -117,6 +137,20 @@
                    ";S.browser_fallback_url=" + encodeURIComponent(here) + ";end";
   document.getElementById("open").setAttribute("href", intentLink);
   document.getElementById("open-scheme").setAttribute("href", SCHEME + "://pair#" + raw);
+
+  // On an iPhone or iPad the custom scheme is the only way into the app, so it becomes
+  // the one button, and the install block points at the iOS app.
+  if (ios) {
+    var open = document.getElementById("open");
+    open.setAttribute("href", SCHEME + "://pair#" + raw);
+    document.getElementById("open-scheme").hidden = true;
+    document.getElementById("install-android").hidden = true;
+    document.getElementById("install-ios").hidden = false;
+  }
+
+  // The buttons hold the fragment now; take it out of the address bar and the current
+  // history entry, so the secret is not shown in the tab or brought back by a reload.
+  try { history.replaceState(null, "", window.location.pathname); } catch (e) { /* keep going */ }
 
   show("pair");
 })();

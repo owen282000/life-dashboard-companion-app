@@ -108,6 +108,12 @@ Encrypted exports wrap the same JSON in an envelope that records the parameters 
 
 Salt and IV are random per export, so exporting the same settings twice produces different files. The GCM authentication tag means a wrong password or an edited file is rejected outright instead of producing garbage.
 
+## Files from the iPhone app
+
+The [iOS app](https://github.com/owen282000/life-dashboard-companion-app-ios) writes the same format and encrypts it the same way, so a file moves between the two apps in either direction. Its files carry `"platform": "ios"`, which this app does not write, and `failure_notifications_enabled`, the failure notification switch, which this app has too but does not back up yet. This app ignores both, like any key it does not know, so its own switch stays as it is.
+
+An iPhone file has no Screen Time section and lists only the data types enabled on the iPhone, and an import resets most settings a file leaves out to their defaults. On a phone that also syncs Screen Time, importing one clears the Screen Time webhooks, switches Screen Time MQTT off, resets full payloads and the day boundary, and turns off every data type the file does not list, the ones the iPhone does not have included. On a fresh phone this does not matter. What carries over the other way is in the iOS app's [settings-backup.md](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/settings-backup.md#moving-between-android-and-iphone).
+
 ## Keeping an export safe
 
 An export with secrets grants full access to your webhook endpoints and MQTT broker. Treat the file like a password: prefer a strong password, avoid leaving it in a chat thread or a shared drive, and delete it once the new device is set up. When you only need to move non-secret settings, export without secrets instead.
