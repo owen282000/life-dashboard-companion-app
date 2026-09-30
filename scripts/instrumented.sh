@@ -330,7 +330,7 @@ fi
 # app's process is started without an activity so the real WorkManager plans the run, and
 # JobScheduler is told to run that job now. The receiver must get the fixture's records.
 smoke() {
-    local port=18765 secret out job line i
+    local port=18765 secret out job namespace line i
     secret="smoke-$(date +%s)"
     out="$OUT/smoke.jsonl"
     rm -f "$out"
@@ -349,17 +349,22 @@ smoke() {
     adb shell am broadcast -a androidx.work.diagnostics.REQUEST_DIAGNOSTICS -n "$APP_ID/androidx.work.impl.diagnostics.DiagnosticsReceiver" >/dev/null
     # The diagnostics worker's own job comes and goes within a second; what stays is the run.
     sleep 5
+    # WorkManager 2.10 and later keep their jobs in a namespace of their own on API 34+:
+    # `JOB androidx.work.systemjobscheduler:u0a238/93: e4d328c @androidx.work.systemjobscheduler@<app>/...`
+    # instead of `JOB #u0a238/93: e4d328c <app>/...`; `run` then needs that namespace too.
     job=""
+    namespace=""
     for i in $(seq 1 30); do
-        line=$(adb shell dumpsys jobscheduler | grep -E "^ +JOB #u[0-9a-z]+/[0-9]+: [0-9a-f]+ $APP_ID/androidx\.work" | head -1 || true)
-        job=$(printf '%s' "$line" | sed -E 's#^ *JOB \#u[0-9a-z]+/([0-9]+):.*#\1#')
+        line=$(adb shell dumpsys jobscheduler | grep -E "^ +JOB (#|[^ :]+:)u[0-9a-z]+/[0-9]+: [0-9a-f]+ (@[^@ ]+@)?$APP_ID/androidx\.work" | head -1 || true)
+        job=$(printf '%s' "$line" | sed -E 's#^ *JOB (\#|[^ :]+:)u[0-9a-z]+/([0-9]+):.*#\2#')
+        namespace=$(printf '%s' "$line" | sed -nE 's#^ *JOB ([^ :#]+):u.*#\1#p')
         [ -n "$job" ] && break
         sleep 1
     done
     [ -n "$job" ] || { echo "no WorkManager job of the app in JobScheduler"; return 1; }
     uid=$(adb shell pm list packages -U "$APP_ID" | tr -d '\r' | sed -n "s/^package:$APP_ID uid:\([0-9]*\)$/\1/p")
     echo "running job $job with the app's uid in state $(adb shell cmd activity get-uid-state "$uid" | tr -d '\r')"
-    adb shell cmd jobscheduler run -f "$APP_ID" "$job" > "$OUT/smoke-run.txt" 2>&1
+    adb shell cmd jobscheduler run -f ${namespace:+-n "$namespace"} "$APP_ID" "$job" > "$OUT/smoke-run.txt" 2>&1
     for i in $(seq 1 90); do
         [ -s "$out" ] && break
         sleep 1
