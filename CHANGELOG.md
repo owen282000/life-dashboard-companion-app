@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Fixed
+
+- Three German texts on the sync schedule addressed you as "Sie" while the rest of the app says
+  "du"; they now say "du" too. The notification setting for a single failed sync read
+  "fehlgeschlagenen" and now reads "fehlgeschlagener".
+
 ## [1.21.2] - 2026-09-28
 
 ### Fixed

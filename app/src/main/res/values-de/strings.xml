@@ -164,7 +164,7 @@
     <string name="health_notifications_notify_after_failed">Bei fehlgeschlagenen Synchronisierungen benachrichtigen</string>
     <string name="health_notifications_off">Aus</string>
     <plurals name="health_notifications_on">
-        <item quantity="one">An, nach %1$d fehlgeschlagenen Synchronisierung</item>
+        <item quantity="one">An, nach %1$d fehlgeschlagener Synchronisierung</item>
         <item quantity="other">An, nach %1$d fehlgeschlagenen Synchronisierungen</item>
     </plurals>
     <string name="health_notifications_title">Benachrichtigungen</string>
@@ -420,19 +420,19 @@
     <string name="schedule_times_title">Sync-Zeiten</string>
     <string name="schedule_add_time">Zeit hinzufügen</string>
     <string name="schedule_remove_time">%1$s entfernen</string>
-    <string name="schedule_no_times">Noch keine Zeiten. Fügen Sie eine hinzu, um zu synchronisieren.</string>
+    <string name="schedule_no_times">Noch keine Zeiten. Füge eine hinzu, um zu synchronisieren.</string>
     <string name="schedule_days_title">Tage</string>
     <string name="schedule_days_all">Täglich</string>
     <string name="schedule_quiet_title">Ruhezeiten</string>
     <string name="schedule_quiet_subtitle">Zwischen diesen Zeiten nie synchronisieren</string>
     <string name="schedule_quiet_from">Von</string>
     <string name="schedule_quiet_to">Bis</string>
-    <string name="schedule_never_runs">Mit diesen Einstellungen wird nie synchronisiert. Fügen Sie eine Zeit oder einen Tag hinzu, oder verkürzen Sie die Ruhezeiten.</string>
+    <string name="schedule_never_runs">Mit diesen Einstellungen wird nie synchronisiert. Füge eine Zeit oder einen Tag hinzu oder verkürze die Ruhezeiten.</string>
     <string name="schedule_summary_interval">Alle %1$d Min.</string>
     <string name="schedule_summary_times">Um %1$s</string>
     <string name="schedule_summary_days">%1$s</string>
     <string name="schedule_summary_quiet">ruhig %1$s bis %2$s</string>
-    <string name="schedule_no_sync_times">Fügen Sie mindestens eine Sync-Zeit hinzu</string>
+    <string name="schedule_no_sync_times">Füge mindestens eine Sync-Zeit hinzu</string>
     <string name="schedule_day_mon">Mo</string>
     <string name="schedule_day_tue">Di</string>
     <string name="schedule_day_wed">Mi</string>
