@@ -23,6 +23,7 @@ import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ResolutionFamily
 import com.owen282000.lifedashboard.SeriesResolution
+import com.owen282000.lifedashboard.ui.theme.ink
 
 /**
  * Resolution per data type: send every record, or one averaged (or summed) value per window.
@@ -113,7 +114,7 @@ private fun TypeResolution(
                         fontSize = 12.sp,
                         maxLines = 1,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (isSelected) accent else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (isSelected) accent.ink() else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

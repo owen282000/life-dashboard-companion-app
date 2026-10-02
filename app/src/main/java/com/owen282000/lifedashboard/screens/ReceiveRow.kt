@@ -29,6 +29,7 @@ import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.ReceiveSummary
 import com.owen282000.lifedashboard.WriteBackType
+import com.owen282000.lifedashboard.ui.theme.ink
 
 /**
  * Receive (issue #62): measurements from Home Assistant into Health Connect. Sits under the
@@ -110,7 +111,7 @@ fun ReceiveRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 TextButton(onClick = onScanRequested) {
-                    Text(stringResource(R.string.webhook_scan_lead), color = accent)
+                    Text(stringResource(R.string.webhook_scan_lead), color = accent.ink())
                 }
             }
             return@ExpandableRow

@@ -8,8 +8,10 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -34,14 +36,19 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = TextPrimaryDark,
     surfaceVariant = SurfaceVariantDark,
     onSurfaceVariant = TextSecondaryDark,
-    error = Error,
+    // Compose draws the error role as text (supporting text, our own messages): the ink, which
+    // clears 4.5:1 here where the fill does not (4.1:1).
+    error = ErrorInkDark,
     errorContainer = ErrorContainerDark,
     onErrorContainer = OnErrorContainerDark
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = BrandGreen,
-    onPrimary = OnPrimary,
+    // The primary role is text as often as it is a fill: TextButtons, a focused field's label,
+    // the cursor. Brand green is 2.3:1 on white, so light takes the ink, as the iOS app's
+    // AccentColor does, and white on it (5.9:1). Our own green tiles and icons keep BrandGreen.
+    primary = HealthInk,
+    onPrimary = Color.White,
     primaryContainer = HealthContainer,
     onPrimaryContainer = OnHealthContainer,
     secondary = ScreenTimePrimary,
@@ -54,7 +61,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = TextPrimary,
     surfaceVariant = SurfaceVariantLight,
     onSurfaceVariant = TextSecondary,
-    error = Error,
+    error = ErrorInk,
     errorContainer = ErrorContainer,
     onErrorContainer = OnErrorContainer
 )
@@ -90,3 +97,11 @@ fun LifeDashboardTheme(
         content = content
     )
 }
+
+/**
+ * This colour as text: its ink in the current theme (see [inkOf]). Use it wherever an accent or
+ * a status colour colours words; fills, icons and tiles keep the colour itself.
+ */
+@Composable
+@ReadOnlyComposable
+fun Color.ink(): Color = inkOf(this, dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f)

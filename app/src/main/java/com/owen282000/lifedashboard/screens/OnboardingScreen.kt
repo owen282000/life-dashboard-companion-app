@@ -79,6 +79,8 @@ import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.WebhookManager
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
+import com.owen282000.lifedashboard.ui.theme.ink
+import com.owen282000.lifedashboard.ui.theme.onAccent
 import kotlinx.coroutines.launch
 
 // The tabs colour their accents with HealthPrimary directly rather than through the theme,
@@ -327,7 +329,7 @@ fun OnboardingScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     OutlinedButton(
                                         shape = CircleShape,
-                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Accent),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Accent.ink()),
                                         border = BorderStroke(1.dp, Accent.copy(alpha = 0.4f)),
                                         enabled = webhookUrl.isNotBlank() && !pinging,
                                         onClick = {
@@ -368,7 +370,7 @@ fun OnboardingScreen(
                                                 else R.string.health_test_ping_failed
                                             ),
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = if (ok) Accent else MaterialTheme.colorScheme.error
+                                            color = if (ok) Accent.ink() else MaterialTheme.colorScheme.error
                                         )
                                     }
                                 }
@@ -429,7 +431,7 @@ fun OnboardingScreen(
                             }
 
                             TextButton(
-                                colors = ButtonDefaults.textButtonColors(contentColor = Accent),
+                                colors = ButtonDefaults.textButtonColors(contentColor = Accent.ink()),
                                 onClick = {
                                     useWebhook = false
                                     useMqtt = false
@@ -697,7 +699,7 @@ private fun TaskCard(number: Int, title: String, subtitle: String) {
                     .background(Accent.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(number.toString(), color = Accent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(number.toString(), color = Accent.ink(), fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
             Spacer(modifier = Modifier.width(14.dp))
             Column {
@@ -749,7 +751,7 @@ private fun ChoiceCard(
                     Icon(
                         icon,
                         contentDescription = null,
-                        tint = if (selected) Color.White else Accent,
+                        tint = if (selected) onAccent(Accent) else Accent,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -776,7 +778,7 @@ private fun PrimaryButton(label: String, enabled: Boolean = true, onClick: () ->
         onClick = onClick,
         enabled = enabled,
         shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(containerColor = Accent),
+        colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = onAccent(Accent)),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
         contentPadding = PaddingValues(horizontal = 26.dp, vertical = 14.dp)
     ) {
@@ -788,7 +790,7 @@ private fun PrimaryButton(label: String, enabled: Boolean = true, onClick: () ->
 private fun AccentTextButton(label: String, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
-        colors = ButtonDefaults.textButtonColors(contentColor = Accent),
+        colors = ButtonDefaults.textButtonColors(contentColor = Accent.ink()),
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 14.dp)
     ) {
         Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.SyncMode
+import com.owen282000.lifedashboard.ui.theme.ink
 import com.owen282000.lifedashboard.viewmodel.ScheduleDraft
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -218,7 +219,7 @@ private fun TimesList(
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(16.dp), tint = accent)
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(stringResource(R.string.schedule_add_time), fontSize = 14.sp, color = accent, fontWeight = FontWeight.Medium)
+                Text(stringResource(R.string.schedule_add_time), fontSize = 14.sp, color = accent.ink(), fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -244,7 +245,7 @@ private fun DayPicker(accent: Color, schedule: ScheduleDraft, onChange: (Schedul
                         dayLabel(day),
                         fontSize = 12.sp,
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (selected) accent.ink() else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -258,7 +259,7 @@ fun TimeChip(label: String, time: LocalTime?, accent: Color, onClick: () -> Unit
     Surface(onClick = onClick, shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(time?.let { formatTime(it) } ?: "--:--", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = accent)
+            Text(time?.let { formatTime(it) } ?: "--:--", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = accent.ink())
         }
     }
 }

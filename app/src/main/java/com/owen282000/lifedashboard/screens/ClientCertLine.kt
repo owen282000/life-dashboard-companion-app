@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.owen282000.lifedashboard.R
+import com.owen282000.lifedashboard.ui.theme.ink
 
 /**
  * Picks the client certificate (mTLS) presented to webhooks, from the Android credential store.
@@ -52,7 +53,7 @@ fun ClientCertLine(
         }
         if (alias != null) {
             TextButton(onClick = { onAliasChange(null) }) {
-                Text(stringResource(R.string.client_cert_clear), color = accent)
+                Text(stringResource(R.string.client_cert_clear), color = accent.ink())
             }
         }
         TextButton(onClick = {
@@ -70,7 +71,7 @@ fun ClientCertLine(
                 alias
             )
         }) {
-            Text(stringResource(R.string.client_cert_choose), color = accent)
+            Text(stringResource(R.string.client_cert_choose), color = accent.ink())
         }
     }
 }

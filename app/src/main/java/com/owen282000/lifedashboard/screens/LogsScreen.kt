@@ -58,6 +58,7 @@ import com.owen282000.lifedashboard.WriteBackType
 import com.owen282000.lifedashboard.appPreferences
 import com.owen282000.lifedashboard.ui.theme.LogsPrimary
 import com.owen282000.lifedashboard.ui.theme.Success
+import com.owen282000.lifedashboard.ui.theme.ink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -173,14 +174,14 @@ fun LogsScreen() {
                     showExportDialog = false
                     val exportManager = ExportManager(context)
                     exportManager.shareFile(exportManager.exportAsJson(logs), exportFileName("logs", "json"), "application/json")
-                }) { Text(stringResource(R.string.common_json), color = accent) }
+                }) { Text(stringResource(R.string.common_json), color = accent.ink()) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showExportDialog = false
                     val exportManager = ExportManager(context)
                     exportManager.shareFile(exportManager.exportAsCsv(logs), exportFileName("logs", "csv"), "text/csv")
-                }) { Text(stringResource(R.string.common_csv), color = accent) }
+                }) { Text(stringResource(R.string.common_csv), color = accent.ink()) }
             }
         )
     }
@@ -223,7 +224,7 @@ private fun SyncStatsCard(logs: List<WebhookLog>) {
 private fun StatColumn(label: String, value: String, color: androidx.compose.ui.graphics.Color, end: Boolean = false) {
     Column(horizontalAlignment = if (end) Alignment.End else Alignment.Start) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = color, maxLines = 1)
+        Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = color.ink(), maxLines = 1)
     }
 }
 
@@ -292,7 +293,7 @@ private fun LogRow(log: WebhookLog, accent: androidx.compose.ui.graphics.Color) 
                     if (log.success) stringResource(R.string.logs_status_success, log.statusCode?.toString() ?: stringResource(R.string.logs_ok))
                     else stringResource(R.string.logs_status_failure, log.statusCode?.toString() ?: stringResource(R.string.logs_error)),
                     style = MaterialTheme.typography.bodySmall,
-                    color = statusColor
+                    color = statusColor.ink()
                 )
                 if (log.dataType != null && log.recordCount != null && !isMqtt) {
                     Text(

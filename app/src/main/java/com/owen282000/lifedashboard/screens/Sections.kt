@@ -81,6 +81,8 @@ import com.owen282000.lifedashboard.PayloadPreview
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.WebhookSecret
 import com.owen282000.lifedashboard.ui.theme.Success
+import com.owen282000.lifedashboard.ui.theme.ink
+import com.owen282000.lifedashboard.ui.theme.onAccent
 import com.owen282000.lifedashboard.viewmodel.MqttDraft
 import com.owen282000.lifedashboard.viewmodel.SettingsRules
 import com.owen282000.lifedashboard.viewmodel.UiMessage
@@ -137,7 +139,7 @@ fun SyncMessageLine(message: UiMessage?, accent: Color) {
             Text(
                 it.text(LocalResources.current),
                 style = MaterialTheme.typography.bodySmall,
-                color = if (it.isFailure) MaterialTheme.colorScheme.error else accent,
+                color = if (it.isFailure) MaterialTheme.colorScheme.error else accent.ink(),
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
         }
@@ -215,7 +217,7 @@ fun WebhookRow(
             if (webhook.headers.isEmpty()) stringResource(R.string.common_none_configured)
             else pluralStringResource(R.plurals.webhook_headers_count, webhook.headers.size, webhook.headers.size),
             style = MaterialTheme.typography.bodySmall,
-            color = if (webhook.headers.isNotEmpty()) accent else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (webhook.headers.isNotEmpty()) accent.ink() else MaterialTheme.colorScheme.onSurfaceVariant
         )
         webhook.headers.forEach { (key, value) ->
             ListLine(text = key, secondary = value, onRemove = { onRemoveHeader(key) })
@@ -269,7 +271,7 @@ fun WebhookRow(
                 onSecretChange(WebhookSecret.generate())
                 generated = true
             }) {
-                Text(stringResource(R.string.webhook_secret_generate), color = accent)
+                Text(stringResource(R.string.webhook_secret_generate), color = accent.ink())
             }
         }
         // Shown only right after generating. The secret is stored encrypted and the field is
@@ -283,7 +285,7 @@ fun WebhookRow(
             )
             val copied = stringResource(R.string.webhook_secret_copied)
             TextButton(onClick = { copySecret(context, webhook.secret, copied) }) {
-                Text(stringResource(R.string.webhook_secret_copy), color = accent)
+                Text(stringResource(R.string.webhook_secret_copy), color = accent.ink())
             }
         }
     }
@@ -299,7 +301,7 @@ private fun ScanLeadButton(accent: Color, onClick: () -> Unit) {
         border = BorderStroke(1.dp, accent.copy(alpha = 0.42f)),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = accent.copy(alpha = 0.14f),
-            contentColor = accent
+            contentColor = accent.ink()
         ),
         contentPadding = PaddingValues(vertical = 14.dp)
     ) {
@@ -332,7 +334,7 @@ private fun AddButton(accent: Color, onClick: () -> Unit) {
         modifier = Modifier.size(52.dp),
         colors = IconButtonDefaults.filledIconButtonColors(containerColor = accent)
     ) {
-        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.common_add), tint = Color.White)
+        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.common_add), tint = onAccent(accent))
     }
 }
 
@@ -473,7 +475,7 @@ fun MqttRow(
             Text(
                 status,
                 style = MaterialTheme.typography.bodySmall,
-                color = if (status.startsWith("OK")) accent else MaterialTheme.colorScheme.error
+                color = if (status.startsWith("OK")) accent.ink() else MaterialTheme.colorScheme.error
             )
         }
     }
@@ -508,7 +510,7 @@ fun PhoneNameLine(name: String, accent: Color, onChange: (String) -> Unit) {
                 if (slug != null) stringResource(R.string.phone_name_device_id, MqttSupport.deviceId(slug))
                 else stringResource(R.string.phone_name_unusable),
                 style = MaterialTheme.typography.bodySmall,
-                color = if (slug != null) accent else MaterialTheme.colorScheme.error
+                color = if (slug != null) accent.ink() else MaterialTheme.colorScheme.error
             )
         }
     }
@@ -620,7 +622,7 @@ fun SaveBar(visible: Boolean, onSave: () -> Unit) {
                 .fillMaxWidth()
                 .height(52.dp),
             shape = RoundedCornerShape(26.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Success)
+            colors = ButtonDefaults.buttonColors(containerColor = Success, contentColor = onAccent(Success))
         ) {
             Icon(Icons.Filled.Check, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
@@ -678,7 +680,7 @@ fun PreviewDialog(accent: Color, data: String, onDismiss: () -> Unit) {
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = accent) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = accent.ink()) }
         }
     )
 }
@@ -689,8 +691,8 @@ fun ExportFormatDialog(accent: Color, description: String, onJson: () -> Unit, o
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.sync_export_data)) },
         text = { Text(description, style = MaterialTheme.typography.bodyMedium) },
-        confirmButton = { TextButton(onClick = onJson) { Text(stringResource(R.string.common_json), color = accent) } },
-        dismissButton = { TextButton(onClick = onCsv) { Text(stringResource(R.string.common_csv), color = accent) } }
+        confirmButton = { TextButton(onClick = onJson) { Text(stringResource(R.string.common_json), color = accent.ink()) } },
+        dismissButton = { TextButton(onClick = onCsv) { Text(stringResource(R.string.common_csv), color = accent.ink()) } }
     )
 }
 

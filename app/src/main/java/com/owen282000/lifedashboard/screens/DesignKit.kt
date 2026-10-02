@@ -61,6 +61,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.owen282000.lifedashboard.R
+import com.owen282000.lifedashboard.ui.theme.ink
+import com.owen282000.lifedashboard.ui.theme.inkOf
+import com.owen282000.lifedashboard.ui.theme.onAccent
 
 /*
  * The shared look of the main screens: a coloured status banner, a stat card, groups of
@@ -125,7 +128,7 @@ fun StatusBanner(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     title,
-                    color = Color.White,
+                    color = onAccent(accent),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -134,7 +137,7 @@ fun StatusBanner(
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     subtitle,
-                    color = Color.White.copy(alpha = 0.92f),
+                    color = onAccent(accent),
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -164,12 +167,13 @@ fun BannerChip(label: String, accent: Color, filled: Boolean = false, icon: Imag
                 label,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = if (filled) accent else Color.White,
+                // A filled chip is white in both themes, so it takes the light ink.
+                color = if (filled) inkOf(accent, dark = false) else onAccent(accent),
                 maxLines = 1
             )
             if (icon != null) {
                 Spacer(modifier = Modifier.width(4.dp))
-                Icon(icon, contentDescription = null, tint = if (filled) accent else Color.White, modifier = Modifier.size(12.dp))
+                Icon(icon, contentDescription = null, tint = if (filled) inkOf(accent, dark = false) else onAccent(accent), modifier = Modifier.size(12.dp))
             }
         }
     }
@@ -241,7 +245,7 @@ fun SettingRow(
                 Text(
                     subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (subtitleAccent) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (subtitleAccent) accent.ink() else MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -361,15 +365,16 @@ fun PrimaryPill(
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = accent,
+            contentColor = onAccent(accent),
             disabledContainerColor = accent.copy(alpha = 0.35f),
-            disabledContentColor = Color.White
+            disabledContentColor = onAccent(accent)
         ),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
         contentPadding = PaddingValues(vertical = 15.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         if (loading) {
-            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = Color.White)
+            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = onAccent(accent))
             Spacer(modifier = Modifier.width(10.dp))
         }
         Text(label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -428,7 +433,7 @@ fun StatusPill(label: String, color: Color) {
             modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
-            color = color,
+            color = color.ink(),
             maxLines = 1
         )
     }

@@ -47,6 +47,7 @@ import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.MqttSupport
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
+import com.owen282000.lifedashboard.ui.theme.ink
 import com.owen282000.lifedashboard.viewmodel.HcAvailability
 import com.owen282000.lifedashboard.viewmodel.HealthActions
 import com.owen282000.lifedashboard.viewmodel.HealthConnectViewModel
@@ -327,7 +328,7 @@ fun HealthConnectContent(
                 if (state.backfillWaiting) stringResource(R.string.health_backfill_waiting)
                 else stringResource(R.string.health_backfill_progress, done, total),
                 style = MaterialTheme.typography.bodySmall,
-                color = accent,
+                color = accent.ink(),
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
         }
@@ -364,7 +365,7 @@ fun HealthConnectContent(
             title = { Text(stringResource(R.string.health_permission_required_title)) },
             text = { Text(stringResource(R.string.health_permission_needed, type.displayName)) },
             confirmButton = {
-                TextButton(onClick = actions::requestTypePermission) { Text(stringResource(R.string.common_grant), color = accent) }
+                TextButton(onClick = actions::requestTypePermission) { Text(stringResource(R.string.common_grant), color = accent.ink()) }
             },
             dismissButton = {
                 TextButton(onClick = actions::dismissPermissionPrompt) { Text(stringResource(R.string.common_cancel)) }
@@ -378,7 +379,7 @@ fun HealthConnectContent(
             title = { Text(stringResource(R.string.health_permission_required_title)) },
             text = { Text(stringResource(R.string.receive_permission_needed, type.dataType.displayName)) },
             confirmButton = {
-                TextButton(onClick = actions::requestReceivePermission) { Text(stringResource(R.string.common_grant), color = accent) }
+                TextButton(onClick = actions::requestReceivePermission) { Text(stringResource(R.string.common_grant), color = accent.ink()) }
             },
             dismissButton = {
                 TextButton(onClick = actions::dismissReceivePermissionPrompt) { Text(stringResource(R.string.common_cancel)) }
@@ -394,7 +395,7 @@ fun HealthConnectContent(
                 Column {
                     Text(stringResource(R.string.receive_choose_source_body))
                     urls.forEach { url ->
-                        TextButton(onClick = { actions.chooseReceiveSource(url) }) { Text(url, color = accent) }
+                        TextButton(onClick = { actions.chooseReceiveSource(url) }) { Text(url, color = accent.ink()) }
                     }
                 }
             },

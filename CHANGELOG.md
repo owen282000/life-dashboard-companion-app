@@ -17,6 +17,15 @@ All notable changes to this project are documented in this file. The format is b
   the export does not have the rest either. TalkBack reads "Payload" and the number of
   characters instead of the whole payload, and a row's payload is formatted without holding up
   the screen.
+- Text in the app's accent and status colours was hard to read. In the light theme green, purple,
+  blue, amber and red words on white came out at 2 to 3.9:1, under the 4.5:1 that small text
+  needs, and the white titles on the tab headers were 2.6:1 on green. Words in those colours
+  now use a darker shade of the same colour in the light theme and a lighter one where the dark
+  theme needed it, so every one reads at 4.5:1 or more, also in status pills and selected
+  chips. The tab headers and filled buttons carry dark text, black on Screen Time's purple.
+  Text buttons, a focused field's label and error messages follow, since the light theme's
+  primary and error colours are now those darker shades. Tiles, icons, switches and the brand
+  green itself are unchanged, and the iOS app already worked this way.
 
 ## [1.21.2] - 2026-09-28
 

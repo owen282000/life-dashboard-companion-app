@@ -32,6 +32,7 @@ import com.owen282000.lifedashboard.screens.PairingDialog
 import com.owen282000.lifedashboard.screens.ScanScreen
 import com.owen282000.lifedashboard.screens.ScreenTimeScreen
 import com.owen282000.lifedashboard.ui.theme.*
+import com.owen282000.lifedashboard.ui.theme.ink
 import com.owen282000.lifedashboard.viewmodel.HealthConnectViewModel
 import com.owen282000.lifedashboard.viewmodel.ScreenTimeViewModel
 import kotlinx.coroutines.launch
@@ -368,7 +369,7 @@ private fun NavBarItem(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                color = contentColor
+                color = contentColor.ink()
             )
         }
     }

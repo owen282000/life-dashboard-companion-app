@@ -75,6 +75,46 @@ val OnLogsContainer = Color(0xFF1E3A8A)
 val LogsContainerDark = Color(0xFF1E3A8A)
 val OnLogsContainerDark = Color(0xFFBFDBFE)
 
+// Inks: the accent and status colours as text (P2-10 step 4). The fills above stay as they are
+// in tiles, icons, switches and the brand; as text on a light surface every one of them fails
+// 4.5:1, brand green at 2.3:1. Each ink is the same hue, darker in the light theme and as
+// bright as the fill or lighter in the dark one, and clears 4.5:1 on every surface the app
+// draws text on, and on the 12% and 18% tints of a status pill and a selected chip
+// (ColorContrastTest). The values are the iOS app's Brand inks; green and blue take iOS's
+// high-contrast step, because Android's pills and chips are a tint of the fill rather than a
+// container, and Screen Time, which iOS does not have, gets violet-700 and violet-400.
+val HealthInk = Color(0xFF1E714E)
+val HealthInkDark = Color(0xFF4CC994)
+val ScreenTimeInk = Color(0xFF6D28D9)
+val ScreenTimeInkDark = Color(0xFFA78BFA)
+val LogsInk = Color(0xFF1D4ED8)
+val LogsInkDark = Color(0xFF60A5FA)
+val SuccessInk = Color(0xFF166534)
+val SuccessInkDark = Success
+val ErrorInk = Color(0xFFB91C1C)
+val ErrorInkDark = Color(0xFFF87171)
+val WarningInk = Color(0xFF92400E)
+val WarningInkDark = Color(0xFFFBBF24)
+
+/** The ink for text in [fill]'s colour; any other colour is returned as it is. */
+fun inkOf(fill: Color, dark: Boolean): Color = when (fill) {
+    BrandGreen -> if (dark) HealthInkDark else HealthInk
+    ScreenTimePrimary -> if (dark) ScreenTimeInkDark else ScreenTimeInk
+    LogsPrimary -> if (dark) LogsInkDark else LogsInk
+    Success -> if (dark) SuccessInkDark else SuccessInk
+    Error, ErrorInk, ErrorInkDark -> if (dark) ErrorInkDark else ErrorInk
+    Warning -> if (dark) WarningInkDark else WarningInk
+    else -> fill
+}
+
+/**
+ * Text and glyphs on a fill of [accent], such as a tab's header or a filled button. White read
+ * 2.6:1 on brand green, 3.9:1 on Logs blue and 4.2:1 on Screen Time purple, less again on the
+ * lighter end of a header's gradient. The brand ground clears 4.5:1 on green and blue at both
+ * ends, as on the iOS app (onGreen); purple only clears it in black (5.0:1).
+ */
+fun onAccent(accent: Color): Color = if (accent == ScreenTimePrimary) Color.Black else OnPrimary
+
 // The three stops of the brand's radial gradient, identical in banner.html, icon.html,
 // feature-graphic.html and the About hero. They sit within dE 5 of each other by design:
 // merging them would flatten the gradient into a single flat fill, so they stay three.
