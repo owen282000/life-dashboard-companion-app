@@ -126,6 +126,7 @@
     <string name="sync_preview_failed">Vorschau fehlgeschlagen</string>
     <string name="sync_preview_failed_with_reason">Vorschau fehlgeschlagen: %1$s</string>
     <string name="sync_preview_payload_description">Das ist der JSON-Payload, der gesendet wird:</string>
+    <string name="sync_preview_full_in_export">Export liefert den vollständigen Payload.</string>
     <string name="sync_save_changes">Änderungen speichern</string>
     <string name="sync_syncing">Wird synchronisiert...</string>
 
@@ -242,6 +243,11 @@
     <string name="logs_last_success">Letzter Erfolg: %1$s</string>
     <string name="logs_ok">OK</string>
     <string name="logs_payload">Payload</string>
+    <string name="logs_payload_full_in_export">Exportiere die Logs als JSON für den vollständigen Payload.</string>
+    <string name="logs_payload_stored_part">Von diesem Payload wurde nur ein Teil gespeichert. Schalte Vollständige Payloads behalten ein, um ab der nächsten Synchronisierung ganze Payloads zu speichern.</string>
+    <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
+    <string name="payload_preview_a11y">Payload, %1$s Zeichen</string>
+    <string name="payload_preview_shown_part">Die ersten %1$s von %2$s Zeichen werden angezeigt.</string>
     <string name="logs_raw_payload">Roher Payload</string>
     <string name="logs_record_count">%1$s: %2$d</string>
     <string name="logs_recent_failures">Letzte Fehler:</string>

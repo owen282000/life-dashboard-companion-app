@@ -32,6 +32,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,6 +50,7 @@ import com.owen282000.lifedashboard.ExportManager
 import com.owen282000.lifedashboard.LogDestination
 import com.owen282000.lifedashboard.LogDirection
 import com.owen282000.lifedashboard.LogType
+import com.owen282000.lifedashboard.PayloadPreview
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ReceiveLogLine
 import com.owen282000.lifedashboard.WebhookLog
@@ -54,7 +58,8 @@ import com.owen282000.lifedashboard.WriteBackType
 import com.owen282000.lifedashboard.appPreferences
 import com.owen282000.lifedashboard.ui.theme.LogsPrimary
 import com.owen282000.lifedashboard.ui.theme.Success
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -307,27 +312,48 @@ private fun LogRow(log: WebhookLog, accent: androidx.compose.ui.graphics.Color) 
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)
                     )
-                    val formattedJson = remember(log.id) {
-                        try {
-                            val json = Json { prettyPrint = true }
-                            json.encodeToString(kotlinx.serialization.json.JsonElement.serializer(), Json.parseToJsonElement(log.rawPayload))
-                        } catch (e: Exception) {
-                            log.rawPayload
-                        }
+                    // Formatted off the main thread and capped (P2-11): a payload kept in full can
+                    // be a few hundred KB, too much to parse on a tap or to lay out in one Text.
+                    val preview by produceState<PayloadPreview?>(null, log.id) {
+                        value = withContext(Dispatchers.Default) { PayloadPreview.of(PayloadPreview.pretty(log.rawPayload)) }
                     }
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .horizontalScroll(rememberScrollState())
-                                .padding(10.dp)
+                    preview?.let { shown ->
+                        val description = stringResource(R.string.payload_preview_a11y, formatCount(shown.totalLength))
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(10.dp)
                         ) {
+                            Box(
+                                modifier = Modifier
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    shown.text,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, fontSize = 10.sp, lineHeight = 14.sp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    // Replaces the text's own semantics: a plain contentDescription
+                                    // would sit next to the whole text, not instead of it.
+                                    modifier = Modifier.clearAndSetSemantics { contentDescription = description }
+                                )
+                            }
+                        }
+                        val notes = buildList {
+                            if (shown.cutForDisplay) {
+                                add(stringResource(R.string.payload_preview_shown_part, formatCount(PayloadPreview.MAX_CHARS), formatCount(shown.totalLength)))
+                            }
+                            // A payload the store cut short is not in the JSON export either.
+                            if (shown.cutInStorage) {
+                                add(stringResource(R.string.logs_payload_stored_part))
+                            } else if (shown.cutForDisplay) {
+                                add(stringResource(R.string.logs_payload_full_in_export))
+                            }
+                        }
+                        if (notes.isNotEmpty()) {
                             Text(
-                                formattedJson,
-                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, fontSize = 10.sp, lineHeight = 14.sp),
+                                notes.joinToString(" "),
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }

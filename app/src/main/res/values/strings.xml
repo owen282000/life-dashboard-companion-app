@@ -128,6 +128,7 @@
     <string name="sync_preview_failed">Preview failed</string>
     <string name="sync_preview_failed_with_reason">Preview failed: %1$s</string>
     <string name="sync_preview_payload_description">This is the JSON payload that will be sent:</string>
+    <string name="sync_preview_full_in_export">Export gives the full payload.</string>
     <string name="sync_save_changes">Save Changes</string>
     <string name="sync_syncing">Syncing...</string>
 
@@ -244,6 +245,11 @@
     <string name="logs_last_success">Last success: %1$s</string>
     <string name="logs_ok">OK</string>
     <string name="logs_payload">Payload</string>
+    <string name="logs_payload_full_in_export">Export logs as JSON for the full payload.</string>
+    <string name="logs_payload_stored_part">Only part of this payload was stored. Switch on Keep full payloads to store whole payloads from the next sync on.</string>
+    <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
+    <string name="payload_preview_a11y">Payload, %1$s characters</string>
+    <string name="payload_preview_shown_part">Showing the first %1$s of %2$s characters.</string>
     <string name="logs_raw_payload">Raw Payload</string>
     <string name="logs_record_count">%1$s: %2$d</string>
     <string name="logs_recent_failures">Recent failures:</string>

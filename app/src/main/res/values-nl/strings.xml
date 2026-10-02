@@ -126,6 +126,7 @@
     <string name="sync_preview_failed">Voorbeeld mislukt</string>
     <string name="sync_preview_failed_with_reason">Voorbeeld mislukt: %1$s</string>
     <string name="sync_preview_payload_description">Dit is de JSON-payload die wordt verstuurd:</string>
+    <string name="sync_preview_full_in_export">Exporteren geeft de volledige payload.</string>
     <string name="sync_save_changes">Wijzigingen opslaan</string>
     <string name="sync_syncing">Synchroniseren...</string>
 
@@ -242,6 +243,11 @@
     <string name="logs_last_success">Laatst gelukt: %1$s</string>
     <string name="logs_ok">OK</string>
     <string name="logs_payload">Payload</string>
+    <string name="logs_payload_full_in_export">Exporteer de logs als JSON voor de volledige payload.</string>
+    <string name="logs_payload_stored_part">Van deze payload is maar een deel bewaard. Zet Volledige payloads bewaren aan om vanaf de volgende synchronisatie hele payloads te bewaren.</string>
+    <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
+    <string name="payload_preview_a11y">Payload, %1$s tekens</string>
+    <string name="payload_preview_shown_part">De eerste %1$s van %2$s tekens worden getoond.</string>
     <string name="logs_raw_payload">Ruwe payload</string>
     <string name="logs_record_count">%1$s: %2$d</string>
     <string name="logs_recent_failures">Recente mislukkingen:</string>

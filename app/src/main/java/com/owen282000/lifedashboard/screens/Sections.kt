@@ -67,6 +67,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -75,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.permission.HealthPermission
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.MqttSupport
+import com.owen282000.lifedashboard.PayloadPreview
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.WebhookSecret
 import com.owen282000.lifedashboard.ui.theme.Success
@@ -82,6 +85,7 @@ import com.owen282000.lifedashboard.viewmodel.MqttDraft
 import com.owen282000.lifedashboard.viewmodel.SettingsRules
 import com.owen282000.lifedashboard.viewmodel.UiMessage
 import com.owen282000.lifedashboard.viewmodel.WebhookDraft
+import java.text.NumberFormat
 
 /*
  * The settings sections the Health Connect and Screen Time tabs share: webhook, MQTT,
@@ -625,6 +629,9 @@ fun SaveBar(visible: Boolean, onSave: () -> Unit) {
     }
 }
 
+/** [count] with the phone's digit grouping: 12,000 in English, 12.000 in Dutch and German. */
+internal fun formatCount(count: Int): String = NumberFormat.getIntegerInstance().format(count)
+
 @Composable
 fun PreviewDialog(accent: Color, data: String, onDismiss: () -> Unit) {
     AlertDialog(
@@ -638,6 +645,9 @@ fun PreviewDialog(accent: Color, data: String, onDismiss: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                // Capped like the Logs tab (P2-11): a Health Connect preview can be a few hundred KB.
+                val shown = remember(data) { PayloadPreview.of(data) }
+                val description = stringResource(R.string.payload_preview_a11y, formatCount(shown.totalLength))
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -646,11 +656,22 @@ fun PreviewDialog(accent: Color, data: String, onDismiss: () -> Unit) {
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Text(
-                        text = data,
+                        text = shown.text,
                         modifier = Modifier
                             .padding(12.dp)
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(rememberScrollState())
+                            // After the scroll, so TalkBack can still scroll; the text itself is replaced.
+                            .clearAndSetSemantics { contentDescription = description },
                         style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (shown.cutForDisplay) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.payload_preview_shown_part, formatCount(PayloadPreview.MAX_CHARS), formatCount(shown.totalLength)) +
+                            " " + stringResource(R.string.sync_preview_full_in_export),
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

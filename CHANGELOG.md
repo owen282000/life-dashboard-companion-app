@@ -9,6 +9,14 @@ All notable changes to this project are documented in this file. The format is b
 - Three German texts on the sync schedule addressed you as "Sie" while the rest of the app says
   "du"; they now say "du" too. The notification setting for a single failed sync read
   "fehlgeschlagenen" and now reads "fehlgeschlagener".
+- A payload kept in full, a few hundred KB for a busy sync, was put on screen whole when you
+  opened its row in the Logs tab or the data preview, which could stall the screen or run the
+  app out of memory, the more so with an accessibility service on, such as a password manager.
+  Both now show the first 12,000 characters and say how many there are and where the rest is:
+  the JSON log export, or Export on the tab. A payload that was stored shortened says so, since
+  the export does not have the rest either. TalkBack reads "Payload" and the number of
+  characters instead of the whole payload, and a row's payload is formatted without holding up
+  the screen.
 
 ## [1.21.2] - 2026-09-28
 
