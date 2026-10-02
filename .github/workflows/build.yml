@@ -35,6 +35,14 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
+      # One daemon runs every Gradle step of the job in a row (ktlint, tests, Kover over every
+      # variant, lint, the APK), and with the 2 GB from gradle.properties D8 ran out of heap
+      # merging dex on main (run 37022282822). The runner has 16 GB; local builds and the
+      # F-Droid build keep gradle.properties, since the user-home file only exists here.
+      - name: Give the Gradle daemon more heap
+        run: |
+          mkdir -p ~/.gradle
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> ~/.gradle/gradle.properties
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -98,6 +106,14 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
+      # One daemon runs every Gradle step of the job in a row (ktlint, tests, Kover over every
+      # variant, lint, the APK), and with the 2 GB from gradle.properties D8 ran out of heap
+      # merging dex on main (run 37022282822). The runner has 16 GB; local builds and the
+      # F-Droid build keep gradle.properties, since the user-home file only exists here.
+      - name: Give the Gradle daemon more heap
+        run: |
+          mkdir -p ~/.gradle
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> ~/.gradle/gradle.properties
 
       # Built before the emulator starts: a heavy Gradle build next to the emulator is what
       # makes QEMU hang on the free runners.

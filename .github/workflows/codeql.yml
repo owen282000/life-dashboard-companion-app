@@ -33,6 +33,14 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
+      # One daemon runs every Gradle step of the job in a row (ktlint, tests, Kover over every
+      # variant, lint, the APK), and with the 2 GB from gradle.properties D8 ran out of heap
+      # merging dex on main (run 37022282822). The runner has 16 GB; local builds and the
+      # F-Droid build keep gradle.properties, since the user-home file only exists here.
+      - name: Give the Gradle daemon more heap
+        run: |
+          mkdir -p ~/.gradle
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> ~/.gradle/gradle.properties
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
