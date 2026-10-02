@@ -10,7 +10,10 @@ espressoCore = "3.7.0"
 androidxTest = "1.7.0"
 uiautomator = "2.4.0"
 jsonSchemaValidator = "0.5.5"
-lifecycleRuntimeKtx = "2.8.7"
+# What the app already resolves to, through Compose and Activity. Dependabot never proposes a
+# lifecycle bump: Google Maven publishes no release dates, its cooldown filter drops every stable
+# version for that, and the newest version is always an alpha. Bump it by hand.
+lifecycleRuntimeKtx = "2.10.0"
 coroutines = "1.11.0"
 activityCompose = "1.13.0"
 composeBom = "2026.09.00"

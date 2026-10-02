@@ -5,7 +5,14 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # The repo's commit style, "build(deps): Bump ...", set rather than guessed from history
+    commit-message:
+      prefix: "build"
+      include: "scope"
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "build"
+      include: "scope"
