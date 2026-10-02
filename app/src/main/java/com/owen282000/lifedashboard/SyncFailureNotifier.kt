@@ -85,6 +85,57 @@ object SyncFailureNotifier {
 
     private fun notificationId(logType: LogType) = NOTIFICATION_ID + logType.ordinal
 
+    private const val KEY_PARTIAL_PREFIX = "sync_partial_streak_"
+
+    private fun partialNotificationId(logType: LogType) = NOTIFICATION_ID + 30 + logType.ordinal
+
+    /**
+     * Both streaks for one delivery: the sync's own through [recordResult], and the partial one
+     * for webhooks that missed what another webhook took. Such a delivery counts as done, so
+     * nothing is queued for the webhook that missed it; after the same number of those in a row
+     * as the failure threshold, a notification names its host. A delivery that reaches every
+     * webhook clears it.
+     */
+    fun recordDelivery(context: Context, logType: LogType, result: Result<WebhookOutcome>) {
+        recordResult(context, logType, result.isSuccess)
+        val prefs = prefs(context)
+        val key = KEY_PARTIAL_PREFIX + logType.name
+        val missed = result.getOrNull()?.missedUrls.orEmpty()
+        val before = prefs.getInt(key, 0)
+        val streak = PartialDelivery.nextStreak(before, result.isSuccess, missed)
+        if (streak == before) return
+        prefs.edit { putInt(key, streak) }
+        if (streak == 0) {
+            NotificationManagerCompat.from(context).cancel(partialNotificationId(logType))
+            return
+        }
+
+        if (!isEnabled(context)) return
+        val threshold = getThreshold(context).coerceAtLeast(1)
+        if (streak % threshold != 0) return
+        if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        ensureChannel(context)
+        val hosts = PartialDelivery.hosts(missed)
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_notify_error)
+            .setContentTitle(context.getString(R.string.partial_delivery_title, categoryName(logType)))
+            .setContentText(context.resources.getQuantityString(R.plurals.partial_delivery_text, streak, streak, hosts))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(context.resources.getQuantityString(R.plurals.partial_delivery_text, streak, streak, hosts)))
+            .setOnlyAlertOnce(true)
+            .setAutoCancel(true)
+            .build()
+        NotificationManagerCompat.from(context).notify(partialNotificationId(logType), notification)
+    }
+
+    private fun categoryName(logType: LogType) = when (logType) {
+        LogType.HEALTH_CONNECT -> "Health Connect"
+        LogType.SCREEN_TIME -> "Screen Time"
+    }
+
     private const val KEY_DROPPED_PREFIX = "outbox_dropped_"
 
     private fun droppedNotificationId(logType: LogType) = NOTIFICATION_ID + 20 + logType.ordinal

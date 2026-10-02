@@ -128,6 +128,7 @@ fun UiMessage.text(res: Resources): String = when (this) {
         res.getQuantityString(R.plurals.receive_written_count, written, written)
     )
     UiMessage.ReceiveNeedsIntegration -> res.getString(R.string.receive_needs_integration)
+    is UiMessage.PartlyDelivered -> inner.text(res) + " " + res.getString(R.string.sync_partly_delivered, delivered, total)
     is UiMessage.OtherSourceWrites -> res.getString(R.string.receive_other_source_writes, source, type.dataType.displayName)
 }
 

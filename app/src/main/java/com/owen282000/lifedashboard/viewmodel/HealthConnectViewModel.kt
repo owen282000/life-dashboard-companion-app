@@ -382,7 +382,11 @@ class HealthConnectViewModel(
                             is HealthSyncResult.NoData -> UiMessage.NoNewData
                             is HealthSyncResult.Success -> {
                                 val count = result.syncCounts.values.sum()
-                                if (result.written > 0) UiMessage.SyncedRecordsWritten(count, result.written) else UiMessage.SyncedRecords(count)
+                                UiMessage.partly(
+                                    if (result.written > 0) UiMessage.SyncedRecordsWritten(count, result.written) else UiMessage.SyncedRecords(count),
+                                    missed = result.missedUrls.size,
+                                    total = result.webhookCount
+                                )
                             }
                             is HealthSyncResult.Queued -> UiMessage.QueuedRecords(result.recordCount)
                         }

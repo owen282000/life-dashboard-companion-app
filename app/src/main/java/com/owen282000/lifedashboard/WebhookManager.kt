@@ -31,7 +31,16 @@ class SourceResponse(
 )
 
 /** The outcome of a delivery: success is the Result itself; this carries what the source URL said, if asked. */
-data class WebhookOutcome(val sourceResponse: SourceResponse? = null)
+data class WebhookOutcome(
+    val sourceResponse: SourceResponse? = null,
+    /**
+     * The URLs that did not take this payload although another one did. Delivery counts it as
+     * done all the same, so nothing is queued for them (P2-13); this is what makes it visible.
+     */
+    val missedUrls: List<String> = emptyList(),
+    /** How many URLs the payload went to. */
+    val urlCount: Int = 1
+)
 
 /**
  * The failure of a delivery that every webhook refused because of the payload itself, see
@@ -108,6 +117,7 @@ class WebhookManager(
         var anySuccess = false
         var lastFailure: Exception? = null
         var sourceResponse: SourceResponse? = null
+        val failedUrls = mutableListOf<String>()
 
         for (url in webhookUrls) {
             val isSource = source != null && url == source.url
@@ -116,6 +126,7 @@ class WebhookManager(
                 anySuccess = true
                 if (isSource) sourceResponse = result.getOrNull()
             } else {
+                failedUrls += url
                 val failure = result.exceptionOrNull() as? Exception ?: Exception("Unknown error")
                 // A refusal of the payload only counts as the outcome when every URL refused
                 // it: with one URL down and another refusing, the drain must wait for the one
@@ -127,7 +138,7 @@ class WebhookManager(
         }
 
         if (anySuccess) {
-            Result.success(WebhookOutcome(sourceResponse))
+            Result.success(WebhookOutcome(sourceResponse, missedUrls = failedUrls, urlCount = webhookUrls.size))
         } else {
             Result.failure(lastFailure ?: IOException("All webhook posts failed"))
         }

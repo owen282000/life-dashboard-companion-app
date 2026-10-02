@@ -23,6 +23,7 @@ import com.owen282000.lifedashboard.PairingApply
 import com.owen282000.lifedashboard.PairingChoice
 import com.owen282000.lifedashboard.PairingLink
 import com.owen282000.lifedashboard.PairingSource
+import com.owen282000.lifedashboard.PartialDelivery
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.SectionChange
 import com.owen282000.lifedashboard.SectionWebhook
@@ -156,6 +157,8 @@ fun PairingDialog(
 @Composable
 private fun sectionNote(change: SectionChange): String? = when {
     change.changesNothing -> stringResource(R.string.pairing_already_paired)
+    change.replacesSecret && change.othersSignedWithNewSecret.isNotEmpty() ->
+        stringResource(R.string.pairing_replaces_secret_others, PartialDelivery.hosts(change.othersSignedWithNewSecret))
     change.replacesSecret -> stringResource(R.string.pairing_replaces_secret)
     else -> null
 }

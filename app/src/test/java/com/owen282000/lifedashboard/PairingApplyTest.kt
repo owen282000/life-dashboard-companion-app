@@ -143,8 +143,9 @@ class PairingApplyTest {
             SectionChange(addsUrl = true, replacesSecret = false),
             PairingApply.preview(link, SectionWebhook(emptyList(), null))
         )
+        // The address already there keeps getting payloads, signed with the new secret from then on.
         assertEquals(
-            SectionChange(addsUrl = true, replacesSecret = true),
+            SectionChange(addsUrl = true, replacesSecret = true, othersSignedWithNewSecret = listOf("https://other/hook")),
             PairingApply.preview(link, SectionWebhook(listOf("https://other/hook"), "old"))
         )
         // Already paired with this receiver: nothing to announce.
@@ -156,6 +157,14 @@ class PairingApplyTest {
             SectionChange(addsUrl = true, replacesSecret = false),
             PairingApply.preview(link, SectionWebhook(listOf("https://other/hook"), link.secret))
         )
+    }
+
+    @Test
+    fun aRepairOfTheSameReceiverNamesNoOtherAddress() {
+        // Pairing again with a rotated secret: the paired address itself is not an "other" one.
+        val change = PairingApply.preview(link, SectionWebhook(listOf(link.url), "rotated-away"))
+        assertTrue(change.replacesSecret)
+        assertEquals(emptyList<String>(), change.othersSignedWithNewSecret)
     }
 
     @Test

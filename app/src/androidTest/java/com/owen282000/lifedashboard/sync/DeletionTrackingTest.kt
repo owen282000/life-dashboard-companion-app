@@ -200,7 +200,7 @@ class DeletionTrackingTest {
         val took = System.currentTimeMillis() - started
 
         assertTrue("took $took ms, the budget is 20 s", took in 19_000..26_000)
-        assertEquals(HealthSyncResult.Success(mapOf(STEPS to 1)), result)
+        assertEquals(HealthSyncResult.Success(mapOf(STEPS to 1), webhookCount = 1), result)
         val body = Conservation.parse(receiver.since(mark).single().text)
         Conservation.assertExactlyOnce(setOf(fresh), listOf(body))
         assertEquals(types.map { it.name.lowercase() }.sorted(), body["deletions_unavailable"].strings())

@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- With two or more webhooks in a section, a sync that reached some of them and not the others
+  counted as delivered without a word, so the one that missed it never got that data: it is not
+  queued for a single address yet. The line under Sync Now now says "Delivered to 1 of 2
+  destinations, see Logs", and after as many of those in a row as the failure notification
+  waits for, a notification names the address that keeps missing out (its host only). And when
+  pairing with Home Assistant replaces the section's signing secret while the section has other
+  addresses, the pairing dialog names them: they get payloads signed with the new secret from
+  then on, so one that checks signatures, such as the stack, starts refusing until it gets the
+  new secret too.
+
 ### Fixed
 
 - Three German texts on the sync schedule addressed you as "Sie" while the rest of the app says

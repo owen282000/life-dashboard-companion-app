@@ -136,6 +136,9 @@ class HealthSyncManager(
             // capped batch per run lets the backlog grow faster than it drains (issue #38), so
             // this loops read+deliver until no type was capped, bounded to keep worker runs short.
             val syncCounts = mutableMapOf<HealthDataType, Int>()
+            // Webhooks that missed a payload another webhook took, and how many there are.
+            val missedUrls = mutableSetOf<String>()
+            var webhookCount = 0
             var lastDelivered: HealthData? = null
             var queuedRecords: Int? = null
             var anyData = false
@@ -299,7 +302,8 @@ class HealthSyncManager(
                     source = sourcePost
                 )
                 val postResult = webhookManager.postData(jsonPayload)
-                SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
+                SyncFailureNotifier.recordDelivery(context, LogType.HEALTH_CONNECT, postResult)
+                postResult.getOrNull()?.let { missedUrls += it.missedUrls; webhookCount = it.urlCount }
                 SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalRecords else 0, LogType.HEALTH_CONNECT)
 
                 // Watermarks advance regardless of delivery outcome: a failed payload goes to the
@@ -379,7 +383,8 @@ class HealthSyncManager(
                 // Reported like any other delivery: a webhook that is down for a run of
                 // deletion-only syncs would otherwise never trip the failure notifier, and the
                 // dashboard would show a last sync that never moved while payloads went out.
-                SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, postResult.isSuccess)
+                SyncFailureNotifier.recordDelivery(context, LogType.HEALTH_CONNECT, postResult)
+                postResult.getOrNull()?.let { missedUrls += it.missedUrls; webhookCount = it.urlCount }
                 SyncStatusStore.record(context, postResult.isSuccess, 0, LogType.HEALTH_CONNECT)
                 if (sourcePost != null) {
                     postedToSource = true
@@ -463,7 +468,7 @@ class HealthSyncManager(
             queuedRecords?.let {
                 return Result.success(HealthSyncResult.Queued(it))
             }
-            return Result.success(HealthSyncResult.Success(syncCounts, writeBack.writtenTotal))
+            return Result.success(HealthSyncResult.Success(syncCounts, writeBack.writtenTotal, missedUrls, webhookCount))
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {

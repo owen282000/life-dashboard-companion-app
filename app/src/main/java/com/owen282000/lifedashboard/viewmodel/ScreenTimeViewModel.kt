@@ -232,7 +232,11 @@ class ScreenTimeViewModel(
                     onSuccess = { result ->
                         when (result) {
                             is ScreenTimeSyncResult.NoData -> UiMessage.NoNewData
-                            is ScreenTimeSyncResult.Success -> UiMessage.SyncedApps(result.appCount)
+                            is ScreenTimeSyncResult.Success -> UiMessage.partly(
+                                UiMessage.SyncedApps(result.appCount),
+                                missed = result.missedUrls.size,
+                                total = result.webhookCount
+                            )
                             is ScreenTimeSyncResult.Queued -> UiMessage.QueuedApps(result.appCount)
                         }
                     },

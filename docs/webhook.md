@@ -424,7 +424,7 @@ Minutes are foreground time per app, derived from Android's activity resume, pau
 
 ## Delivery, retries and signing
 
-Every configured webhook URL receives each payload. A sync counts as delivered when at least one endpoint accepted it; per-URL results are visible in the in-app webhook logs.
+Every configured webhook URL receives each payload. A sync counts as delivered when at least one endpoint accepted it; per-URL results are visible in the in-app webhook logs. Nothing is queued for an endpoint that missed a payload another one took, so the app says so: the sync line reads "Delivered to 1 of 2 destinations", and after as many of those in a row as the failure notification threshold, a notification names the endpoint's host.
 
 Failed posts are retried up to 3 times with exponential backoff (1s, 2s), but only for transient failures: network errors, timeouts, HTTP 408, 429, and 5xx. Permanent client errors (401, 404, ...) fail immediately without retrying. The logs distinguish "recovered after retry" from "failed after all attempts".
 

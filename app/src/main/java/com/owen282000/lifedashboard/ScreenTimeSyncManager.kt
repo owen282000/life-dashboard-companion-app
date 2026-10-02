@@ -133,7 +133,7 @@ class ScreenTimeSyncManager(private val context: Context) {
 
             // Post to webhook
             val postResult = webhookManager.postData(jsonPayload)
-            SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, postResult.isSuccess)
+            SyncFailureNotifier.recordDelivery(context, LogType.SCREEN_TIME, postResult)
             SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalApps else 0, LogType.SCREEN_TIME)
             // Watermark advances regardless of delivery outcome: a failed payload goes to the
             // outbox and is guaranteed to be delivered by a later drain.
@@ -151,7 +151,15 @@ class ScreenTimeSyncManager(private val context: Context) {
                 return Result.success(ScreenTimeSyncResult.Queued(totalApps))
             }
 
-            return Result.success(ScreenTimeSyncResult.Success(totalApps, screenTimeDataList.size))
+            val outcome = postResult.getOrNull()
+            return Result.success(
+                ScreenTimeSyncResult.Success(
+                    totalApps,
+                    screenTimeDataList.size,
+                    outcome?.missedUrls.orEmpty().toSet(),
+                    outcome?.urlCount ?: 0
+                )
+            )
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {

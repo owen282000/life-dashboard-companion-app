@@ -11,7 +11,12 @@ data class SectionWebhook(
 /** What pairing would change per section, so the dialog can say it before anything happens. */
 data class SectionChange(
     val addsUrl: Boolean,
-    val replacesSecret: Boolean
+    val replacesSecret: Boolean,
+    /**
+     * The other addresses in the section when the secret changes: they keep getting payloads,
+     * signed with the new secret from then on, and one that checks signatures starts refusing.
+     */
+    val othersSignedWithNewSecret: List<String> = emptyList()
 ) {
     val changesNothing: Boolean get() = !addsUrl && !replacesSecret
 }
@@ -52,11 +57,14 @@ interface PairingStore {
 object PairingApply {
 
     /** What pairing would do, without doing it. */
-    fun preview(link: PairingLink, current: SectionWebhook): SectionChange =
-        SectionChange(
+    fun preview(link: PairingLink, current: SectionWebhook): SectionChange {
+        val replacesSecret = current.secret != null && current.secret != link.secret
+        return SectionChange(
             addsUrl = link.url !in current.urls,
-            replacesSecret = current.secret != null && current.secret != link.secret
+            replacesSecret = replacesSecret,
+            othersSignedWithNewSecret = if (replacesSecret) current.urls.filter { it != link.url } else emptyList()
         )
+    }
 
     /** Which sections the dialog may offer: what the receiver accepts. */
     fun offered(link: PairingLink): Set<PairingSource> = link.sources

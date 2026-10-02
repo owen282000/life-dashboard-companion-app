@@ -230,10 +230,23 @@ sealed interface UiMessage {
     /** Receive (issue #62): the sync line when something was written, and the two things that stop a switch. */
     data class SyncedRecordsWritten(val count: Int, val written: Int) : UiMessage
     data object ReceiveNeedsIntegration : UiMessage
+
+    /**
+     * [inner], from a sync that reached [delivered] of [total] webhooks. It counts as delivered,
+     * so the others are not queued; the line says so instead of reading as a full success.
+     */
+    data class PartlyDelivered(val inner: UiMessage, val delivered: Int, val total: Int) : UiMessage
+
+    companion object {
+        /** [message] as it stands, or wrapped when some of [total] webhooks missed the payload. */
+        fun partly(message: UiMessage, missed: Int, total: Int): UiMessage =
+            if (missed > 0 && total > missed) PartlyDelivered(message, total - missed, total) else message
+    }
     data class OtherSourceWrites(val source: String, val type: WriteBackType) : UiMessage
 
     /** True for the messages the sync line paints red. */
     val isFailure: Boolean
         get() = this is SyncFailed || this is HealthConnectUnavailable || this is UsageAccessMissing ||
-            this is PingFailed || this is PingFailedWith || this is PreviewFailed || this is ExportFailed
+            this is PingFailed || this is PingFailedWith || this is PreviewFailed || this is ExportFailed ||
+            this is PartlyDelivered
 }

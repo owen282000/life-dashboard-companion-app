@@ -79,7 +79,7 @@ object PendingDrainer {
                     // new data left the failure notification and a red status in place while the
                     // queued data had in fact arrived (F5 of P2-4). Its records count for today
                     // now, since the failed attempt that queued it counted none.
-                    SyncFailureNotifier.recordResult(context, logType, true)
+                    SyncFailureNotifier.recordDelivery(context, logType, result)
                     SyncStatusStore.record(context, true, item.recordCount, logType)
                 }
                 refusal != null && System.currentTimeMillis() - item.createdAt >= REFUSED_MAX_AGE_MS -> {

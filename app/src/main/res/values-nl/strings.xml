@@ -101,6 +101,12 @@
         <item quantity="one">%1$d ronde mislukt. Bekijk de logs voor details.</item>
         <item quantity="other">%1$d rondes op rij mislukt. Bekijk de logs voor details.</item>
     </plurals>
+    <string name="sync_partly_delivered">Afgeleverd bij %1$d van %2$d bestemmingen, zie Logs.</string>
+    <string name="partial_delivery_title">Niet elke bestemming krijgt je %1$s-gegevens</string>
+    <plurals name="partial_delivery_text">
+        <item quantity="one">%2$s heeft de laatste synchronisatie gemist. Een andere bestemming kreeg hem wel, dus voor %2$s staat hij niet in de wachtrij. Zie het tabblad Logs.</item>
+        <item quantity="other">%2$s heeft de laatste %1$d synchronisaties gemist. Een andere bestemming kreeg ze wel, dus voor %2$s staan ze niet in de wachtrij. Zie het tabblad Logs.</item>
+    </plurals>
     <string name="outbox_dropped_title">%1$s-data is verloren gegaan</string>
     <plurals name="outbox_dropped_text">
         <item quantity="one">Er is %1$d niet-afgeleverde sync uit de wachtrij verwijderd, dus de records ervan zijn verloren. Bekijk de logs voor details.</item>
@@ -476,6 +482,7 @@
     <string name="pairing_section_health">Gezondheid</string>
     <string name="pairing_section_screen_time">Schermtijd</string>
     <string name="pairing_replaces_secret">Vervangt het ondertekeningsgeheim dat dit onderdeel nu gebruikt.</string>
+    <string name="pairing_replaces_secret_others">Vervangt het ondertekeningsgeheim dat dit onderdeel nu gebruikt. %1$s krijgt vanaf dan payloads met het nieuwe: controleert het handtekeningen, geef het dan ook het nieuwe geheim, of haal het weg.</string>
     <string name="pairing_already_paired">Dit onderdeel verstuurt hier al naartoe. Er verandert niets.</string>
     <string name="pairing_types_note">Welke gegevenstypen worden verstuurd, en wanneer, blijft jouw keuze op de tabbladen. Koppelen vult alleen het adres en het geheim in.</string>
     <string name="pairing_confirm">Koppelen</string>

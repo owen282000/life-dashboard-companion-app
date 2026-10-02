@@ -101,6 +101,12 @@
         <item quantity="one">%1$d Runde fehlgeschlagen. Details stehen in den Logs.</item>
         <item quantity="other">%1$d Runden in Folge fehlgeschlagen. Details stehen in den Logs.</item>
     </plurals>
+    <string name="sync_partly_delivered">An %1$d von %2$d Zielen zugestellt, siehe Logs.</string>
+    <string name="partial_delivery_title">Nicht jedes Ziel bekommt deine %1$s-Daten</string>
+    <plurals name="partial_delivery_text">
+        <item quantity="one">%2$s hat die letzte Synchronisierung verpasst. Ein anderes Ziel hat sie bekommen, deshalb steht sie für %2$s nicht in der Warteschlange. Sieh im Tab Logs nach.</item>
+        <item quantity="other">%2$s hat die letzten %1$d Synchronisierungen verpasst. Ein anderes Ziel hat sie bekommen, deshalb stehen sie für %2$s nicht in der Warteschlange. Sieh im Tab Logs nach.</item>
+    </plurals>
     <string name="outbox_dropped_title">%1$s-Daten sind verloren gegangen</string>
     <plurals name="outbox_dropped_text">
         <item quantity="one">%1$d nicht zugestellter Sync wurde aus der Warteschlange verworfen, daher sind seine Datensätze verloren. Details stehen in den Logs.</item>
@@ -476,6 +482,7 @@
     <string name="pairing_section_health">Gesundheit</string>
     <string name="pairing_section_screen_time">Bildschirmzeit</string>
     <string name="pairing_replaces_secret">Ersetzt das Signaturgeheimnis, das dieser Bereich jetzt verwendet.</string>
+    <string name="pairing_replaces_secret_others">Ersetzt das Signaturgeheimnis, das dieser Bereich jetzt verwendet. %1$s bekommt ab dann Payloads, die mit dem neuen signiert sind: Prüft es Signaturen, gib ihm auch das neue Geheimnis, oder entferne es.</string>
     <string name="pairing_already_paired">Dieser Bereich sendet bereits hierhin. Es ändert sich nichts.</string>
     <string name="pairing_types_note">Welche Datentypen gesendet werden, und wann, bleibt deine Wahl auf den Tabs. Das Koppeln füllt nur die Adresse und das Geheimnis ein.</string>
     <string name="pairing_confirm">Koppeln</string>

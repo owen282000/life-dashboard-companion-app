@@ -80,7 +80,7 @@ class WebhookDeliveryTest {
         val started = Instant.now()
         val result = TestSetup.syncManager().performSync().getOrThrow()
 
-        assertEquals(HealthSyncResult.Success(mapOf(STEPS to 1, HEART_RATE to 3, WEIGHT to 1)), result)
+        assertEquals(HealthSyncResult.Success(mapOf(STEPS to 1, HEART_RATE to 3, WEIGHT to 1), webhookCount = 1), result)
         val post = receiver.exchanges.single()
         assertEquals("POST", post.request.method)
         assertEquals(TestSetup.HEALTH_PATH, post.path)

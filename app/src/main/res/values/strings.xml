@@ -103,6 +103,12 @@
         <item quantity="one">%1$d round failed. Check the logs for details.</item>
         <item quantity="other">%1$d rounds in a row failed. Check the logs for details.</item>
     </plurals>
+    <string name="sync_partly_delivered">Delivered to %1$d of %2$d destinations, see Logs.</string>
+    <string name="partial_delivery_title">Not every destination gets your %1$s data</string>
+    <plurals name="partial_delivery_text">
+        <item quantity="one">%2$s missed the last sync. Another destination took it, so it is not queued for %2$s. See the Logs tab.</item>
+        <item quantity="other">%2$s missed the last %1$d syncs. Another destination took them, so they are not queued for %2$s. See the Logs tab.</item>
+    </plurals>
     <string name="outbox_dropped_title">%1$s data was lost</string>
     <plurals name="outbox_dropped_text">
         <item quantity="one">%1$d undelivered sync was dropped from the outbox, so its records are lost. Check the logs for details.</item>
@@ -478,6 +484,7 @@
     <string name="pairing_section_health">Health</string>
     <string name="pairing_section_screen_time">Screen Time</string>
     <string name="pairing_replaces_secret">Replaces the signing secret this section uses now.</string>
+    <string name="pairing_replaces_secret_others">Replaces the signing secret this section uses now. %1$s gets payloads signed with the new one from then on: if it checks signatures, give it the new secret too, or remove it.</string>
     <string name="pairing_already_paired">This section already sends here. Nothing changes.</string>
     <string name="pairing_types_note">Which data types are sent, and when, stays your choice on the tabs. Pairing only fills in the address and the secret.</string>
     <string name="pairing_confirm">Pair</string>
