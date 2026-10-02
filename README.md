@@ -132,6 +132,7 @@ Every record carries a `uuid` for deduplication and a `source` package name. Use
 | [docs/brands/](docs/brands/README.md) | Fitbit, Garmin, Samsung and Gadgetbridge into Home Assistant without a cloud login, one page per brand |
 | [docs/recipes/scale-to-health-connect.md](docs/recipes/scale-to-health-connect.md) | A Xiaomi, Renpho, Eufy or Withings scale from Home Assistant into Samsung Health or Google Health, per route |
 | [docs/recipes/ask-your-own-llm.md](docs/recipes/ask-your-own-llm.md) | Asking a local language model about your history, read-only, through Home Assistant or the stack |
+| [docs/recipes/alarm-and-sleep.md](docs/recipes/alarm-and-sleep.md) | A bedtime reminder from your next alarm, a week of sleep, and whether you wake before the alarm, with the companion app |
 | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | What Fitbit, Cronometer, Health Sync, Zepp, Garmin and UREVO do and do not write |
 | [PRIVACY.md](PRIVACY.md) | What the app reads, stores and sends, and to whom (nobody but you) |
 | [AI_POLICY.md](AI_POLICY.md) | How AI assistance is used in building the app, and the rules for contributions |
