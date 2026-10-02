@@ -294,6 +294,19 @@ if ! fixture_ready; then
     fixture_ready || die "the fixture could not get Health Connect access; see $OUT/fixture-prepare.txt"
 fi
 
+# The app proves its own Health Connect access the same way, before the suite. Health Connect
+# can refuse the app's first writes after a first grant too, and the cure, a revoke and a grant,
+# kills the app's process: inside the suite that ended the whole run as "Process crashed".
+app_ready() {
+    adb shell am instrument -w --no-hidden-api-checks -e class "$APP_ID.smoke.GrantForSuite" \
+        "$RUNNER" > "$OUT/app-prepare.txt" 2>&1
+    grep -q 'OK (1 test)' "$OUT/app-prepare.txt"
+}
+if ! app_ready; then
+    adb shell pm revoke "$APP_ID" android.permission.health.WRITE_STEPS >/dev/null 2>&1
+    app_ready || die "the app could not get Health Connect write access; see $OUT/app-prepare.txt"
+fi
+
 # --- Run ----------------------------------------------------------------------------------------
 summary="$OUT/summary.md"
 status=0
