@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -216,7 +217,8 @@ class MainActivity : ComponentActivity() {
         activity: MainActivity,
         permissionLauncher: androidx.activity.result.ActivityResultLauncher<Set<String>>
     ) {
-        var selectedTab by remember { mutableStateOf(AppTab.HealthConnect) }
+        // Saveable, so turning the phone, a dark mode switch or a language change keeps the tab (P2-15).
+        var selectedTab by rememberSaveable { mutableStateOf(AppTab.HealthConnect) }
         val context = LocalContext.current
 
         Scaffold(
