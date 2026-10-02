@@ -221,7 +221,6 @@
     <string name="mqtt_username">Gebruikersnaam (optioneel)</string>
 
     <!-- Logsscherm -->
-    <string name="logs_clear">Wissen</string>
     <string name="logs_clear_logs">Logs wissen</string>
     <plurals name="logs_export_dialog_description">
         <item quantity="one">Exporteer %1$d log als JSON of CSV via het deelmenu.</item>
@@ -231,7 +230,6 @@
     <string name="logs_export_title">Logs exporteren</string>
     <string name="logs_empty">Nog geen logs</string>
     <string name="logs_error">Fout</string>
-    <string name="logs_failed_with_status">Mislukt - %1$s</string>
     <string name="logs_failure_line">%1$s: %2$s</string>
     <string name="logs_filter_all">Alles</string>
     <string name="logs_filter_health">Gezondheid</string>
@@ -248,7 +246,6 @@
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
     <string name="payload_preview_a11y">Payload, %1$s tekens</string>
     <string name="payload_preview_shown_part">De eerste %1$s van %2$s tekens worden getoond.</string>
-    <string name="logs_raw_payload">Ruwe payload</string>
     <string name="logs_record_count">%1$s: %2$d</string>
     <string name="logs_recent_failures">Recente mislukkingen:</string>
     <string name="logs_stat_records">Records</string>
@@ -257,11 +254,9 @@
     <string name="logs_stat_total">Totaal</string>
     <string name="logs_status_failure">✗ %1$s</string>
     <string name="logs_status_success">✓ %1$s</string>
-    <string name="logs_success_with_status">Gelukt - %1$s</string>
     <string name="logs_sync_overview">Synchronisatieoverzicht</string>
     <string name="logs_type_ratio">%1$d / %2$d</string>
     <string name="logs_unknown_error">Onbekende fout</string>
-    <string name="logs_unknown_status">?</string>
 
     <!-- Hoofdactivity: bovenbalk en onderste navigatie -->
     <string name="main_about">Over</string>
@@ -464,7 +459,6 @@
     <string name="resolution_1h">1 uur</string>
     <string name="resolution_group_sampled">Gemiddeld per venster</string>
     <string name="resolution_group_accumulated">Opgeteld per venster</string>
-    <string name="activity_logs_label">Bezorglogboek</string>
     <string name="activity_about_label">Over</string>
     <string name="tile_sync_label">Life Dashboard syncen</string>
     <string name="common_set">Instellen</string>

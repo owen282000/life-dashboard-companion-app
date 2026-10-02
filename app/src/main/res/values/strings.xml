@@ -223,7 +223,6 @@
     <string name="mqtt_username">Username (optional)</string>
 
     <!-- Logs screen -->
-    <string name="logs_clear">Clear</string>
     <string name="logs_clear_logs">Clear logs</string>
     <plurals name="logs_export_dialog_description">
         <item quantity="one">Export %1$d log as JSON or CSV via the share sheet.</item>
@@ -233,7 +232,6 @@
     <string name="logs_export_title">Export Logs</string>
     <string name="logs_empty">No logs yet</string>
     <string name="logs_error">Error</string>
-    <string name="logs_failed_with_status">Failed - %1$s</string>
     <string name="logs_failure_line">%1$s: %2$s</string>
     <string name="logs_filter_all">All</string>
     <string name="logs_filter_health">Health</string>
@@ -250,7 +248,6 @@
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
     <string name="payload_preview_a11y">Payload, %1$s characters</string>
     <string name="payload_preview_shown_part">Showing the first %1$s of %2$s characters.</string>
-    <string name="logs_raw_payload">Raw Payload</string>
     <string name="logs_record_count">%1$s: %2$d</string>
     <string name="logs_recent_failures">Recent failures:</string>
     <string name="logs_stat_records">Records</string>
@@ -259,11 +256,9 @@
     <string name="logs_stat_total">Total</string>
     <string name="logs_status_failure">✗ %1$s</string>
     <string name="logs_status_success">✓ %1$s</string>
-    <string name="logs_success_with_status">Success - %1$s</string>
     <string name="logs_sync_overview">Sync Overview</string>
     <string name="logs_type_ratio">%1$d / %2$d</string>
     <string name="logs_unknown_error">Unknown error</string>
-    <string name="logs_unknown_status">?</string>
 
     <!-- Main activity: top bar and bottom navigation -->
     <string name="main_about">About</string>
@@ -466,7 +461,6 @@
     <string name="resolution_1h">1 hour</string>
     <string name="resolution_group_sampled">Averaged per window</string>
     <string name="resolution_group_accumulated">Summed per window</string>
-    <string name="activity_logs_label">Delivery Logs</string>
     <string name="activity_about_label">About</string>
     <string name="tile_sync_label">Sync Life Dashboard</string>
     <string name="common_set">Set</string>

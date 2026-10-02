@@ -221,7 +221,6 @@
     <string name="mqtt_username">Benutzername (optional)</string>
 
     <!-- Log-Bildschirm -->
-    <string name="logs_clear">Leeren</string>
     <string name="logs_clear_logs">Logs leeren</string>
     <plurals name="logs_export_dialog_description">
         <item quantity="one">%1$d Log als JSON oder CSV über das Teilen-Menü exportieren.</item>
@@ -231,7 +230,6 @@
     <string name="logs_export_title">Logs exportieren</string>
     <string name="logs_empty">Noch keine Logs</string>
     <string name="logs_error">Fehler</string>
-    <string name="logs_failed_with_status">Fehlgeschlagen - %1$s</string>
     <string name="logs_failure_line">%1$s: %2$s</string>
     <string name="logs_filter_all">Alle</string>
     <string name="logs_filter_health">Gesundheit</string>
@@ -248,7 +246,6 @@
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
     <string name="payload_preview_a11y">Payload, %1$s Zeichen</string>
     <string name="payload_preview_shown_part">Die ersten %1$s von %2$s Zeichen werden angezeigt.</string>
-    <string name="logs_raw_payload">Roher Payload</string>
     <string name="logs_record_count">%1$s: %2$d</string>
     <string name="logs_recent_failures">Letzte Fehler:</string>
     <string name="logs_stat_records">Datensätze</string>
@@ -257,11 +254,9 @@
     <string name="logs_stat_total">Gesamt</string>
     <string name="logs_status_failure">✗ %1$s</string>
     <string name="logs_status_success">✓ %1$s</string>
-    <string name="logs_success_with_status">Erfolgreich - %1$s</string>
     <string name="logs_sync_overview">Synchronisierungsübersicht</string>
     <string name="logs_type_ratio">%1$d / %2$d</string>
     <string name="logs_unknown_error">Unbekannter Fehler</string>
-    <string name="logs_unknown_status">?</string>
 
     <!-- Hauptaktivität: obere Leiste und untere Navigation -->
     <string name="main_about">Über</string>
@@ -464,7 +459,6 @@
     <string name="resolution_1h">1 Std.</string>
     <string name="resolution_group_sampled">Pro Fenster gemittelt</string>
     <string name="resolution_group_accumulated">Pro Fenster summiert</string>
-    <string name="activity_logs_label">Zustellprotokoll</string>
     <string name="activity_about_label">Über</string>
     <string name="tile_sync_label">Life Dashboard synchronisieren</string>
     <string name="common_set">Festlegen</string>
