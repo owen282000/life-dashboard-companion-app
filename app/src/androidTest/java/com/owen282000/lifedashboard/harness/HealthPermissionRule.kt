@@ -83,26 +83,23 @@ class HealthPermissionRule : TestRule {
         /**
          * A write, to be sure the grants hold. On a fresh emulator Health Connect can refuse the
          * first writes after the very first grant ("Caller doesn't have WRITE_STEPS"), although
-         * every permission reads as granted; the first CI runs on main hit it in whichever test
-         * wrote first. Revoking one permission and granting it again settles it, so that is done
-         * before the tests run instead of failing one of them. The probe deletes nothing: it asks
-         * for the app's steps in the first millisecond of 1970.
+         * every permission reads as granted; revoking one permission and granting it again
+         * settles it. That revoke cannot happen here: Android kills an app whose permission is
+         * revoked, and the suite runs in the app's process, so the whole run ended as "Process
+         * crashed" (PR #82). scripts/instrumented.sh runs [GrantForSuite] first, revokes from the
+         * shell when this throws, and runs it again. The probe deletes nothing: it asks for the
+         * app's steps in the first millisecond of 1970.
          */
         private fun proveWriteAccess(context: Context) {
-            val steps = "android.permission.health.WRITE_STEPS"
             val client = HealthConnectClient.getOrCreate(context)
             val nothing = TimeRangeFilter.between(Instant.EPOCH, Instant.EPOCH.plusMillis(1))
-            for (attempt in 1..3) {
-                val refused = runCatching { runBlocking { client.deleteRecords(StepsRecord::class, nothing) } }
-                    .exceptionOrNull() as? SecurityException ?: return
-                Log.w(TAG, "Health Connect refused a write after the grant (attempt $attempt), granting again", refused)
-                val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
-                automation.executeShellCommand("pm revoke ${context.packageName} $steps").close()
-                Thread.sleep(500)
-                grantViaShellIdentity(context, setOf(steps))
-                Thread.sleep(500)
-            }
-            error("Health Connect keeps refusing writes although the permissions are granted")
+            val refused = runCatching { runBlocking { client.deleteRecords(StepsRecord::class, nothing) } }
+                .exceptionOrNull() as? SecurityException ?: return
+            throw IllegalStateException(
+                "Health Connect refuses writes although the permissions are granted; " +
+                    "revoke one from the shell and run GrantForSuite again (scripts/instrumented.sh does)",
+                refused
+            )
         }
 
         /** Every android.permission.health.* the installed app requests, so the list follows the manifest. */
