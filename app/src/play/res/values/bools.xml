@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- A paid listing asks for no donation: no Ko-fi row, and no "the app stays free". -->
+    <bool name="show_donation">false</bool>
+</resources>

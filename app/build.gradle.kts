@@ -120,6 +120,14 @@ android {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
+        // The Google Play build (P1-13): the release build without the donation row, which a
+        // paid listing cannot carry. A build type of its own rather than a flavour, so every
+        // existing task, output path and the F-Droid recipe (assembleRelease) stay exactly as
+        // they are; src/play/res switches the row off. Same application id and signing key as
+        // the release build. Build it with ./gradlew bundlePlay.
+        create("play") {
+            initWith(getByName("release"))
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

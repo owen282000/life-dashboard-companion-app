@@ -84,6 +84,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.booleanResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -294,7 +295,10 @@ class AboutActivity : ComponentActivity() {
                     LinkCard(Icons.Outlined.AutoAwesome, stringResource(R.string.about_whats_new), stringResource(R.string.about_whats_new_sub, versionName), "$REPO_URL/releases/tag/$versionName")
                     LinkCard(Icons.Outlined.BugReport, stringResource(R.string.about_report), stringResource(R.string.about_report_sub), "$REPO_URL/issues/new")
                     LinkCard(Icons.Outlined.Code, stringResource(R.string.about_github), "owen282000/life-dashboard-companion-app", REPO_URL)
-                    LinkCard(Icons.Outlined.LocalCafe, stringResource(R.string.about_coffee), stringResource(R.string.about_coffee_sub), "https://ko-fi.com/owen282000")
+                    // Not in the Google Play build, which is paid (P1-13, src/play/res/values/bools.xml).
+                    if (booleanResource(R.bool.show_donation)) {
+                        LinkCard(Icons.Outlined.LocalCafe, stringResource(R.string.about_coffee), stringResource(R.string.about_coffee_sub), "https://ko-fi.com/owen282000")
+                    }
                     TapCard(Icons.Outlined.PrivacyTip, stringResource(R.string.about_privacy_policy), stringResource(R.string.about_privacy_policy_sub), Icons.AutoMirrored.Filled.KeyboardArrowRight) {
                         context.startActivity(Intent(context, PrivacyPolicyActivity::class.java))
                     }

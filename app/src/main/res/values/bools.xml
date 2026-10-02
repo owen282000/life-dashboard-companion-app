@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Ko-fi row in About. Off in the Google Play build (src/play), which is paid. -->
+    <bool name="show_donation">true</bool>
+</resources>

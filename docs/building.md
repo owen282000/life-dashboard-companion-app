@@ -15,6 +15,8 @@ Health Connect features need a real device, or an emulator with the Health Conne
 
 Release signing is described in [KEYSTORE_SETUP.md](KEYSTORE_SETUP.md). Releases are driven by semver tags; the app version is derived from the tag at build time.
 
+The Google Play build is its own build type, `play`: the release build without the Ko-fi row in About, since that listing is paid. `./gradlew bundlePlay` makes the bundle for Play, with the same application id and signing key as the release build; the GitHub and F-Droid builds (`assembleRelease`) are unchanged.
+
 ## Releasing
 
 1. Add a `## [X.Y.Z]` section to [CHANGELOG.md](../CHANGELOG.md)
