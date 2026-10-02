@@ -316,4 +316,23 @@ class MqttSupportTest {
             "192.169.1.1", "2001:db8::1", "local.example.com"
         ).forEach { assertFalse(it, MqttSupport.isPrivateHost(it)) }
     }
+
+    @Test
+    fun clearsGoOutStateAndAttributesFirstAndTheConfigLast() {
+        // An empty attributes payload on an entity whose config still stands makes Home Assistant
+        // log "Erroneous JSON"; the config clear last removes the entity cleanly. MqttPublisher
+        // sends this list one topic at a time and waits for each acknowledgement.
+        val topics = MqttSupport.topicsFor("lifedashboard", "homeassistant", listOf("heart_rate", "weight"), "s21_ultra")
+        assertEquals(6, topics.size)
+        for (key in listOf("heart_rate", "weight")) {
+            val state = topics.indexOf(MqttSupport.stateTopic("lifedashboard", key, "s21_ultra"))
+            val attributes = topics.indexOf(MqttSupport.attributesTopic("lifedashboard", key, "s21_ultra"))
+            val config = topics.indexOf(MqttSupport.discoveryTopic("homeassistant", key, "s21_ultra"))
+            assertTrue("$key: $topics", state in 0 until attributes && attributes < config)
+        }
+        assertEquals(
+            MqttSupport.topicsFor("lifedashboard", "homeassistant", listOf("heart_rate"), "old"),
+            MqttSupport.topicsToClearOnRename("lifedashboard", "homeassistant", listOf("heart_rate"), "old", "new")
+        )
+    }
 }

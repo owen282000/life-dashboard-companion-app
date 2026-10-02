@@ -150,8 +150,12 @@ class MqttPublishTest {
         for (key in listOf("heart_rate", "weight", "steps_today")) {
             val cleared = listOf("$base/$key/state", "$base/$key/attributes", config(key))
             cleared.forEach { assertEquals("cleared: $it", "", probe.awaitLive(it).payload) }
-            val order = cleared.map { topic -> probe.live().indexOfFirst { it.topic == topic } }
-            assertEquals("state, attributes, config", order.sorted(), order)
+            // The broker keeps the order within one subscription, not across the two this probe
+            // has, so only state and attributes (both under the base topic) are compared here; it
+            // failed twice on [state, attributes] arriving after the config. The order the app
+            // sends all three in, config last, is MqttSupportTest's.
+            val order = cleared.take(2).map { topic -> probe.live().indexOfFirst { it.topic == topic } }
+            assertEquals("state before attributes", order.sorted(), order)
         }
         assertEquals("76", probe.awaitLive("$base/s21_ultra/heart_rate/state").payload)
         val named = Conservation.parse(probe.awaitLive(config("heart_rate", "s21_ultra")).payload)
