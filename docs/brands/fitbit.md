@@ -38,6 +38,8 @@ Nightly metrics (sleep, HRV, respiratory rate) reach Health Connect when the Goo
 
 Google Health also reads from Health Connect, including weight and body fat. A scale that talks to Home Assistant, and not to Fitbit, can be written into Health Connect by this app, and then shows up in Google Health: see [Receiving measurements from Home Assistant](../usage.md#receiving-measurements-from-home-assistant). Blood pressure is not among what Google Health reads.
 
+[Your scale into Samsung Health or Google Health](../recipes/scale-to-health-connect.md) covers getting a scale into Home Assistant first, per brand of scale.
+
 ## Compared with the Google Health integration
 
 | | Google Health integration | This app |

@@ -125,7 +125,11 @@ the phone (integration 0.7.0 or later):
 
 Measurements keep the time they were taken, so a weigh-in at 07:00 that syncs at 09:00 is
 07:00 in Health Connect. Anything older than 30 days is refused unless **Accept older
-measurements** is on, which is what the integration's **Send history to phone** button needs.
+measurements** is on. The integration's **Send history to phone** button sends up to 30 days;
+its `life_dashboard.queue_history` service goes back up to 90, and that is where the switch matters.
+
+Which entity to map for a Xiaomi, Renpho, Eufy or Withings scale, and the templates some of them
+need: [Your scale into Samsung Health or Google Health](recipes/scale-to-health-connect.md).
 
 ### MQTT
 

@@ -90,7 +90,7 @@ The other direction, from 1.20.0: a scale or a blood pressure monitor that talks
 
 - Seven types: weight, height, body fat, lean body mass, bone mass, body water mass and blood pressure. Each has its own switch and its own Health Connect write permission, asked for the moment the switch goes on and never in the bulk request; refused means off. Nothing else is declared.
 - Measurements keep their own time, not the sync's, and a repeat is an upsert: the integration's id and version become Health Connect's client record id and version, so a resend changes nothing and a correction wins.
-- Readings older than 30 days are refused unless "Accept older measurements" is on, which is what the integration's "Send history to phone" button needs.
+- Readings older than 30 days are refused unless "Accept older measurements" is on. The integration's "Send history to phone" button sends up to 30 days; its `life_dashboard.queue_history` service goes back up to 90, and that is where the switch matters.
 - What the app writes never goes back out: those records are left out of the outgoing payload and of `deleted_records`, and counted in `_diagnostics` as `own_records_skipped`.
 - When another app already writes the same type to Health Connect, the app says so when the switch goes on: a scale's own app plus Home Assistant is two readings a day.
 - Every round is a row in the Logs tab, folding out to each reading with its outcome; values only when full payloads are kept.
@@ -104,6 +104,8 @@ Health Connect is the destination this app can promise; what another app shows o
 | Garmin Connect | Does not read weight from Health Connect |
 
 The protocol is documented in [webhook.md](webhook.md#inbound-what-the-integration-may-answer). The next phase adds blood glucose, body temperature, oxygen saturation and single heart rate readings over the same channel; a generic inbound URL and an MQTT command topic, for setups without the integration, come only on request.
+
+The setup per scale, Xiaomi, Renpho, Eufy, Withings or a cloud account, is in [recipes/scale-to-health-connect.md](recipes/scale-to-health-connect.md).
 
 ## Data resolution
 

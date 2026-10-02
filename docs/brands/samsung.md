@@ -34,6 +34,8 @@ Samsung Health writes to Health Connect as soon as data is created or changed on
 
 Because the sync goes both ways, a scale that talks to Home Assistant, and not to Samsung Health, can end up in Samsung Health: this app writes the reading into Health Connect, and Samsung Health reads it from there. Samsung has confirmed reading weight and body fat that another app (a Withings scale) wrote to Health Connect; see [Receiving measurements from Home Assistant](../usage.md#receiving-measurements-from-home-assistant), and [A measurement from Home Assistant is not in Samsung Health](../usage.md#a-measurement-from-home-assistant-is-not-in-samsung-health) if one does not show up.
 
+[Your scale into Samsung Health or Google Health](../recipes/scale-to-health-connect.md) covers getting a scale into Home Assistant first, per brand of scale.
+
 ## Compared with the companion app
 
 The Home Assistant companion app can also read Health Connect on a Galaxy. It keeps the latest value as a sensor and reads the last 30 days. This app adds the history: every day in long-term statistics, with a backfill of up to a year, and 33 types instead of about 25. The two run side by side.

@@ -54,7 +54,7 @@ Already using the Home Assistant companion app's health sensors? [See how this c
 
 The full walkthrough, requirements and troubleshooting are in [docs/usage.md](docs/usage.md).
 
-No backend yet? [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is an example setup: a docker-compose with an HMAC-verifying receiver, Postgres and a provisioned Grafana dashboard. It is maintained as-is, so treat it as a starting point for your own backend rather than a finished product.
+No backend yet? [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is an example setup: a docker-compose with an HMAC-verifying receiver, Postgres and a provisioned Grafana dashboard. It is maintained as-is, so treat it as a starting point for your own backend rather than a finished product. To ask a local language model about what it holds, see [Ask your own LLM](docs/recipes/ask-your-own-llm.md).
 
 ## Home Assistant
 
@@ -130,6 +130,8 @@ Every record carries a `uuid` for deduplication and a `source` package name. Use
 | [docs/webhook.md](docs/webhook.md) | Complete payload reference, delivery, retries, HMAC signing, backend examples |
 | [docs/settings-backup.md](docs/settings-backup.md) | Exporting and importing your configuration between devices |
 | [docs/brands/](docs/brands/README.md) | Fitbit, Garmin, Samsung and Gadgetbridge into Home Assistant without a cloud login, one page per brand |
+| [docs/recipes/scale-to-health-connect.md](docs/recipes/scale-to-health-connect.md) | A Xiaomi, Renpho, Eufy or Withings scale from Home Assistant into Samsung Health or Google Health, per route |
+| [docs/recipes/ask-your-own-llm.md](docs/recipes/ask-your-own-llm.md) | Asking a local language model about your history, read-only, through Home Assistant or the stack |
 | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | What Fitbit, Cronometer, Health Sync, Zepp, Garmin and UREVO do and do not write |
 | [PRIVACY.md](PRIVACY.md) | What the app reads, stores and sends, and to whom (nobody but you) |
 | [AI_POLICY.md](AI_POLICY.md) | How AI assistance is used in building the app, and the rules for contributions |
