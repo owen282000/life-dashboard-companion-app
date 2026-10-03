@@ -39,6 +39,7 @@ import com.owen282000.lifedashboard.ExportManager
 import com.owen282000.lifedashboard.ImportNote
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.SyncScheduler
+import com.owen282000.lifedashboard.appPreferences
 import com.owen282000.lifedashboard.ui.theme.ink
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -277,7 +278,7 @@ fun ConfigBackupSection() {
 
     // Preview before anything is overwritten: an import replaces live configuration.
     pendingImport?.let { backup ->
-        val summary = backup.summarise()
+        val summary = remember(backup) { backup.summarise(context.appPreferences().getHealthEnabledDataTypes()) }
         AlertDialog(
             onDismissRequest = { pendingImport = null },
             title = { Text(stringResource(R.string.backup_import_title)) },
@@ -376,6 +377,7 @@ private fun unlockErrorFor(error: Throwable): Int = when (error) {
 @StringRes
 private fun noteText(note: ImportNote): Int = when (note) {
     ImportNote.SCREEN_TIME_KEPT -> R.string.backup_note_screen_time_kept
+    ImportNote.IPHONE_ANDROID_TYPES_KEPT -> R.string.backup_note_iphone_types_kept
     ImportNote.IPHONE_BASE_TOPIC_KEPT -> R.string.backup_note_iphone_topic_kept
     ImportNote.IPHONE_PHONE_NAME_KEPT -> R.string.backup_note_iphone_name_kept
 }

@@ -88,7 +88,7 @@ Plain exports are readable JSON:
 
 `urls_without_headers` lists the webhook URLs of that section that QR pairing added, which get none of its custom headers. A backup written before this list existed has none, and imports as it always did: the app sent the headers to every URL then.
 
-`receive_source_url` is only applied when it is one of the health webhook URLs in the same file. A backup written before 1.20.0 has none of the `phone_name` and `receive_*` keys, and importing it leaves the phone name, the Receive switches and the ledger as they are.
+`receive_source_url` is only applied when it is one of the phone's health webhook URLs after the import: the file's own when it has `webhook_urls`, otherwise the ones already on the phone. Any other URL clears the source. A backup written before 1.20.0 has none of the `phone_name` and `receive_*` keys, and importing it leaves the phone name, the Receive switches and the ledger as they are.
 
 A key that is absent leaves its setting as it is on import, and so does a whole section: a file without `screen_time` keeps the Screen Time webhooks, and one without `mqtt` keeps every broker. Unknown keys are ignored on import, so a file from a newer version still restores what the installed build understands. Data types are stored by name, and names this build does not know are skipped rather than failing the import.
 
@@ -123,7 +123,7 @@ Two values in an iPhone file name the iPhone, and this app does not take them ov
 
 The preview lists both when the file has them.
 
-The data types in an iPhone file are the ones enabled on the iPhone, so the file decides only the types the iPhone app has: those are switched on or off as the file says. The types it does not have (bone mass, body water mass, basal metabolic rate and skin temperature) keep their state on this phone. Receive and the series resolutions are not in an iPhone file at all, so they stay as they are too. What carries over the other way is in the iOS app's [settings-backup.md](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/settings-backup.md#moving-between-android-and-iphone).
+The data types in an iPhone file are the ones enabled on the iPhone, so the file decides only the types the iPhone app has: those are switched on or off as the file says. The types it does not have (bone mass, body water mass, basal metabolic rate and skin temperature) keep their state on this phone. The preview counts the types the phone ends up with and says this. Receive and the series resolutions are not in an iPhone file at all, so they stay as they are too. What carries over the other way is in the iOS app's [settings-backup.md](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/settings-backup.md#moving-between-android-and-iphone).
 
 ## Keeping an export safe
 

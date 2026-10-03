@@ -74,11 +74,17 @@ data class ConfigBackup(
     /** True for a file written by the iPhone app. */
     val isFromIPhone: Boolean get() = platform == PLATFORM_IOS
 
-    /** What an import would replace, for the preview. */
-    fun summarise(): BackupSummary = BackupSummary(
+    /**
+     * What an import would replace, for the preview. The data type count is what the phone
+     * ends up with, given the types enabled on it now: from an iPhone file that is not the
+     * file's own count (see [ConfigBackupManager.dataTypesOnImport]).
+     */
+    fun summarise(currentDataTypes: Set<HealthDataType>): BackupSummary = BackupSummary(
         healthWebhooks = health.webhookUrls?.size,
         screenTimeWebhooks = screenTime.webhookUrls?.size,
-        enabledDataTypes = options.enabledDataTypes?.size,
+        enabledDataTypes = options.enabledDataTypes?.let {
+            ConfigBackupManager.dataTypesOnImport(it, currentDataTypes, isFromIPhone).size
+        },
         brokers = listOfNotNull(mqtt.shared, mqtt.healthOwnBroker, mqtt.screenTimeOwnBroker).count { it.host.isNotBlank() },
         includesSecrets = containsSecrets()
     )
@@ -100,6 +106,7 @@ data class ConfigBackup(
     /** What the import preview says beyond the counts: what this file leaves as it is. */
     fun importNotes(): List<ImportNote> = buildList {
         if (screenTime.webhookUrls == null) add(ImportNote.SCREEN_TIME_KEPT)
+        if (isFromIPhone && options.enabledDataTypes != null) add(ImportNote.IPHONE_ANDROID_TYPES_KEPT)
         if (isFromIPhone && hasIPhoneBaseTopic()) add(ImportNote.IPHONE_BASE_TOPIC_KEPT)
         if (isFromIPhone && !options.phoneName.isNullOrBlank()) add(ImportNote.IPHONE_PHONE_NAME_KEPT)
     }
@@ -120,6 +127,9 @@ data class BackupSummary(
 enum class ImportNote {
     /** The file has no Screen Time section, which a file from the iPhone app never has. */
     SCREEN_TIME_KEPT,
+
+    /** The data types the iPhone app does not have keep their state on this phone. */
+    IPHONE_ANDROID_TYPES_KEPT,
 
     /** The iPhone's default topic is left out, so the two phones do not share sensors. */
     IPHONE_BASE_TOPIC_KEPT,

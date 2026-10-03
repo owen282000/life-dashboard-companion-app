@@ -402,6 +402,7 @@
     <string name="backup_from_iphone">Mit der iPhone-App erstellt</string>
     <string name="backup_exported_at">Exportiert am %1$s</string>
     <string name="backup_note_screen_time_kept">Diese Datei enthält keine Bildschirmzeit-Einstellungen, daher bleiben die auf diesem Telefon erhalten, auch die Tagesgrenze.</string>
+    <string name="backup_note_iphone_types_kept">Die iPhone-App hat keine Knochenmasse, kein Körperwasser, keinen Grundumsatz und keine Hauttemperatur, daher bleiben diese auf diesem Telefon an oder aus wie bisher.</string>
     <string name="backup_note_iphone_topic_kept">Das MQTT-Topic des iPhones, lifedashboard-ios, wird nicht übernommen. Dieses Telefon behält sein eigenes, damit die beiden Telefone keine Sensoren teilen.</string>
     <string name="backup_note_iphone_name_kept">Der Telefonname des iPhones wird nicht übernommen. Dieses Telefon behält seinen eigenen.</string>
     <string name="backup_keeps_credentials">Diese Datei enthält keine Zugangsdaten, daher bleiben die auf diesem Gerät erhalten.</string>

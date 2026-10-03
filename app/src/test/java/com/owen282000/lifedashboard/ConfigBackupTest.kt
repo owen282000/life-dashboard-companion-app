@@ -164,13 +164,13 @@ class ConfigBackupTest {
     fun summaryReportsCountsAndSecretPresence() {
         assertEquals(
             BackupSummary(healthWebhooks = 2, screenTimeWebhooks = 1, enabledDataTypes = 3, brokers = 2, includesSecrets = true),
-            fullBackup().summarise()
+            fullBackup().summarise(currentDataTypes = setOf(HealthDataType.BONE_MASS))
         )
-        assertFalse(fullBackup().withoutSecrets().summarise().includesSecrets)
+        assertFalse(fullBackup().withoutSecrets().summarise(emptySet()).includesSecrets)
         // A part the file does not have is not counted as zero: the device keeps its own.
         assertEquals(
             BackupSummary(healthWebhooks = null, screenTimeWebhooks = null, enabledDataTypes = null, brokers = 0, includesSecrets = false),
-            ConfigBackup.decode("""{"version": 1}""").summarise()
+            ConfigBackup.decode("""{"version": 1}""").summarise(emptySet())
         )
     }
 
@@ -402,10 +402,25 @@ class ConfigBackupTest {
         assertEquals("lifedashboard", applied.mqtt.sectionOnImport(MqttSection.HEALTH, deviceHealth, file.containsSecrets()).baseTopic)
         assertNull("the phone keeps its own name", applied.options.phoneName)
         assertEquals(
-            listOf(ImportNote.SCREEN_TIME_KEPT, ImportNote.IPHONE_BASE_TOPIC_KEPT, ImportNote.IPHONE_PHONE_NAME_KEPT),
+            listOf(
+                ImportNote.SCREEN_TIME_KEPT,
+                ImportNote.IPHONE_ANDROID_TYPES_KEPT,
+                ImportNote.IPHONE_BASE_TOPIC_KEPT,
+                ImportNote.IPHONE_PHONE_NAME_KEPT
+            ),
             file.importNotes()
         )
-        assertNull(file.summarise().screenTimeWebhooks)
+        assertNull(file.summarise(emptySet()).screenTimeWebhooks)
+    }
+
+    @Test
+    fun thePreviewCountsTheTypesThePhoneEndsUpWith() {
+        val file = ConfigBackup.decode(iPhoneFile)
+        // The file lists 4; the two Android-only types on the phone stay, SLEEP goes off.
+        val onPhone = setOf(HealthDataType.BONE_MASS, HealthDataType.SKIN_TEMPERATURE, HealthDataType.SLEEP)
+        assertEquals(6, file.summarise(onPhone).enabledDataTypes)
+        // A file from this app replaces the list, so its own count is the count.
+        assertEquals(3, fullBackup().summarise(onPhone).enabledDataTypes)
     }
 
     @Test

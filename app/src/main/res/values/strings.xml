@@ -404,6 +404,7 @@
     <string name="backup_from_iphone">Made with the iPhone app</string>
     <string name="backup_exported_at">Exported %1$s</string>
     <string name="backup_note_screen_time_kept">This file has no Screen Time settings, so the ones on this phone are kept, the day boundary included.</string>
+    <string name="backup_note_iphone_types_kept">The iPhone app has no bone mass, body water mass, basal metabolic rate or skin temperature, so those stay on or off as they are on this phone.</string>
     <string name="backup_note_iphone_topic_kept">The iPhone\'s MQTT topic lifedashboard-ios is not taken over. This phone keeps its own, so the two phones do not share sensors.</string>
     <string name="backup_note_iphone_name_kept">The iPhone\'s phone name is not taken over. This phone keeps its own.</string>
     <string name="backup_keeps_credentials">This file has no credentials, so the ones already on this device are kept.</string>

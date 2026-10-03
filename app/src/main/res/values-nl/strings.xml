@@ -402,6 +402,7 @@
     <string name="backup_from_iphone">Gemaakt met de iPhone-app</string>
     <string name="backup_exported_at">Geëxporteerd op %1$s</string>
     <string name="backup_note_screen_time_kept">Dit bestand heeft geen Schermtijd-instellingen, dus die op deze telefoon blijven zoals ze zijn, ook de daggrens.</string>
+    <string name="backup_note_iphone_types_kept">De iPhone-app heeft geen botmassa, lichaamswater, basaal metabolisme of huidtemperatuur, dus die blijven op deze telefoon aan of uit zoals ze zijn.</string>
     <string name="backup_note_iphone_topic_kept">Het MQTT-topic van de iPhone, lifedashboard-ios, wordt niet overgenomen. Deze telefoon houdt zijn eigen topic, zodat de twee telefoons geen sensoren delen.</string>
     <string name="backup_note_iphone_name_kept">De telefoonnaam van de iPhone wordt niet overgenomen. Deze telefoon houdt zijn eigen naam.</string>
     <string name="backup_keeps_credentials">Dit bestand bevat geen inloggegevens, dus die op dit toestel blijven behouden.</string>
