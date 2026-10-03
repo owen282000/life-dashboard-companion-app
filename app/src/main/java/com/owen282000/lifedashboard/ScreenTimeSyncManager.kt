@@ -136,19 +136,27 @@ class ScreenTimeSyncManager(private val context: Context) {
             // last. Not delivered, also when the worker is stopped mid-post, it joins the outbox
             // in place of the week queued before it; a process that dies in between leaves it
             // for the next drain. The watermark advances regardless of delivery outcome: the
-            // outbox guarantees a later delivery.
+            // outbox guarantees a later delivery. Without a writable outbox the watermark moves
+            // only on delivery, and a failure is reported as one, since nothing was queued.
+            var committed = false
             val postResult = PendingSyncStore.writeAhead(
                 context = context,
                 payload = jsonPayload,
                 dataType = "screen_time",
                 logType = LogType.SCREEN_TIME.name,
                 recordCount = totalApps,
-                commit = { preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis()) },
+                commit = {
+                    preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis())
+                    committed = true
+                },
                 post = { webhookManager.postData(jsonPayload) }
             )
             SyncFailureNotifier.recordDelivery(context, LogType.SCREEN_TIME, postResult)
             SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalApps else 0, LogType.SCREEN_TIME)
 
+            if (postResult.isFailure && !committed) {
+                return Result.failure(postResult.exceptionOrNull() ?: Exception("Failed to deliver screen time data"))
+            }
             if (postResult.isFailure) {
                 return Result.success(ScreenTimeSyncResult.Queued(totalApps))
             }

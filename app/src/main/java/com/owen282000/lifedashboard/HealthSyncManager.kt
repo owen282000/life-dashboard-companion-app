@@ -141,6 +141,8 @@ class HealthSyncManager(
             var webhookCount = 0
             var lastDelivered: HealthData? = null
             var queuedRecords: Int? = null
+            // A failed post that could not be queued either, see PendingSyncStore.writeAhead.
+            var notQueued: Throwable? = null
             var anyData = false
             // Samples of bucketed windows still open: carried from the last sync, then from
             // pass to pass, and stored again at the end so a window goes out once, complete.
@@ -319,6 +321,7 @@ class HealthSyncManager(
                 val passCounts = mutableMapOf<HealthDataType, Int>()
                 val carriedOut = carried
                 val deletionsLeft = pendingDeletions
+                var committed = false
                 val postResult = PendingSyncStore.writeAhead(
                     context = context,
                     payload = jsonPayload,
@@ -329,6 +332,7 @@ class HealthSyncManager(
                         updateSyncTimestamps(healthData, passCounts)
                         preferencesManager.setBucketCarry(carriedOut)
                         preferencesManager.setPendingDeletions(deletionsLeft)
+                        committed = true
                     },
                     post = { webhookManager.postData(jsonPayload) }
                 )
@@ -345,6 +349,12 @@ class HealthSyncManager(
                     receive(writeBack, sourcePost, postResult)
                 }
 
+                if (postResult.isFailure && !committed) {
+                    // The outbox could not be written, so nothing moved: the next sync reads
+                    // these records again, and this one reports the failure as it is.
+                    notQueued = postResult.exceptionOrNull()
+                    break
+                }
                 if (postResult.isFailure) {
                     // In the outbox since the post returned, so a later drain delivers it.
                     queuedRecords = totalRecords
@@ -389,16 +399,22 @@ class HealthSyncManager(
                 )
                 // Write-ahead like the payloads above: the deletions leave storage once the
                 // payload that holds them is on disk, before the post, and a failed or stopped
-                // post leaves that payload in the outbox.
+                // post leaves that payload in the outbox. Without a writable outbox they stay
+                // stored until a post delivers them.
+                var committed = false
                 val postResult = PendingSyncStore.writeAhead(
                     context = context,
                     payload = deletionPayload,
                     dataType = "health_connect",
                     logType = LogType.HEALTH_CONNECT.name,
                     recordCount = 0,
-                    commit = { preferencesManager.setPendingDeletions(DeletionSummary.EMPTY) },
+                    commit = {
+                        preferencesManager.setPendingDeletions(DeletionSummary.EMPTY)
+                        committed = true
+                    },
                     post = { webhookManager.postData(deletionPayload) }
                 )
+                if (postResult.isFailure && !committed) notQueued = postResult.exceptionOrNull()
                 // Reported like any other delivery: a webhook that is down for a run of
                 // deletion-only syncs would otherwise never trip the failure notifier, and the
                 // dashboard would show a last sync that never moved while payloads went out.
@@ -472,6 +488,7 @@ class HealthSyncManager(
                 MqttPublisher(context).publishHealthData(data, totalsForMqtt)
             }
 
+            notQueued?.let { return Result.failure(it) }
             queuedRecords?.let {
                 return Result.success(HealthSyncResult.Queued(it))
             }

@@ -237,22 +237,53 @@ class PendingSyncStoreTest {
         }
     }
 
+    /** A delivery through a store whose outbox cannot be written, as on a full disk. */
+    private fun unwritable(outcome: Result<Unit>): List<String> {
+        val store = PendingSyncStore(tmp.newFile())
+        val steps = mutableListOf<String>()
+        val result = runBlocking {
+            store.writeAhead(
+                "p1", "health_connect", "HEALTH_CONNECT", 1, 100,
+                commit = { steps += "commit" },
+                post = { steps += "post"; outcome },
+                onQueued = { steps += "queued" },
+                onUnwritable = { steps += "warned" }
+            )
+        }
+        assertEquals(outcome, result)
+        assertEquals("nothing queued, nothing in flight", 0, store.size() + store.inFlightIds().size)
+        return steps
+    }
+
     @Test
-    fun writeAheadThatCannotWriteMovesNothing() {
-        val store = PendingSyncStore(tmp.newFile("not-a-directory"))
+    fun anUnwritableOutboxStillPostsAndCommitsOnlyADelivery() {
+        assertEquals("posted first, committed once it arrived", listOf("warned", "post", "commit"), unwritable(Result.success(Unit)))
+    }
+
+    @Test
+    fun anUnwritableOutboxCommitsNothingWhenThePostFails() {
+        assertEquals("the next sync reads the same records again", listOf("warned", "post"), unwritable(Result.failure(Exception("HTTP 503"))))
+    }
+
+    @Test
+    fun anUnwritableOutboxCommitsNothingWhenThePostIsStopped() {
+        val store = PendingSyncStore(tmp.newFile())
         var committed = false
-        var posted = false
         val caught = try {
             runBlocking {
-                store.writeAhead("p1", "health_connect", "HEALTH_CONNECT", 1, 100, commit = { committed = true }, post = { posted = true; Result.success(Unit) }, onQueued = {})
+                store.writeAhead<Unit>(
+                    "p1", "health_connect", "HEALTH_CONNECT", 1, 100,
+                    commit = { committed = true },
+                    post = { throw kotlinx.coroutines.CancellationException("worker stopped") },
+                    onQueued = {}
+                )
             }
             null
         } catch (e: Exception) {
             e
         }
-        assertTrue("the sync fails", caught != null)
-        assertTrue("before the commit, so the records are read again", !committed)
-        assertTrue(!posted)
+        assertEquals("worker stopped", caught?.message)
+        assertTrue(!committed)
     }
 
     @Test

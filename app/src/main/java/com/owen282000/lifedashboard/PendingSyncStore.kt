@@ -72,7 +72,11 @@ class PendingSyncStore(private val dir: File) {
      * A process that dies anywhere in there leaves the item in flight, and the next drain
      * queues it ([recoverInFlight]). Every record is then delivered, queued, or still ahead of
      * its watermark; at worst a payload arrives twice, which a receiver deduplicates on uuid.
-     * A payload that cannot be written fails the sync before anything moved.
+     *
+     * A payload that cannot be written (a full disk) still goes out, as on iOS, but without a
+     * copy to fall back on: [onUnwritable] hears why, the post comes first, and [commit] runs
+     * only when it delivered. Undelivered, nothing moved and nothing is queued, so the next
+     * sync reads the same records again.
      */
     suspend fun <T> writeAhead(
         payload: String,
@@ -82,9 +86,17 @@ class PendingSyncStore(private val dir: File) {
         nowMillis: Long,
         commit: () -> Unit,
         post: suspend () -> Result<T>,
-        onQueued: (List<PendingItem>) -> Unit
+        onQueued: (List<PendingItem>) -> Unit,
+        onUnwritable: (java.io.IOException) -> Unit = {}
     ): Result<T> {
-        val item = writeInFlight(payload, dataType, logType, recordCount, nowMillis)
+        val item = try {
+            writeInFlight(payload, dataType, logType, recordCount, nowMillis)
+        } catch (e: java.io.IOException) {
+            onUnwritable(e)
+            val outcome = post()
+            if (outcome.isSuccess) commit()
+            return outcome
+        }
         var delivered = false
         try {
             commit()
@@ -293,6 +305,8 @@ class PendingSyncStore(private val dir: File) {
 
         private const val IN_FLIGHT_DIR = "in_flight"
 
+        private const val TAG = "PendingSyncStore"
+
         /**
          * The in-flight ids a sync of this process holds. Memory on purpose: a process that
          * dies takes it along, and what it left in flight is then free for [recoverInFlight].
@@ -325,7 +339,10 @@ class PendingSyncStore(private val dir: File) {
             nowMillis = System.currentTimeMillis(),
             commit = commit,
             post = post,
-            onQueued = { dropped -> report(context, logType, dropped, System.currentTimeMillis()) }
+            onQueued = { dropped -> report(context, logType, dropped, System.currentTimeMillis()) },
+            onUnwritable = { e ->
+                android.util.Log.w(TAG, "Outbox not writable, $dataType payload posted without a copy; watermarks move only on delivery", e)
+            }
         )
 
         /** [PendingSyncStore.recoverInFlight] in the app's outbox, with [report] for what it pushed out. */
