@@ -52,17 +52,32 @@ val describedVersion = exactTag
     ?: runGit("describe", "--tags", "--match", "[0-9]*.[0-9]*.[0-9]*", "--dirty")
 val semverMatch = baseVersionTag?.let { semverRegex.find(it) }
 
-if (semverMatch == null && System.getenv("CI") != null) {
+// A fork made with GitHub's default "Copy the main branch only" has no tags, so its CI
+// cannot describe a version (#94). There the version comes from version.properties, which
+// prepare-release.sh keeps equal to the last tag, marked "-untagged" so such a build never
+// passes for a release. Only this repository's own CI insists on the tag: here a missing
+// tag means a shallow checkout, and a release must never be built from the fallback.
+val versionProperties = providers.fileContents(rootProject.layout.projectDirectory.file("version.properties"))
+    .asText.orNull
+    ?.lineSequence()
+    ?.mapNotNull { line -> line.split("=", limit = 2).takeIf { it.size == 2 && !line.startsWith("#") } }
+    ?.associate { (key, value) -> key.trim() to value.trim() }
+    .orEmpty()
+val isUpstreamCi = System.getenv("GITHUB_REPOSITORY") == "owen282000/life-dashboard-companion-app"
+
+if (semverMatch == null && System.getenv("CI") != null && isUpstreamCi) {
     throw GradleException(
         "No semver tag (X.Y.Z) reachable from HEAD. CI builds require full git history: " +
         "use actions/checkout with fetch-depth: 0."
     )
 }
 
-val appVersionName = describedVersion ?: "0.0.0-dev"
+val appVersionName = describedVersion
+    ?: versionProperties["VERSION_NAME"]?.let { "$it-untagged" }
+    ?: "0.0.0-dev"
 val appVersionCode = semverMatch?.destructured?.let { (major, minor, patch) ->
     major.toInt() * 10000 + minor.toInt() * 100 + patch.toInt()
-} ?: 1
+} ?: versionProperties["VERSION_CODE"]?.toIntOrNull() ?: 1
 
 android {
     namespace = "com.owen282000.lifedashboard"
