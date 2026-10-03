@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard.viewmodel
 
+import com.owen282000.lifedashboard.BackfillFailure
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.MqttBroker
 import com.owen282000.lifedashboard.MqttSectionSettings
@@ -227,6 +228,10 @@ sealed interface UiMessage {
     data class BackfillComplete(val count: Int) : UiMessage
     data object BackfillNeedsWebhook : UiMessage
 
+    /** The backfill stopped on [failure]; the screen words it, see BackfillTexts. */
+    data class BackfillFailed(val failure: BackfillFailure) : UiMessage
+    data object BackfillAlreadyRunning : UiMessage
+
     /** Receive (issue #62): the sync line when something was written, and the two things that stop a switch. */
     data class SyncedRecordsWritten(val count: Int, val written: Int) : UiMessage
     data object ReceiveNeedsIntegration : UiMessage
@@ -248,5 +253,5 @@ sealed interface UiMessage {
     val isFailure: Boolean
         get() = this is SyncFailed || this is HealthConnectUnavailable || this is UsageAccessMissing ||
             this is PingFailed || this is PingFailedWith || this is PreviewFailed || this is ExportFailed ||
-            this is PartlyDelivered
+            this is PartlyDelivered || this is BackfillFailed
 }

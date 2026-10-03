@@ -152,10 +152,29 @@
         <item quantity="one">Nachtrag abgeschlossen: %1$d Datensatz gesendet</item>
         <item quantity="other">Nachtrag abgeschlossen: %1$d Datensätze gesendet</item>
     </plurals>
+    <string name="health_backfill_already_running">Es läuft bereits ein Nachtragen</string>
+    <string name="health_backfill_continues">Das letzte Nachtragen von %1$d Tagen hat nach %2$d von %3$d Blöcken angehalten. Wähle wieder %1$d T, um dort weiterzumachen; eine andere Länge beginnt von vorn.</string>
+    <string name="health_backfill_failed_delivery">Zustellung nach %1$d von %2$d Blöcken fehlgeschlagen. Starte dasselbe Nachtragen erneut, um dort weiterzumachen.</string>
+    <string name="health_backfill_failed_no_progress">Nachtragen bei Block %1$d von %2$d angehalten: mehrere Läufe hintereinander haben nichts gesendet (das Lesekontingent von Health Connect, oder Android hat es gestoppt). Starte dasselbe Nachtragen erneut, um dort weiterzumachen.</string>
+    <string name="health_backfill_failed_no_types">Nachladen braucht mindestens einen aktivierten Datentyp</string>
+    <string name="health_backfill_failed_not_returned">Nach %1$d von %2$d Blöcken angehalten: Health Connect hat %3$s nicht geliefert. Starte dasselbe Nachtragen erneut, um dort weiterzumachen.</string>
+    <string name="health_backfill_failed_read">Nachtragen gestoppt: Health Connect konnte nicht gelesen werden (%1$s). Starte es erneut, um weiterzumachen.</string>
+    <string name="health_backfill_failed_too_many_chunks">Nach %1$d von %2$d Blöcken angehalten: der nächste braucht mehr als %3$d Sendungen.</string>
+    <string name="health_backfill_failed_unexpected">Nachtragen gestoppt: %1$s</string>
+    <plurals name="health_backfill_log_done">
+        <item quantity="one">Nachtragen von %1$d Tagen fertig: %2$d Blöcke, %3$d Datensatz</item>
+        <item quantity="other">Nachtragen von %1$d Tagen fertig: %2$d Blöcke, %3$d Datensätze</item>
+    </plurals>
+    <string name="health_backfill_log_paused">Pausiert bei Block %1$d von %2$d: das Lesekontingent von Health Connect ist aufgebraucht; geht von selbst weiter</string>
+    <string name="health_backfill_log_restarted">Die Datentypen haben sich seit dem Start geändert, deshalb hat das Nachtragen beim ersten Block neu begonnen.</string>
+    <string name="health_backfill_log_stopped">Angehalten bei Block %1$d von %2$d</string>
     <string name="health_backfill_grant_history">Verlaufszugriff erteilen</string>
     <string name="health_backfill_history">Verlauf nachtragen</string>
     <string name="health_backfill_history_permission_warning">Health Connect liest nur die letzten 30 Tage, bis du den Verlaufszugriff erteilst.</string>
+    <string name="health_backfill_paused">Nachtragen pausiert bei %1$d/%2$d, geht von selbst weiter...</string>
     <string name="health_backfill_progress">Nachtragen %1$d/%2$d...</string>
+    <string name="health_backfill_restarted">Datentypen geändert, neu begonnen: %1$d/%2$d...</string>
+    <string name="health_backfill_stop">Stoppen</string>
     <string name="health_backfill_title">Verlauf nachtragen</string>
     <string name="health_backfill_waiting">Nachtragen wartet, bis die laufende Synchronisierung fertig ist...</string>
     <string name="health_connect_not_available">Health Connect ist nicht verfügbar</string>

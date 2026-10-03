@@ -1,6 +1,8 @@
 package com.owen282000.lifedashboard.harness
 
 import androidx.test.platform.app.InstrumentationRegistry
+import com.owen282000.lifedashboard.BackfillJobStore
+import com.owen282000.lifedashboard.BackfillRun
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncManager
 import com.owen282000.lifedashboard.MqttBroker
@@ -62,6 +64,17 @@ object TestSetup {
 
     /** The sync as the app runs it, on a Health Connect client that counts its calls. */
     fun syncManager(): HealthSyncManager = HealthSyncManager(context, Managers.counting(context))
+
+    /**
+     * A backfill of [days] the way its worker runs one (P2-14): the stored job, started or
+     * continued as the Backfill dialog does, run until it ends or stops.
+     */
+    suspend fun backfill(
+        days: Int,
+        manager: HealthSyncManager = syncManager(),
+        onWaiting: (Boolean) -> Unit = {},
+        onProgress: (Int, Int) -> Unit = { _, _ -> }
+    ): BackfillRun = manager.runBackfill(BackfillJobStore.startOrContinue(context, days), onWaiting, onProgress)
 
     /** The failure streak SyncFailureNotifier keeps for HEALTH_CONNECT, SCREEN_TIME or RECEIVE. */
     fun streak(name: String): Int =

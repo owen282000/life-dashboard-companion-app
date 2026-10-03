@@ -2,6 +2,10 @@ package com.owen282000.lifedashboard.viewmodel
 
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
+import com.owen282000.lifedashboard.BackfillJob
+import com.owen282000.lifedashboard.BackfillStart
+import com.owen282000.lifedashboard.BackfillStatus
+import com.owen282000.lifedashboard.BackfillWork
 import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthSyncManager
 import com.owen282000.lifedashboard.HealthSyncResult
@@ -12,6 +16,7 @@ import com.owen282000.lifedashboard.ScreenTimeSyncManager
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
 import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.WriteBackType
+import kotlinx.coroutines.flow.Flow
 
 /*
  * The side effects the tabs trigger (sync, preview, backfill, test ping, permission checks),
@@ -24,8 +29,17 @@ interface HealthOps {
     suspend fun sync(): Result<HealthSyncResult>
     suspend fun preview(): Result<String>
 
-    /** [onWaiting] is true while the backfill waits for a sync that holds the lock, false once it starts. */
-    suspend fun backfill(days: Int, onWaiting: (Boolean) -> Unit, onProgress: (done: Int, total: Int) -> Unit): Result<Int>
+    /** The backfill as its WorkManager job reports it; it runs on when the screen is left (P2-14). */
+    fun backfillStatus(): Flow<BackfillStatus>
+
+    /** Starts a backfill of [days], or continues the stopped one of that length; nothing while one runs. */
+    suspend fun startBackfill(days: Int): BackfillStart
+
+    /** Stops the backfill and forgets where it was. */
+    fun cancelBackfill()
+
+    /** The stopped backfill that starting one of its length would continue, or null. */
+    fun stoppedBackfill(): BackfillJob?
     suspend fun testPing(webhook: WebhookDraft): Result<Unit>
 
     /** Package names of other apps that wrote [type] to Health Connect in the last week (Receive, issue #62). */
@@ -64,8 +78,10 @@ class RealHealthOps(private val context: Context) : HealthOps {
     override suspend fun sync() = HealthSyncManager(context).performSync()
     override suspend fun preview() = HealthSyncManager(context).previewData()
     override suspend fun otherSourcesWriting(type: WriteBackType) = HealthConnectManager(context).otherSourcesWriting(type)
-    override suspend fun backfill(days: Int, onWaiting: (Boolean) -> Unit, onProgress: (Int, Int) -> Unit) =
-        HealthSyncManager(context).performBackfill(days, onWaiting, onProgress)
+    override fun backfillStatus() = BackfillWork.status(context)
+    override suspend fun startBackfill(days: Int) = BackfillWork.start(context, days)
+    override fun cancelBackfill() = BackfillWork.cancel(context)
+    override fun stoppedBackfill() = BackfillWork.stopped(context)
 
     override suspend fun testPing(webhook: WebhookDraft): Result<Unit> =
         TestPing.send(context, webhook.urls, webhook.secret, LogType.HEALTH_CONNECT, webhook.headers, webhook.urlsWithoutHeaders)

@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.owen282000.lifedashboard.BackfillJob
+import com.owen282000.lifedashboard.BackfillStart
+import com.owen282000.lifedashboard.BackfillStatus
 import com.owen282000.lifedashboard.FailureReason
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthPermissionRequests
@@ -54,9 +57,14 @@ data class HealthUiState(
     val isPreviewing: Boolean = false,
     val isPinging: Boolean = false,
     val isExporting: Boolean = false,
+    /** Windows done and in total while a backfill job is queued or runs, also after the screen was left. */
     val backfillProgress: Pair<Int, Int>? = null,
     /** The backfill waits for a sync that is running; it starts by itself once that ends. */
     val backfillWaiting: Boolean = false,
+    /** Android or the read quota stopped the backfill; WorkManager runs it again by itself. */
+    val backfillPaused: Boolean = false,
+    /** The enabled data types changed since the backfill started, so it began again at the first window. */
+    val backfillRestarted: Boolean = false,
     /** The line under the sync actions; stays until the next action replaces it. */
     val syncMessage: UiMessage? = null,
     val previewData: String? = null,
@@ -64,6 +72,8 @@ data class HealthUiState(
     /** A data type whose toggle needs a permission grant first. */
     val permissionPrompt: HealthDataType? = null,
     val backfillDialog: Boolean = false,
+    /** A stopped backfill that choosing its length in the dialog continues; read when the dialog opens. */
+    val stoppedBackfill: BackfillJob? = null,
     /** Receive (issue #62): the stored switches, what the integration reported, and the two prompts. */
     val receive: ReceiveSettings = ReceiveSettings(),
     val receiveStatus: ReceiveStatus = ReceiveStatus(),
@@ -83,10 +93,12 @@ data class HealthUiState(
 
     /**
      * A phone that only receives has nothing to read, but every sync is still the round trip that fetches measurements.
-     * A running backfill holds the sync lock, so a sync started then would only wait for it.
+     * A running backfill holds the sync lock, so a sync started then would only wait for it; a
+     * paused one holds nothing until WorkManager runs it again.
      */
     val canSync: Boolean get() =
-        !isSyncing && backfillProgress == null && draft.hasDestination && (draft.enabledTypes.isNotEmpty() || receive.enabled)
+        !isSyncing && (backfillProgress == null || backfillPaused) && draft.hasDestination &&
+            (draft.enabledTypes.isNotEmpty() || receive.enabled)
 }
 
 /** Everything the Health Connect screen can ask for; the view model implements it, previews can fake it. */
@@ -127,6 +139,9 @@ interface HealthActions {
     fun openBackfillDialog()
     fun dismissBackfillDialog()
     fun backfill(days: Int)
+
+    /** Stops the running backfill; what was sent stays with the receiver. */
+    fun cancelBackfill()
 
     /** The Grant button: the enabled types' reads and background reading. */
     fun requestAccess()
@@ -189,6 +204,13 @@ class HealthConnectViewModel(
     /** Permission sets the screen must hand to the Health Connect permission launcher. */
     private val _permissionRequests = MutableSharedFlow<Set<String>>(extraBufferCapacity = 4)
     val permissionRequests: SharedFlow<Set<String>> = _permissionRequests.asSharedFlow()
+
+    /** Set by Stop until the stopped work is gone, see [cancelBackfill]. */
+    private var stopping = false
+
+    init {
+        observeBackfill()
+    }
 
     private fun editDraft(transform: (HealthDraft) -> HealthDraft) = _state.update { it.copy(draft = transform(it.draft)) }
     private fun editWebhook(transform: (WebhookDraft) -> WebhookDraft) = editDraft { it.copy(webhook = transform(it.webhook)) }
@@ -479,30 +501,90 @@ class HealthConnectViewModel(
             _toasts.tryEmit(UiMessage.BackfillNeedsWebhook)
             return
         }
-        _state.update { it.copy(backfillDialog = true) }
+        _state.update { it.copy(backfillDialog = true, stoppedBackfill = ops.stoppedBackfill()) }
     }
 
     override fun dismissBackfillDialog() = _state.update { it.copy(backfillDialog = false) }
 
+    /**
+     * The backfill is a WorkManager job (P2-14), so this only asks for it; [observeBackfill]
+     * shows where it is. A start while one is queued or running says so instead of doing
+     * nothing in silence; one right after Stop replaces the work that is still winding down.
+     */
     override fun backfill(days: Int) {
-        _state.update { it.copy(backfillDialog = false) }
-        if (_state.value.backfillProgress != null) return
+        _state.update { it.copy(backfillDialog = false, syncMessage = null) }
+        stopping = false
         viewModelScope.launch {
-            _state.update { it.copy(backfillProgress = 0 to 1) }
-            val result = ops.backfill(
-                days,
-                onWaiting = { waiting -> _state.update { it.copy(backfillWaiting = waiting) } },
-                onProgress = { done, total -> _state.update { it.copy(backfillProgress = done to total) } }
-            )
-            _state.update {
-                it.copy(
-                    backfillProgress = null,
-                    backfillWaiting = false,
-                    syncMessage = result.fold(
-                        onSuccess = { count -> UiMessage.BackfillComplete(count) },
-                        onFailure = { e -> UiMessage.SyncFailed(e.message ?: "") }
-                    )
-                )
+            try {
+                if (ops.startBackfill(days) == BackfillStart.ALREADY_RUNNING) {
+                    _toasts.tryEmit(UiMessage.BackfillAlreadyRunning)
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update { it.copy(syncMessage = UiMessage.SyncFailed(e.message ?: "")) }
+            }
+        }
+    }
+
+    /**
+     * Stop takes effect on screen at once. The work it cancels may still report itself running
+     * for a moment while its worker unwinds; [observeBackfill] ignores that until the work is
+     * gone or a new backfill is started.
+     */
+    override fun cancelBackfill() {
+        stopping = true
+        ops.cancelBackfill()
+        _state.update { it.copy(backfillProgress = null, backfillWaiting = false, backfillPaused = false, backfillRestarted = false) }
+    }
+
+    /**
+     * Follows the backfill job for as long as the view model lives, so leaving the screen and
+     * coming back shows it again. The outcome is said once, when a run this view model saw
+     * finishes; a job that finished before it looked says nothing, its row is in the Logs tab.
+     */
+    private fun observeBackfill() {
+        viewModelScope.launch {
+            var sawRunning = false
+            ops.backfillStatus().collect { status ->
+                when (status) {
+                    is BackfillStatus.Running -> {
+                        if (stopping) return@collect
+                        sawRunning = true
+                        _state.update {
+                            it.copy(
+                                backfillProgress = status.done to status.total,
+                                backfillWaiting = status.waiting,
+                                backfillPaused = status.paused,
+                                backfillRestarted = status.restarted
+                            )
+                        }
+                    }
+                    is BackfillStatus.Finished -> {
+                        val message = when {
+                            !sawRunning || stopping -> null
+                            status.failure != null -> UiMessage.BackfillFailed(status.failure)
+                            else -> UiMessage.BackfillComplete(status.records ?: 0)
+                        }
+                        sawRunning = false
+                        stopping = false
+                        _state.update {
+                            it.copy(
+                                backfillProgress = null,
+                                backfillWaiting = false,
+                                backfillPaused = false,
+                                backfillRestarted = false,
+                                syncMessage = message ?: it.syncMessage,
+                                refreshKey = if (message != null) it.refreshKey + 1 else it.refreshKey
+                            )
+                        }
+                    }
+                    BackfillStatus.Idle -> {
+                        sawRunning = false
+                        stopping = false
+                        _state.update { it.copy(backfillProgress = null, backfillWaiting = false, backfillPaused = false, backfillRestarted = false) }
+                    }
+                }
             }
         }
     }

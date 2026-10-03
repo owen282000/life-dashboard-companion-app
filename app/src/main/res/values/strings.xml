@@ -154,10 +154,29 @@
         <item quantity="one">Backfill complete: %1$d record sent</item>
         <item quantity="other">Backfill complete: %1$d records sent</item>
     </plurals>
+    <string name="health_backfill_already_running">A backfill is already running</string>
+    <string name="health_backfill_continues">The last backfill of %1$d days stopped after %2$d of %3$d chunks. Choose %1$dd again to continue there; another length starts over.</string>
+    <string name="health_backfill_failed_delivery">Delivery failed after %1$d of %2$d chunks. Start the same backfill again to continue there.</string>
+    <string name="health_backfill_failed_no_progress">Backfill stopped at chunk %1$d of %2$d: several runs in a row sent nothing (Health Connect\'s read quota, or Android stopping it). Start the same backfill again to continue there.</string>
+    <string name="health_backfill_failed_no_types">Backfill needs at least one data type switched on</string>
+    <string name="health_backfill_failed_not_returned">Stopped after %1$d of %2$d chunks: Health Connect did not return %3$s. Start the same backfill again to continue there.</string>
+    <string name="health_backfill_failed_read">Backfill stopped: Health Connect could not be read (%1$s). Start it again to continue.</string>
+    <string name="health_backfill_failed_too_many_chunks">Stopped after %1$d of %2$d chunks: the next one needs more than %3$d payloads.</string>
+    <string name="health_backfill_failed_unexpected">Backfill stopped: %1$s</string>
+    <plurals name="health_backfill_log_done">
+        <item quantity="one">Backfill of %1$d days complete: %2$d chunks, %3$d record</item>
+        <item quantity="other">Backfill of %1$d days complete: %2$d chunks, %3$d records</item>
+    </plurals>
+    <string name="health_backfill_log_paused">Paused at chunk %1$d of %2$d: Health Connect\'s read quota is used up; continues by itself</string>
+    <string name="health_backfill_log_restarted">The data types changed since this backfill started, so it started over at the first chunk.</string>
+    <string name="health_backfill_log_stopped">Stopped at chunk %1$d of %2$d</string>
     <string name="health_backfill_grant_history">Grant history access</string>
     <string name="health_backfill_history">Backfill History</string>
     <string name="health_backfill_history_permission_warning">Health Connect limits reads to the last 30 days until you grant history access.</string>
+    <string name="health_backfill_paused">Backfill paused at %1$d/%2$d, continues by itself...</string>
     <string name="health_backfill_progress">Backfilling %1$d/%2$d...</string>
+    <string name="health_backfill_restarted">Data types changed, started over: %1$d/%2$d...</string>
+    <string name="health_backfill_stop">Stop</string>
     <string name="health_backfill_title">Backfill history</string>
     <string name="health_backfill_waiting">Backfill waits for the running sync to finish...</string>
     <string name="health_connect_not_available">Health Connect is not available</string>
