@@ -75,6 +75,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.permission.HealthPermission
+import com.owen282000.lifedashboard.BackfillTexts
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.MqttSupport
 import com.owen282000.lifedashboard.PayloadPreview
@@ -122,6 +123,8 @@ fun UiMessage.text(res: Resources): String = when (this) {
     is UiMessage.PingFailedWith -> res.getString(R.string.health_test_ping_failed_with_reason, reason)
     is UiMessage.BackfillComplete -> res.getQuantityString(R.plurals.health_backfill_complete, count, count)
     UiMessage.BackfillNeedsWebhook -> res.getString(R.string.health_backfill_needs_webhook)
+    is UiMessage.BackfillFailed -> BackfillTexts.failure(res, failure)
+    UiMessage.BackfillAlreadyRunning -> res.getString(R.string.health_backfill_already_running)
     is UiMessage.SyncedRecordsWritten -> res.getString(
         R.string.receive_synced_and_written,
         res.getQuantityString(R.plurals.health_synced_records, count, count),

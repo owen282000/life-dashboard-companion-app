@@ -4,6 +4,7 @@ import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.owen282000.lifedashboard.BackfillFailure
 import com.owen282000.lifedashboard.BackfillRun
 import com.owen282000.lifedashboard.HealthDataType.HEART_RATE
 import com.owen282000.lifedashboard.HealthDataType.STEPS
@@ -203,7 +204,7 @@ class MqttPublishTest {
         assertEquals("71", probe.awaitLive("$base/heart_rate/state").payload)
         assertEquals(0, receiver.exchanges.size)
         assertTrue(prefs.getLastMqttStatus(MqttSection.HEALTH).orEmpty().startsWith("OK:"))
-        assertEquals("No webhook URLs configured", (TestSetup.backfill(7) as BackfillRun.Failed).message)
+        assertEquals(BackfillFailure.NoWebhook, (TestSetup.backfill(7) as BackfillRun.Failed).failure)
         probe.close()
     }
 

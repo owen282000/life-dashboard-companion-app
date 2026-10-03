@@ -1,6 +1,7 @@
 package com.owen282000.lifedashboard.viewmodel
 
 import com.owen282000.lifedashboard.BackfillJob
+import com.owen282000.lifedashboard.BackfillStart
 import com.owen282000.lifedashboard.BackfillStatus
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
@@ -12,7 +13,7 @@ import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
 import com.owen282000.lifedashboard.WriteBackType
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 internal fun emptyMqtt() = MqttDraft.from(
     MqttSectionSettings(enabled = false, useSharedBroker = true, ownBroker = MqttBroker("", 1883, false, null, null), baseTopic = "lifedashboard"),
@@ -82,23 +83,40 @@ internal class FakeHealthOps(
 ) : HealthOps {
     var syncs = 0
 
-    /** The backfill job as WorkManager would report it; tests move it along by hand. */
-    val backfill = MutableStateFlow<BackfillStatus>(BackfillStatus.Idle)
+    /**
+     * The backfill job as WorkManager would report it; tests move it along by hand. Every
+     * report reaches the screen, also one equal to the last, as WorkManager's do.
+     */
+    private val backfillReports = MutableSharedFlow<BackfillStatus>(replay = 1, extraBufferCapacity = 16).apply { tryEmit(BackfillStatus.Idle) }
+    var backfill: BackfillStatus
+        get() = backfillReports.replayCache.last()
+        set(value) {
+            backfillReports.tryEmit(value)
+        }
     val backfillStarts = mutableListOf<Int>()
     var backfillCancels = 0
     var stopped: BackfillJob? = null
+
+    /** Stop cleared the job, so a start replaces the work that still reports itself running, as BackfillWork does. */
+    private var cancelled = false
+
     override suspend fun availability() = availability
     override suspend fun grantedPermissions() = granted
     override suspend fun sync(): Result<HealthSyncResult> { syncs++; return syncResult }
     override suspend fun preview() = previewResult
-    override fun backfillStatus(): Flow<BackfillStatus> = backfill
-    override suspend fun startBackfill(days: Int) {
+    override fun backfillStatus(): Flow<BackfillStatus> = backfillReports
+    override suspend fun startBackfill(days: Int): BackfillStart {
+        if (backfill is BackfillStatus.Running && !cancelled) return BackfillStart.ALREADY_RUNNING
+        cancelled = false
         backfillStarts += days
-        backfill.value = BackfillStatus.Running(0, days / 3)
+        backfill = BackfillStatus.Running(0, days / 3)
+        return BackfillStart.STARTED
     }
+
+    /** Like WorkManager, the cancelled work still reports itself running until a test moves it on. */
     override fun cancelBackfill() {
         backfillCancels++
-        backfill.value = BackfillStatus.Idle
+        cancelled = true
     }
     override fun stoppedBackfill() = stopped
     override suspend fun testPing(webhook: WebhookDraft) = pingResult

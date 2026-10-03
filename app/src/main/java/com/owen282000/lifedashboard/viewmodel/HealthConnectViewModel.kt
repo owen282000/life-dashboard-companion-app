@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.owen282000.lifedashboard.BackfillJob
+import com.owen282000.lifedashboard.BackfillStart
 import com.owen282000.lifedashboard.BackfillStatus
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthPermissionRequests
@@ -61,6 +62,8 @@ data class HealthUiState(
     val backfillWaiting: Boolean = false,
     /** Android or the read quota stopped the backfill; WorkManager runs it again by itself. */
     val backfillPaused: Boolean = false,
+    /** The enabled data types changed since the backfill started, so it began again at the first window. */
+    val backfillRestarted: Boolean = false,
     /** The line under the sync actions; stays until the next action replaces it. */
     val syncMessage: UiMessage? = null,
     val previewData: String? = null,
@@ -200,6 +203,9 @@ class HealthConnectViewModel(
     /** Permission sets the screen must hand to the Health Connect permission launcher. */
     private val _permissionRequests = MutableSharedFlow<Set<String>>(extraBufferCapacity = 4)
     val permissionRequests: SharedFlow<Set<String>> = _permissionRequests.asSharedFlow()
+
+    /** Set by Stop until the stopped work is gone, see [cancelBackfill]. */
+    private var stopping = false
 
     init {
         observeBackfill()
@@ -495,14 +501,17 @@ class HealthConnectViewModel(
 
     /**
      * The backfill is a WorkManager job (P2-14), so this only asks for it; [observeBackfill]
-     * shows where it is. A start while one is queued or running does nothing.
+     * shows where it is. A start while one is queued or running says so instead of doing
+     * nothing in silence; one right after Stop replaces the work that is still winding down.
      */
     override fun backfill(days: Int) {
         _state.update { it.copy(backfillDialog = false, syncMessage = null) }
-        if (_state.value.backfillProgress != null) return
+        stopping = false
         viewModelScope.launch {
             try {
-                ops.startBackfill(days)
+                if (ops.startBackfill(days) == BackfillStart.ALREADY_RUNNING) {
+                    _toasts.tryEmit(UiMessage.BackfillAlreadyRunning)
+                }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -511,7 +520,16 @@ class HealthConnectViewModel(
         }
     }
 
-    override fun cancelBackfill() = ops.cancelBackfill()
+    /**
+     * Stop takes effect on screen at once. The work it cancels may still report itself running
+     * for a moment while its worker unwinds; [observeBackfill] ignores that until the work is
+     * gone or a new backfill is started.
+     */
+    override fun cancelBackfill() {
+        stopping = true
+        ops.cancelBackfill()
+        _state.update { it.copy(backfillProgress = null, backfillWaiting = false, backfillPaused = false, backfillRestarted = false) }
+    }
 
     /**
      * Follows the backfill job for as long as the view model lives, so leaving the screen and
@@ -524,27 +542,31 @@ class HealthConnectViewModel(
             ops.backfillStatus().collect { status ->
                 when (status) {
                     is BackfillStatus.Running -> {
+                        if (stopping) return@collect
                         sawRunning = true
                         _state.update {
                             it.copy(
                                 backfillProgress = status.done to status.total,
                                 backfillWaiting = status.waiting,
-                                backfillPaused = status.paused
+                                backfillPaused = status.paused,
+                                backfillRestarted = status.restarted
                             )
                         }
                     }
                     is BackfillStatus.Finished -> {
-                        val message = if (!sawRunning) null else if (status.error != null) {
-                            UiMessage.SyncFailed(status.error)
-                        } else {
-                            UiMessage.BackfillComplete(status.records ?: 0)
+                        val message = when {
+                            !sawRunning || stopping -> null
+                            status.failure != null -> UiMessage.BackfillFailed(status.failure)
+                            else -> UiMessage.BackfillComplete(status.records ?: 0)
                         }
                         sawRunning = false
+                        stopping = false
                         _state.update {
                             it.copy(
                                 backfillProgress = null,
                                 backfillWaiting = false,
                                 backfillPaused = false,
+                                backfillRestarted = false,
                                 syncMessage = message ?: it.syncMessage,
                                 refreshKey = if (message != null) it.refreshKey + 1 else it.refreshKey
                             )
@@ -552,7 +574,8 @@ class HealthConnectViewModel(
                     }
                     BackfillStatus.Idle -> {
                         sawRunning = false
-                        _state.update { it.copy(backfillProgress = null, backfillWaiting = false, backfillPaused = false) }
+                        stopping = false
+                        _state.update { it.copy(backfillProgress = null, backfillWaiting = false, backfillPaused = false, backfillRestarted = false) }
                     }
                 }
             }

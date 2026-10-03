@@ -3,6 +3,7 @@ package com.owen282000.lifedashboard.viewmodel
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import com.owen282000.lifedashboard.BackfillJob
+import com.owen282000.lifedashboard.BackfillStart
 import com.owen282000.lifedashboard.BackfillStatus
 import com.owen282000.lifedashboard.BackfillWork
 import com.owen282000.lifedashboard.HealthConnectManager
@@ -32,7 +33,7 @@ interface HealthOps {
     fun backfillStatus(): Flow<BackfillStatus>
 
     /** Starts a backfill of [days], or continues the stopped one of that length; nothing while one runs. */
-    suspend fun startBackfill(days: Int)
+    suspend fun startBackfill(days: Int): BackfillStart
 
     /** Stops the backfill and forgets where it was. */
     fun cancelBackfill()

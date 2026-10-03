@@ -9,6 +9,7 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
 import com.owen282000.lifedashboard.BACKFILL_DATA_TYPE
 import com.owen282000.lifedashboard.BACKFILL_RUN_DATA_TYPE
+import com.owen282000.lifedashboard.BackfillFailure
 import com.owen282000.lifedashboard.BackfillJobStore
 import com.owen282000.lifedashboard.BackfillRun
 import com.owen282000.lifedashboard.BackfillWorker
@@ -149,7 +150,7 @@ class BackfillTest {
 
         val run = TestSetup.backfill(7) as BackfillRun.Failed
 
-        assertEquals("Delivery failed after 0 of 3 windows; rerun to resume", run.message)
+        assertEquals(BackfillFailure.Delivery(done = 0, total = 3), run.failure)
         assertEquals(0, PendingSyncStore.forContext(context).size())
         assertEquals("three attempts at the first window, none at the next", 3, receiver.exchanges.size)
         assertEquals(1, receiver.exchanges.map { Conservation.parse(it.text).str("window_start") }.distinct().size)
@@ -204,6 +205,71 @@ class BackfillTest {
         val rows = prefs.getWebhookLogs(LogType.HEALTH_CONNECT)
         assertEquals("one row per run", listOf(BACKFILL_RUN_DATA_TYPE, BACKFILL_RUN_DATA_TYPE), rows.map { it.dataType })
         assertTrue(rows.all { it.success })
+    }
+
+    /**
+     * P2-14 review. A window too dense for one run continues with its next chunk when the work
+     * runs again, not with its first: the chunk cursor is saved with the job after every payload.
+     * Before, a window that outlasted the worker was sent from its start on every rerun.
+     */
+    @Test
+    fun aStoppedBackfillResumesHalfwayThroughAWindow() = runBlocking {
+        TestSetup.health(receiver, setOf(WEIGHT))
+        fixture.assertNoForeignRecords(WeightRecord::class)
+        val day = 24 * 60L
+        // 250 weights five days back, in five inserts with their own modification times: the
+        // first window takes more than one chunk, as in windowsProgressAndSnapshots.
+        val weights = (0 until 5).flatMap { batch ->
+            Thread.sleep(20)
+            fixture.insert(*Array(50) { i -> fixture.weight(70.0 + i / 10.0, ago(5 * day + batch * 50 + i)) })
+        }
+
+        // The first chunk goes through, the second one's post never gets an answer, and the run
+        // is stopped while it waits, as Android stops a worker that ran out of time.
+        receiver.answerThenStall(TestSetup.HEALTH_PATH, answered = 1)
+        val stopped = launch(Dispatchers.IO) { TestSetup.backfill(7) }
+        receiver.awaitRequests(2)
+        stopped.cancel()
+        stopped.join()
+
+        val job = BackfillJobStore.load(context)!!
+        assertEquals("still in the first window", 0, job.nextWindow)
+        assertEquals("after its first chunk", 1, job.chunksSent)
+
+        receiver.respond(TestSetup.HEALTH_PATH, 200)
+        val mark = receiver.exchanges.size
+        val run = TestSetup.backfill(7) as BackfillRun.Done
+
+        val first = Conservation.parse(receiver.exchanges[0].text)
+        val resumed = receiver.since(mark).map { Conservation.parse(it.text) }
+        assertEquals("it goes on in the first window", first.str("window_start"), resumed.first().str("window_start"))
+        // The first chunk is not sent again, and nothing is lost.
+        Conservation.assertExactlyOnce(weights.toSet(), listOf(first) + resumed)
+        val firstWindow = (listOf(first) + resumed).filter { it.str("window_start") == first.str("window_start") }
+        assertEquals("the last chunk of the window completes it", "true", firstWindow.last().num("window_complete"))
+        assertEquals(weights.size, run.job.recordsSent)
+        assertNull(BackfillJobStore.load(context))
+    }
+
+    /** P2-14 review. A job whose data types changed while it was stopped starts over from its first window, and says so. */
+    @Test
+    fun aJobWhoseTypesChangedStartsOver() = runBlocking {
+        TestSetup.health(receiver, setOf(STEPS))
+        fixture.assertNoForeignRecords(StepsRecord::class, WeightRecord::class)
+        val job = BackfillJobStore.startOrContinue(context, days = 7)
+        BackfillJobStore.saveIfCurrent(context, job.afterWindow(0, System.currentTimeMillis()))
+        prefs.setHealthEnabledDataTypes(setOf(STEPS, WEIGHT))
+        var restarted = false
+
+        val run = TestSetup.syncManager().runBackfill(BackfillJobStore.load(context)!!, onRestarted = { restarted = true }) as BackfillRun.Done
+
+        assertTrue("it says so", restarted)
+        assertEquals(listOf("STEPS", "WEIGHT"), run.job.types)
+        val starts = receiver.exchanges.map { Conservation.parse(it.text).str("window_start") }.distinct()
+        assertEquals("every window, the first included", 3, starts.size)
+        assertEquals(Instant.ofEpochMilli(job.rangeStart).toString(), starts.first())
+        val row = prefs.getWebhookLogs(LogType.HEALTH_CONNECT).single()
+        assertTrue("the run's row says it started over: ${row.rawPayload}", row.rawPayload.orEmpty().contains("\"restarted\":true"))
     }
 
     /** P2-14. The worker runs the stored job, and with none stored (cancelled before it ran) it does nothing. */

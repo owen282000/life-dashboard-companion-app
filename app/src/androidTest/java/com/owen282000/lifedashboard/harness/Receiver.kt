@@ -53,6 +53,15 @@ class Receiver : ExternalResource() {
      */
     fun stall(path: String) = route(path) { MockResponse.Builder().onResponseStart(SocketEffect.Stall).build() }
 
+    /** Answers the first [answered] requests on [path] with 200, and stalls every one after them, see [stall]. */
+    fun answerThenStall(path: String, answered: Int) {
+        val seen = java.util.concurrent.atomic.AtomicInteger()
+        route(path) {
+            if (seen.getAndIncrement() < answered) MockResponse(code = 200)
+            else MockResponse.Builder().onResponseStart(SocketEffect.Stall).build()
+        }
+    }
+
     /** Waits until at least [count] requests have arrived. */
     fun awaitRequests(count: Int, timeoutMs: Long = 20_000) {
         Await.until("$count request(s) at the receiver", timeoutMs) { log.size >= count }

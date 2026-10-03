@@ -332,6 +332,7 @@ fun HealthConnectContent(
                     when {
                         state.backfillWaiting -> stringResource(R.string.health_backfill_waiting)
                         state.backfillPaused -> stringResource(R.string.health_backfill_paused, done, total)
+                        state.backfillRestarted -> stringResource(R.string.health_backfill_restarted, done, total)
                         else -> stringResource(R.string.health_backfill_progress, done, total)
                     },
                     style = MaterialTheme.typography.bodySmall,

@@ -143,12 +143,28 @@
         <item quantity="one">Backfill klaar: %1$d record verstuurd</item>
         <item quantity="other">Backfill klaar: %1$d records verstuurd</item>
     </plurals>
+    <string name="health_backfill_already_running">Er loopt al een backfill</string>
     <string name="health_backfill_continues">De vorige backfill van %1$d dagen stopte na %2$d van %3$d blokken. Kies opnieuw %1$dd om daar verder te gaan; een andere lengte begint opnieuw.</string>
+    <string name="health_backfill_failed_delivery">Bezorging mislukt na %1$d van %2$d blokken. Start dezelfde backfill opnieuw om daar verder te gaan.</string>
+    <string name="health_backfill_failed_no_progress">Backfill gestopt bij blok %1$d van %2$d: meerdere pogingen achter elkaar verstuurden niets (het leesquotum van Health Connect, of Android stopte hem). Start dezelfde backfill opnieuw om daar verder te gaan.</string>
+    <string name="health_backfill_failed_no_types">Aanvullen vereist minstens één ingeschakeld datatype</string>
+    <string name="health_backfill_failed_not_returned">Gestopt na %1$d van %2$d blokken: Health Connect gaf %3$s niet terug. Start dezelfde backfill opnieuw om daar verder te gaan.</string>
+    <string name="health_backfill_failed_read">Backfill gestopt: Health Connect kon niet gelezen worden (%1$s). Start opnieuw om verder te gaan.</string>
+    <string name="health_backfill_failed_too_many_chunks">Gestopt na %1$d van %2$d blokken: het volgende heeft meer dan %3$d berichten nodig.</string>
+    <string name="health_backfill_failed_unexpected">Backfill gestopt: %1$s</string>
+    <plurals name="health_backfill_log_done">
+        <item quantity="one">Backfill van %1$d dagen klaar: %2$d blokken, %3$d record</item>
+        <item quantity="other">Backfill van %1$d dagen klaar: %2$d blokken, %3$d records</item>
+    </plurals>
+    <string name="health_backfill_log_paused">Gepauzeerd bij blok %1$d van %2$d: het leesquotum van Health Connect is op; gaat vanzelf verder</string>
+    <string name="health_backfill_log_restarted">De datatypes zijn veranderd sinds deze backfill begon, dus hij begon opnieuw bij het eerste blok.</string>
+    <string name="health_backfill_log_stopped">Gestopt bij blok %1$d van %2$d</string>
     <string name="health_backfill_grant_history">Toegang tot geschiedenis geven</string>
     <string name="health_backfill_history">Geschiedenis backfillen</string>
     <string name="health_backfill_history_permission_warning">Health Connect leest alleen de laatste 30 dagen totdat je toegang tot de geschiedenis geeft.</string>
     <string name="health_backfill_paused">Backfill gepauzeerd bij %1$d/%2$d, gaat vanzelf verder...</string>
     <string name="health_backfill_progress">Backfillen %1$d/%2$d...</string>
+    <string name="health_backfill_restarted">Datatypes veranderd, opnieuw begonnen: %1$d/%2$d...</string>
     <string name="health_backfill_stop">Stoppen</string>
     <string name="health_backfill_title">Geschiedenis backfillen</string>
     <string name="health_backfill_waiting">Backfill wacht tot de lopende sync klaar is...</string>
