@@ -228,6 +228,12 @@
 
     <!-- Log-Bildschirm -->
     <string name="logs_clear_logs">Logs leeren</string>
+    <string name="logs_clear_title">Logs leeren?</string>
+    <plurals name="logs_clear_body">
+        <item quantity="one">Damit löschst du %1$d Log von diesem Telefon. Das lässt sich nicht rückgängig machen.</item>
+        <item quantity="other">Damit löschst du die %1$d angezeigten Logs von diesem Telefon. Das lässt sich nicht rückgängig machen.</item>
+    </plurals>
+    <string name="logs_clear_confirm">Leeren</string>
     <plurals name="logs_export_dialog_description">
         <item quantity="one">%1$d Log als JSON oder CSV über das Teilen-Menü exportieren.</item>
         <item quantity="other">%1$d Logs als JSON oder CSV über das Teilen-Menü exportieren.</item>
@@ -365,6 +371,43 @@
     <string name="about_description">Sendet deine Health Connect- und Bildschirmzeitdaten über die Life-Dashboard-Integration an Home Assistant, an dein eigenes Webhook-Backend oder an einen MQTT-Broker und kann Messwerte aus deinem eigenen Home Assistant zurück in Health Connect schreiben. Keine Cloud dazwischen.</string>
     <string name="about_privacy_title">Datenschutz und Sicherheit</string>
     <string name="about_backup_title">Sicherung und Wiederherstellung</string>
+    <string name="backup_intro">Einstellungen sind nicht Teil der Cloud-Sicherung von Android, weil die Geheimnisse darin dieses Gerät nie verlassen. Exportiere sie hier, um auf ein neues Telefon umzuziehen.</string>
+    <string name="backup_export">Exportieren</string>
+    <string name="backup_import">Importieren</string>
+    <string name="backup_export_title">Einstellungen exportieren</string>
+    <string name="backup_include_secrets">Geheimnisse einschließen</string>
+    <string name="backup_include_secrets_detail">Auth-Header, Signaturgeheimnisse und MQTT-Passwörter</string>
+    <string name="backup_password">Passwort</string>
+    <string name="backup_password_repeat">Passwort wiederholen</string>
+    <string name="backup_password_too_short">Mindestens %1$d Zeichen</string>
+    <string name="backup_password_mismatch">Die Passwörter stimmen nicht überein</string>
+    <string name="backup_password_hint">Die Datei wird mit diesem Passwort verschlüsselt. Ohne das Passwort lässt sich der Export nicht wiederherstellen, also bewahre es sicher auf. Nimm ein langes Passwort, zum Beispiel vier zufällige Wörter.</string>
+    <string name="backup_no_secrets_hint">Der Export enthält deine Webhook-URLs, MQTT-Hosts und Optionen, aber keine Zugangsdaten.</string>
+    <string name="backup_read_failed">Diese Datei konnte nicht gelesen werden</string>
+    <string name="backup_invalid_file">Keine gültige Einstellungsdatei</string>
+    <string name="backup_encrypted_title">Verschlüsselter Export</string>
+    <string name="backup_encrypted_body">Diese Datei ist mit einem Passwort geschützt.</string>
+    <string name="backup_unlock">Entsperren</string>
+    <string name="backup_wrong_password">Falsches Passwort, oder die Datei ist beschädigt</string>
+    <string name="backup_unsupported_file">Diese Datei verlangt Verschlüsselungseinstellungen, die diese App nicht akzeptiert</string>
+    <string name="backup_import_title">Einstellungen importieren?</string>
+    <string name="backup_import_replaces">Das ersetzt deine aktuelle Konfiguration:</string>
+    <string name="backup_bullet">• %1$s</string>
+    <string name="backup_summary_health_webhooks">Health-Webhooks: %1$d</string>
+    <string name="backup_summary_screen_time_webhooks">Bildschirmzeit-Webhooks: %1$d</string>
+    <string name="backup_summary_data_types">Aktivierte Datentypen: %1$d</string>
+    <string name="backup_summary_brokers">MQTT-Broker: %1$d</string>
+    <string name="backup_summary_secrets">Mit Geheimnissen</string>
+    <string name="backup_summary_no_secrets">Ohne Geheimnisse</string>
+    <string name="backup_from_iphone">Mit der iPhone-App erstellt</string>
+    <string name="backup_exported_at">Exportiert am %1$s</string>
+    <string name="backup_note_screen_time_kept">Diese Datei enthält keine Bildschirmzeit-Einstellungen, daher bleiben die auf diesem Telefon erhalten, auch die Tagesgrenze.</string>
+    <string name="backup_note_iphone_topic_kept">Das MQTT-Topic des iPhones, lifedashboard-ios, wird nicht übernommen. Dieses Telefon behält sein eigenes, damit die beiden Telefone keine Sensoren teilen.</string>
+    <string name="backup_note_iphone_name_kept">Der Telefonname des iPhones wird nicht übernommen. Dieses Telefon behält seinen eigenen.</string>
+    <string name="backup_keeps_credentials">Diese Datei enthält keine Zugangsdaten, daher bleiben die auf diesem Gerät erhalten.</string>
+    <string name="backup_history_unaffected">Synchronisierungsverlauf und Logs bleiben unverändert.</string>
+    <string name="backup_imported">Einstellungen importiert, öffne die App neu, um sie zu sehen</string>
+    <string name="backup_import_failed">Import fehlgeschlagen: %1$s</string>
     <string name="about_f_steps">Schritte, Distanz, Kalorien</string>
     <string name="about_f_sleep">Schlaf mit Phasen</string>
     <string name="about_f_meditation">Meditationssitzungen</string>
@@ -467,6 +510,7 @@
     <string name="resolution_group_accumulated">Pro Fenster summiert</string>
     <string name="activity_about_label">Über</string>
     <string name="tile_sync_label">Life Dashboard synchronisieren</string>
+    <string name="tile_sync_wait">Versuch es in einer Minute</string>
     <string name="common_set">Festlegen</string>
     <string name="screentime_day_boundary_time_label">Tag beginnt um</string>
     <string name="webhook_secret_generate">Erzeugen</string>

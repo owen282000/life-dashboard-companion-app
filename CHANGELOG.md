@@ -16,8 +16,24 @@ All notable changes to this project are documented in this file. The format is b
   then on, so one that checks signatures, such as the stack, starts refusing until it gets the
   new secret too.
 
+### Changed
+
+- Clear logs on the Logs tab asks first, and says how many logs it removes. One tap used to
+  wipe them, and they are the only record of what was delivered.
+- The Quick Settings tile starts at most one sync a minute, like the Tasker and MacroDroid
+  broadcast, and the two share that minute: a tap right after an automation started a sync is
+  ignored, and on Android 10 and later the tile says "Try again in a minute". Tapping it five
+  times used to queue five syncs.
+- Backup & restore under About is now in Dutch and German too.
+
 ### Fixed
 
+- Importing a settings file from the iPhone app no longer resets what the file does not have.
+  It cleared the Screen Time webhooks, switched Screen Time MQTT off and put full payloads and
+  the day boundary back to their defaults; a setting the file does not mention now keeps the
+  value on the phone, for any file. It also no longer takes over what names the iPhone: its
+  default MQTT topic `lifedashboard-ios`, which put this phone's sensors on the iPhone's in
+  Home Assistant, and its phone name. The preview says what stays as it is.
 - Three German texts on the sync schedule addressed you as "Sie" while the rest of the app says
   "du"; they now say "du" too. The notification setting for a single failed sync read
   "fehlgeschlagenen" and now reads "fehlgeschlagener".
@@ -38,6 +54,16 @@ All notable changes to this project are documented in this file. The format is b
   Text buttons, a focused field's label and error messages follow, since the light theme's
   primary and error colours are now those darker shades. Tiles, icons, switches and the brand
   green itself are unchanged, and the iOS app already worked this way.
+
+### Security
+
+- An encrypted settings file says how many PBKDF2 rounds its key takes, and the app took any
+  number: a crafted file asking for billions could keep the import busy for an hour or more.
+  A file asking for fewer than 100,000 or more than 2,000,000 is now refused before any key is
+  derived, as on the iPhone (both apps write 210,000). Unlocking a file also no longer holds up
+  the screen.
+- The password of a settings export needs at least 8 characters and has to be typed twice.
+  A typo in a password typed once, behind dots, left a file nobody could open.
 
 ## [1.21.2] - 2026-09-28
 

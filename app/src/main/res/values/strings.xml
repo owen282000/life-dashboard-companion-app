@@ -230,6 +230,12 @@
 
     <!-- Logs screen -->
     <string name="logs_clear_logs">Clear logs</string>
+    <string name="logs_clear_title">Clear logs?</string>
+    <plurals name="logs_clear_body">
+        <item quantity="one">This removes %1$d log from this phone. It cannot be undone.</item>
+        <item quantity="other">This removes the %1$d logs shown from this phone. It cannot be undone.</item>
+    </plurals>
+    <string name="logs_clear_confirm">Clear</string>
     <plurals name="logs_export_dialog_description">
         <item quantity="one">Export %1$d log as JSON or CSV via the share sheet.</item>
         <item quantity="other">Export %1$d logs as JSON or CSV via the share sheet.</item>
@@ -367,6 +373,43 @@
     <string name="about_description">Sends your Health Connect and screen time data to Home Assistant through the Life Dashboard integration, to your own webhook backend or to an MQTT broker, and can bring measurements from your own Home Assistant back into Health Connect. No cloud in between.</string>
     <string name="about_privacy_title">Privacy &amp; Security</string>
     <string name="about_backup_title">Backup &amp; restore</string>
+    <string name="backup_intro">Settings are not part of Android\'s cloud backup, because the secrets they contain never leave this device. Export them here to move to a new phone.</string>
+    <string name="backup_export">Export</string>
+    <string name="backup_import">Import</string>
+    <string name="backup_export_title">Export settings</string>
+    <string name="backup_include_secrets">Include secrets</string>
+    <string name="backup_include_secrets_detail">Auth headers, signing secrets and MQTT passwords</string>
+    <string name="backup_password">Password</string>
+    <string name="backup_password_repeat">Repeat password</string>
+    <string name="backup_password_too_short">At least %1$d characters</string>
+    <string name="backup_password_mismatch">The passwords do not match</string>
+    <string name="backup_password_hint">The file is encrypted with this password. Without it the export cannot be restored, so store it somewhere safe. Use a long password, for example four random words.</string>
+    <string name="backup_no_secrets_hint">The export will contain your webhook URLs, MQTT hosts and options, but no credentials.</string>
+    <string name="backup_read_failed">Could not read that file</string>
+    <string name="backup_invalid_file">Not a valid settings file</string>
+    <string name="backup_encrypted_title">Encrypted export</string>
+    <string name="backup_encrypted_body">This file is password-protected.</string>
+    <string name="backup_unlock">Unlock</string>
+    <string name="backup_wrong_password">Wrong password, or the file is damaged</string>
+    <string name="backup_unsupported_file">This file asks for encryption settings this app does not accept</string>
+    <string name="backup_import_title">Import settings?</string>
+    <string name="backup_import_replaces">This replaces your current configuration:</string>
+    <string name="backup_bullet">• %1$s</string>
+    <string name="backup_summary_health_webhooks">Health webhooks: %1$d</string>
+    <string name="backup_summary_screen_time_webhooks">Screen time webhooks: %1$d</string>
+    <string name="backup_summary_data_types">Enabled data types: %1$d</string>
+    <string name="backup_summary_brokers">MQTT brokers: %1$d</string>
+    <string name="backup_summary_secrets">Includes secrets</string>
+    <string name="backup_summary_no_secrets">No secrets included</string>
+    <string name="backup_from_iphone">Made with the iPhone app</string>
+    <string name="backup_exported_at">Exported %1$s</string>
+    <string name="backup_note_screen_time_kept">This file has no Screen Time settings, so the ones on this phone are kept, the day boundary included.</string>
+    <string name="backup_note_iphone_topic_kept">The iPhone\'s MQTT topic lifedashboard-ios is not taken over. This phone keeps its own, so the two phones do not share sensors.</string>
+    <string name="backup_note_iphone_name_kept">The iPhone\'s phone name is not taken over. This phone keeps its own.</string>
+    <string name="backup_keeps_credentials">This file has no credentials, so the ones already on this device are kept.</string>
+    <string name="backup_history_unaffected">Sync history and logs are not affected.</string>
+    <string name="backup_imported">Settings imported, reopen the app to see them</string>
+    <string name="backup_import_failed">Import failed: %1$s</string>
     <string name="about_f_steps">Steps, distance, calories</string>
     <string name="about_f_sleep">Sleep tracking with phases</string>
     <string name="about_f_meditation">Meditation sessions</string>
@@ -469,6 +512,7 @@
     <string name="resolution_group_accumulated">Summed per window</string>
     <string name="activity_about_label">About</string>
     <string name="tile_sync_label">Sync Life Dashboard</string>
+    <string name="tile_sync_wait">Try again in a minute</string>
     <string name="common_set">Set</string>
     <string name="screentime_day_boundary_time_label">Day starts at</string>
     <string name="webhook_secret_generate">Generate</string>

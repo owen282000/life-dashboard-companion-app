@@ -75,22 +75,28 @@ class ConfigBackupManager(private val context: Context) {
     }
 
     /**
-     * Applies [backup] to the live settings.
+     * Applies [file] to the live settings.
      *
      * Secrets are only written when the backup actually carries them, so importing a
      * secret-free export keeps the credentials already on the device instead of wiping them.
+     * Every other setting the file does not have stays as it is too, rather than going back to
+     * its default: a file from the iPhone app has no Screen Time, no Screen Time MQTT and no
+     * day boundary. Its phone name and default topic are the iPhone's, see [ConfigBackup.forThisPhone].
      */
-    fun import(backup: ConfigBackup) {
+    fun import(file: ConfigBackup) {
+        val backup = file.forThisPhone()
         with(backup.health) {
-            // Worked out against the device before its URLs and headers are replaced.
-            prefs.setHealthUrlsWithoutHeaders(
-                urlsWithoutHeadersOnImport(
-                    prefs.getHealthWebhookUrls(),
-                    prefs.getHealthUrlsWithoutHeaders(),
-                    prefs.getHealthWebhookHeaders().isNotEmpty()
+            webhookUrls?.let { urls ->
+                // Worked out against the device before its URLs and headers are replaced.
+                prefs.setHealthUrlsWithoutHeaders(
+                    urlsWithoutHeadersOnImport(
+                        prefs.getHealthWebhookUrls(),
+                        prefs.getHealthUrlsWithoutHeaders(),
+                        prefs.getHealthWebhookHeaders().isNotEmpty()
+                    )
                 )
-            )
-            prefs.setHealthWebhookUrls(webhookUrls)
+                prefs.setHealthWebhookUrls(urls)
+            }
             if (headers.isNotEmpty()) prefs.setHealthWebhookHeaders(headers)
             if (!signingSecret.isNullOrBlank()) prefs.setHealthWebhookSecret(signingSecret)
             syncIntervalMinutes?.let { prefs.setHealthSyncIntervalMinutes(it) }
@@ -98,14 +104,16 @@ class ConfigBackupManager(private val context: Context) {
         }
 
         with(backup.screenTime) {
-            prefs.setScreenTimeUrlsWithoutHeaders(
-                urlsWithoutHeadersOnImport(
-                    prefs.getScreenTimeWebhookUrls(),
-                    prefs.getScreenTimeUrlsWithoutHeaders(),
-                    prefs.getScreenTimeWebhookHeaders().isNotEmpty()
+            webhookUrls?.let { urls ->
+                prefs.setScreenTimeUrlsWithoutHeaders(
+                    urlsWithoutHeadersOnImport(
+                        prefs.getScreenTimeWebhookUrls(),
+                        prefs.getScreenTimeUrlsWithoutHeaders(),
+                        prefs.getScreenTimeWebhookHeaders().isNotEmpty()
+                    )
                 )
-            )
-            prefs.setScreenTimeWebhookUrls(webhookUrls)
+                prefs.setScreenTimeWebhookUrls(urls)
+            }
             if (headers.isNotEmpty()) prefs.setScreenTimeWebhookHeaders(headers)
             if (!signingSecret.isNullOrBlank()) prefs.setScreenTimeWebhookSecret(signingSecret)
             syncIntervalMinutes?.let { prefs.setScreenTimeSyncIntervalMinutes(it) }
@@ -114,34 +122,19 @@ class ConfigBackupManager(private val context: Context) {
 
         val hasSecrets = backup.containsSecrets()
         with(backup.mqtt) {
-            prefs.setSharedMqttBroker(shared.toBroker(prefs.getSharedMqttBroker(), hasSecrets))
-            prefs.setMqttSection(
-                MqttSection.HEALTH,
-                MqttSectionSettings(
-                    enabled = healthEnabled,
-                    useSharedBroker = healthUseShared,
-                    ownBroker = healthOwnBroker.toBroker(prefs.getMqttSection(MqttSection.HEALTH).ownBroker, hasSecrets),
-                    baseTopic = healthBaseTopic
-                )
-            )
-            prefs.setMqttSection(
-                MqttSection.SCREEN_TIME,
-                MqttSectionSettings(
-                    enabled = screenTimeEnabled,
-                    useSharedBroker = screenTimeUseShared,
-                    ownBroker = screenTimeOwnBroker.toBroker(prefs.getMqttSection(MqttSection.SCREEN_TIME).ownBroker, hasSecrets),
-                    baseTopic = screenTimeBaseTopic
-                )
-            )
+            shared?.let { prefs.setSharedMqttBroker(it.toBroker(prefs.getSharedMqttBroker(), hasSecrets)) }
+            for (section in MqttSection.entries) {
+                prefs.setMqttSection(section, sectionOnImport(section, prefs.getMqttSection(section), hasSecrets))
+            }
         }
 
         with(backup.options) {
-            prefs.setHealthEnabledDataTypes(ConfigBackupManager.dataTypesFrom(enabledDataTypes))
-            prefs.setIncludeDailyTotals(includeDailyTotals)
-            prefs.setAllowHttpWebhooks(allowHttpWebhooks)
-            prefs.setKeepFullPayloads(keepFullPayloads)
-            prefs.setScreenTimeDayBoundaryHour(screenTimeDayBoundaryHour)
-            prefs.setUseScreenTimeDayBoundary(screenTimeUseDayBoundary)
+            enabledDataTypes?.let { prefs.setHealthEnabledDataTypes(ConfigBackupManager.dataTypesFrom(it)) }
+            includeDailyTotals?.let { prefs.setIncludeDailyTotals(it) }
+            allowHttpWebhooks?.let { prefs.setAllowHttpWebhooks(it) }
+            keepFullPayloads?.let { prefs.setKeepFullPayloads(it) }
+            screenTimeDayBoundaryHour?.let { prefs.setScreenTimeDayBoundaryHour(it) }
+            screenTimeUseDayBoundary?.let { prefs.setUseScreenTimeDayBoundary(it) }
             failureNotificationThreshold?.let { SyncFailureNotifier.setThreshold(context, it) }
             // A backup from before 1.20.0 carries none of these: the phone name, the Receive
             // switches and the source URL (and with it the ledger) stay as they are.
@@ -150,7 +143,7 @@ class ConfigBackupManager(private val context: Context) {
             receiveTypes?.let { names -> prefs.setReceiveTypes(names.mapNotNull { ConfigBackupManager.writeBackTypeFrom(it) }.toSet()) }
             receiveOlderMeasurements?.let { prefs.setReceiveOlderMeasurements(it) }
             // Only a URL the health section actually has; the URLs were written above.
-            receiveSourceUrl?.let { url -> prefs.setReceiveSourceUrl(url.takeIf { it in backup.health.webhookUrls }) }
+            receiveSourceUrl?.let { url -> prefs.setReceiveSourceUrl(url.takeIf { it in prefs.getHealthWebhookUrls() }) }
             // Null means a backup from before resolutions existed: leave the setting alone.
             seriesResolutions?.let { stored ->
                 prefs.setSeriesResolutions(

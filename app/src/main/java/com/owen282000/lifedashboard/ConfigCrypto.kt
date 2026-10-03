@@ -37,6 +37,17 @@ object ConfigCrypto {
      */
     const val ITERATIONS = 210_000
 
+    /**
+     * The iteration counts a file may ask for; both apps write [ITERATIONS]. The count comes
+     * from the file, so without a ceiling a crafted one could keep the import busy for minutes,
+     * and without a floor it could ask for a key that is cheap to guess. The iPhone app uses
+     * the same range.
+     */
+    val ACCEPTED_ITERATIONS = 100_000..2_000_000
+
+    /** The shortest export password accepted, as on the iPhone. */
+    const val MIN_PASSWORD_LENGTH = 8
+
     /** Marks an encrypted export so the importer knows a password is needed. */
     const val ENVELOPE_TYPE = "life-dashboard-encrypted-config"
 
@@ -46,6 +57,22 @@ object ConfigCrypto {
 
     /** Thrown when a file cannot be decrypted, almost always a wrong password. */
     class WrongPasswordException(message: String) : Exception(message)
+
+    /** Thrown when a file asks for key derivation settings this app does not accept. */
+    class UnsupportedEnvelopeException(message: String) : Exception(message)
+
+    /** Why an export password cannot be used yet. */
+    enum class PasswordProblem { TOO_SHORT, MISMATCH }
+
+    /**
+     * Checks the password an export is encrypted with against its repeat. A typo in a password
+     * typed once, behind dots, would leave a file nobody can open.
+     */
+    fun passwordProblem(password: String, repeat: String): PasswordProblem? = when {
+        password.codePointCount(0, password.length) < MIN_PASSWORD_LENGTH -> PasswordProblem.TOO_SHORT
+        password != repeat -> PasswordProblem.MISMATCH
+        else -> null
+    }
 
     /**
      * Encrypts [plaintext] under [password], returning the JSON envelope to write to disk.
@@ -76,12 +103,14 @@ object ConfigCrypto {
      * Decrypts an envelope produced by [encrypt].
      *
      * @throws WrongPasswordException when the password is wrong or the file was tampered with.
+     * @throws UnsupportedEnvelopeException when the iteration count is outside [ACCEPTED_ITERATIONS].
      */
     fun decrypt(envelope: String, password: String): String {
         val salt = decoder.decode(envelope.field("salt"))
         val iv = decoder.decode(envelope.field("iv"))
         val ciphertext = decoder.decode(envelope.field("ciphertext"))
-        val iterations = envelope.field("iterations").toIntOrNull() ?: ITERATIONS
+        val iterations = envelope.field("iterations").toIntOrNull()?.takeIf { it in ACCEPTED_ITERATIONS }
+            ?: throw UnsupportedEnvelopeException("Iteration count outside $ACCEPTED_ITERATIONS")
 
         return try {
             val cipher = Cipher.getInstance(CIPHER)

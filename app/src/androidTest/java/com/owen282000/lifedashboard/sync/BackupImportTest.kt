@@ -62,7 +62,7 @@ class BackupImportTest {
         assertEquals(SyncMode.TIMES, prefs.getSyncSchedule(LogType.HEALTH_CONNECT).mode)
         assertEquals(4, SyncFailureNotifier.getThreshold(context))
         assertEquals("CI Phone", prefs.getPhoneName())
-        assertEquals(fixture.health.webhookUrls.first(), prefs.getReceiveSettings().sourceUrl)
+        assertEquals(fixture.health.webhookUrls.orEmpty().first(), prefs.getReceiveSettings().sourceUrl)
         assertEquals(comparable(fixture), comparable(ConfigBackupManager(context).export()))
     }
 
@@ -118,5 +118,39 @@ class BackupImportTest {
 
         ConfigBackupManager(context).import(fixture.copy(options = fixture.options.copy(receiveSourceUrl = "https://not-in-the-list.invalid/api/webhook/x")))
         assertNull(prefs.getReceiveSettings().sourceUrl)
+    }
+
+    /**
+     * A file from the iPhone app has no Screen Time, no Screen Time MQTT and no day boundary,
+     * which stay as they are, and names the iPhone with its topic and phone name, which this
+     * phone does not take over.
+     */
+    @Test
+    fun iPhoneFileKeepsWhatItDoesNotHave() {
+        ConfigBackupManager(context).import(fixture)
+        val screenTimeUrls = prefs.getScreenTimeWebhookUrls()
+        val screenTimeMqtt = prefs.getMqttSection(MqttSection.SCREEN_TIME)
+        val healthTopic = prefs.getMqttSection(MqttSection.HEALTH).baseTopic
+        val boundary = prefs.getScreenTimeDayBoundaryHour()
+        val useBoundary = prefs.useScreenTimeDayBoundary()
+
+        val iPhoneFile = """
+            {
+              "version" : 1,
+              "platform" : "ios",
+              "health" : { "webhook_urls" : [ "https://iphone.example.com/health" ], "sync_interval_minutes" : 30 },
+              "mqtt" : { "health_base_topic" : "lifedashboard-ios", "health_enabled" : true, "health_use_shared" : true },
+              "options" : { "enabled_data_types" : [ "STEPS" ], "phone_name" : "Zoë's iPhone" }
+            }
+        """.trimIndent()
+        ConfigBackupManager(context).import(ConfigBackup.decode(iPhoneFile))
+
+        assertEquals(listOf("https://iphone.example.com/health"), prefs.getHealthWebhookUrls())
+        assertEquals(screenTimeUrls, prefs.getScreenTimeWebhookUrls())
+        assertEquals(screenTimeMqtt, prefs.getMqttSection(MqttSection.SCREEN_TIME))
+        assertEquals(boundary, prefs.getScreenTimeDayBoundaryHour())
+        assertEquals(useBoundary, prefs.useScreenTimeDayBoundary())
+        assertEquals(healthTopic, prefs.getMqttSection(MqttSection.HEALTH).baseTopic)
+        assertEquals("CI Phone", prefs.getPhoneName())
     }
 }
