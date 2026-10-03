@@ -363,6 +363,116 @@ class PendingSyncStoreTest {
         assertEquals("last", store.peekAll().last().payload)
     }
 
+    /** Makes [dir] read-only for the test, or skips it where that has no effect (root). */
+    private fun readOnly(dir: java.io.File) {
+        dir.setWritable(false)
+        org.junit.Assume.assumeTrue("a read-only directory needs a user that is not root", !dir.canWrite())
+    }
+
+    @Test
+    fun aLeftoverThatCannotBeQueuedStaysForTheNextDrainWithoutAThrow() {
+        val dir = tmp.newFolder("pending")
+        val store = PendingSyncStore(dir)
+        store.enqueue("older", "health_connect", "HEALTH_CONNECT", 1, nowMillis = 50)
+        leftover(dir, "dead", "p1", "HEALTH_CONNECT", createdAt = 100)
+        leftover(dir, "dead2", "p2", "HEALTH_CONNECT", createdAt = 110)
+        readOnly(dir)
+        val stuck = mutableListOf<Int>()
+        try {
+            assertEquals(emptyList<PendingSyncStore.PendingItem>(), store.recoverInFlight { count, _ -> stuck += count })
+        } finally {
+            dir.setWritable(true)
+        }
+        assertEquals("reported once, for both", listOf(2), stuck)
+        assertEquals(listOf("older"), store.peekAll().map { it.payload })
+        assertEquals(setOf("dead", "dead2"), store.inFlightIds().toSet())
+
+        assertEquals(emptyList<PendingSyncStore.PendingItem>(), store.recoverInFlight())
+        assertEquals("the next drain queues them", listOf("older", "p1", "p2"), store.peekAll().map { it.payload })
+    }
+
+    @Test
+    fun aRecoveredScreenTimeWeekThatCannotBeRewrittenKeepsTheQueuedOne() {
+        val dir = tmp.newFolder("pending")
+        val store = PendingSyncStore(dir)
+        store.enqueue(week("2026-09-01"), "screen_time", "SCREEN_TIME", 1, nowMillis = 100)
+        leftover(dir, "dead", week("2026-09-03"), "SCREEN_TIME", createdAt = 200)
+        // The rewrite's temp file cannot be created, as on a full disk.
+        java.io.File(dir, "dead.tmp").mkdirs()
+        var reason: Exception? = null
+        assertEquals(emptyList<PendingSyncStore.PendingItem>(), store.recoverInFlight { _, e -> reason = e })
+        assertTrue("reported", reason != null)
+        assertEquals("moved first, and the week before it kept, so no day is lost", listOf(week("2026-09-01"), week("2026-09-03")), store.peekAll().map { it.payload })
+        assertEquals(emptyList<String>(), store.inFlightIds())
+
+        java.io.File(dir, "dead.tmp").delete()
+        store.enqueue(week("2026-09-04"), "screen_time", "SCREEN_TIME", 1, nowMillis = 300)
+        val queued = store.peekAll().single()
+        assertEquals("the next replacement folds them together", "2026-09-01", queued.undeliveredSince)
+    }
+
+    @Test
+    fun aStoppedPostStaysAStopWhenItsPayloadCannotBeQueued() {
+        val dir = tmp.newFolder("pending")
+        val store = PendingSyncStore(dir)
+        readOnly(dir)
+        dir.setWritable(true)
+        val caught = try {
+            runBlocking {
+                store.writeAhead<Unit>(
+                    "p1", "health_connect", "HEALTH_CONNECT", 1, 100,
+                    commit = {},
+                    post = {
+                        dir.setWritable(false)
+                        throw kotlinx.coroutines.CancellationException("worker stopped")
+                    },
+                    onQueued = {}
+                )
+            }
+            null
+        } catch (e: Exception) {
+            e
+        } finally {
+            dir.setWritable(true)
+        }
+        assertTrue("a stop, not a failure: $caught", caught is kotlinx.coroutines.CancellationException)
+        assertEquals("worker stopped", caught?.message)
+        // The coroutine machinery may hand back a copy with the original as its cause.
+        val suppressed = caught!!.suppressed.toList() + caught.cause?.suppressed.orEmpty()
+        assertTrue("the queuing error rides along", suppressed.any { it is java.io.IOException })
+        assertEquals("left in flight", 1, store.inFlightIds().size)
+        store.recoverInFlight()
+        assertEquals("and queued by the next drain", listOf("p1"), store.peekAll().map { it.payload })
+    }
+
+    @Test
+    fun aFailedPostWhosePayloadCannotBeQueuedFailsWithThatError() {
+        val dir = tmp.newFolder("pending")
+        val store = PendingSyncStore(dir)
+        readOnly(dir)
+        dir.setWritable(true)
+        val caught = try {
+            runBlocking {
+                store.writeAhead(
+                    "p1", "health_connect", "HEALTH_CONNECT", 1, 100,
+                    commit = {},
+                    post = {
+                        dir.setWritable(false)
+                        Result.failure<Unit>(Exception("HTTP 503"))
+                    },
+                    onQueued = {}
+                )
+            }
+            null
+        } catch (e: Exception) {
+            e
+        } finally {
+            dir.setWritable(true)
+        }
+        assertTrue("$caught", caught is java.io.IOException)
+        assertEquals(1, store.inFlightIds().size)
+    }
+
     @Test
     fun corruptFilesAreDroppedNotFatal() {
         val dir = tmp.newFolder("pending2")

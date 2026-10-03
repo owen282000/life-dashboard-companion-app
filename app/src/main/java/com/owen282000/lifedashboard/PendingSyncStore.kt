@@ -98,13 +98,27 @@ class PendingSyncStore(private val dir: File) {
             return outcome
         }
         var delivered = false
+        var thrown: Throwable? = null
         try {
             commit()
             val outcome = post()
             delivered = outcome.isSuccess
             return outcome
+        } catch (e: Throwable) {
+            thrown = e
+            throw e
         } finally {
-            if (delivered) landInFlight(item.id) else onQueued(queueInFlight(item))
+            if (delivered) {
+                landInFlight(item.id)
+            } else {
+                try {
+                    onQueued(queueInFlight(item))
+                } catch (e: java.io.IOException) {
+                    // A stop or an error of the post stays what goes up, so a stopped worker is
+                    // not reported as a failed sync; the item waits for the next drain.
+                    thrown?.addSuppressed(e) ?: throw e
+                }
+            }
         }
     }
 
@@ -112,12 +126,18 @@ class PendingSyncStore(private val dir: File) {
      * Turns what a dead process left in flight into queued items, with the cap and the Screen
      * Time replacement, and returns what that pushed out. Items of a sync still running in
      * this process are left alone. Called by the drain, which every sync runs first.
+     *
+     * Never throws: an item that cannot be queued now, as on a full disk, stays in flight for
+     * the next drain, and [onStuck] hears how many did and the first reason, once per call. A
+     * throw here would fail every sync before it reads anything.
      */
-    fun recoverInFlight(): List<PendingItem> {
+    fun recoverInFlight(onStuck: (Int, Exception) -> Unit = { _, _ -> }): List<PendingItem> {
         val files = inFlightDir.listFiles() ?: return emptyList()
         // A temp file of a write that died with its process; a live one belongs to a sync.
         files.filter { it.extension == "tmp" && it.nameWithoutExtension !in LIVE }.forEach { it.delete() }
-        return files.filter { it.extension == "json" }.flatMap { file ->
+        var stuck = 0
+        var firstReason: Exception? = null
+        val pushedOut = files.filter { it.extension == "json" }.flatMap { file ->
             val id = file.nameWithoutExtension
             if (!claim(id)) return@flatMap emptyList()
             val item = try {
@@ -128,8 +148,16 @@ class PendingSyncStore(private val dir: File) {
                 release(id)
                 return@flatMap emptyList()
             }
-            queueInFlight(item)
+            try {
+                queueInFlight(item)
+            } catch (e: Exception) {
+                stuck++
+                if (firstReason == null) firstReason = e
+                emptyList()
+            }
         }
+        firstReason?.let { onStuck(stuck, it) }
+        return pushedOut
     }
 
     /** The ids of the payloads in flight; none of them is in [peekAll]. */
@@ -173,15 +201,16 @@ class PendingSyncStore(private val dir: File) {
      * Moves an in-flight item into the outbox by renaming its file, so it is in flight or
      * queued at every moment and never both. Returns what the cap or the Screen Time
      * replacement pushed out.
+     *
+     * The rename comes first, since it needs no free space. A Screen Time week is then
+     * rewritten in the outbox with the days it carries over; when that write fails, the weeks
+     * queued before it stay, so no day is lost, and the next replacement folds them together.
      */
     private fun queueInFlight(item: PendingItem): List<PendingItem> = try {
+        moveIn(item.id)
         if (item.logType == LogType.SCREEN_TIME.name) {
-            replaceSnapshot(item) { placed ->
-                write(placed, inFlightDir)
-                moveIn(placed.id)
-            }
+            replaceSnapshot(item) { placed -> write(placed, dir) }
         } else {
-            moveIn(item.id)
             enforceCap(item)
         }
     } finally {
@@ -347,7 +376,10 @@ class PendingSyncStore(private val dir: File) {
 
         /** [PendingSyncStore.recoverInFlight] in the app's outbox, with [report] for what it pushed out. */
         fun recoverInFlight(context: android.content.Context) {
-            forContext(context).recoverInFlight().groupBy { it.logType }.forEach { (logType, dropped) ->
+            val pushedOut = forContext(context).recoverInFlight { stuck, reason ->
+                android.util.Log.w(TAG, "$stuck in-flight payload(s) left by an ended sync not fully queued; the next drain tries again", reason)
+            }
+            pushedOut.groupBy { it.logType }.forEach { (logType, dropped) ->
                 report(context, logType, dropped, System.currentTimeMillis())
             }
         }

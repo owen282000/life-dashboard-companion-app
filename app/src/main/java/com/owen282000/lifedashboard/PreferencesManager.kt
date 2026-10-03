@@ -329,13 +329,13 @@ class PreferencesManager(context: Context) {
         }.getOrDefault(emptyMap())
     }
 
-    fun setBucketCarry(carry: Map<HealthDataType, List<CarriedSample>>) {
+    fun setBucketCarry(carry: Map<HealthDataType, List<CarriedSample>>, durable: Boolean = false) {
         val nonEmpty = carry.filterValues { it.isNotEmpty() }
         if (nonEmpty.isEmpty()) {
-            prefs.edit().remove(KEY_HEALTH_BUCKET_CARRY).apply()
+            prefs.edit().remove(KEY_HEALTH_BUCKET_CARRY).save(durable)
             return
         }
-        prefs.edit().putString(KEY_HEALTH_BUCKET_CARRY, Json.encodeToString(nonEmpty.mapKeys { it.key.name })).apply()
+        prefs.edit().putString(KEY_HEALTH_BUCKET_CARRY, Json.encodeToString(nonEmpty.mapKeys { it.key.name })).save(durable)
     }
 
     fun getHealthLastSyncTimestamp(type: HealthDataType): Long? {
@@ -350,12 +350,12 @@ class PreferencesManager(context: Context) {
     }
 
     /** Stores the time and the id together, so a watermark is never half old and half new. */
-    fun setHealthWatermark(type: HealthDataType, watermark: Watermark) {
+    fun setHealthWatermark(type: HealthDataType, watermark: Watermark, durable: Boolean = false) {
         prefs.edit().apply {
             putLong(KEY_HEALTH_LAST_SYNC_TS_PREFIX + type.name, watermark.time.toEpochMilli())
             if (watermark.tieId == null) remove(KEY_HEALTH_LAST_SYNC_TIE_PREFIX + type.name)
             else putString(KEY_HEALTH_LAST_SYNC_TIE_PREFIX + type.name, watermark.tieId)
-        }.apply()
+        }.save(durable)
     }
 
     /** The last moment a sync read all of [type], or null when none has yet, as after an update from an older version. */
@@ -364,8 +364,8 @@ class PreferencesManager(context: Context) {
         return if (ms == -1L) null else java.time.Instant.ofEpochMilli(ms)
     }
 
-    fun setHealthCoveredUntil(type: HealthDataType, until: java.time.Instant) {
-        prefs.edit().putLong(KEY_HEALTH_COVERED_UNTIL_PREFIX + type.name, until.toEpochMilli()).apply()
+    fun setHealthCoveredUntil(type: HealthDataType, until: java.time.Instant, durable: Boolean = false) {
+        prefs.edit().putLong(KEY_HEALTH_COVERED_UNTIL_PREFIX + type.name, until.toEpochMilli()).save(durable)
     }
 
     /** The stored changes token for [type], or null when there is none yet. */
@@ -426,12 +426,22 @@ class PreferencesManager(context: Context) {
             .getOrDefault(DeletionSummary.EMPTY)
     }
 
-    fun setPendingDeletions(summary: DeletionSummary) {
+    fun setPendingDeletions(summary: DeletionSummary, durable: Boolean = false) {
         if (summary.isEmpty) {
-            prefs.edit().remove(KEY_HEALTH_PENDING_DELETIONS).apply()
+            prefs.edit().remove(KEY_HEALTH_PENDING_DELETIONS).save(durable)
             return
         }
-        prefs.edit().putString(KEY_HEALTH_PENDING_DELETIONS, Json.encodeToString(summary)).apply()
+        prefs.edit().putString(KEY_HEALTH_PENDING_DELETIONS, Json.encodeToString(summary)).save(durable)
+    }
+
+    /**
+     * [durable] writes to disk before it returns. A sync's write-ahead commit needs that: with
+     * apply() a process killed just after a delivery can lose the moved watermarks and bucket
+     * carry, and the next sync would send bucketed windows, which carry no uuid, a second time.
+     * Never on the main thread; the syncs run on Dispatchers.IO.
+     */
+    private fun android.content.SharedPreferences.Editor.save(durable: Boolean) {
+        if (durable) commit() else apply()
     }
 
     fun getHealthWebhookHeaders(): Map<String, String> {

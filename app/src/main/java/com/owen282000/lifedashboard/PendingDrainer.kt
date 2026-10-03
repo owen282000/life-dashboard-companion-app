@@ -46,7 +46,15 @@ object PendingDrainer {
     private suspend fun drainLocked(context: Context) {
         // A payload a sync wrote ahead of its post and never saw the end of, because its
         // process died, joins the queue here. One a running sync is posting stays out of it.
-        PendingSyncStore.recoverInFlight(context)
+        // Nothing in there may stop the drain, nor the sync that runs it: a full disk would
+        // otherwise fail every sync before it reads anything.
+        try {
+            PendingSyncStore.recoverInFlight(context)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            android.util.Log.w("PendingDrainer", "Could not recover in-flight payloads; the next drain tries again", e)
+        }
         val store = PendingSyncStore.forContext(context)
         val items = store.peekAll()
         if (items.isEmpty()) return

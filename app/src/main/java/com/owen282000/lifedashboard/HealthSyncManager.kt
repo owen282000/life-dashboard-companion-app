@@ -328,10 +328,11 @@ class HealthSyncManager(
                     dataType = "health_connect",
                     logType = LogType.HEALTH_CONNECT.name,
                     recordCount = totalRecords,
+                    // Written through to disk before the post (durable, see PreferencesManager.save).
                     commit = {
-                        updateSyncTimestamps(healthData, passCounts)
-                        preferencesManager.setBucketCarry(carriedOut)
-                        preferencesManager.setPendingDeletions(deletionsLeft)
+                        updateSyncTimestamps(healthData, passCounts, durable = true)
+                        preferencesManager.setBucketCarry(carriedOut, durable = true)
+                        preferencesManager.setPendingDeletions(deletionsLeft, durable = true)
                         committed = true
                     },
                     post = { webhookManager.postData(jsonPayload) }
@@ -409,7 +410,7 @@ class HealthSyncManager(
                     logType = LogType.HEALTH_CONNECT.name,
                     recordCount = 0,
                     commit = {
-                        preferencesManager.setPendingDeletions(DeletionSummary.EMPTY)
+                        preferencesManager.setPendingDeletions(DeletionSummary.EMPTY, durable = true)
                         committed = true
                     },
                     post = { webhookManager.postData(deletionPayload) }
@@ -808,19 +809,20 @@ class HealthSyncManager(
     private fun updateSyncTimestamps(
         data: HealthData,
         syncCounts: MutableMap<HealthDataType, Int>,
-        holdGapAnchors: Boolean = false
+        holdGapAnchors: Boolean = false,
+        durable: Boolean = false
     ) {
         // Watermarks are the max metadata.lastModifiedTime of each delivered batch, so late
         // backfills and edits (old record timestamps, recent modification) are caught by the
         // next sync instead of being skipped forever.
         data.watermarks.forEach { (type, watermark) ->
-            preferencesManager.setHealthWatermark(type, watermark)
+            preferencesManager.setHealthWatermark(type, watermark, durable)
         }
         // After the watermarks: a stop in between leaves the older anchor, which only reads a
         // wider range than needed, never a narrower one.
         val anchors = if (holdGapAnchors) LookbackWindow.keepingGapsOpen(data.coveredUntil, data.diagnostics) else data.coveredUntil
         anchors.forEach { (type, until) ->
-            preferencesManager.setHealthCoveredUntil(type, until)
+            preferencesManager.setHealthCoveredUntil(type, until, durable)
         }
 
         if (data.steps.isNotEmpty()) {
