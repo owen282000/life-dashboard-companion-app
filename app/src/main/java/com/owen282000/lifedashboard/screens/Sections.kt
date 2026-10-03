@@ -129,7 +129,7 @@ fun UiMessage.text(res: Resources): String = when (this) {
     )
     UiMessage.ReceiveNeedsIntegration -> res.getString(R.string.receive_needs_integration)
     is UiMessage.PartlyDelivered -> inner.text(res) + " " + res.getString(R.string.sync_partly_delivered, delivered, total)
-    is UiMessage.OtherSourceWrites -> res.getString(R.string.receive_other_source_writes, source, type.dataType.displayName)
+    is UiMessage.OtherSourceWrites -> res.getString(R.string.receive_other_source_writes, source, res.getString(type.dataType.displayNameRes))
 }
 
 /** The line under the sync actions: the outcome of the last sync, red when it failed. */
@@ -600,7 +600,7 @@ fun DataTypesRow(
                         Icon(Icons.Filled.Lock, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.width(6.dp))
                     }
-                    Text(dataType.displayName, style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(dataType.displayNameRes), style = MaterialTheme.typography.bodyMedium)
                 }
                 Switch(
                     checked = dataType in enabledTypes,

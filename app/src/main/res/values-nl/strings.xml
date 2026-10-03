@@ -101,6 +101,15 @@
         <item quantity="one">%1$d ronde mislukt. Bekijk de logs voor details.</item>
         <item quantity="other">%1$d rondes op rij mislukt. Bekijk de logs voor details.</item>
     </plurals>
+    <string name="sync_failures_channel_name">Mislukte synchronisaties</string>
+    <string name="sync_failures_channel_description">Meldingen wanneer synchronisaties naar de webhook blijven mislukken</string>
+    <string name="sync_failing_title">Synchronisatie van %1$s mislukt</string>
+    <plurals name="sync_failing_text">
+        <item quantity="one">%1$d synchronisatie mislukt. Bekijk de webhooklogs voor details.</item>
+        <item quantity="other">%1$d synchronisaties op rij mislukt. Bekijk de webhooklogs voor details.</item>
+    </plurals>
+    <string name="sync_failing_last_error">Laatste fout: %1$s</string>
+    <string name="sync_failing_health_connect_silent">Health Connect gaf geen antwoord</string>
     <string name="sync_partly_delivered">Afgeleverd bij %1$d van %2$d bestemmingen, zie Logs.</string>
     <string name="partial_delivery_title">Niet elke bestemming krijgt je %1$s-gegevens</string>
     <plurals name="partial_delivery_text">
@@ -160,6 +169,39 @@
     </plurals>
     <string name="health_data_types_selected_of">%1$d van %2$d geselecteerd</string>
     <string name="health_data_types_title">Datatypes</string>
+    <string name="data_type_steps">Stappen</string>
+    <string name="data_type_sleep">Slaap</string>
+    <string name="data_type_heart_rate">Hartslag</string>
+    <string name="data_type_distance">Afstand</string>
+    <string name="data_type_active_calories">Actieve energie</string>
+    <string name="data_type_total_calories">Totale energie</string>
+    <string name="data_type_weight">Gewicht</string>
+    <string name="data_type_height">Lengte</string>
+    <string name="data_type_blood_pressure">Bloeddruk</string>
+    <string name="data_type_blood_glucose">Bloedsuikerspiegel</string>
+    <string name="data_type_oxygen_saturation">Saturatie</string>
+    <string name="data_type_body_temperature">Lichaamstemperatuur</string>
+    <string name="data_type_respiratory_rate">Ademfrequentie</string>
+    <string name="data_type_resting_heart_rate">Hartslag in rust</string>
+    <string name="data_type_exercise">Work-outs</string>
+    <string name="data_type_hydration">Water</string>
+    <string name="data_type_nutrition">Voeding</string>
+    <string name="data_type_mindfulness">Mindfulness</string>
+    <string name="data_type_body_fat">Percentage lichaamsvet</string>
+    <string name="data_type_lean_body_mass">Vetvrije massa</string>
+    <string name="data_type_bone_mass">Botmassa</string>
+    <string name="data_type_body_water_mass">Lichaamswater</string>
+    <string name="data_type_heart_rate_variability">Hartritmevariabiliteit</string>
+    <string name="data_type_menstruation_period">Menstruatieperiode</string>
+    <string name="data_type_menstruation_flow">Menstruatiebloeding</string>
+    <string name="data_type_basal_metabolic_rate">Ruststofwisseling</string>
+    <string name="data_type_vo2_max">VO2max</string>
+    <string name="data_type_skin_temperature">Huidtemperatuur</string>
+    <string name="data_type_basal_body_temperature">Basale lichaamstemperatuur</string>
+    <string name="data_type_intermenstrual_bleeding">Spotting</string>
+    <string name="data_type_ovulation_test">Uitslag ovulatietest</string>
+    <string name="data_type_cervical_mucus">Kwaliteit van cervixslijm</string>
+    <string name="data_type_sexual_activity">Seksuele activiteit</string>
     <string name="health_daily_totals">Dagtotalen</string>
     <string name="health_daily_totals_description">Ontdubbelde totalen per dag (stappen, afstand, calorieën) via de aggregate-API; voegt data van telefoon en horloge samen</string>
     <string name="health_daily_totals_title">Dagtotalen in payload</string>

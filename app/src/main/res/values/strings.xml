@@ -103,6 +103,15 @@
         <item quantity="one">%1$d round failed. Check the logs for details.</item>
         <item quantity="other">%1$d rounds in a row failed. Check the logs for details.</item>
     </plurals>
+    <string name="sync_failures_channel_name">Sync failures</string>
+    <string name="sync_failures_channel_description">Alerts when webhook syncs keep failing</string>
+    <string name="sync_failing_title">%1$s sync is failing</string>
+    <plurals name="sync_failing_text">
+        <item quantity="one">%1$d sync failed. Check the webhook logs for details.</item>
+        <item quantity="other">%1$d syncs in a row failed. Check the webhook logs for details.</item>
+    </plurals>
+    <string name="sync_failing_last_error">Last error: %1$s</string>
+    <string name="sync_failing_health_connect_silent">Health Connect did not answer</string>
     <string name="sync_partly_delivered">Delivered to %1$d of %2$d destinations, see Logs.</string>
     <string name="partial_delivery_title">Not every destination gets your %1$s data</string>
     <plurals name="partial_delivery_text">
@@ -162,6 +171,40 @@
     </plurals>
     <string name="health_data_types_selected_of">%1$d of %2$d selected</string>
     <string name="health_data_types_title">Data Types</string>
+    <!-- The names of the data types, as shown on screen. The payload, MQTT and the stored settings use the enum name, never these. -->
+    <string name="data_type_steps">Steps</string>
+    <string name="data_type_sleep">Sleep</string>
+    <string name="data_type_heart_rate">Heart Rate</string>
+    <string name="data_type_distance">Distance</string>
+    <string name="data_type_active_calories">Active Calories</string>
+    <string name="data_type_total_calories">Total Calories</string>
+    <string name="data_type_weight">Weight</string>
+    <string name="data_type_height">Height</string>
+    <string name="data_type_blood_pressure">Blood Pressure</string>
+    <string name="data_type_blood_glucose">Blood Glucose</string>
+    <string name="data_type_oxygen_saturation">Oxygen Saturation</string>
+    <string name="data_type_body_temperature">Body Temperature</string>
+    <string name="data_type_respiratory_rate">Respiratory Rate</string>
+    <string name="data_type_resting_heart_rate">Resting Heart Rate</string>
+    <string name="data_type_exercise">Exercise Sessions</string>
+    <string name="data_type_hydration">Hydration</string>
+    <string name="data_type_nutrition">Nutrition</string>
+    <string name="data_type_mindfulness">Mindfulness</string>
+    <string name="data_type_body_fat">Body Fat</string>
+    <string name="data_type_lean_body_mass">Lean Body Mass</string>
+    <string name="data_type_bone_mass">Bone Mass</string>
+    <string name="data_type_body_water_mass">Body Water Mass</string>
+    <string name="data_type_heart_rate_variability">Heart Rate Variability</string>
+    <string name="data_type_menstruation_period">Menstruation Period</string>
+    <string name="data_type_menstruation_flow">Menstruation Flow</string>
+    <string name="data_type_basal_metabolic_rate">Basal Metabolic Rate</string>
+    <string name="data_type_vo2_max">VO2 Max</string>
+    <string name="data_type_skin_temperature">Skin Temperature</string>
+    <string name="data_type_basal_body_temperature">Basal Body Temperature</string>
+    <string name="data_type_intermenstrual_bleeding">Intermenstrual Bleeding</string>
+    <string name="data_type_ovulation_test">Ovulation Test</string>
+    <string name="data_type_cervical_mucus">Cervical Mucus</string>
+    <string name="data_type_sexual_activity">Sexual Activity</string>
     <string name="health_daily_totals">Daily totals</string>
     <string name="health_daily_totals_description">Deduplicated per-day totals (steps, distance, calories) via the aggregate API; merges phone and watch data</string>
     <string name="health_daily_totals_title">Daily totals in payload</string>

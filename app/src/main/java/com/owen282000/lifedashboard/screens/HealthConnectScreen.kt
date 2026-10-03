@@ -363,7 +363,7 @@ fun HealthConnectContent(
         AlertDialog(
             onDismissRequest = actions::dismissPermissionPrompt,
             title = { Text(stringResource(R.string.health_permission_required_title)) },
-            text = { Text(stringResource(R.string.health_permission_needed, type.displayName)) },
+            text = { Text(stringResource(R.string.health_permission_needed, stringResource(type.displayNameRes))) },
             confirmButton = {
                 TextButton(onClick = actions::requestTypePermission) { Text(stringResource(R.string.common_grant), color = accent.ink()) }
             },
@@ -377,7 +377,7 @@ fun HealthConnectContent(
         AlertDialog(
             onDismissRequest = actions::dismissReceivePermissionPrompt,
             title = { Text(stringResource(R.string.health_permission_required_title)) },
-            text = { Text(stringResource(R.string.receive_permission_needed, type.dataType.displayName)) },
+            text = { Text(stringResource(R.string.receive_permission_needed, stringResource(type.dataType.displayNameRes))) },
             confirmButton = {
                 TextButton(onClick = actions::requestReceivePermission) { Text(stringResource(R.string.common_grant), color = accent.ink()) }
             },

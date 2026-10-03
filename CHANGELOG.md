@@ -18,6 +18,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Fixed
 
+- The names of the 33 data types were English on a Dutch or German phone, in the Data Types
+  list, the resolution settings, Receive and the permission prompts. They now follow the
+  phone's language, with the same names the iOS app uses, for example "Stappen" and
+  "Schritte"; the payload, MQTT and your saved settings keep the names they had. The
+  notification for failed syncs was English too, and called Screen Time "Screen Time" where the
+  app says "Schermtijd" or "Bildschirmzeit": it is translated now, and like on iOS it ends with
+  the last error, such as "Last error: HTTP 502", short and without the webhook's path, query
+  or any secret.
 - Three German texts on the sync schedule addressed you as "Sie" while the rest of the app says
   "du"; they now say "du" too. The notification setting for a single failed sync read
   "fehlgeschlagenen" and now reads "fehlgeschlagener".

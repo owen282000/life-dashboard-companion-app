@@ -420,7 +420,9 @@ class HealthSyncManager(
                 val post = writeBack.sourcePost(heartbeatPayload())
                 if (post != null) {
                     val heartbeat = sourceOnlyManager(post, "heartbeat").postData(post.payload)
-                    SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, heartbeat.isSuccess)
+                    SyncFailureNotifier.recordResult(
+                        context, LogType.HEALTH_CONNECT, heartbeat.isSuccess, FailureReason.of(heartbeat.exceptionOrNull())
+                    )
                     receive(writeBack, post, heartbeat)
                 }
             }
@@ -436,7 +438,9 @@ class HealthSyncManager(
                 if (healthConnectSilent) {
                     // Nothing was read because nothing could be; a run of these is an outage
                     // like an unreachable webhook, and the failure notifier treats it as one.
-                    SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, false)
+                    SyncFailureNotifier.recordResult(
+                        context, LogType.HEALTH_CONNECT, false, context.getString(R.string.sync_failing_health_connect_silent)
+                    )
                     return Result.failure(Exception("Health Connect did not answer for any data type; the next sync tries again"))
                 }
                 return Result.success(

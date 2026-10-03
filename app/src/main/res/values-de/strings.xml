@@ -101,6 +101,15 @@
         <item quantity="one">%1$d Runde fehlgeschlagen. Details stehen in den Logs.</item>
         <item quantity="other">%1$d Runden in Folge fehlgeschlagen. Details stehen in den Logs.</item>
     </plurals>
+    <string name="sync_failures_channel_name">Fehlgeschlagene Synchronisierungen</string>
+    <string name="sync_failures_channel_description">Hinweise, wenn Synchronisierungen zum Webhook wiederholt fehlschlagen</string>
+    <string name="sync_failing_title">Synchronisierung von %1$s schlägt fehl</string>
+    <plurals name="sync_failing_text">
+        <item quantity="one">%1$d Synchronisierung fehlgeschlagen. Details stehen in den Webhook-Logs.</item>
+        <item quantity="other">%1$d Synchronisierungen in Folge fehlgeschlagen. Details stehen in den Webhook-Logs.</item>
+    </plurals>
+    <string name="sync_failing_last_error">Letzter Fehler: %1$s</string>
+    <string name="sync_failing_health_connect_silent">Health Connect hat nicht geantwortet</string>
     <string name="sync_partly_delivered">An %1$d von %2$d Zielen zugestellt, siehe Logs.</string>
     <string name="partial_delivery_title">Nicht jedes Ziel bekommt deine %1$s-Daten</string>
     <plurals name="partial_delivery_text">
@@ -160,6 +169,39 @@
     </plurals>
     <string name="health_data_types_selected_of">%1$d von %2$d ausgewählt</string>
     <string name="health_data_types_title">Datentypen</string>
+    <string name="data_type_steps">Schritte</string>
+    <string name="data_type_sleep">Schlaf</string>
+    <string name="data_type_heart_rate">Herzfrequenz</string>
+    <string name="data_type_distance">Distanz</string>
+    <string name="data_type_active_calories">Aktivitätsenergie</string>
+    <string name="data_type_total_calories">Gesamtenergie</string>
+    <string name="data_type_weight">Gewicht</string>
+    <string name="data_type_height">Größe</string>
+    <string name="data_type_blood_pressure">Blutdruck</string>
+    <string name="data_type_blood_glucose">Blutzucker</string>
+    <string name="data_type_oxygen_saturation">Blutsauerstoff</string>
+    <string name="data_type_body_temperature">Körpertemperatur</string>
+    <string name="data_type_respiratory_rate">Atemfrequenz</string>
+    <string name="data_type_resting_heart_rate">Ruheherzfrequenz</string>
+    <string name="data_type_exercise">Trainings</string>
+    <string name="data_type_hydration">Wasser</string>
+    <string name="data_type_nutrition">Ernährung</string>
+    <string name="data_type_mindfulness">Achtsamkeit</string>
+    <string name="data_type_body_fat">Körperfettanteil</string>
+    <string name="data_type_lean_body_mass">Magere Körpermasse</string>
+    <string name="data_type_bone_mass">Knochenmasse</string>
+    <string name="data_type_body_water_mass">Körperwasser</string>
+    <string name="data_type_heart_rate_variability">Herzfrequenzvariabilität</string>
+    <string name="data_type_menstruation_period">Menstruationsperiode</string>
+    <string name="data_type_menstruation_flow">Menstruationsblutung</string>
+    <string name="data_type_basal_metabolic_rate">Grundumsatz</string>
+    <string name="data_type_vo2_max">VO2max</string>
+    <string name="data_type_skin_temperature">Hauttemperatur</string>
+    <string name="data_type_basal_body_temperature">Basaltemperatur</string>
+    <string name="data_type_intermenstrual_bleeding">Schmierblutung</string>
+    <string name="data_type_ovulation_test">Ovulationstestergebnis</string>
+    <string name="data_type_cervical_mucus">Zervixschleim</string>
+    <string name="data_type_sexual_activity">Sexuelle Aktivität</string>
     <string name="health_daily_totals">Tagessummen</string>
     <string name="health_daily_totals_description">Entdoppelte Tagessummen (Schritte, Distanz, Kalorien) über die Aggregat-API; führt Handy- und Uhrdaten zusammen</string>
     <string name="health_daily_totals_title">Tagessummen im Payload</string>

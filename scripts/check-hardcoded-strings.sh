@@ -18,10 +18,8 @@ SRC="app/src/main/java"
 
 # Files whose UI strings have not been extracted yet. Every entry here is debt.
 ALLOWLIST=(
-    "app/src/main/java/com/owen282000/lifedashboard/HealthDataModels.kt"
     "app/src/main/java/com/owen282000/lifedashboard/HealthSyncManager.kt"
     "app/src/main/java/com/owen282000/lifedashboard/ScreenTimeSyncManager.kt"
-    "app/src/main/java/com/owen282000/lifedashboard/SyncFailureNotifier.kt"
     "app/src/main/java/com/owen282000/lifedashboard/WebhookManager.kt"
     "app/src/main/java/com/owen282000/lifedashboard/screens/ConfigBackupSection.kt"
     "app/src/main/java/com/owen282000/lifedashboard/screens/SecretsUnavailableBanner.kt"

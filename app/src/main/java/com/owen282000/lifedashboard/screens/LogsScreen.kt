@@ -382,7 +382,7 @@ private fun ReceiveLogDetails(log: WebhookLog) {
             Text(log.errorMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
         }
         lines?.forEach { line ->
-            val typeName = line.type?.let { key -> WriteBackType.fromKey(key)?.dataType?.displayName ?: key }
+            val typeName = line.type?.let { key -> WriteBackType.fromKey(key)?.dataType?.let { stringResource(it.displayNameRes) } ?: key }
                 ?: stringResource(R.string.logs_filter_unknown)
             val value = line.value?.let { v ->
                 val number = if (line.diastolic != null) "${formatValue(v)}/${formatValue(line.diastolic)}" else formatValue(v)

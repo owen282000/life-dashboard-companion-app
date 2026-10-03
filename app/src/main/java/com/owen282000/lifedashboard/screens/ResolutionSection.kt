@@ -79,7 +79,7 @@ fun ResolutionRow(
             typesInFamily.forEach { type ->
                 TypeResolution(
                     accent = accent,
-                    label = type.displayName,
+                    label = stringResource(type.displayNameRes),
                     selected = resolutions[type] ?: SeriesResolution.RAW,
                     onSelect = { onChange(type, it) }
                 )

@@ -40,9 +40,10 @@ object SyncFailureNotifier {
     /**
      * Tracks the failure streak per sync category and notifies once the configured
      * threshold (and every multiple of it) is reached. A success clears the streak
-     * and any delivered notification for that category.
+     * and any delivered notification for that category. [lastError] ends the notification
+     * text when set, see [FailureReason]; it never decides what counts as a failure.
      */
-    fun recordResult(context: Context, logType: LogType, success: Boolean) {
+    fun recordResult(context: Context, logType: LogType, success: Boolean, lastError: String? = null) {
         val prefs = prefs(context)
         val key = KEY_STREAK_PREFIX + logType.name
 
@@ -69,14 +70,13 @@ object SyncFailureNotifier {
 
         ensureChannel(context)
 
-        val categoryName = when (logType) {
-            LogType.HEALTH_CONNECT -> "Health Connect"
-            LogType.SCREEN_TIME -> "Screen Time"
-        }
+        val text = context.resources.getQuantityString(R.plurals.sync_failing_text, streak, streak) +
+            lastError?.let { " " + context.getString(R.string.sync_failing_last_error, it) }.orEmpty()
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_notify_error)
-            .setContentTitle("$categoryName sync is failing")
-            .setContentText("$streak syncs in a row failed. Check the webhook logs for details.")
+            .setContentTitle(context.getString(R.string.sync_failing_title, categoryName(context, logType)))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setAutoCancel(true)
             .build()
 
@@ -97,7 +97,7 @@ object SyncFailureNotifier {
      * webhook clears it.
      */
     fun recordDelivery(context: Context, logType: LogType, result: Result<WebhookOutcome>) {
-        recordResult(context, logType, result.isSuccess)
+        recordResult(context, logType, result.isSuccess, FailureReason.of(result.exceptionOrNull()))
         val prefs = prefs(context)
         val key = KEY_PARTIAL_PREFIX + logType.name
         val missed = result.getOrNull()?.missedUrls.orEmpty()
@@ -122,7 +122,7 @@ object SyncFailureNotifier {
         val hosts = PartialDelivery.hosts(missed)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_notify_error)
-            .setContentTitle(context.getString(R.string.partial_delivery_title, categoryName(logType)))
+            .setContentTitle(context.getString(R.string.partial_delivery_title, categoryName(context, logType)))
             .setContentText(context.resources.getQuantityString(R.plurals.partial_delivery_text, streak, streak, hosts))
             .setStyle(NotificationCompat.BigTextStyle().bigText(context.resources.getQuantityString(R.plurals.partial_delivery_text, streak, streak, hosts)))
             .setOnlyAlertOnce(true)
@@ -131,10 +131,13 @@ object SyncFailureNotifier {
         NotificationManagerCompat.from(context).notify(partialNotificationId(logType), notification)
     }
 
-    private fun categoryName(logType: LogType) = when (logType) {
-        LogType.HEALTH_CONNECT -> "Health Connect"
-        LogType.SCREEN_TIME -> "Screen Time"
-    }
+    /** The category as the app's own tabs name it: Schermtijd and Bildschirmzeit, not Screen Time. */
+    private fun categoryName(context: Context, logType: LogType) = context.getString(
+        when (logType) {
+            LogType.HEALTH_CONNECT -> R.string.main_title_health_connect
+            LogType.SCREEN_TIME -> R.string.main_title_screen_time
+        }
+    )
 
     private const val KEY_DROPPED_PREFIX = "outbox_dropped_"
 
@@ -160,13 +163,9 @@ object SyncFailureNotifier {
             return
         }
         ensureChannel(context)
-        val categoryName = when (logType) {
-            LogType.HEALTH_CONNECT -> "Health Connect"
-            LogType.SCREEN_TIME -> "Screen Time"
-        }
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_notify_error)
-            .setContentTitle(context.getString(R.string.outbox_dropped_title, categoryName))
+            .setContentTitle(context.getString(R.string.outbox_dropped_title, categoryName(context, logType)))
             .setContentText(context.resources.getQuantityString(R.plurals.outbox_dropped_text, total, total))
             .setOnlyAlertOnce(true)
             .setAutoCancel(true)
@@ -217,10 +216,10 @@ object SyncFailureNotifier {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Sync failures",
+            context.getString(R.string.sync_failures_channel_name),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Alerts when webhook syncs keep failing"
+            description = context.getString(R.string.sync_failures_channel_description)
         }
         manager.createNotificationChannel(channel)
     }

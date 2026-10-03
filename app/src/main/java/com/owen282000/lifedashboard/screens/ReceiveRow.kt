@@ -63,10 +63,10 @@ fun ReceiveRow(
         ReceiveSummary.ChooseType -> stringResource(R.string.receive_choose_type)
         is ReceiveSummary.PermissionMissing -> stringResource(
             R.string.receive_permission_missing,
-            summary.types.joinToString(", ") { it.dataType.displayName }
+            summary.types.map { stringResource(it.dataType.displayNameRes) }.joinToString(", ")
         )
         is ReceiveSummary.Receiving -> {
-            val types = summary.types.joinToString(", ") { it.dataType.displayName }
+            val types = summary.types.map { stringResource(it.dataType.displayNameRes) }.joinToString(", ")
             if (summary.writtenToday > 0) {
                 stringResource(
                     R.string.receive_summary_written,
@@ -159,7 +159,7 @@ fun ReceiveRow(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                     }
-                    Text(type.dataType.displayName, style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(type.dataType.displayNameRes), style = MaterialTheme.typography.bodyMedium)
                 }
                 Switch(
                     checked = type in receive.types && granted,

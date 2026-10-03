@@ -1,44 +1,50 @@
 package com.owen282000.lifedashboard
 
+import androidx.annotation.StringRes
 import androidx.health.connect.client.records.*
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
 
-enum class HealthDataType(val displayName: String, val recordClass: KClass<out Record>) {
-    STEPS("Steps", StepsRecord::class),
-    SLEEP("Sleep", SleepSessionRecord::class),
-    HEART_RATE("Heart Rate", HeartRateRecord::class),
-    DISTANCE("Distance", DistanceRecord::class),
-    ACTIVE_CALORIES("Active Calories", ActiveCaloriesBurnedRecord::class),
-    TOTAL_CALORIES("Total Calories", TotalCaloriesBurnedRecord::class),
-    WEIGHT("Weight", WeightRecord::class),
-    HEIGHT("Height", HeightRecord::class),
-    BLOOD_PRESSURE("Blood Pressure", BloodPressureRecord::class),
-    BLOOD_GLUCOSE("Blood Glucose", BloodGlucoseRecord::class),
-    OXYGEN_SATURATION("Oxygen Saturation", OxygenSaturationRecord::class),
-    BODY_TEMPERATURE("Body Temperature", BodyTemperatureRecord::class),
-    RESPIRATORY_RATE("Respiratory Rate", RespiratoryRateRecord::class),
-    RESTING_HEART_RATE("Resting Heart Rate", RestingHeartRateRecord::class),
-    EXERCISE("Exercise Sessions", ExerciseSessionRecord::class),
-    HYDRATION("Hydration", HydrationRecord::class),
-    NUTRITION("Nutrition", NutritionRecord::class),
-    MINDFULNESS("Mindfulness", MindfulnessSessionRecord::class),
-    BODY_FAT("Body Fat", BodyFatRecord::class),
-    LEAN_BODY_MASS("Lean Body Mass", LeanBodyMassRecord::class),
-    BONE_MASS("Bone Mass", BoneMassRecord::class),
-    BODY_WATER_MASS("Body Water Mass", BodyWaterMassRecord::class),
-    HEART_RATE_VARIABILITY("Heart Rate Variability", HeartRateVariabilityRmssdRecord::class),
-    MENSTRUATION_PERIOD("Menstruation Period", MenstruationPeriodRecord::class),
-    MENSTRUATION_FLOW("Menstruation Flow", MenstruationFlowRecord::class),
-    BASAL_METABOLIC_RATE("Basal Metabolic Rate", BasalMetabolicRateRecord::class),
-    VO2_MAX("VO2 Max", Vo2MaxRecord::class),
-    SKIN_TEMPERATURE("Skin Temperature", SkinTemperatureRecord::class),
-    BASAL_BODY_TEMPERATURE("Basal Body Temperature", BasalBodyTemperatureRecord::class),
-    INTERMENSTRUAL_BLEEDING("Intermenstrual Bleeding", IntermenstrualBleedingRecord::class),
-    OVULATION_TEST("Ovulation Test", OvulationTestRecord::class),
-    CERVICAL_MUCUS("Cervical Mucus", CervicalMucusRecord::class),
-    SEXUAL_ACTIVITY("Sexual Activity", SexualActivityRecord::class)
+/**
+ * Every type the app reads. [displayNameRes] is what the user sees, in the phone's language;
+ * the enum name is what the payload, MQTT, the stored preferences and the logs use, so
+ * renaming a type on screen never changes those.
+ */
+enum class HealthDataType(@StringRes val displayNameRes: Int, val recordClass: KClass<out Record>) {
+    STEPS(R.string.data_type_steps, StepsRecord::class),
+    SLEEP(R.string.data_type_sleep, SleepSessionRecord::class),
+    HEART_RATE(R.string.data_type_heart_rate, HeartRateRecord::class),
+    DISTANCE(R.string.data_type_distance, DistanceRecord::class),
+    ACTIVE_CALORIES(R.string.data_type_active_calories, ActiveCaloriesBurnedRecord::class),
+    TOTAL_CALORIES(R.string.data_type_total_calories, TotalCaloriesBurnedRecord::class),
+    WEIGHT(R.string.data_type_weight, WeightRecord::class),
+    HEIGHT(R.string.data_type_height, HeightRecord::class),
+    BLOOD_PRESSURE(R.string.data_type_blood_pressure, BloodPressureRecord::class),
+    BLOOD_GLUCOSE(R.string.data_type_blood_glucose, BloodGlucoseRecord::class),
+    OXYGEN_SATURATION(R.string.data_type_oxygen_saturation, OxygenSaturationRecord::class),
+    BODY_TEMPERATURE(R.string.data_type_body_temperature, BodyTemperatureRecord::class),
+    RESPIRATORY_RATE(R.string.data_type_respiratory_rate, RespiratoryRateRecord::class),
+    RESTING_HEART_RATE(R.string.data_type_resting_heart_rate, RestingHeartRateRecord::class),
+    EXERCISE(R.string.data_type_exercise, ExerciseSessionRecord::class),
+    HYDRATION(R.string.data_type_hydration, HydrationRecord::class),
+    NUTRITION(R.string.data_type_nutrition, NutritionRecord::class),
+    MINDFULNESS(R.string.data_type_mindfulness, MindfulnessSessionRecord::class),
+    BODY_FAT(R.string.data_type_body_fat, BodyFatRecord::class),
+    LEAN_BODY_MASS(R.string.data_type_lean_body_mass, LeanBodyMassRecord::class),
+    BONE_MASS(R.string.data_type_bone_mass, BoneMassRecord::class),
+    BODY_WATER_MASS(R.string.data_type_body_water_mass, BodyWaterMassRecord::class),
+    HEART_RATE_VARIABILITY(R.string.data_type_heart_rate_variability, HeartRateVariabilityRmssdRecord::class),
+    MENSTRUATION_PERIOD(R.string.data_type_menstruation_period, MenstruationPeriodRecord::class),
+    MENSTRUATION_FLOW(R.string.data_type_menstruation_flow, MenstruationFlowRecord::class),
+    BASAL_METABOLIC_RATE(R.string.data_type_basal_metabolic_rate, BasalMetabolicRateRecord::class),
+    VO2_MAX(R.string.data_type_vo2_max, Vo2MaxRecord::class),
+    SKIN_TEMPERATURE(R.string.data_type_skin_temperature, SkinTemperatureRecord::class),
+    BASAL_BODY_TEMPERATURE(R.string.data_type_basal_body_temperature, BasalBodyTemperatureRecord::class),
+    INTERMENSTRUAL_BLEEDING(R.string.data_type_intermenstrual_bleeding, IntermenstrualBleedingRecord::class),
+    OVULATION_TEST(R.string.data_type_ovulation_test, OvulationTestRecord::class),
+    CERVICAL_MUCUS(R.string.data_type_cervical_mucus, CervicalMucusRecord::class),
+    SEXUAL_ACTIVITY(R.string.data_type_sexual_activity, SexualActivityRecord::class)
 }
 
 data class HealthData(
