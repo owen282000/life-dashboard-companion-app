@@ -104,11 +104,11 @@
         <item quantity="other">%1$d rounds in a row failed. Check the logs for details.</item>
     </plurals>
     <string name="sync_failures_channel_name">Sync failures</string>
-    <string name="sync_failures_channel_description">Alerts when webhook syncs keep failing</string>
+    <string name="sync_failures_channel_description">Alerts when syncs keep failing</string>
     <string name="sync_failing_title">%1$s sync is failing</string>
     <plurals name="sync_failing_text">
-        <item quantity="one">%1$d sync failed. Check the webhook logs for details.</item>
-        <item quantity="other">%1$d syncs in a row failed. Check the webhook logs for details.</item>
+        <item quantity="one">%1$d sync failed. Check the Logs tab for details.</item>
+        <item quantity="other">%1$d syncs in a row failed. Check the Logs tab for details.</item>
     </plurals>
     <string name="sync_failing_last_error">Last error: %1$s</string>
     <string name="sync_failing_health_connect_silent">Health Connect did not answer</string>

@@ -102,11 +102,11 @@
         <item quantity="other">%1$d rondes op rij mislukt. Bekijk de logs voor details.</item>
     </plurals>
     <string name="sync_failures_channel_name">Mislukte synchronisaties</string>
-    <string name="sync_failures_channel_description">Meldingen wanneer synchronisaties naar de webhook blijven mislukken</string>
+    <string name="sync_failures_channel_description">Meldingen wanneer synchronisaties blijven mislukken</string>
     <string name="sync_failing_title">Synchronisatie van %1$s mislukt</string>
     <plurals name="sync_failing_text">
-        <item quantity="one">%1$d synchronisatie mislukt. Bekijk de webhooklogs voor details.</item>
-        <item quantity="other">%1$d synchronisaties op rij mislukt. Bekijk de webhooklogs voor details.</item>
+        <item quantity="one">%1$d synchronisatie mislukt. Bekijk het tabblad Logs voor details.</item>
+        <item quantity="other">%1$d synchronisaties op rij mislukt. Bekijk het tabblad Logs voor details.</item>
     </plurals>
     <string name="sync_failing_last_error">Laatste fout: %1$s</string>
     <string name="sync_failing_health_connect_silent">Health Connect gaf geen antwoord</string>

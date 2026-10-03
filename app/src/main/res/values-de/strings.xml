@@ -102,11 +102,11 @@
         <item quantity="other">%1$d Runden in Folge fehlgeschlagen. Details stehen in den Logs.</item>
     </plurals>
     <string name="sync_failures_channel_name">Fehlgeschlagene Synchronisierungen</string>
-    <string name="sync_failures_channel_description">Hinweise, wenn Synchronisierungen zum Webhook wiederholt fehlschlagen</string>
+    <string name="sync_failures_channel_description">Hinweise, wenn Synchronisierungen wiederholt fehlschlagen</string>
     <string name="sync_failing_title">Synchronisierung von %1$s schlägt fehl</string>
     <plurals name="sync_failing_text">
-        <item quantity="one">%1$d Synchronisierung fehlgeschlagen. Details stehen in den Webhook-Logs.</item>
-        <item quantity="other">%1$d Synchronisierungen in Folge fehlgeschlagen. Details stehen in den Webhook-Logs.</item>
+        <item quantity="one">%1$d Synchronisierung fehlgeschlagen. Details stehen im Tab Logs.</item>
+        <item quantity="other">%1$d Synchronisierungen in Folge fehlgeschlagen. Details stehen im Tab Logs.</item>
     </plurals>
     <string name="sync_failing_last_error">Letzter Fehler: %1$s</string>
     <string name="sync_failing_health_connect_silent">Health Connect hat nicht geantwortet</string>
