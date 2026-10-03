@@ -143,10 +143,13 @@
         <item quantity="one">Nachtrag abgeschlossen: %1$d Datensatz gesendet</item>
         <item quantity="other">Nachtrag abgeschlossen: %1$d Datensätze gesendet</item>
     </plurals>
+    <string name="health_backfill_continues">Das letzte Nachtragen von %1$d Tagen hat nach %2$d von %3$d Blöcken angehalten. Wähle wieder %1$d T, um dort weiterzumachen; eine andere Länge beginnt von vorn.</string>
     <string name="health_backfill_grant_history">Verlaufszugriff erteilen</string>
     <string name="health_backfill_history">Verlauf nachtragen</string>
     <string name="health_backfill_history_permission_warning">Health Connect liest nur die letzten 30 Tage, bis du den Verlaufszugriff erteilst.</string>
+    <string name="health_backfill_paused">Nachtragen pausiert bei %1$d/%2$d, geht von selbst weiter...</string>
     <string name="health_backfill_progress">Nachtragen %1$d/%2$d...</string>
+    <string name="health_backfill_stop">Stoppen</string>
     <string name="health_backfill_title">Verlauf nachtragen</string>
     <string name="health_backfill_waiting">Nachtragen wartet, bis die laufende Synchronisierung fertig ist...</string>
     <string name="health_connect_not_available">Health Connect ist nicht verfügbar</string>

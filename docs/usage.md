@@ -81,7 +81,9 @@ the phone is set up in a minute.
 6. **Grant and sync.** On the Health tab tap **Grant**, switch on the types you want, and
    tap **Sync Now**. The phone appears under Settings > Devices & services > Life Dashboard
    with a sensor for each type it sent. For screen time, allow usage access on the Screen
-   Time tab and sync there too; for the past, tap **Backfill** on the Health tab.
+   Time tab and sync there too; for the past, tap **Backfill** on the Health tab. It runs
+   in the background, so you can leave the app while it works, and continues where it
+   stopped; see [Backfill](features.md#backfill).
 
 ### Pairing by QR code
 

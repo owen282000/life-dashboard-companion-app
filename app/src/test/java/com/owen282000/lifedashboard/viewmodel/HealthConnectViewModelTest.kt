@@ -1,11 +1,12 @@
 package com.owen282000.lifedashboard.viewmodel
 
+import com.owen282000.lifedashboard.BackfillJob
+import com.owen282000.lifedashboard.BackfillStatus
 import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.WriteBackType
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -228,27 +229,90 @@ class HealthConnectViewModelTest {
     }
 
     @Test
-    fun `backfill reports progress and then the total`() = runTest {
-        val vm = vm()
+    fun `backfill starts the job, follows its progress and then says the total`() = runTest {
+        val ops = FakeHealthOps()
+        val vm = vm(ops = ops)
         vm.backfill(90)
+        assertEquals(listOf(90), ops.backfillStarts)
+        assertEquals(0 to 30, vm.state.value.backfillProgress)
+
+        ops.backfill.value = BackfillStatus.Running(12, 30)
+        assertEquals(12 to 30, vm.state.value.backfillProgress)
+        ops.backfill.value = BackfillStatus.Finished(records = 4_000, error = null)
         assertNull(vm.state.value.backfillProgress)
-        assertEquals(UiMessage.BackfillComplete(90), vm.state.value.syncMessage)
+        assertEquals(UiMessage.BackfillComplete(4_000), vm.state.value.syncMessage)
     }
 
     @Test
-    fun `a backfill started during a sync says it waits, and sync now stays off while it runs`() = runTest {
-        val running = CompletableDeferred<Unit>()
-        val vm = vm(ops = FakeHealthOps().apply { runningSync = running })
+    fun `a backfill that runs when the screen opens is shown, and a start then does nothing`() = runTest {
+        val ops = FakeHealthOps().apply { backfill.value = BackfillStatus.Running(7, 30) }
+        val vm = vm(ops = ops)
+        assertEquals(7 to 30, vm.state.value.backfillProgress)
+
+        vm.backfill(90)
+        assertEquals(emptyList<Int>(), ops.backfillStarts)
+    }
+
+    @Test
+    fun `a backfill that finished before the screen looked says nothing`() = runTest {
+        val ops = FakeHealthOps().apply { backfill.value = BackfillStatus.Finished(records = 10, error = null) }
+        val vm = vm(ops = ops)
+        assertNull(vm.state.value.backfillProgress)
+        assertNull(vm.state.value.syncMessage)
+    }
+
+    @Test
+    fun `a failed backfill says why, and a paused one says it continues and lets a sync run`() = runTest {
+        val ops = FakeHealthOps()
+        val vm = vm(ops = ops)
+        vm.refreshPermissions()
+        vm.addUrl("https://example.org/hook")
+        vm.backfill(30)
+        assertFalse(vm.state.value.canSync)
+        ops.backfill.value = BackfillStatus.Running(3, 10, paused = true)
+        assertTrue(vm.state.value.backfillPaused)
+        assertTrue("a paused backfill holds no lock", vm.state.value.canSync)
+        ops.backfill.value = BackfillStatus.Finished(records = null, error = "Delivery failed after 3 of 10 windows; rerun to resume")
+        assertFalse(vm.state.value.backfillPaused)
+        assertEquals(UiMessage.SyncFailed("Delivery failed after 3 of 10 windows; rerun to resume"), vm.state.value.syncMessage)
+    }
+
+    @Test
+    fun `stop cancels the job and the line goes away`() = runTest {
+        val ops = FakeHealthOps()
+        val vm = vm(ops = ops)
+        vm.backfill(90)
+        vm.cancelBackfill()
+        assertEquals(1, ops.backfillCancels)
+        assertNull(vm.state.value.backfillProgress)
+        assertNull(vm.state.value.syncMessage)
+    }
+
+    @Test
+    fun `the dialog names the stopped backfill that its length continues`() = runTest {
+        val stopped = BackfillJob.start(days = 90, now = 1_000_000L).copy(nextWindow = 12)
+        val vm = vm(ops = FakeHealthOps().apply { this.stopped = stopped })
+        vm.addUrl("https://example.org/hook")
+        vm.openBackfillDialog()
+        assertEquals(stopped, vm.state.value.stoppedBackfill)
+    }
+
+    @Test
+    fun `a backfill that waits for a sync says so, and sync now stays off while it runs`() = runTest {
+        val ops = FakeHealthOps()
+        val vm = vm(ops = ops)
         vm.refreshPermissions()
         vm.addUrl("https://example.org/hook")
         assertTrue(vm.state.value.canSync)
 
         vm.backfill(90)
+        ops.backfill.value = BackfillStatus.Running(0, 30, waiting = true)
         assertTrue(vm.state.value.backfillWaiting)
         assertFalse(vm.state.value.canSync)
 
-        running.complete(Unit)
+        ops.backfill.value = BackfillStatus.Running(1, 30)
         assertFalse(vm.state.value.backfillWaiting)
+        ops.backfill.value = BackfillStatus.Finished(records = 90, error = null)
         assertNull(vm.state.value.backfillProgress)
         assertEquals(UiMessage.BackfillComplete(90), vm.state.value.syncMessage)
         assertTrue(vm.state.value.canSync)
@@ -325,7 +389,7 @@ class HealthConnectViewModelTest {
         assertTrue(vm.state.value.backfillDialog)
         vm.backfill(30)
         assertFalse(vm.state.value.backfillDialog)
-        assertEquals(UiMessage.BackfillComplete(30), vm.state.value.syncMessage)
+        assertEquals(0 to 10, vm.state.value.backfillProgress)
         job.cancel()
     }
 

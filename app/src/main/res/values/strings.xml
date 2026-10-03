@@ -145,10 +145,13 @@
         <item quantity="one">Backfill complete: %1$d record sent</item>
         <item quantity="other">Backfill complete: %1$d records sent</item>
     </plurals>
+    <string name="health_backfill_continues">The last backfill of %1$d days stopped after %2$d of %3$d chunks. Choose %1$dd again to continue there; another length starts over.</string>
     <string name="health_backfill_grant_history">Grant history access</string>
     <string name="health_backfill_history">Backfill History</string>
     <string name="health_backfill_history_permission_warning">Health Connect limits reads to the last 30 days until you grant history access.</string>
+    <string name="health_backfill_paused">Backfill paused at %1$d/%2$d, continues by itself...</string>
     <string name="health_backfill_progress">Backfilling %1$d/%2$d...</string>
+    <string name="health_backfill_stop">Stop</string>
     <string name="health_backfill_title">Backfill history</string>
     <string name="health_backfill_waiting">Backfill waits for the running sync to finish...</string>
     <string name="health_connect_not_available">Health Connect is not available</string>

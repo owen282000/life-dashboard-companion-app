@@ -71,7 +71,12 @@ class WebhookManager(
      */
     private val logSuccess: Boolean = true,
     /** Replaces the user's "Allow plain HTTP" setting when set; for tests against a local http:// server. */
-    private val allowHttpOverride: Boolean? = null
+    private val allowHttpOverride: Boolean? = null,
+    /**
+     * Whether a delivery counts in the lifetime statistics; like [logSuccess] unless set. A
+     * backfill counts its chunks there but writes one row for the whole run (P2-14).
+     */
+    private val countSuccess: Boolean = logSuccess
 ) {
 
     /**
@@ -282,10 +287,10 @@ class WebhookManager(
         note: String? = null
     ) {
         context?.let {
-            if (success && !logSuccess) return
-            if (success) {
+            if (success && countSuccess) {
                 LifetimeStats.recordDelivery(it, recordCount ?: 0, rawPayload?.length ?: 0, logType)
             }
+            if (success && !logSuccess) return
             val preferencesManager = PreferencesManager(it)
             val log = WebhookLog(
                 id = UUID.randomUUID().toString(),

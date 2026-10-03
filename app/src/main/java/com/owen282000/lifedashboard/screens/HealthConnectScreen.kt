@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -323,14 +324,24 @@ fun HealthConnectContent(
                 enabled = draft.enabledTypes.isNotEmpty(), loading = state.backfillProgress != null,
                 onClick = actions::openBackfillDialog)
         }
+        // The backfill is a WorkManager job (P2-14): this line follows it after the screen was
+        // left and opened again, and Stop cancels it.
         state.backfillProgress?.let { (done, total) ->
-            Text(
-                if (state.backfillWaiting) stringResource(R.string.health_backfill_waiting)
-                else stringResource(R.string.health_backfill_progress, done, total),
-                style = MaterialTheme.typography.bodySmall,
-                color = accent.ink(),
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    when {
+                        state.backfillWaiting -> stringResource(R.string.health_backfill_waiting)
+                        state.backfillPaused -> stringResource(R.string.health_backfill_paused, done, total)
+                        else -> stringResource(R.string.health_backfill_progress, done, total)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = accent.ink(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 4.dp)
+                )
+                TextButton(onClick = actions::cancelBackfill) { Text(stringResource(R.string.health_backfill_stop)) }
+            }
         }
         SyncMessageLine(state.syncMessage, accent)
 
@@ -417,6 +428,13 @@ fun HealthConnectContent(
             text = {
                 Column {
                     Text(stringResource(R.string.health_backfill_dialog_description))
+                    state.stoppedBackfill?.let { job ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.health_backfill_continues, job.days, job.nextWindow, job.windowCount),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                     if (!hasHistoryPermission) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(

@@ -30,8 +30,20 @@ private val EMPTY_HEALTH_DATA = HealthData()
  */
 private const val MAX_PASSES_PER_BACKFILL_WINDOW = 400
 
-/** Serialises [HealthSyncManager.performSync] and [HealthSyncManager.performBackfill] across every caller in the process. */
+/** Serialises [HealthSyncManager.performSync] and [HealthSyncManager.runBackfill] across every caller in the process. */
 private val SYNC_LOCK = Mutex()
+
+/** dataType of a backfill chunk; logged only when its delivery failed, per URL. */
+const val BACKFILL_DATA_TYPE = "health_connect_backfill"
+
+/** dataType of the one row a backfill run writes in the Logs tab, as in the iOS app. */
+const val BACKFILL_RUN_DATA_TYPE = "health_connect_backfill_run"
+
+// The status of that row, also in its payload.
+private const val STATUS_DONE = "done"
+private const val STATUS_PAUSED = "paused"
+private const val STATUS_STOPPED = "stopped"
+private const val STATUS_FAILED = "failed"
 
 class HealthSyncManager(
     private val context: Context,
@@ -514,51 +526,73 @@ class HealthSyncManager(
     )
 
     /**
-     * One-time export of [days] of history to the configured webhooks, oldest window first.
-     * Runs in 3-day windows, each drained in capped chunks until exhausted, so payloads stay
-     * bounded without silently dropping dense data past the per-type cap.
-     * Deliberately independent of the sync watermarks: it never advances them, and regular
-     * incremental syncs continue unaffected. Payloads carry "backfill": true plus the window
-     * bounds so receivers can distinguish them; records still carry uuids, so re-received
-     * overlaps deduplicate server-side. Stops at the first failed delivery so a rerun can
-     * resume; [onProgress] reports (completedWindows, totalWindows).
+     * Runs a backfill [job]: history sent to the configured webhooks, oldest window first, from
+     * the window the job stands at. Runs in 3-day windows, each drained in capped chunks until
+     * exhausted, so payloads stay bounded without silently dropping dense data past the
+     * per-type cap. Deliberately independent of the sync watermarks: it never advances them,
+     * and regular incremental syncs continue unaffected. Payloads carry "backfill": true plus
+     * the window bounds so receivers can distinguish them; records still carry uuids, so
+     * re-received overlaps deduplicate server-side. [onProgress] reports (completedWindows,
+     * totalWindows) after every window.
+     *
+     * Every window that went through is saved to [BackfillJobStore] before the next one starts,
+     * and a job that finished is cleared there (P2-14): a run that stops, for whatever reason,
+     * leaves the job at the first window it did not finish, and the next run starts there. It
+     * stops at the first failed delivery and at a window that could not be read in full, and
+     * pauses when Health Connect's read quota is used up.
+     *
+     * One row in the Logs tab per run, not one per chunk: the chunks that went through are not
+     * logged, a chunk that failed is, per URL, and the run's row says how far it got.
      *
      * Holds the sync lock for its whole run. It draws the same sequence numbers a sync does,
      * and a sync beside it would interleave its payloads and counters with the backfill's; so a
      * backfill waits for a running sync, and a sync waits for the backfill. [onWaiting] says
      * true when the backfill has to wait, and false once it may start.
      */
-    suspend fun performBackfill(
-        days: Int,
+    suspend fun runBackfill(
+        job: BackfillJob,
         onWaiting: (Boolean) -> Unit = {},
         onProgress: (Int, Int) -> Unit = { _, _ -> }
-    ): Result<Int> = withContext(Dispatchers.IO) {
-        SYNC_LOCK.withLockReportingWait(onWaiting) { performBackfillLocked(days, onProgress) }
+    ): BackfillRun = withContext(Dispatchers.IO) {
+        SYNC_LOCK.withLockReportingWait(onWaiting) {
+            val progress = BackfillProgress(job)
+            try {
+                runBackfillLocked(progress, onProgress).also { logBackfillRun(it.job, it.sent, it.status, (it as? BackfillRun.Failed)?.message) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // Stopped: by Android, which runs the work again, or by Cancel. Not a failure,
+                // but what this run sent before the stop still gets its row.
+                logBackfillRun(progress.job, progress.sent, STATUS_STOPPED, null)
+                throw e
+            }
+        }
     }
 
-    private suspend fun performBackfillLocked(
-        days: Int,
+    /** Where a run is, for the row a stop writes. */
+    private class BackfillProgress(var job: BackfillJob, var sent: Int = 0)
+
+    private val BackfillRun.status: String
+        get() = when (this) {
+            is BackfillRun.Done -> STATUS_DONE
+            is BackfillRun.QuotaUsedUp -> STATUS_PAUSED
+            is BackfillRun.Failed -> STATUS_FAILED
+        }
+
+    private suspend fun runBackfillLocked(
+        progress: BackfillProgress,
         onProgress: (Int, Int) -> Unit
-    ): Result<Int> = withContext(Dispatchers.IO) {
+    ): BackfillRun {
+        fun failed(message: String) = BackfillRun.Failed(progress.job, progress.sent, message)
+
         val webhookUrls = preferencesManager.getHealthWebhookUrls()
-        if (webhookUrls.isEmpty()) {
-            return@withContext Result.failure(Exception("No webhook URLs configured"))
-        }
+        if (webhookUrls.isEmpty()) return failed("No webhook URLs configured")
         val enabledTypes = preferencesManager.getHealthEnabledDataTypes()
-        if (enabledTypes.isEmpty()) {
-            return@withContext Result.failure(Exception("No data types enabled"))
-        }
+        if (enabledTypes.isEmpty()) return failed("No data types enabled")
 
-        val windowDays = 3L
-        val end = Instant.now()
-        val start = end.minus(java.time.Duration.ofDays(days.toLong()))
-        val totalWindows = ((days + windowDays - 1) / windowDays).toInt()
-        var totalRecordsSent = 0
-
-        var windowStart = start
-        var completed = 0
-        while (windowStart < end) {
-            val windowEnd = minOf(windowStart.plus(java.time.Duration.ofDays(windowDays)), end)
+        val totalWindows = progress.job.windowCount
+        while (!progress.job.isFinished) {
+            val (windowStart, windowEnd) = progress.job.window()
+            val completed = progress.job.nextWindow
+            var windowRecords = 0
 
             // Exhaust the window before advancing (issue #39): one capped read per window
             // silently dropped everything past the cap for dense types. The cursor is a local
@@ -591,7 +625,20 @@ class HealthSyncManager(
                     windowEnd = windowEnd
                 )
                 val healthData = readResult.getOrElse {
-                    return@withContext Result.failure(it)
+                    return failed(it.message ?: it.javaClass.simpleName)
+                }
+                // Health Connect refused a read for its quota, and refuses every further one
+                // for minutes (issue #73). The window is not complete and what this chunk read
+                // goes out again with it, so nothing is sent: the job pauses at this window and
+                // WorkManager runs it again after a backoff, until it has paused too often.
+                if (healthData.quotaExhausted) {
+                    progress.job = progress.job.afterQuotaPause(System.currentTimeMillis())
+                    BackfillJobStore.saveIfCurrent(context, progress.job)
+                    return if (progress.job.quotaGivesUp) {
+                        failed("Health Connect's read quota kept running out at window ${completed + 1} of $totalWindows; run the backfill again to continue there")
+                    } else {
+                        BackfillRun.QuotaUsedUp(progress.job, progress.sent)
+                    }
                 }
                 draining = healthData.cappedTypes
                 windowUnread += healthData.unreadTypes
@@ -642,45 +689,86 @@ class HealthSyncManager(
                 val webhookManager = WebhookManager(
                     webhookUrls = webhookUrls,
                     context = context,
-                    dataType = "health_connect_backfill",
+                    dataType = BACKFILL_DATA_TYPE,
                     recordCount = recordCount,
                     logType = LogType.HEALTH_CONNECT,
                     customHeaders = preferencesManager.getHealthWebhookHeaders(),
                     urlsWithoutHeaders = preferencesManager.getHealthUrlsWithoutHeaders(),
-                    signingSecret = preferencesManager.getHealthWebhookSecret()
+                    signingSecret = preferencesManager.getHealthWebhookSecret(),
+                    // The run's row stands for the chunks that went through; a failed one keeps its own.
+                    logSuccess = false,
+                    countSuccess = true
                 )
                 val postResult = webhookManager.postData(payload)
                 // A delivered backfill window counts as a sync on the dashboard: "today" and
                 // "last sync" would otherwise say nothing while thousands of records went out.
                 SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) recordCount else 0, LogType.HEALTH_CONNECT)
                 if (postResult.isFailure) {
-                    return@withContext Result.failure(
-                        Exception("Delivery failed after $completed of $totalWindows windows; rerun to resume")
-                    )
+                    return failed("Delivery failed after $completed of $totalWindows windows; rerun to resume")
                 }
-                totalRecordsSent += recordCount
+                windowRecords += recordCount
+                progress.sent += recordCount
 
                 // Sent, but not the whole window: stop here, the way a failed delivery does, so
-                // the user learns it and a rerun sends the window again (uuids deduplicate).
+                // the user learns it and a rerun sends the window again (uuids deduplicate). The
+                // job stays at this window, since it is not complete (1.21.0).
                 if (isLastChunk && !drained) {
                     val why = if (windowUnread.isNotEmpty()) {
                         "Health Connect did not return " + windowUnread.map { DeletionTracking.payloadKey(it) }.sorted().joinToString()
                     } else {
                         "the window holds more than $MAX_PASSES_PER_BACKFILL_WINDOW chunks"
                     }
-                    return@withContext Result.failure(
-                        Exception("Stopped after $completed of $totalWindows windows: $why; rerun to resume")
-                    )
+                    return failed("Stopped after $completed of $totalWindows windows: $why; rerun to resume")
                 }
                 if (isLastChunk) break
                 cursor = cursor + healthData.watermarks
             }
 
-            completed++
-            onProgress(completed, totalWindows)
-            windowStart = windowEnd
+            progress.job = progress.job.afterWindow(windowRecords, System.currentTimeMillis())
+            BackfillJobStore.saveIfCurrent(context, progress.job)
+            onProgress(progress.job.nextWindow, totalWindows)
         }
-        Result.success(totalRecordsSent)
+        BackfillJobStore.clear(context, progress.job.id)
+        return BackfillRun.Done(progress.job, progress.sent)
+    }
+
+    /**
+     * The one row of a backfill run in the Logs tab. A run that sent nothing and neither
+     * finished nor failed (stopped or paused right at its start) leaves none, so a job that
+     * WorkManager runs again a few times does not fill the tab with empty rows.
+     */
+    private fun logBackfillRun(job: BackfillJob, sent: Int, status: String, error: String?) {
+        if (sent == 0 && status != STATUS_DONE && status != STATUS_FAILED) return
+        val at = "window ${job.nextWindow + 1} of ${job.windowCount}"
+        val note = when (status) {
+            STATUS_DONE -> "Backfill of ${job.days} days complete: ${job.windowCount} windows, ${job.recordsSent} records"
+            STATUS_PAUSED -> "Paused at $at: Health Connect's read quota is used up; continues by itself"
+            else -> "Stopped at $at"
+        }
+        val summary = buildJsonObject {
+            put("backfill", true)
+            put("status", status)
+            put("days", job.days)
+            put("windows_done", job.nextWindow)
+            put("window_count", job.windowCount)
+            put("records_sent", sent)
+            put("records_sent_by_job", job.recordsSent)
+        }.toString()
+        preferencesManager.addWebhookLog(
+            WebhookLog(
+                id = java.util.UUID.randomUUID().toString(),
+                timestamp = System.currentTimeMillis(),
+                url = preferencesManager.getHealthWebhookUrls().firstOrNull() ?: BACKFILL_DATA_TYPE,
+                statusCode = null,
+                success = status != STATUS_FAILED,
+                errorMessage = error,
+                dataType = BACKFILL_RUN_DATA_TYPE,
+                recordCount = sent,
+                rawPayload = summary,
+                logType = LogType.HEALTH_CONNECT.name,
+                note = note
+            )
+        )
     }
 
     private fun countRecords(data: HealthData): Int {

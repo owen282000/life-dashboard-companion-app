@@ -2,6 +2,7 @@ package com.owen282000.lifedashboard.sync
 
 import androidx.health.connect.client.records.WeightRecord
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.owen282000.lifedashboard.BackfillRun
 import com.owen282000.lifedashboard.HealthDataType.WEIGHT
 import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.Watermark
@@ -151,7 +152,7 @@ class LookbackTest {
         prefs.setHealthCoveredUntil(WEIGHT, anchor)
         fixture.insert(fixture.weight(70.0, ago(60)))
 
-        TestSetup.syncManager().performBackfill(3).getOrThrow()
+        assertTrue(TestSetup.backfill(3) is BackfillRun.Done)
 
         assertEquals(anchor, prefs.getHealthCoveredUntil(WEIGHT))
     }

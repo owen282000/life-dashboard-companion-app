@@ -16,6 +16,19 @@ All notable changes to this project are documented in this file. The format is b
   then on, so one that checks signatures, such as the stack, starts refusing until it gets the
   new secret too.
 
+### Changed
+
+- Backfill runs as a background job of its own instead of on the Health tab. It used to stop
+  when you left the screen or Android ended the app, and running it again started at the first
+  3-day chunk. Now it carries on after you leave, the tab shows where it is when you come back
+  and Stop ends it, and the app remembers the last chunk that went through: a backfill that
+  Android stops, that runs out of Health Connect's read quota or whose delivery fails continues
+  at the next chunk, by itself after a stop or the quota (a few minutes later), and when you
+  pick the same length again within a day after a failure; the Backfill dialog says so. A chunk
+  that a type could not be read for still does not count as done. The Logs tab gets one row per
+  run with how far it got and how many records it sent, instead of one per chunk; a delivery
+  that failed keeps its own row. On Android 8 to 11 a notification shows while it runs.
+
 ### Fixed
 
 - Three German texts on the sync schedule addressed you as "Sie" while the rest of the app says

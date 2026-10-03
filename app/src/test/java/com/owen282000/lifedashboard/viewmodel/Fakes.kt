@@ -1,5 +1,7 @@
 package com.owen282000.lifedashboard.viewmodel
 
+import com.owen282000.lifedashboard.BackfillJob
+import com.owen282000.lifedashboard.BackfillStatus
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.MqttBroker
@@ -9,7 +11,8 @@ import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
 import com.owen282000.lifedashboard.WriteBackType
-import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 internal fun emptyMqtt() = MqttDraft.from(
     MqttSectionSettings(enabled = false, useSharedBroker = true, ownBroker = MqttBroker("", 1883, false, null, null), baseTopic = "lifedashboard"),
@@ -79,17 +82,25 @@ internal class FakeHealthOps(
 ) : HealthOps {
     var syncs = 0
 
-    /** When set, the backfill waits on it the way it waits for a sync that holds the lock. */
-    var runningSync: CompletableDeferred<Unit>? = null
+    /** The backfill job as WorkManager would report it; tests move it along by hand. */
+    val backfill = MutableStateFlow<BackfillStatus>(BackfillStatus.Idle)
+    val backfillStarts = mutableListOf<Int>()
+    var backfillCancels = 0
+    var stopped: BackfillJob? = null
     override suspend fun availability() = availability
     override suspend fun grantedPermissions() = granted
     override suspend fun sync(): Result<HealthSyncResult> { syncs++; return syncResult }
     override suspend fun preview() = previewResult
-    override suspend fun backfill(days: Int, onWaiting: (Boolean) -> Unit, onProgress: (Int, Int) -> Unit): Result<Int> {
-        runningSync?.let { onWaiting(true); it.await(); onWaiting(false) }
-        onProgress(1, 2); onProgress(2, 2)
-        return Result.success(days)
+    override fun backfillStatus(): Flow<BackfillStatus> = backfill
+    override suspend fun startBackfill(days: Int) {
+        backfillStarts += days
+        backfill.value = BackfillStatus.Running(0, days / 3)
     }
+    override fun cancelBackfill() {
+        backfillCancels++
+        backfill.value = BackfillStatus.Idle
+    }
+    override fun stoppedBackfill() = stopped
     override suspend fun testPing(webhook: WebhookDraft) = pingResult
     override suspend fun otherSourcesWriting(type: WriteBackType) = otherSources
 }

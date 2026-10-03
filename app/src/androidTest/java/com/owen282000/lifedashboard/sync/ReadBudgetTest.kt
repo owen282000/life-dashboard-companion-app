@@ -5,6 +5,8 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import com.owen282000.lifedashboard.BackfillJobStore
+import com.owen282000.lifedashboard.BackfillRun
 import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType.STEPS
 import com.owen282000.lifedashboard.HealthDataType.WEIGHT
@@ -110,10 +112,11 @@ class ReadBudgetTest {
         val slow = SlowHealthConnectClient(HealthConnectClient.getOrCreate(context))
         slow.held += HcCall.READ_RECORDS
 
-        val result = withTimeoutOrNull(60_000) { HealthSyncManager(context, HealthConnectManager(context) { slow }).performBackfill(days = 1) }
+        val result = withTimeoutOrNull(60_000) { TestSetup.backfill(days = 1, HealthSyncManager(context, HealthConnectManager(context) { slow })) }
 
         assertNotNull("the backfill came back within 60 s", result)
-        assertTrue("the backfill stops: $result", result!!.isFailure)
+        assertTrue("the backfill stops: $result", result is BackfillRun.Failed)
+        assertEquals("the stored job stays at the window it could not read", 0, BackfillJobStore.load(context)?.nextWindow)
         val claims = receiver.exchanges.map { (Conservation.parse(it.text)["window_complete"] as? JsonPrimitive)?.content }
         assertTrue("no window claimed complete: $claims", claims.none { it == "true" })
     }

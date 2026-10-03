@@ -143,10 +143,13 @@
         <item quantity="one">Backfill klaar: %1$d record verstuurd</item>
         <item quantity="other">Backfill klaar: %1$d records verstuurd</item>
     </plurals>
+    <string name="health_backfill_continues">De vorige backfill van %1$d dagen stopte na %2$d van %3$d blokken. Kies opnieuw %1$dd om daar verder te gaan; een andere lengte begint opnieuw.</string>
     <string name="health_backfill_grant_history">Toegang tot geschiedenis geven</string>
     <string name="health_backfill_history">Geschiedenis backfillen</string>
     <string name="health_backfill_history_permission_warning">Health Connect leest alleen de laatste 30 dagen totdat je toegang tot de geschiedenis geeft.</string>
+    <string name="health_backfill_paused">Backfill gepauzeerd bij %1$d/%2$d, gaat vanzelf verder...</string>
     <string name="health_backfill_progress">Backfillen %1$d/%2$d...</string>
+    <string name="health_backfill_stop">Stoppen</string>
     <string name="health_backfill_title">Geschiedenis backfillen</string>
     <string name="health_backfill_waiting">Backfill wacht tot de lopende sync klaar is...</string>
     <string name="health_connect_not_available">Health Connect is niet beschikbaar</string>
