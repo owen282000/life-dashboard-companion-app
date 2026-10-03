@@ -270,6 +270,12 @@
 
     <!-- Logsscherm -->
     <string name="logs_clear_logs">Logs wissen</string>
+    <string name="logs_clear_title">Logs wissen?</string>
+    <plurals name="logs_clear_body">
+        <item quantity="one">Hiermee verwijder je %1$d log van deze telefoon. Dit kun je niet ongedaan maken.</item>
+        <item quantity="other">Hiermee verwijder je de %1$d getoonde logs van deze telefoon. Dit kun je niet ongedaan maken.</item>
+    </plurals>
+    <string name="logs_clear_confirm">Wissen</string>
     <plurals name="logs_export_dialog_description">
         <item quantity="one">Exporteer %1$d log als JSON of CSV via het deelmenu.</item>
         <item quantity="other">Exporteer %1$d logs als JSON of CSV via het deelmenu.</item>
@@ -407,6 +413,44 @@
     <string name="about_description">Stuurt je Health Connect- en schermtijddata naar Home Assistant via de Life Dashboard-integratie, naar je eigen webhook-backend of naar een MQTT-broker, en kan metingen uit je eigen Home Assistant terug in Health Connect zetten. Geen cloud ertussen.</string>
     <string name="about_privacy_title">Privacy en beveiliging</string>
     <string name="about_backup_title">Back-up en herstel</string>
+    <string name="backup_intro">Instellingen gaan niet mee in de cloudback-up van Android, omdat de geheimen erin dit toestel nooit verlaten. Exporteer ze hier om naar een nieuwe telefoon over te stappen.</string>
+    <string name="backup_export">Exporteren</string>
+    <string name="backup_import">Importeren</string>
+    <string name="backup_export_title">Instellingen exporteren</string>
+    <string name="backup_include_secrets">Geheimen meenemen</string>
+    <string name="backup_include_secrets_detail">Auth-headers, ondertekeningsgeheimen en MQTT-wachtwoorden</string>
+    <string name="backup_password">Wachtwoord</string>
+    <string name="backup_password_repeat">Herhaal wachtwoord</string>
+    <string name="backup_password_too_short">Minstens %1$d tekens</string>
+    <string name="backup_password_mismatch">De wachtwoorden zijn niet gelijk</string>
+    <string name="backup_password_hint">Het bestand wordt met dit wachtwoord versleuteld. Zonder dit wachtwoord kun je de export niet terugzetten, dus bewaar het goed. Kies een lang wachtwoord, bijvoorbeeld vier willekeurige woorden.</string>
+    <string name="backup_no_secrets_hint">De export bevat je webhook-URL\'s, MQTT-hosts en opties, maar geen inloggegevens.</string>
+    <string name="backup_read_failed">Dit bestand kan niet worden gelezen</string>
+    <string name="backup_invalid_file">Geen geldig instellingenbestand</string>
+    <string name="backup_encrypted_title">Versleutelde export</string>
+    <string name="backup_encrypted_body">Dit bestand is met een wachtwoord beveiligd.</string>
+    <string name="backup_unlock">Ontgrendelen</string>
+    <string name="backup_wrong_password">Verkeerd wachtwoord, of het bestand is beschadigd</string>
+    <string name="backup_unsupported_file">Dit bestand vraagt om versleutelingsinstellingen die deze app niet accepteert</string>
+    <string name="backup_import_title">Instellingen importeren?</string>
+    <string name="backup_import_replaces">Dit vervangt je huidige configuratie:</string>
+    <string name="backup_bullet">• %1$s</string>
+    <string name="backup_summary_health_webhooks">Health-webhooks: %1$d</string>
+    <string name="backup_summary_screen_time_webhooks">Schermtijd-webhooks: %1$d</string>
+    <string name="backup_summary_data_types">Ingeschakelde gegevenstypen: %1$d</string>
+    <string name="backup_summary_brokers">MQTT-brokers: %1$d</string>
+    <string name="backup_summary_secrets">Met geheimen</string>
+    <string name="backup_summary_no_secrets">Zonder geheimen</string>
+    <string name="backup_from_iphone">Gemaakt met de iPhone-app</string>
+    <string name="backup_exported_at">Geëxporteerd op %1$s</string>
+    <string name="backup_note_screen_time_kept">Dit bestand heeft geen Schermtijd-instellingen, dus die op deze telefoon blijven zoals ze zijn, ook de daggrens.</string>
+    <string name="backup_note_iphone_types_kept">De iPhone-app heeft geen botmassa, lichaamswater, basaal metabolisme of huidtemperatuur, dus die blijven op deze telefoon aan of uit zoals ze zijn.</string>
+    <string name="backup_note_iphone_topic_kept">Het MQTT-topic van de iPhone, lifedashboard-ios, wordt niet overgenomen. Deze telefoon houdt zijn eigen topic, zodat de twee telefoons geen sensoren delen.</string>
+    <string name="backup_note_iphone_name_kept">De telefoonnaam van de iPhone wordt niet overgenomen. Deze telefoon houdt zijn eigen naam.</string>
+    <string name="backup_keeps_credentials">Dit bestand bevat geen inloggegevens, dus die op dit toestel blijven behouden.</string>
+    <string name="backup_history_unaffected">Synchronisatiegeschiedenis en logs blijven zoals ze zijn.</string>
+    <string name="backup_imported">Instellingen geïmporteerd, open de app opnieuw om ze te zien</string>
+    <string name="backup_import_failed">Importeren mislukt: %1$s</string>
     <string name="about_f_steps">Stappen, afstand, calorieën</string>
     <string name="about_f_sleep">Slaap met fases</string>
     <string name="about_f_meditation">Meditatiesessies</string>
@@ -509,6 +553,7 @@
     <string name="resolution_group_accumulated">Opgeteld per venster</string>
     <string name="activity_about_label">Over</string>
     <string name="tile_sync_label">Life Dashboard syncen</string>
+    <string name="tile_sync_wait">Probeer het over een minuut</string>
     <string name="common_set">Instellen</string>
     <string name="screentime_day_boundary_time_label">Dag begint om</string>
     <string name="webhook_secret_generate">Genereren</string>

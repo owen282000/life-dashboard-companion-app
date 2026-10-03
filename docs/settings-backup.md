@@ -30,10 +30,10 @@ Permissions are granted by Android, not by the app, so you still grant Health Co
 
 1. Open **About > Backup & restore > Export**
 2. Choose whether to **include secrets**
-3. When secrets are included, enter a password
+3. When secrets are included, enter a password of at least 8 characters, and once more to repeat it
 4. Share or save the file through the Android share sheet
 
-**With secrets** the file is encrypted with AES-256-GCM under a key derived from your password (PBKDF2-HMAC-SHA256, 210,000 iterations). It is saved as `life-dashboard-config.encrypted.json`. There is no recovery if you lose the password: without it the file cannot be decrypted.
+**With secrets** the file is encrypted with AES-256-GCM under a key derived from your password (PBKDF2-HMAC-SHA256, 210,000 iterations). It is saved as `life-dashboard-config.encrypted.json`. There is no recovery if you lose the password: without it the file cannot be decrypted, which is why Export stays off until the two password fields match. A long password, such as four random words, is best.
 
 **Without secrets** the file is plain JSON (`life-dashboard-config.json`) holding URLs, MQTT hosts, topics and options, but no passwords, headers or HMAC secrets. It still contains your webhook URLs, and a URL can be a credential in itself: a Home Assistant `/api/webhook/<id>` address accepts anything posted to it. Share the file only with someone you would give that access to.
 
@@ -45,7 +45,7 @@ Permissions are granted by Android, not by the app, so you still grant Health Co
 4. Check the preview, which lists what will be replaced
 5. Confirm
 
-An import replaces your current configuration, so the preview shows the webhook counts, data types and broker count first. A file without secrets keeps the credentials already on the device rather than clearing them, so you can import a shared setup and fill in your own tokens. A broker keeps its username and password only when the file points at the same broker, meaning the same host, port and TLS setting; otherwise they are left empty, so they never go to a server they were not set for, or out in plain text where they had TLS.
+An import replaces your current configuration, so the preview shows the webhook counts, data types and broker count first, and below them what the file leaves as it is. A setting the file does not mention keeps the value on the device; it is never reset to its default because a key is missing. A file without secrets keeps the credentials already on the device rather than clearing them, so you can import a shared setup and fill in your own tokens. A broker keeps its username and password only when the file points at the same broker, meaning the same host, port and TLS setting; otherwise they are left empty, so they never go to a server they were not set for, or out in plain text where they had TLS.
 
 Custom headers follow the same rule. A file with headers restores them together with its own list of URLs that get none. A file without them keeps the headers on the device, and those go only to the URLs they went to before the import: a URL that is new to the device, or one that QR pairing added there, gets none of them.
 
@@ -88,9 +88,9 @@ Plain exports are readable JSON:
 
 `urls_without_headers` lists the webhook URLs of that section that QR pairing added, which get none of its custom headers. A backup written before this list existed has none, and imports as it always did: the app sent the headers to every URL then.
 
-`receive_source_url` is only applied when it is one of the health webhook URLs in the same file. A backup written before 1.20.0 has none of the `phone_name` and `receive_*` keys, and importing it leaves the phone name, the Receive switches and the ledger as they are.
+`receive_source_url` is only applied when it is one of the phone's health webhook URLs after the import: the file's own when it has `webhook_urls`, otherwise the ones already on the phone. Any other URL clears the source. A backup written before 1.20.0 has none of the `phone_name` and `receive_*` keys, and importing it leaves the phone name, the Receive switches and the ledger as they are.
 
-Unknown keys are ignored on import, so a file from a newer version still restores what the installed build understands. Data types are stored by name, and names this build does not know are skipped rather than failing the import.
+A key that is absent leaves its setting as it is on import, and so does a whole section: a file without `screen_time` keeps the Screen Time webhooks, and one without `mqtt` keeps every broker. Unknown keys are ignored on import, so a file from a newer version still restores what the installed build understands. Data types are stored by name, and names this build does not know are skipped rather than failing the import.
 
 Encrypted exports wrap the same JSON in an envelope that records the parameters needed to decrypt it:
 
@@ -108,11 +108,22 @@ Encrypted exports wrap the same JSON in an envelope that records the parameters 
 
 Salt and IV are random per export, so exporting the same settings twice produces different files. The GCM authentication tag means a wrong password or an edited file is rejected outright instead of producing garbage.
 
+The iteration count comes from the file, so it is bounded: a file asking for fewer than 100,000 or more than 2,000,000 is refused before any key is derived, as on the iPhone. Without the ceiling a crafted file could keep the import busy for minutes; without the floor it could ask for a key that is cheap to guess.
+
 ## Files from the iPhone app
 
-The [iOS app](https://github.com/owen282000/life-dashboard-companion-app-ios) writes the same format and encrypts it the same way, so a file moves between the two apps in either direction. Its files carry `"platform": "ios"`, which this app does not write, and `failure_notifications_enabled`, the failure notification switch, which this app has too but does not back up yet. This app ignores both, like any key it does not know, so its own switch stays as it is.
+The [iOS app](https://github.com/owen282000/life-dashboard-companion-app-ios) writes the same format and encrypts it the same way, so a file moves between the two apps in either direction. Its files carry `"platform": "ios"`, which this app does not write but reads to tell the two apart, and `failure_notifications_enabled`, the failure notification switch, which this app has too but does not back up yet. This app ignores that one, like any key it does not know, so its own switch stays as it is.
 
-An iPhone file has no Screen Time section and lists only the data types enabled on the iPhone, and an import resets most settings a file leaves out to their defaults. On a phone that also syncs Screen Time, importing one clears the Screen Time webhooks, switches Screen Time MQTT off, resets full payloads and the day boundary, and turns off every data type the file does not list, the ones the iPhone does not have included. On a fresh phone this does not matter. What carries over the other way is in the iOS app's [settings-backup.md](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/settings-backup.md#moving-between-android-and-iphone).
+An iPhone file has no Screen Time section, no Screen Time MQTT keys and none of the Android-only options (full payloads, the day boundary, resolutions, Receive). Like any key a file leaves out, they keep the values on the phone, so importing one on a phone that also syncs Screen Time leaves that setup as it is. The preview says so.
+
+Two values in an iPhone file name the iPhone, and this app does not take them over, the way the iPhone app treats a file from here:
+
+- **The MQTT base topic** `lifedashboard-ios`, the iPhone app's default. Taking it would put this phone's sensors on the iPhone's in Home Assistant, so the phone keeps its own topic. A topic the iPhone user chose is copied as it is.
+- **The phone name** (`phone_name`), which names the iPhone. This phone keeps its own name.
+
+The preview lists both when the file has them.
+
+The data types in an iPhone file are the ones enabled on the iPhone, so the file decides only the types the iPhone app has: those are switched on or off as the file says. The types it does not have (bone mass, body water mass, basal metabolic rate and skin temperature) keep their state on this phone. The preview counts the types the phone ends up with and says this. Receive and the series resolutions are not in an iPhone file at all, so they stay as they are too. What carries over the other way is in the iOS app's [settings-backup.md](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/settings-backup.md#moving-between-android-and-iphone).
 
 ## Keeping an export safe
 

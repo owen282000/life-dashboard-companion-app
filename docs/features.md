@@ -129,8 +129,8 @@ The setup per scale, Xiaomi, Renpho, Eufy, Withings or a cloud account, is in [r
 ## Automation
 
 - **Home screen widget** - last sync result and records delivered today at a glance
-- **Quick Settings tile** - trigger an immediate sync from the notification shade
-- **Tasker / MacroDroid support** - trigger syncs with an explicit broadcast intent: `com.owen282000.lifedashboard.ACTION_SYNC`. Any app can send it, so it only starts a normal sync of what you configured, and a broadcast within a minute of the last accepted one is ignored
+- **Quick Settings tile** - trigger an immediate sync from the notification shade. A tap within a minute of the last accepted sync from the tile or the broadcast is ignored, and on Android 10 and later the tile says "Try again in a minute"
+- **Tasker / MacroDroid support** - trigger syncs with an explicit broadcast intent: `com.owen282000.lifedashboard.ACTION_SYNC`. Any app can send it, so it only starts a normal sync of what you configured, and a broadcast within a minute of the last accepted one, from the tile or a broadcast, is ignored
 - **Failure notifications** - local notification after repeated failed syncs, with a configurable threshold
 
 ## Data tools

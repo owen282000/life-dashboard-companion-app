@@ -106,9 +106,9 @@ class ConfigBackupTest {
         assertNull(stripped.screenTime.signingSecret)
         assertTrue(stripped.health.headers.isEmpty())
         assertTrue(stripped.screenTime.headers.isEmpty())
-        assertNull(stripped.mqtt.shared.username)
-        assertNull(stripped.mqtt.shared.password)
-        assertNull(stripped.mqtt.screenTimeOwnBroker.password)
+        assertNull(stripped.mqtt.shared?.username)
+        assertNull(stripped.mqtt.shared?.password)
+        assertNull(stripped.mqtt.screenTimeOwnBroker?.password)
 
         // Non-secret configuration must survive, that is the point of sharing a setup.
         assertEquals(
@@ -116,9 +116,9 @@ class ConfigBackupTest {
             stripped.health.webhookUrls
         )
         assertEquals(listOf("https://backup.example.com/h"), stripped.health.urlsWithoutHeaders)
-        assertEquals("mqtt.local", stripped.mqtt.shared.host)
-        assertEquals(8883, stripped.mqtt.shared.port)
-        assertTrue(stripped.mqtt.shared.useTls)
+        assertEquals("mqtt.local", stripped.mqtt.shared?.host)
+        assertEquals(8883, stripped.mqtt.shared?.port)
+        assertEquals(true, stripped.mqtt.shared?.useTls)
         assertEquals(fullBackup().options, stripped.options)
     }
 
@@ -162,13 +162,16 @@ class ConfigBackupTest {
 
     @Test
     fun summaryReportsCountsAndSecretPresence() {
-        val summary = fullBackup().summarise()
-        assertTrue(summary.any { it == "Health webhooks: 2" })
-        assertTrue(summary.any { it == "Screen time webhooks: 1" })
-        assertTrue(summary.any { it == "Enabled data types: 3" })
-        assertTrue(summary.any { it == "Includes secrets" })
-
-        assertTrue(fullBackup().withoutSecrets().summarise().any { it == "No secrets included" })
+        assertEquals(
+            BackupSummary(healthWebhooks = 2, screenTimeWebhooks = 1, enabledDataTypes = 3, brokers = 2, includesSecrets = true),
+            fullBackup().summarise(currentDataTypes = setOf(HealthDataType.BONE_MASS))
+        )
+        assertFalse(fullBackup().withoutSecrets().summarise(emptySet()).includesSecrets)
+        // A part the file does not have is not counted as zero: the device keeps its own.
+        assertEquals(
+            BackupSummary(healthWebhooks = null, screenTimeWebhooks = null, enabledDataTypes = null, brokers = 0, includesSecrets = false),
+            ConfigBackup.decode("""{"version": 1}""").summarise(emptySet())
+        )
     }
 
     @Test
@@ -290,5 +293,207 @@ class ConfigBackupTest {
         // With no headers on the device nothing is held back: headers typed in later are
         // typed for the URLs on screen, like on a fresh install.
         assertTrue(section.urlsWithoutHeadersOnImport(emptyList(), emptySet(), deviceHasHeaders = false).isEmpty())
+    }
+
+    /**
+     * A file as the iPhone app 1.4 writes it (SettingsBackup.export, JSONEncoder with sorted
+     * keys): `platform`, no Screen Time section, only the shared broker and the health MQTT
+     * keys, and none of the Android-only options.
+     */
+    private val iPhoneFile = """
+        {
+          "app_version" : "1.4.0",
+          "exported_at" : "2026-09-30T10:15:30Z",
+          "health" : {
+            "headers" : {
+              "Authorization" : "Bearer fixture-token"
+            },
+            "quiet_from" : "22:00",
+            "quiet_to" : "07:00",
+            "signing_secret" : "fixture-hmac",
+            "sync_days" : "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY",
+            "sync_interval_minutes" : 30,
+            "sync_mode" : "TIMES",
+            "sync_times" : "07:30,21:00",
+            "urls_without_headers" : [
+              "http://homeassistant.local:8123/api/webhook/abc"
+            ],
+            "webhook_urls" : [
+              "https://example.com/health",
+              "http://homeassistant.local:8123/api/webhook/abc"
+            ]
+          },
+          "mqtt" : {
+            "health_base_topic" : "lifedashboard-ios",
+            "health_enabled" : true,
+            "health_use_shared" : true,
+            "shared" : {
+              "host" : "mqtt.example.com",
+              "password" : "fixture-pass",
+              "port" : 8883,
+              "use_tls" : true,
+              "username" : "fixture-user"
+            }
+          },
+          "options" : {
+            "allow_http_webhooks" : true,
+            "enabled_data_types" : [
+              "HEART_RATE",
+              "MENSTRUATION_FLOW",
+              "MENSTRUATION_PERIOD",
+              "STEPS"
+            ],
+            "failure_notification_threshold" : 10,
+            "failure_notifications_enabled" : false,
+            "include_daily_totals" : false,
+            "phone_name" : "Zoë's iPhone"
+          },
+          "platform" : "ios",
+          "version" : 1
+        }
+    """.trimIndent()
+
+    private val deviceScreenTime = MqttSectionSettings(
+        enabled = true,
+        useSharedBroker = false,
+        ownBroker = MqttBroker("screen.lan", 1883, false, "screen-user", "screen-pass"),
+        baseTopic = "lifedashboard"
+    )
+
+    private val deviceHealth = MqttSectionSettings(
+        enabled = false,
+        useSharedBroker = true,
+        ownBroker = MqttBroker("", 1883, false, null, null),
+        baseTopic = "lifedashboard"
+    )
+
+    @Test
+    fun anIPhoneFileKeepsScreenTimeMqttAndTheDayBoundary() {
+        val file = ConfigBackup.decode(iPhoneFile)
+        assertTrue(file.isFromIPhone)
+        val applied = file.forThisPhone()
+
+        // No Screen Time section: the URLs, and with them the marks, stay as they are.
+        assertNull(applied.screenTime.webhookUrls)
+        assertNull(applied.screenTime.syncIntervalMinutes)
+        // Nor the Android-only options: no reset to the defaults.
+        assertNull(applied.options.screenTimeDayBoundaryHour)
+        assertNull(applied.options.screenTimeUseDayBoundary)
+        assertNull(applied.options.keepFullPayloads)
+        assertNull(applied.options.seriesResolutions)
+        assertNull(applied.options.receiveEnabled)
+        // Screen Time MQTT is left whole, switch, own broker and credentials included.
+        assertEquals(deviceScreenTime, applied.mqtt.sectionOnImport(MqttSection.SCREEN_TIME, deviceScreenTime, file.containsSecrets()))
+
+        // What the iPhone does have, it brings.
+        assertEquals(listOf("https://example.com/health", "http://homeassistant.local:8123/api/webhook/abc"), applied.health.webhookUrls)
+        assertEquals("fixture-hmac", applied.health.signingSecret)
+        assertEquals(10, applied.options.failureNotificationThreshold)
+        assertEquals(false, applied.options.includeDailyTotals)
+        assertEquals("mqtt.example.com", applied.mqtt.shared?.host)
+        assertEquals(true, applied.mqtt.sectionOnImport(MqttSection.HEALTH, deviceHealth, file.containsSecrets()).enabled)
+    }
+
+    @Test
+    fun anIPhoneFileDoesNotBringTheIPhonesTopicOrName() {
+        val file = ConfigBackup.decode(iPhoneFile)
+        val applied = file.forThisPhone()
+
+        assertEquals("lifedashboard", applied.mqtt.sectionOnImport(MqttSection.HEALTH, deviceHealth, file.containsSecrets()).baseTopic)
+        assertNull("the phone keeps its own name", applied.options.phoneName)
+        assertEquals(
+            listOf(
+                ImportNote.SCREEN_TIME_KEPT,
+                ImportNote.IPHONE_ANDROID_TYPES_KEPT,
+                ImportNote.IPHONE_BASE_TOPIC_KEPT,
+                ImportNote.IPHONE_PHONE_NAME_KEPT
+            ),
+            file.importNotes()
+        )
+        assertNull(file.summarise(emptySet()).screenTimeWebhooks)
+    }
+
+    @Test
+    fun thePreviewCountsTheTypesThePhoneEndsUpWith() {
+        val file = ConfigBackup.decode(iPhoneFile)
+        // The file lists 4; the two Android-only types on the phone stay, SLEEP goes off.
+        val onPhone = setOf(HealthDataType.BONE_MASS, HealthDataType.SKIN_TEMPERATURE, HealthDataType.SLEEP)
+        assertEquals(6, file.summarise(onPhone).enabledDataTypes)
+        // A file from this app replaces the list, so its own count is the count.
+        assertEquals(3, fullBackup().summarise(onPhone).enabledDataTypes)
+    }
+
+    @Test
+    fun aTopicTheIPhoneUserChoseIsTakenAsTheIPhoneAppDoes() {
+        val file = ConfigBackup.decode(iPhoneFile.replace("\"lifedashboard-ios\"", "\"home/phones\""))
+        assertEquals("home/phones", file.forThisPhone().mqtt.sectionOnImport(MqttSection.HEALTH, deviceHealth, false).baseTopic)
+        assertFalse(ImportNote.IPHONE_BASE_TOPIC_KEPT in file.importNotes())
+    }
+
+    @Test
+    fun anAndroidFileStillSetsEveryKeyItHas() {
+        // Same topic and name as the iPhone's, but this app wrote it: nothing is dropped.
+        val backup = fullBackup().copy(
+            mqtt = fullBackup().mqtt.copy(healthBaseTopic = ConfigBackup.IOS_DEFAULT_BASE_TOPIC)
+        )
+        assertFalse(backup.isFromIPhone)
+        assertEquals(backup, backup.forThisPhone())
+        assertTrue(backup.importNotes().isEmpty())
+
+        val screenTime = backup.mqtt.sectionOnImport(MqttSection.SCREEN_TIME, deviceScreenTime, backupHasSecrets = true)
+        assertEquals(MqttSectionSettings(true, false, MqttBroker("other.local", 1883, false, "u2", "p2"), "lifedash/screen"), screenTime)
+    }
+
+    @Test
+    fun theTypesTheIPhoneDoesNotHaveArePinned() {
+        // When this fails, a type was added on either side: check HealthDataType.swift in the
+        // iOS repo and update ConfigBackupManager.IPHONE_DATA_TYPES.
+        assertEquals(
+            setOf(HealthDataType.BONE_MASS, HealthDataType.BODY_WATER_MASS, HealthDataType.BASAL_METABOLIC_RATE, HealthDataType.SKIN_TEMPERATURE),
+            HealthDataType.entries.toSet() - ConfigBackupManager.IPHONE_DATA_TYPES
+        )
+    }
+
+    @Test
+    fun anIPhoneFileDecidesOnlyTheTypesTheIPhoneHas() {
+        val file = ConfigBackup.decode(iPhoneFile)
+        val onPhone = setOf(HealthDataType.BONE_MASS, HealthDataType.SKIN_TEMPERATURE, HealthDataType.SLEEP, HealthDataType.STEPS)
+
+        val after = ConfigBackupManager.dataTypesOnImport(file.options.enabledDataTypes!!, onPhone, file.isFromIPhone)
+
+        assertEquals(
+            setOf(
+                // Android-only: the iPhone file cannot say anything about them, they stay on.
+                HealthDataType.BONE_MASS, HealthDataType.SKIN_TEMPERATURE,
+                // The iPhone has these: the file's list decides, so SLEEP goes off.
+                HealthDataType.STEPS, HealthDataType.HEART_RATE, HealthDataType.MENSTRUATION_FLOW, HealthDataType.MENSTRUATION_PERIOD
+            ),
+            after
+        )
+        // An Android-only type that was off stays off.
+        assertFalse(HealthDataType.BODY_WATER_MASS in after)
+    }
+
+    @Test
+    fun anAndroidFileStillReplacesTheWholeTypeList() {
+        val onPhone = setOf(HealthDataType.BONE_MASS, HealthDataType.SLEEP)
+        assertEquals(
+            setOf(HealthDataType.STEPS),
+            ConfigBackupManager.dataTypesOnImport(listOf("STEPS"), onPhone, fromIPhone = false)
+        )
+    }
+
+    @Test
+    fun thisAppWritesNoPlatform() {
+        assertFalse(fullBackup().encode().contains("\"platform\""))
+    }
+
+    @Test
+    fun aFileWithNothingInItChangesNothing() {
+        val empty = ConfigBackup.decode("""{"version": 1}""")
+        assertNull(empty.health.webhookUrls)
+        assertEquals(OptionsConfig(), empty.options)
+        assertEquals(deviceHealth, empty.mqtt.sectionOnImport(MqttSection.HEALTH, deviceHealth, false))
+        assertEquals(deviceScreenTime, empty.mqtt.sectionOnImport(MqttSection.SCREEN_TIME, deviceScreenTime, false))
     }
 }

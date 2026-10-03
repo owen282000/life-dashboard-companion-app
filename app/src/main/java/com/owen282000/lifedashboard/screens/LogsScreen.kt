@@ -79,6 +79,7 @@ fun LogsScreen() {
     var selectedFilter by remember { mutableStateOf<LogType?>(null) }
     var allLogs by remember { mutableStateOf(preferencesManager.getWebhookLogs(null)) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showClearDialog by remember { mutableStateOf(false) }
     var keepFullPayloads by remember { mutableStateOf(preferencesManager.keepFullPayloads()) }
 
     val logs = remember(allLogs, selectedFilter) {
@@ -126,10 +127,7 @@ fun LogsScreen() {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ActionTile(Icons.Outlined.Share, stringResource(R.string.logs_export_logs), accent, onClick = { showExportDialog = true })
-                    ActionTile(Icons.Outlined.Delete, stringResource(R.string.logs_clear_logs), MaterialTheme.colorScheme.error, onClick = {
-                        preferencesManager.clearWebhookLogs(selectedFilter)
-                        allLogs = preferencesManager.getWebhookLogs(null)
-                    })
+                    ActionTile(Icons.Outlined.Delete, stringResource(R.string.logs_clear_logs), MaterialTheme.colorScheme.error, onClick = { showClearDialog = true })
                 }
             }
             item {
@@ -182,6 +180,30 @@ fun LogsScreen() {
                     val exportManager = ExportManager(context)
                     exportManager.shareFile(exportManager.exportAsCsv(logs), exportFileName("logs", "csv"), "text/csv")
                 }) { Text(stringResource(R.string.common_csv), color = accent.ink()) }
+            }
+        )
+    }
+
+    // The logs are the only record of what was delivered, so one tap does not wipe them.
+    if (showClearDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            title = { Text(stringResource(R.string.logs_clear_title)) },
+            text = {
+                Text(
+                    pluralStringResource(R.plurals.logs_clear_body, logs.size, logs.size),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showClearDialog = false
+                    preferencesManager.clearWebhookLogs(selectedFilter)
+                    allLogs = preferencesManager.getWebhookLogs(null)
+                }) { Text(stringResource(R.string.logs_clear_confirm), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearDialog = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }

@@ -82,6 +82,32 @@ class ConfigCryptoTest {
     }
 
     @Test
+    fun anIterationCountOutsideTheAcceptedRangeIsRefusedBeforeAnyKeyIsDerived() {
+        val envelope = ConfigCrypto.encrypt(secret, password)
+        val written = "\"iterations\": ${ConfigCrypto.ITERATIONS}"
+        assertTrue(ConfigCrypto.ITERATIONS in ConfigCrypto.ACCEPTED_ITERATIONS)
+
+        // A crafted file asking for two billion rounds would keep the import busy for hours;
+        // one asking for ten would make the password cheap to guess. Both are refused.
+        for (iterations in listOf("2000000000", "2000001", "99999", "10", "0", "-1", "lots")) {
+            assertThrows(iterations, ConfigCrypto.UnsupportedEnvelopeException::class.java) {
+                ConfigCrypto.decrypt(envelope.replace(written, "\"iterations\": $iterations"), password)
+            }
+        }
+    }
+
+    @Test
+    fun anExportPasswordNeedsEightCharactersAndTheSameRepeat() {
+        assertEquals(ConfigCrypto.PasswordProblem.TOO_SHORT, ConfigCrypto.passwordProblem("", ""))
+        assertEquals(ConfigCrypto.PasswordProblem.TOO_SHORT, ConfigCrypto.passwordProblem("seven77", "seven77"))
+        assertEquals(ConfigCrypto.PasswordProblem.MISMATCH, ConfigCrypto.passwordProblem("eight888", "eight88"))
+        assertEquals(ConfigCrypto.PasswordProblem.MISMATCH, ConfigCrypto.passwordProblem("four random words", ""))
+        assertEquals(null, ConfigCrypto.passwordProblem("eight888", "eight888"))
+        // Counted in characters, not UTF-16 units: four emoji are four characters, not eight.
+        assertEquals(ConfigCrypto.PasswordProblem.TOO_SHORT, ConfigCrypto.passwordProblem("🔐🔐🔐🔐", "🔐🔐🔐🔐"))
+    }
+
+    @Test
     fun handlesUnicodeAndLargeConfigs() {
         val tricky = """{"note":"emoji 🔐 en accenten éàü","big":"${"x".repeat(50_000)}"}"""
         val envelope = ConfigCrypto.encrypt(tricky, "wachtwoord")

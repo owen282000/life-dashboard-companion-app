@@ -4,6 +4,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,10 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -32,8 +36,15 @@ import com.owen282000.lifedashboard.ConfigBackup
 import com.owen282000.lifedashboard.ConfigBackupManager
 import com.owen282000.lifedashboard.ConfigCrypto
 import com.owen282000.lifedashboard.ExportManager
+import com.owen282000.lifedashboard.ImportNote
+import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.SyncScheduler
+import com.owen282000.lifedashboard.appPreferences
 import com.owen282000.lifedashboard.ui.theme.ink
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Export and import of all settings.
@@ -45,15 +56,19 @@ import com.owen282000.lifedashboard.ui.theme.ink
 @Composable
 fun ConfigBackupSection() {
     val context = LocalContext.current
+    val resources = LocalResources.current
+    val scope = rememberCoroutineScope()
 
     var showExportDialog by remember { mutableStateOf(false) }
     var includeSecrets by remember { mutableStateOf(true) }
     var exportPassword by remember { mutableStateOf("") }
+    var exportPasswordRepeat by remember { mutableStateOf("") }
 
     var pendingImport by remember { mutableStateOf<ConfigBackup?>(null) }
     var encryptedImport by remember { mutableStateOf<String?>(null) }
     var importPassword by remember { mutableStateOf("") }
-    var importError by remember { mutableStateOf<String?>(null) }
+    var importError by remember { mutableStateOf<Int?>(null) }
+    var unlocking by remember { mutableStateOf(false) }
 
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -64,7 +79,7 @@ fun ConfigBackupSection() {
         }.getOrNull()
 
         if (text.isNullOrBlank()) {
-            Toast.makeText(context, "Could not read that file", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, resources.getString(R.string.backup_read_failed), Toast.LENGTH_LONG).show()
             return@rememberLauncherForActivityResult
         }
 
@@ -77,15 +92,14 @@ fun ConfigBackupSection() {
             runCatching { ConfigBackup.decode(text) }
                 .onSuccess { pendingImport = it }
                 .onFailure {
-                    Toast.makeText(context, "Not a valid settings file", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, resources.getString(R.string.backup_invalid_file), Toast.LENGTH_LONG).show()
                 }
         }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            "Settings are not part of Android's cloud backup, because the secrets they contain " +
-                "never leave this device. Export them here to move to a new phone.",
+            stringResource(R.string.backup_intro),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -94,33 +108,35 @@ fun ConfigBackupSection() {
                 onClick = {
                     includeSecrets = true
                     exportPassword = ""
+                    exportPasswordRepeat = ""
                     showExportDialog = true
                 },
                 modifier = Modifier.weight(1f),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = com.owen282000.lifedashboard.ui.theme.HealthPrimary, contentColor = com.owen282000.lifedashboard.ui.theme.onAccent(com.owen282000.lifedashboard.ui.theme.HealthPrimary))
-            ) { Text("Export") }
+            ) { Text(stringResource(R.string.backup_export)) }
 
             OutlinedButton(
                 onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
                 modifier = Modifier.weight(1f),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = com.owen282000.lifedashboard.ui.theme.HealthPrimary.ink())
-            ) { Text("Import") }
+            ) { Text(stringResource(R.string.backup_import)) }
         }
     }
 
     if (showExportDialog) {
+        val passwordProblem = ConfigCrypto.passwordProblem(exportPassword, exportPasswordRepeat)
         AlertDialog(
             onDismissRequest = { showExportDialog = false },
-            title = { Text("Export settings") },
+            title = { Text(stringResource(R.string.backup_export_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Include secrets", style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.backup_include_secrets), style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                "Auth headers, signing secrets and MQTT passwords",
+                                stringResource(R.string.backup_include_secrets_detail),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -129,25 +145,45 @@ fun ConfigBackupSection() {
                     }
 
                     if (includeSecrets) {
+                        // Shown once the user has typed something, not while the field is still empty.
+                        val tooShort = exportPassword.isNotEmpty() && passwordProblem == ConfigCrypto.PasswordProblem.TOO_SHORT
+                        val mismatch = exportPasswordRepeat.isNotEmpty() && passwordProblem == ConfigCrypto.PasswordProblem.MISMATCH
                         OutlinedTextField(
                             value = exportPassword,
                             onValueChange = { exportPassword = it },
-                            label = { Text("Password") },
+                            label = { Text(stringResource(R.string.backup_password)) },
                             singleLine = true,
+                            isError = tooShort,
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             modifier = Modifier.fillMaxWidth()
                         )
+                        OutlinedTextField(
+                            value = exportPasswordRepeat,
+                            onValueChange = { exportPasswordRepeat = it },
+                            label = { Text(stringResource(R.string.backup_password_repeat)) },
+                            singleLine = true,
+                            isError = mismatch,
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        val problemText = when {
+                            tooShort -> stringResource(R.string.backup_password_too_short, ConfigCrypto.MIN_PASSWORD_LENGTH)
+                            mismatch -> stringResource(R.string.backup_password_mismatch)
+                            else -> null
+                        }
+                        problemText?.let {
+                            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                        }
                         Text(
-                            "The file is encrypted with this password. Without it the export " +
-                                "cannot be restored, so store it somewhere safe.",
+                            stringResource(R.string.backup_password_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
                         Text(
-                            "The export will contain your webhook URLs, MQTT hosts and options, " +
-                                "but no credentials.",
+                            stringResource(R.string.backup_no_secrets_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -156,7 +192,7 @@ fun ConfigBackupSection() {
             },
             confirmButton = {
                 TextButton(
-                    enabled = !includeSecrets || exportPassword.isNotBlank(),
+                    enabled = !includeSecrets || passwordProblem == null,
                     onClick = {
                         showExportDialog = false
                         val backup = ConfigBackupManager(context).export()
@@ -170,36 +206,41 @@ fun ConfigBackupSection() {
                         }
 
                         exportPassword = ""
+                        exportPasswordRepeat = ""
                         runCatching {
                             ExportManager(context).shareFile(
-                                content, filename, "application/json", "Export settings"
+                                content, filename, "application/json", resources.getString(R.string.backup_export_title)
                             )
                         }.onFailure {
-                            Toast.makeText(context, "Export failed: ${it.message}", Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                context,
+                                resources.getString(R.string.sync_export_failed_with_reason, it.message.orEmpty()),
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     }
-                ) { Text("Export") }
+                ) { Text(stringResource(R.string.backup_export)) }
             },
             dismissButton = {
-                TextButton(onClick = { showExportDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showExportDialog = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
 
     encryptedImport?.let { envelope ->
         AlertDialog(
-            onDismissRequest = { encryptedImport = null },
-            title = { Text("Encrypted export") },
+            onDismissRequest = { if (!unlocking) encryptedImport = null },
+            title = { Text(stringResource(R.string.backup_encrypted_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "This file is password-protected.",
+                        stringResource(R.string.backup_encrypted_body),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     OutlinedTextField(
                         value = importPassword,
                         onValueChange = { importPassword = it; importError = null },
-                        label = { Text("Password") },
+                        label = { Text(stringResource(R.string.backup_password)) },
                         singleLine = true,
                         isError = importError != null,
                         visualTransformation = PasswordVisualTransformation(),
@@ -207,63 +248,81 @@ fun ConfigBackupSection() {
                         modifier = Modifier.fillMaxWidth()
                     )
                     importError?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                     }
                 }
             },
             confirmButton = {
                 TextButton(
-                    enabled = importPassword.isNotBlank(),
+                    enabled = importPassword.isNotBlank() && !unlocking,
                     onClick = {
-                        runCatching {
-                            ConfigBackup.decode(ConfigCrypto.decrypt(envelope, importPassword))
-                        }.onSuccess {
-                            encryptedImport = null
-                            importPassword = ""
-                            pendingImport = it
-                        }.onFailure {
-                            importError = it.message ?: "Could not decrypt this file"
+                        unlocking = true
+                        scope.decryptInBackground(envelope, importPassword) { result ->
+                            unlocking = false
+                            result.onSuccess {
+                                encryptedImport = null
+                                importPassword = ""
+                                pendingImport = it
+                            }.onFailure {
+                                importError = unlockErrorFor(it)
+                            }
                         }
                     }
-                ) { Text("Unlock") }
+                ) { Text(stringResource(R.string.backup_unlock)) }
             },
             dismissButton = {
-                TextButton(onClick = { encryptedImport = null }) { Text("Cancel") }
+                TextButton(enabled = !unlocking, onClick = { encryptedImport = null }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
 
     // Preview before anything is overwritten: an import replaces live configuration.
     pendingImport?.let { backup ->
+        val summary = remember(backup) { backup.summarise(context.appPreferences().getHealthEnabledDataTypes()) }
         AlertDialog(
             onDismissRequest = { pendingImport = null },
-            title = { Text("Import settings?") },
+            title = { Text(stringResource(R.string.backup_import_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "This replaces your current configuration:",
+                        stringResource(R.string.backup_import_replaces),
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    backup.summarise().forEach {
-                        Text("• $it", style = MaterialTheme.typography.bodySmall)
+                    listOfNotNull(
+                        summary.healthWebhooks?.let { stringResource(R.string.backup_summary_health_webhooks, it) },
+                        summary.screenTimeWebhooks?.let { stringResource(R.string.backup_summary_screen_time_webhooks, it) },
+                        summary.enabledDataTypes?.let { stringResource(R.string.backup_summary_data_types, it) },
+                        stringResource(R.string.backup_summary_brokers, summary.brokers),
+                        stringResource(if (summary.includesSecrets) R.string.backup_summary_secrets else R.string.backup_summary_no_secrets)
+                    ).forEach {
+                        Text(stringResource(R.string.backup_bullet, it), style = MaterialTheme.typography.bodySmall)
                     }
-                    backup.exportedAt?.let {
+                    if (backup.isFromIPhone) {
                         Text(
-                            "Exported $it",
+                            stringResource(R.string.backup_from_iphone),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    backup.exportedAt?.let {
+                        Text(
+                            stringResource(R.string.backup_exported_at, it),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    backup.importNotes().forEach { note ->
+                        Text(stringResource(noteText(note)), style = MaterialTheme.typography.bodySmall)
+                    }
                     if (!backup.containsSecrets()) {
                         Text(
-                            "This file has no credentials, so the ones already on this device " +
-                                "are kept.",
+                            stringResource(R.string.backup_keeps_credentials),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Text(
-                        "Sync history and logs are not affected.",
+                        stringResource(R.string.backup_history_unaffected),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -276,22 +335,49 @@ fun ConfigBackupSection() {
                             .onSuccess {
                                 // The imported schedule has to reach WorkManager now, not at the next app start.
                                 SyncScheduler.rescheduleAll(context)
+                                Toast.makeText(context, resources.getString(R.string.backup_imported), Toast.LENGTH_LONG).show()
+                            }
+                            .onFailure {
                                 Toast.makeText(
                                     context,
-                                    "Settings imported, reopen the app to see them",
+                                    resources.getString(R.string.backup_import_failed, it.message.orEmpty()),
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
-                            .onFailure {
-                                Toast.makeText(context, "Import failed: ${it.message}", Toast.LENGTH_LONG).show()
-                            }
                         pendingImport = null
                     }
-                ) { Text("Import") }
+                ) { Text(stringResource(R.string.backup_import)) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingImport = null }) { Text("Cancel") }
+                TextButton(onClick = { pendingImport = null }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
+}
+
+/**
+ * Decrypts and reads an encrypted export off the main thread, since the key derivation takes a
+ * moment, and hands the result to [done] back on the main thread.
+ */
+private fun CoroutineScope.decryptInBackground(envelope: String, password: String, done: (Result<ConfigBackup>) -> Unit) {
+    launch { done(withContext(Dispatchers.Default) { decryptBackup(envelope, password) }) }
+}
+
+private fun decryptBackup(envelope: String, password: String): Result<ConfigBackup> =
+    runCatching { ConfigBackup.decode(ConfigCrypto.decrypt(envelope, password)) }
+
+/** What the password dialog says when a file does not open. */
+@StringRes
+private fun unlockErrorFor(error: Throwable): Int = when (error) {
+    is ConfigCrypto.WrongPasswordException -> R.string.backup_wrong_password
+    is ConfigCrypto.UnsupportedEnvelopeException -> R.string.backup_unsupported_file
+    else -> R.string.backup_invalid_file
+}
+
+@StringRes
+private fun noteText(note: ImportNote): Int = when (note) {
+    ImportNote.SCREEN_TIME_KEPT -> R.string.backup_note_screen_time_kept
+    ImportNote.IPHONE_ANDROID_TYPES_KEPT -> R.string.backup_note_iphone_types_kept
+    ImportNote.IPHONE_BASE_TOPIC_KEPT -> R.string.backup_note_iphone_topic_kept
+    ImportNote.IPHONE_PHONE_NAME_KEPT -> R.string.backup_note_iphone_name_kept
 }

@@ -21,7 +21,6 @@ ALLOWLIST=(
     "app/src/main/java/com/owen282000/lifedashboard/HealthSyncManager.kt"
     "app/src/main/java/com/owen282000/lifedashboard/ScreenTimeSyncManager.kt"
     "app/src/main/java/com/owen282000/lifedashboard/WebhookManager.kt"
-    "app/src/main/java/com/owen282000/lifedashboard/screens/ConfigBackupSection.kt"
     "app/src/main/java/com/owen282000/lifedashboard/screens/SecretsUnavailableBanner.kt"
 )
 

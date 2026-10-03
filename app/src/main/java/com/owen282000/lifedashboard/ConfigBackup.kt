@@ -1,5 +1,7 @@
 package com.owen282000.lifedashboard
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -15,11 +17,19 @@ import kotlinx.serialization.json.Json
  * Sync state (last-sync watermarks, logs, statistics) is NOT part of a backup: it describes
  * this install's progress against Health Connect, and restoring it elsewhere would silently
  * skip records.
+ *
+ * On import a key the file does not have leaves its setting on the device as it is, so an
+ * absent option, broker or switch reads as null rather than as a default. A file from the
+ * iPhone app has no Screen Time section and none of the Android-only options, and must not
+ * reset them.
  */
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class ConfigBackup(
     /** Bumped only when the shape changes incompatibly; [CURRENT_VERSION] is what we write. */
     val version: Int = CURRENT_VERSION,
+    /** "ios" in a file from the iPhone app. This app writes none, so absent means Android. */
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val platform: String? = null,
     @SerialName("exported_at") val exportedAt: String? = null,
     @SerialName("app_version") val appVersion: String? = null,
     val health: SectionConfig = SectionConfig(),
@@ -29,6 +39,12 @@ data class ConfigBackup(
 ) {
     companion object {
         const val CURRENT_VERSION = 1
+
+        /** What the iPhone app writes in [platform]. */
+        const val PLATFORM_IOS = "ios"
+
+        /** The iPhone app's default MQTT base topic, the iPhone's sensors in Home Assistant. */
+        const val IOS_DEFAULT_BASE_TOPIC = "lifedashboard-ios"
 
         /** Lenient so a file written by a newer build still imports what it understands. */
         val json = Json {
@@ -55,25 +71,78 @@ data class ConfigBackup(
         mqtt = mqtt.withoutSecrets()
     )
 
-    /** Short human-readable lines describing what an import would replace. */
-    fun summarise(): List<String> = buildList {
-        add("Health webhooks: ${health.webhookUrls.size}")
-        add("Screen time webhooks: ${screenTime.webhookUrls.size}")
-        add("Enabled data types: ${options.enabledDataTypes.size}")
-        val brokers = listOfNotNull(
-            mqtt.shared.host.takeIf { it.isNotBlank() },
-            mqtt.healthOwnBroker.host.takeIf { it.isNotBlank() },
-            mqtt.screenTimeOwnBroker.host.takeIf { it.isNotBlank() }
+    /** True for a file written by the iPhone app. */
+    val isFromIPhone: Boolean get() = platform == PLATFORM_IOS
+
+    /**
+     * What an import would replace, for the preview. The data type count is what the phone
+     * ends up with, given the types enabled on it now: from an iPhone file that is not the
+     * file's own count (see [ConfigBackupManager.dataTypesOnImport]).
+     */
+    fun summarise(currentDataTypes: Set<HealthDataType>): BackupSummary = BackupSummary(
+        healthWebhooks = health.webhookUrls?.size,
+        screenTimeWebhooks = screenTime.webhookUrls?.size,
+        enabledDataTypes = options.enabledDataTypes?.let {
+            ConfigBackupManager.dataTypesOnImport(it, currentDataTypes, isFromIPhone).size
+        },
+        brokers = listOfNotNull(mqtt.shared, mqtt.healthOwnBroker, mqtt.screenTimeOwnBroker).count { it.host.isNotBlank() },
+        includesSecrets = containsSecrets()
+    )
+
+    /**
+     * This file as it applies to this phone. A file from the iPhone app names the iPhone: its
+     * phone name, and its default base topic, would put this phone's sensors on the iPhone's
+     * in Home Assistant, so both are dropped and this phone keeps its own. The iPhone app does
+     * the same with a file from here; a topic the user chose is taken as it is, as there.
+     */
+    fun forThisPhone(): ConfigBackup {
+        if (!isFromIPhone) return this
+        return copy(
+            mqtt = if (hasIPhoneBaseTopic()) mqtt.copy(healthBaseTopic = null) else mqtt,
+            options = options.copy(phoneName = null)
         )
-        add("MQTT brokers: ${brokers.size}")
-        add(if (containsSecrets()) "Includes secrets" else "No secrets included")
     }
+
+    /** What the import preview says beyond the counts: what this file leaves as it is. */
+    fun importNotes(): List<ImportNote> = buildList {
+        if (screenTime.webhookUrls == null) add(ImportNote.SCREEN_TIME_KEPT)
+        if (isFromIPhone && options.enabledDataTypes != null) add(ImportNote.IPHONE_ANDROID_TYPES_KEPT)
+        if (isFromIPhone && hasIPhoneBaseTopic()) add(ImportNote.IPHONE_BASE_TOPIC_KEPT)
+        if (isFromIPhone && !options.phoneName.isNullOrBlank()) add(ImportNote.IPHONE_PHONE_NAME_KEPT)
+    }
+
+    private fun hasIPhoneBaseTopic() = mqtt.healthBaseTopic?.trim() == IOS_DEFAULT_BASE_TOPIC
+}
+
+/** The counts the import preview lists. Null where the file has none and the device keeps its own. */
+data class BackupSummary(
+    val healthWebhooks: Int?,
+    val screenTimeWebhooks: Int?,
+    val enabledDataTypes: Int?,
+    val brokers: Int,
+    val includesSecrets: Boolean
+)
+
+/** Something the import preview tells the user beyond a plain copy, as on iOS. */
+enum class ImportNote {
+    /** The file has no Screen Time section, which a file from the iPhone app never has. */
+    SCREEN_TIME_KEPT,
+
+    /** The data types the iPhone app does not have keep their state on this phone. */
+    IPHONE_ANDROID_TYPES_KEPT,
+
+    /** The iPhone's default topic is left out, so the two phones do not share sensors. */
+    IPHONE_BASE_TOPIC_KEPT,
+
+    /** The iPhone's name names the iPhone, so this phone keeps its own. */
+    IPHONE_PHONE_NAME_KEPT
 }
 
 /** Webhook configuration of one section (Health Connect or Screen Time). */
 @Serializable
 data class SectionConfig(
-    @SerialName("webhook_urls") val webhookUrls: List<String> = emptyList(),
+    /** Null when the file has no such section, as an iPhone file has no Screen Time: the URLs stay. */
+    @SerialName("webhook_urls") val webhookUrls: List<String>? = null,
     val headers: Map<String, String> = emptyMap(),
     @SerialName("signing_secret") val signingSecret: String? = null,
     @SerialName("sync_interval_minutes") val syncIntervalMinutes: Int? = null,
@@ -109,7 +178,7 @@ data class SectionConfig(
         deviceHasHeaders: Boolean
     ): Set<String> {
         val keepsDeviceHeaders = headers.isEmpty() && deviceHasHeaders
-        return webhookUrls.filter { url ->
+        return webhookUrls.orEmpty().filter { url ->
             url in urlsWithoutHeaders ||
                 (keepsDeviceHeaders && (url !in deviceUrls || url in deviceUrlsWithoutHeaders))
         }.toSet()
@@ -162,43 +231,65 @@ data class BrokerConfig(
     }
 }
 
-/** MQTT settings: the shared broker plus each section's switch, topic and optional own broker. */
+/**
+ * MQTT settings: the shared broker plus each section's switch, topic and optional own broker.
+ * A key the file does not have leaves its setting alone: a file from the iPhone app has the
+ * shared broker and the health keys only.
+ */
 @Serializable
 data class MqttConfig(
-    val shared: BrokerConfig = BrokerConfig(),
-    @SerialName("health_enabled") val healthEnabled: Boolean = false,
-    @SerialName("health_use_shared") val healthUseShared: Boolean = true,
-    @SerialName("health_base_topic") val healthBaseTopic: String = MqttSupport.DEFAULT_BASE_TOPIC,
-    @SerialName("health_own_broker") val healthOwnBroker: BrokerConfig = BrokerConfig(),
-    @SerialName("screen_time_enabled") val screenTimeEnabled: Boolean = false,
-    @SerialName("screen_time_use_shared") val screenTimeUseShared: Boolean = true,
-    @SerialName("screen_time_base_topic") val screenTimeBaseTopic: String = MqttSupport.DEFAULT_BASE_TOPIC,
-    @SerialName("screen_time_own_broker") val screenTimeOwnBroker: BrokerConfig = BrokerConfig()
+    val shared: BrokerConfig? = null,
+    @SerialName("health_enabled") val healthEnabled: Boolean? = null,
+    @SerialName("health_use_shared") val healthUseShared: Boolean? = null,
+    @SerialName("health_base_topic") val healthBaseTopic: String? = null,
+    @SerialName("health_own_broker") val healthOwnBroker: BrokerConfig? = null,
+    @SerialName("screen_time_enabled") val screenTimeEnabled: Boolean? = null,
+    @SerialName("screen_time_use_shared") val screenTimeUseShared: Boolean? = null,
+    @SerialName("screen_time_base_topic") val screenTimeBaseTopic: String? = null,
+    @SerialName("screen_time_own_broker") val screenTimeOwnBroker: BrokerConfig? = null
 ) {
     fun containsSecrets(): Boolean =
-        shared.containsSecrets() ||
-            healthOwnBroker.containsSecrets() ||
-            screenTimeOwnBroker.containsSecrets()
+        shared?.containsSecrets() == true ||
+            healthOwnBroker?.containsSecrets() == true ||
+            screenTimeOwnBroker?.containsSecrets() == true
 
     fun withoutSecrets(): MqttConfig = copy(
-        shared = shared.withoutSecrets(),
-        healthOwnBroker = healthOwnBroker.withoutSecrets(),
-        screenTimeOwnBroker = screenTimeOwnBroker.withoutSecrets()
+        shared = shared?.withoutSecrets(),
+        healthOwnBroker = healthOwnBroker?.withoutSecrets(),
+        screenTimeOwnBroker = screenTimeOwnBroker?.withoutSecrets()
     )
+
+    /**
+     * One section's settings as an import writes them: what the file has replaces the device's,
+     * what it lacks stays as it is. Its own broker keeps credentials as [BrokerConfig.toBroker] says.
+     */
+    fun sectionOnImport(section: MqttSection, current: MqttSectionSettings, backupHasSecrets: Boolean): MqttSectionSettings {
+        val health = section == MqttSection.HEALTH
+        val ownBroker = if (health) healthOwnBroker else screenTimeOwnBroker
+        val baseTopic = if (health) healthBaseTopic else screenTimeBaseTopic
+        return MqttSectionSettings(
+            enabled = (if (health) healthEnabled else screenTimeEnabled) ?: current.enabled,
+            useSharedBroker = (if (health) healthUseShared else screenTimeUseShared) ?: current.useSharedBroker,
+            ownBroker = ownBroker?.toBroker(current.ownBroker, backupHasSecrets) ?: current.ownBroker,
+            baseTopic = baseTopic ?: current.baseTopic
+        )
+    }
 }
 
 /**
  * Everything else the user can toggle. Data types are stored by enum name so an export from an
- * older build still imports cleanly when new types are added; unknown names are dropped.
+ * older build still imports cleanly when new types are added; unknown names are dropped. A key
+ * the file does not have leaves its setting alone: a file from the iPhone app has no full
+ * payloads switch and no day boundary.
  */
 @Serializable
 data class OptionsConfig(
-    @SerialName("enabled_data_types") val enabledDataTypes: List<String> = emptyList(),
-    @SerialName("include_daily_totals") val includeDailyTotals: Boolean = true,
-    @SerialName("allow_http_webhooks") val allowHttpWebhooks: Boolean = false,
-    @SerialName("keep_full_payloads") val keepFullPayloads: Boolean = false,
-    @SerialName("screen_time_day_boundary_hour") val screenTimeDayBoundaryHour: Int = 4,
-    @SerialName("screen_time_use_day_boundary") val screenTimeUseDayBoundary: Boolean = true,
+    @SerialName("enabled_data_types") val enabledDataTypes: List<String>? = null,
+    @SerialName("include_daily_totals") val includeDailyTotals: Boolean? = null,
+    @SerialName("allow_http_webhooks") val allowHttpWebhooks: Boolean? = null,
+    @SerialName("keep_full_payloads") val keepFullPayloads: Boolean? = null,
+    @SerialName("screen_time_day_boundary_hour") val screenTimeDayBoundaryHour: Int? = null,
+    @SerialName("screen_time_use_day_boundary") val screenTimeUseDayBoundary: Boolean? = null,
     @SerialName("failure_notification_threshold") val failureNotificationThreshold: Int? = null,
     /** Type name to resolution name, only for types not at raw; absent in older backups. */
     @SerialName("series_resolutions") val seriesResolutions: Map<String, String>? = null,
