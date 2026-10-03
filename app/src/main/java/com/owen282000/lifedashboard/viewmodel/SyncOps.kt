@@ -10,7 +10,7 @@ import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.ScreenTimeManager
 import com.owen282000.lifedashboard.ScreenTimeSyncManager
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
-import com.owen282000.lifedashboard.WebhookManager
+import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.WriteBackType
 
 /*
@@ -38,9 +38,6 @@ interface ScreenTimeOps {
     suspend fun preview(): Result<String>
     suspend fun testPing(webhook: WebhookDraft): Result<Unit>
 }
-
-private fun testPingPayload(source: String) =
-    """{"test":true,"message":"Test ping from Life Dashboard Companion","timestamp":"${java.time.Instant.now()}","source":"$source"}"""
 
 class RealHealthOps(private val context: Context) : HealthOps {
     override suspend fun availability(): HcAvailability = try {
@@ -70,22 +67,8 @@ class RealHealthOps(private val context: Context) : HealthOps {
     override suspend fun backfill(days: Int, onWaiting: (Boolean) -> Unit, onProgress: (Int, Int) -> Unit) =
         HealthSyncManager(context).performBackfill(days, onWaiting, onProgress)
 
-    override suspend fun testPing(webhook: WebhookDraft): Result<Unit> = try {
-        WebhookManager(
-            webhookUrls = webhook.urls,
-            context = context,
-            dataType = "test",
-            recordCount = 0,
-            logType = LogType.HEALTH_CONNECT,
-            customHeaders = webhook.headers,
-            urlsWithoutHeaders = webhook.urlsWithoutHeaders,
-            signingSecret = webhook.secret.trim().ifBlank { null }
-        ).postData(testPingPayload("health_connect")).map { }
-    } catch (e: kotlinx.coroutines.CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Result.failure(e)
-    }
+    override suspend fun testPing(webhook: WebhookDraft): Result<Unit> =
+        TestPing.send(context, webhook.urls, webhook.secret, LogType.HEALTH_CONNECT, webhook.headers, webhook.urlsWithoutHeaders)
 }
 
 class RealScreenTimeOps(private val context: Context, private val prefs: PreferencesManager) : ScreenTimeOps {
@@ -93,20 +76,6 @@ class RealScreenTimeOps(private val context: Context, private val prefs: Prefere
     override suspend fun sync() = ScreenTimeSyncManager(context).performSync()
     override suspend fun preview() = ScreenTimeSyncManager(context).previewData()
 
-    override suspend fun testPing(webhook: WebhookDraft): Result<Unit> = try {
-        WebhookManager(
-            webhookUrls = webhook.urls,
-            context = context,
-            dataType = "test",
-            recordCount = 0,
-            logType = LogType.SCREEN_TIME,
-            customHeaders = webhook.headers,
-            urlsWithoutHeaders = webhook.urlsWithoutHeaders,
-            signingSecret = webhook.secret.trim().ifBlank { null }
-        ).postData(testPingPayload("screen_time")).map { }
-    } catch (e: kotlinx.coroutines.CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Result.failure(e)
-    }
+    override suspend fun testPing(webhook: WebhookDraft): Result<Unit> =
+        TestPing.send(context, webhook.urls, webhook.secret, LogType.SCREEN_TIME, webhook.headers, webhook.urlsWithoutHeaders)
 }

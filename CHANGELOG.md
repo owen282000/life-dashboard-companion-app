@@ -15,8 +15,28 @@ All notable changes to this project are documented in this file. The format is b
   addresses, the pairing dialog names them: they get payloads signed with the new secret from
   then on, so one that checks signatures, such as the stack, starts refusing until it gets the
   new secret too.
+- Pairing with a QR code or a pairing link now checks itself: right after the pairing is
+  written, the app sends a test ping to the paired address, signed with the paired secret, and
+  says "Paired with <host>, test ping delivered", or why the ping failed. A failed ping leaves
+  the pairing in place. This used to be a toast asking you to tap Test ping yourself.
 
 ### Fixed
+
+- A broker that took the connection and then never answered held an MQTT publish, and with it
+  the sync and every sync queued behind it, for good. The connection now gets 10 seconds, each
+  message 10 seconds and the whole publish two minutes; after that the publish fails with "No
+  answer within ... s" on the MQTT status line and in the Logs tab, and a sync that is stopped
+  stops the publish with it.
+- With MQTT as the only destination (no webhook), a sync whose broker was down still showed as
+  synced, green on the dashboard and never counted towards the failure notification. It now
+  fails like a webhook that is down: the line under Sync Now says "Sync failed: MQTT broker:"
+  and the reason, the dashboard shows the failure, and the failure notification counts it. With
+  a webhook as well the webhook still decides, and the MQTT status line now shows the broker's
+  error right after Sync Now instead of only after reopening the app.
+- The test ping carried no `app_version`, which every payload in docs/webhook-schema.json has
+  to carry, so a receiver that validates against the schema refused it. It now has one, the
+  wizard's ping names its section (`health_connect` or `screen_time`) instead of `onboarding`,
+  and the schema and docs/webhook.md describe the ping.
 
 - Three German texts on the sync schedule addressed you as "Sie" while the rest of the app says
   "du"; they now say "du" too. The notification setting for a single failed sync read

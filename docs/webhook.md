@@ -11,6 +11,7 @@ Want a ready-made backend? [life-dashboard-stack](https://github.com/owen282000/
   - [Nutrition](#nutrition) - [Mindfulness](#mindfulness) - [Cycle tracking](#cycle-tracking) - [Metabolic and fitness](#metabolic-and-fitness)
   - [Daily totals](#daily-totals) - [Deletions](#deletions) - [Data resolution](#data-resolution) - [Diagnostics](#diagnostics)
 - [Screen Time payload](#screen-time-payload)
+- [Test ping](#test-ping)
 - [Delivery, retries and signing](#delivery-retries-and-signing)
 - [Inbound: what the integration may answer](#inbound-what-the-integration-may-answer)
 - [Example backend integrations](#example-backend-integrations)
@@ -421,6 +422,22 @@ Every payload ends with a `_diagnostics` object with one entry per enabled type,
 ```
 
 Minutes are foreground time per app, derived from Android's activity resume, pause and stop events; background time is not counted. A session also ends on screen off, keyguard and shutdown, System UI and the launcher are excluded, and apps with under one minute per day are omitted, so totals are comparable to Digital Wellbeing (with a custom day boundary they will not match its midnight day exactly). Every sync recomputes and re-sends the last 7 days from the device's event log, so store per date and let the newest payload win for that date. The newest week that failed waits in the outbox and can arrive after a newer one, so the newest is the one with the highest `sequence`, not the one that arrived last (see [Deletions](#deletions) for the counter): store with each date the `sequence` of the payload that wrote it, and apply a day only from a payload with a higher one. Do not ignore a late week as a whole: its oldest date may be one that no newer week covers any more.
+
+## Test ping
+
+**Test ping** on either tab, **Send Test Ping** in the setup wizard, and every QR pairing (right after it is applied, to the paired address with the paired secret) send one small payload with no records in it:
+
+```json
+{
+  "test": true,
+  "message": "Test ping from Life Dashboard Companion",
+  "timestamp": "2025-02-05T12:00:00Z",
+  "app_version": "1.2.0",
+  "source": "health_connect"
+}
+```
+
+`source` is the section the address belongs to, `health_connect` or `screen_time`, so a receiver can tell which of its last-sync times the ping answers for (the iOS app sends `healthkit_ios`). It is signed like any other request and passes [webhook-schema.json](webhook-schema.json). A ping is retried like a sync but never queued in the outbox, and the pairing stays in place when it fails: the toast names the reason.
 
 ## Delivery, retries and signing
 

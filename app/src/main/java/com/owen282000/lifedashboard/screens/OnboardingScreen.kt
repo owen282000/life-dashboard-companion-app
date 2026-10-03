@@ -77,7 +77,7 @@ import com.owen282000.lifedashboard.OnboardingSupport.Step
 import com.owen282000.lifedashboard.PairingSource
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.R
-import com.owen282000.lifedashboard.WebhookManager
+import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
 import com.owen282000.lifedashboard.ui.theme.ink
 import com.owen282000.lifedashboard.ui.theme.onAccent
@@ -335,22 +335,15 @@ fun OnboardingScreen(
                                         onClick = {
                                             scope.launch {
                                                 pinging = true
-                                                pingResult = try {
-                                                    val payload = """{"test":true,"message":"Test ping from Life Dashboard Companion","timestamp":"${java.time.Instant.now()}","source":"onboarding"}"""
-                                                    WebhookManager(
-                                                        webhookUrls = listOf(webhookUrl.trim()),
-                                                        context = context,
-                                                        dataType = "test",
-                                                        recordCount = 0,
-                                                        logType = LogType.HEALTH_CONNECT,
-                                                        // Signed like the tabs' ping, so a paired receiver can check it.
-                                                        signingSecret = webhookSecret.trim().ifBlank { null }
-                                                    ).postData(payload).isSuccess
-                                                } catch (e: kotlinx.coroutines.CancellationException) {
-                                                    throw e
-                                                } catch (e: Exception) {
-                                                    false
-                                                }
+                                                // Signed like the tabs' ping, so a paired receiver
+                                                // can check it, and named after the section the
+                                                // address goes to, as a sync of it would be.
+                                                pingResult = TestPing.send(
+                                                    context,
+                                                    listOf(webhookUrl.trim()),
+                                                    webhookSecret,
+                                                    if (PairingSource.HEALTH in sections || sections.isEmpty()) LogType.HEALTH_CONNECT else LogType.SCREEN_TIME
+                                                ).isSuccess
                                                 pinging = false
                                             }
                                         }

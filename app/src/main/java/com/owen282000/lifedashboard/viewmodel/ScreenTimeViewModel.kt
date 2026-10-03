@@ -242,7 +242,10 @@ class ScreenTimeViewModel(
                     },
                     onFailure = { UiMessage.SyncFailed(it.message ?: "") }
                 )
-                _state.update { it.copy(syncMessage = message, refreshKey = it.refreshKey + 1) }
+                _state.update {
+                    // The broker may have failed while the webhook took the payload.
+                    it.copy(syncMessage = message, mqttLastStatus = settings.lastMqttStatus(MqttSection.SCREEN_TIME), refreshKey = it.refreshKey + 1)
+                }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {

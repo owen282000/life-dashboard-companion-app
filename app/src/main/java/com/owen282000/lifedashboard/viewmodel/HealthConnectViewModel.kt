@@ -395,7 +395,13 @@ class HealthConnectViewModel(
                 )
                 // The sync may have learned which types the integration offers, or written some.
                 _state.update {
-                    it.copy(syncMessage = message, receiveStatus = settings.receiveStatus(), refreshKey = it.refreshKey + 1)
+                    it.copy(
+                        syncMessage = message,
+                        receiveStatus = settings.receiveStatus(),
+                        // The broker may have failed while the webhook took the payload.
+                        mqttLastStatus = settings.lastMqttStatus(MqttSection.HEALTH),
+                        refreshKey = it.refreshKey + 1
+                    )
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e

@@ -11,7 +11,9 @@ import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.LogDestination
 import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.MqttSection
+import com.owen282000.lifedashboard.MqttTimeouts
 import com.owen282000.lifedashboard.ScreenTimeSyncManager
+import com.owen282000.lifedashboard.SyncStatusStore
 import com.owen282000.lifedashboard.appPreferences
 import com.owen282000.lifedashboard.harness.AppStateRule
 import com.owen282000.lifedashboard.harness.Conservation
@@ -30,6 +32,7 @@ import com.owen282000.lifedashboard.harness.strings
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -204,6 +207,54 @@ class MqttPublishTest {
         assertTrue(prefs.getLastMqttStatus(MqttSection.HEALTH).orEmpty().startsWith("OK:"))
         assertEquals("No webhook URLs configured", TestSetup.syncManager().performBackfill(7).exceptionOrNull()?.message)
         probe.close()
+    }
+
+    /**
+     * MQTT without any webhook and the broker down: the publish was the delivery, so the sync
+     * fails, the dashboard shows it and the failure streak counts it, instead of a green sync
+     * that went nowhere.
+     */
+    @Test
+    fun mqttOnlyBrokerDownFailsTheSync() = runBlocking {
+        prefs.setHealthEnabledDataTypes(setOf(HEART_RATE))
+        TestSetup.mqtt(MqttSection.HEALTH, port = 1)
+        fixture.insert(fixture.heartRate(listOf(ago(3) to 70L)))
+
+        val failure = TestSetup.syncManager().performSync().exceptionOrNull()
+
+        assertTrue("the sync fails: $failure", failure?.message.orEmpty().startsWith("MQTT broker: "))
+        assertEquals(0, receiver.exchanges.size)
+        assertTrue(prefs.getLastMqttStatus(MqttSection.HEALTH).orEmpty().startsWith("Error:"))
+        assertFalse(SyncStatusStore.read(context, LogType.HEALTH_CONNECT).lastSuccess)
+        assertEquals(1, TestSetup.streak("HEALTH_CONNECT"))
+    }
+
+    /**
+     * A broker that takes the connection and never answers: the publish gives up within the
+     * connect limits instead of holding the sync for good, and the webhook still decides.
+     */
+    @Test
+    fun silentBrokerTimesOut() = runBlocking {
+        java.net.ServerSocket(0, 1, java.net.InetAddress.getByName("127.0.0.1")).use { silent ->
+            // Takes the connection and never says a word.
+            val accepted = java.util.concurrent.CopyOnWriteArrayList<java.net.Socket>()
+            val acceptor = Thread { runCatching { while (true) accepted += silent.accept() } }.apply { isDaemon = true; start() }
+            TestSetup.health(receiver, setOf(STEPS))
+            TestSetup.mqtt(MqttSection.HEALTH, port = silent.localPort)
+            fixture.insert(fixture.steps(12, ago(30), ago(20)))
+
+            val started = System.nanoTime()
+            val result = TestSetup.syncManager().performSync().getOrThrow()
+            val seconds = (System.nanoTime() - started) / 1_000_000_000
+
+            assertTrue(result is HealthSyncResult.Success)
+            assertTrue("gave up after ${seconds}s", seconds < MqttTimeouts.CONNECT_DEADLINE_MILLIS / 1000 + 10)
+            assertTrue(prefs.getLastMqttStatus(MqttSection.HEALTH).orEmpty().startsWith("Error:"))
+            assertTrue("the broker was reached", accepted.isNotEmpty())
+            silent.close()
+            acceptor.join(1000)
+            accepted.forEach { it.close() }
+        }
     }
 
     /** T20. Screen Time sensors: today, the top app without a state class, yesterday when there is one. */

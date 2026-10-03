@@ -79,6 +79,14 @@
         ]
       }
     },
+    "test": {
+      "const": true,
+      "description": "Present, and true, only on a test ping: a POST that proves the address and the secret work and carries no records, only timestamp, app_version, source and message besides. Sent by Test ping on the tabs, by the setup wizard and right after a QR pairing."
+    },
+    "message": {
+      "type": "string",
+      "description": "Human readable text of a test ping; absent on every other payload"
+    },
     "backfill": {
       "type": "boolean",
       "description": "True on payloads from a one-time history export; absent on ordinary syncs"

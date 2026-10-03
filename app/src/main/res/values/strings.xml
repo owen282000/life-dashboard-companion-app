@@ -488,7 +488,9 @@
     <string name="pairing_already_paired">This section already sends here. Nothing changes.</string>
     <string name="pairing_types_note">Which data types are sent, and when, stays your choice on the tabs. Pairing only fills in the address and the secret.</string>
     <string name="pairing_confirm">Pair</string>
-    <string name="pairing_done">Paired. Tap %1$s on the tab to check the connection.</string>
+    <string name="pairing_ping_sending">Paired with %1$s. Sending a test ping...</string>
+    <string name="pairing_ping_delivered">Paired with %1$s, test ping delivered</string>
+    <string name="pairing_ping_failed">Paired with %1$s, but the test ping failed: %2$s</string>
     <string name="pairing_nothing_selected">Pick at least one section.</string>
     <string name="pairing_error_version">This code was made by a newer version. Update the app and scan again.</string>
     <string name="pairing_error_incomplete">This code is missing its address or its secret.</string>
@@ -508,7 +510,6 @@
     <string name="onboarding_scan_option">Scan a code from Home Assistant</string>
     <string name="onboarding_scan_desc">Recommended for Home Assistant. Install the Life Dashboard integration from HACS and scan the QR code it shows: the address and the signing secret are filled in for you, and Home Assistant keeps the history in its long-term statistics.</string>
     <string name="onboarding_scan_paired">Code read. The address and the secret are filled in.</string>
-    <string name="onboarding_pairing_done">Paired. Tap %1$s under the address to check the connection.</string>
     <!-- Home screen widget -->
     <plurals name="widget_records_today">
         <item quantity="one">record today</item>
