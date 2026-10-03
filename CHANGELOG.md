@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.22.0] - 2026-10-03
+
 ### Added
 
 - With two or more webhooks in a section, a sync that reached some of them and not the others
@@ -29,9 +31,6 @@ All notable changes to this project are documented in this file. The format is b
   ignored, and on Android 10 and later the tile says "Try again in a minute". Tapping it five
   times used to queue five syncs.
 - Backup & restore under About is now in Dutch and German too.
-
-### Changed
-
 - Backfill runs as a background job of its own instead of on the Health tab. It used to stop
   when you left the screen or Android ended the app, and running it again started at the first
   3-day chunk. Now it carries on after you leave, the tab shows where it is when you come back,
@@ -83,7 +82,6 @@ All notable changes to this project are documented in this file. The format is b
   and the schema and docs/webhook.md describe the ping. A failed Send Test Ping in the setup
   wizard now says why, "Test ping failed:" and the reason, like Test ping on the tabs, instead
   of only "check the logs".
-
 - TalkBack left a lot to the eye. A switch was read as "switch, off" with no name, because its
   label was a separate text, and only the small switch itself could be tapped. Every switch row
   is now one control, on the tabs, in the Receive and data type lists, in the pairing dialog,
