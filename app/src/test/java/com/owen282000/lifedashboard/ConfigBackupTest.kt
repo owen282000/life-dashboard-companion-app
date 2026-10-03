@@ -430,6 +430,45 @@ class ConfigBackupTest {
     }
 
     @Test
+    fun theTypesTheIPhoneDoesNotHaveArePinned() {
+        // When this fails, a type was added on either side: check HealthDataType.swift in the
+        // iOS repo and update ConfigBackupManager.IPHONE_DATA_TYPES.
+        assertEquals(
+            setOf(HealthDataType.BONE_MASS, HealthDataType.BODY_WATER_MASS, HealthDataType.BASAL_METABOLIC_RATE, HealthDataType.SKIN_TEMPERATURE),
+            HealthDataType.entries.toSet() - ConfigBackupManager.IPHONE_DATA_TYPES
+        )
+    }
+
+    @Test
+    fun anIPhoneFileDecidesOnlyTheTypesTheIPhoneHas() {
+        val file = ConfigBackup.decode(iPhoneFile)
+        val onPhone = setOf(HealthDataType.BONE_MASS, HealthDataType.SKIN_TEMPERATURE, HealthDataType.SLEEP, HealthDataType.STEPS)
+
+        val after = ConfigBackupManager.dataTypesOnImport(file.options.enabledDataTypes!!, onPhone, file.isFromIPhone)
+
+        assertEquals(
+            setOf(
+                // Android-only: the iPhone file cannot say anything about them, they stay on.
+                HealthDataType.BONE_MASS, HealthDataType.SKIN_TEMPERATURE,
+                // The iPhone has these: the file's list decides, so SLEEP goes off.
+                HealthDataType.STEPS, HealthDataType.HEART_RATE, HealthDataType.MENSTRUATION_FLOW, HealthDataType.MENSTRUATION_PERIOD
+            ),
+            after
+        )
+        // An Android-only type that was off stays off.
+        assertFalse(HealthDataType.BODY_WATER_MASS in after)
+    }
+
+    @Test
+    fun anAndroidFileStillReplacesTheWholeTypeList() {
+        val onPhone = setOf(HealthDataType.BONE_MASS, HealthDataType.SLEEP)
+        assertEquals(
+            setOf(HealthDataType.STEPS),
+            ConfigBackupManager.dataTypesOnImport(listOf("STEPS"), onPhone, fromIPhone = false)
+        )
+    }
+
+    @Test
     fun thisAppWritesNoPlatform() {
         assertFalse(fullBackup().encode().contains("\"platform\""))
     }

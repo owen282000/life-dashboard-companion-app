@@ -121,7 +121,9 @@ Two values in an iPhone file name the iPhone, and this app does not take them ov
 - **The MQTT base topic** `lifedashboard-ios`, the iPhone app's default. Taking it would put this phone's sensors on the iPhone's in Home Assistant, so the phone keeps its own topic. A topic the iPhone user chose is copied as it is.
 - **The phone name** (`phone_name`), which names the iPhone. This phone keeps its own name.
 
-The preview lists both when the file has them. The data types are the iPhone's list, so the types the iPhone does not have are turned off; switch them on again afterwards if this phone sent them. What carries over the other way is in the iOS app's [settings-backup.md](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/settings-backup.md#moving-between-android-and-iphone).
+The preview lists both when the file has them.
+
+The data types in an iPhone file are the ones enabled on the iPhone, so the file decides only the types the iPhone app has: those are switched on or off as the file says. The types it does not have (bone mass, body water mass, basal metabolic rate and skin temperature) keep their state on this phone. Receive and the series resolutions are not in an iPhone file at all, so they stay as they are too. What carries over the other way is in the iOS app's [settings-backup.md](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/settings-backup.md#moving-between-android-and-iphone).
 
 ## Keeping an export safe
 

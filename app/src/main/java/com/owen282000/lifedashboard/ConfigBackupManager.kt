@@ -129,7 +129,11 @@ class ConfigBackupManager(private val context: Context) {
         }
 
         with(backup.options) {
-            enabledDataTypes?.let { prefs.setHealthEnabledDataTypes(ConfigBackupManager.dataTypesFrom(it)) }
+            enabledDataTypes?.let {
+                prefs.setHealthEnabledDataTypes(
+                    ConfigBackupManager.dataTypesOnImport(it, prefs.getHealthEnabledDataTypes(), backup.isFromIPhone)
+                )
+            }
             includeDailyTotals?.let { prefs.setIncludeDailyTotals(it) }
             allowHttpWebhooks?.let { prefs.setAllowHttpWebhooks(it) }
             keepFullPayloads?.let { prefs.setKeepFullPayloads(it) }
@@ -168,6 +172,37 @@ class ConfigBackupManager(private val context: Context) {
         fun dataTypesFrom(names: List<String>): Set<HealthDataType> {
             val known = HealthDataType.entries.associateBy { it.name }
             return names.mapNotNull { known[it] }.toSet()
+        }
+
+        /**
+         * The data types the iPhone app has, under the names it writes: the raw values of its
+         * HealthDataType enum (LifeDashboardCompanion/Models/HealthDataType.swift in
+         * life-dashboard-companion-ios), with its one menstruation toggle written as both of
+         * Android's types (SettingsBackup.androidNames there). Listed, not derived, so a type
+         * added here later stays out until the iPhone app has it too; ConfigBackupTest pins
+         * which types are left out.
+         */
+        val IPHONE_DATA_TYPES: Set<HealthDataType> = setOf(
+            HealthDataType.STEPS, HealthDataType.SLEEP, HealthDataType.HEART_RATE, HealthDataType.DISTANCE,
+            HealthDataType.ACTIVE_CALORIES, HealthDataType.TOTAL_CALORIES, HealthDataType.WEIGHT, HealthDataType.HEIGHT,
+            HealthDataType.BLOOD_PRESSURE, HealthDataType.BLOOD_GLUCOSE, HealthDataType.OXYGEN_SATURATION,
+            HealthDataType.BODY_TEMPERATURE, HealthDataType.RESPIRATORY_RATE, HealthDataType.RESTING_HEART_RATE,
+            HealthDataType.EXERCISE, HealthDataType.HYDRATION, HealthDataType.NUTRITION, HealthDataType.MINDFULNESS,
+            HealthDataType.BODY_FAT, HealthDataType.LEAN_BODY_MASS, HealthDataType.HEART_RATE_VARIABILITY,
+            HealthDataType.VO2_MAX, HealthDataType.MENSTRUATION_FLOW, HealthDataType.MENSTRUATION_PERIOD,
+            HealthDataType.BASAL_BODY_TEMPERATURE, HealthDataType.INTERMENSTRUAL_BLEEDING, HealthDataType.OVULATION_TEST,
+            HealthDataType.CERVICAL_MUCUS, HealthDataType.SEXUAL_ACTIVITY
+        )
+
+        /**
+         * The enabled data types after an import. A file from this app lists every type it has,
+         * so its list replaces the phone's. A file from the iPhone app can only speak for the
+         * types the iPhone has: those follow the file, and the rest keep their state here.
+         */
+        fun dataTypesOnImport(names: List<String>, current: Set<HealthDataType>, fromIPhone: Boolean): Set<HealthDataType> {
+            val fromFile = dataTypesFrom(names)
+            if (!fromIPhone) return fromFile
+            return (current - IPHONE_DATA_TYPES) + (fromFile intersect IPHONE_DATA_TYPES)
         }
 
         /** A Receive type by its protocol key, or by the enum name a pre-release build wrote; unknown is dropped. */
