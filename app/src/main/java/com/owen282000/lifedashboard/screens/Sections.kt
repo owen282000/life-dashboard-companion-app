@@ -15,7 +15,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -50,7 +52,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -132,17 +133,24 @@ fun UiMessage.text(res: Resources): String = when (this) {
     is UiMessage.OtherSourceWrites -> res.getString(R.string.receive_other_source_writes, source, type.dataType.displayName)
 }
 
-/** The line under the sync actions: the outcome of the last sync, red when it failed. */
+/**
+ * The line under the sync actions: the outcome of the last sync, red when it failed. Read out
+ * by TalkBack when it appears or changes, since the user is still on the Sync Now button.
+ */
 @Composable
 fun SyncMessageLine(message: UiMessage?, accent: Color) {
-    AnimatedVisibility(visible = message != null) {
-        message?.let {
-            Text(
-                it.text(LocalResources.current),
-                style = MaterialTheme.typography.bodySmall,
-                color = if (it.isFailure) MaterialTheme.colorScheme.error else accent.ink(),
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
+    Box(modifier = Modifier.announced()) {
+        AnimatedVisibility(visible = message != null) {
+            message?.let {
+                Text(
+                    it.text(LocalResources.current),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (it.isFailure) MaterialTheme.colorScheme.error else accent.ink(),
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .announced()
+                )
+            }
         }
     }
 }
@@ -346,10 +354,14 @@ private fun ListLine(text: String, secondary: String? = null, onRemove: () -> Un
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
-            .padding(start = 12.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+            .padding(start = 12.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 6.dp)
+        ) {
             Text(
                 text,
                 style = MaterialTheme.typography.bodySmall,
@@ -367,7 +379,8 @@ private fun ListLine(text: String, secondary: String? = null, onRemove: () -> Un
                 )
             }
         }
-        IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
+        // The full 48dp touch target; the cross stays the same size.
+        IconButton(onClick = onRemove) {
             Icon(
                 Icons.Filled.Close,
                 contentDescription = stringResource(R.string.common_remove),
@@ -438,13 +451,17 @@ fun MqttRow(
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Text(stringResource(R.string.mqtt_tls), style = MaterialTheme.typography.bodyMedium)
-            Spacer(modifier = Modifier.width(6.dp))
-            Switch(
-                checked = broker.useTls,
-                onCheckedChange = { onChange(mqtt.withActiveBroker(broker.copy(useTls = it))) },
-                colors = SwitchDefaults.colors(checkedTrackColor = accent)
-            )
+            val tlsInteraction = remember { MutableInteractionSource() }
+            Row(
+                modifier = Modifier.switchRow(broker.useTls, tlsInteraction) {
+                    onChange(mqtt.withActiveBroker(broker.copy(useTls = it)))
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(stringResource(R.string.mqtt_tls), style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.width(6.dp))
+                RowSwitch(broker.useTls, tlsInteraction, colors = SwitchDefaults.colors(checkedTrackColor = accent))
+            }
         }
         if (!broker.useTls && broker.host.isNotBlank() && !MqttSupport.isPrivateHost(broker.host)) {
             Text(
@@ -588,23 +605,30 @@ fun DataTypesRow(
         HealthDataType.entries.forEach { dataType ->
             val permission = HealthPermission.getReadPermission(dataType.recordClass)
             val granted = permission in grantedPermissions
+            val interaction = remember { MutableInteractionSource() }
+            val lockedLabel = stringResource(R.string.health_type_permission_missing_a11y, dataType.displayName)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(if (granted) 1f else 0.5f),
+                    .alpha(if (granted) 1f else 0.5f)
+                    .switchRow(dataType in enabledTypes, interaction) { onToggleType(dataType, it) },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    // The lock and the dimming say "no permission" only to the eye.
+                    modifier = if (granted) Modifier else Modifier.clearAndSetSemantics { contentDescription = lockedLabel },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     if (!granted) {
                         Icon(Icons.Filled.Lock, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.width(6.dp))
                     }
                     Text(dataType.displayName, style = MaterialTheme.typography.bodyMedium)
                 }
-                Switch(
+                RowSwitch(
                     checked = dataType in enabledTypes,
-                    onCheckedChange = { onToggleType(dataType, it) },
+                    interactionSource = interaction,
                     modifier = Modifier.height(24.dp),
                     colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = accent)
                 )

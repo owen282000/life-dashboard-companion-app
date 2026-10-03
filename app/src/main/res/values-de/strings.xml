@@ -72,6 +72,7 @@
     <string name="receive_no_types_yet">Die nächste Synchronisierung fragt Home Assistant, welche Typen es anbietet.</string>
     <string name="receive_choose_type">Schalte unten einen Typ ein, um ihn zu empfangen.</string>
     <string name="receive_permission_missing">Schreibberechtigung fehlt: %1$s</string>
+    <string name="receive_type_permission_missing_a11y">%1$s, Schreibberechtigung fehlt</string>
     <string name="receive_summary_needs_pairing">Kopplung mit Home Assistant nötig</string>
     <string name="receive_summary_update_integration">Aktualisiere die Integration</string>
     <string name="receive_summary_nothing_mapped">Keine Typen in Home Assistant zugeordnet</string>
@@ -159,6 +160,7 @@
         <item quantity="other">%1$d Datentypen ausgewählt</item>
     </plurals>
     <string name="health_data_types_selected_of">%1$d von %2$d ausgewählt</string>
+    <string name="health_type_permission_missing_a11y">%1$s, Berechtigung fehlt</string>
     <string name="health_data_types_title">Datentypen</string>
     <string name="health_daily_totals">Tagessummen</string>
     <string name="health_daily_totals_description">Entdoppelte Tagessummen (Schritte, Distanz, Kalorien) über die Aggregat-API; führt Handy- und Uhrdaten zusammen</string>
@@ -196,6 +198,8 @@
 
     <!-- Dashboard-Karten auf den Health-Connect- und Bildschirmzeit-Bildschirmen -->
     <string name="dashboard_last_sync">Letzte Synchronisierung</string>
+    <string name="dashboard_last_sync_succeeded">Erfolgreich</string>
+    <string name="dashboard_last_sync_failed">Fehlgeschlagen</string>
     <string name="dashboard_lifetime">Gesamt</string>
     <string name="dashboard_min">Min.</string>
     <string name="dashboard_minutes_unit">%1$d Min.</string>
@@ -514,4 +518,6 @@
     </plurals>
     <string name="widget_synced_at">Synchronisiert um %1$s</string>
     <string name="widget_no_syncs">Noch keine Syncs</string>
+    <string name="widget_last_sync_succeeded">Letzte Synchronisierung erfolgreich</string>
+    <string name="widget_last_sync_failed">Letzte Synchronisierung fehlgeschlagen</string>
 </resources>

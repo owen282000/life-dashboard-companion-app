@@ -4,6 +4,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +15,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,6 +25,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -116,7 +118,11 @@ fun ConfigBackupSection() {
             title = { Text("Export settings") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    val secretsInteraction = remember { MutableInteractionSource() }
+                    Row(
+                        modifier = Modifier.switchRow(includeSecrets, secretsInteraction) { includeSecrets = it },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Include secrets", style = MaterialTheme.typography.bodyMedium)
                             Text(
@@ -125,7 +131,7 @@ fun ConfigBackupSection() {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(checked = includeSecrets, onCheckedChange = { includeSecrets = it })
+                        RowSwitch(includeSecrets, secretsInteraction)
                     }
 
                     if (includeSecrets) {
@@ -204,10 +210,13 @@ fun ConfigBackupSection() {
                         isError = importError != null,
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        modifier = Modifier.fillMaxWidth()
+                        // TalkBack reads the reason with the field, not a generic "invalid input".
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { importError?.let { error(it) } }
                     )
                     importError?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error, modifier = Modifier.announced())
                     }
                 }
             },

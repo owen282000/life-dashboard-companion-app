@@ -18,6 +18,19 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Fixed
 
+- TalkBack left a lot to the eye. A switch was read as "switch, off" with no name, because its
+  label was a separate text, and only the small switch itself could be tapped. Every switch row
+  is now one control, on the tabs, in the Receive and data type lists, in the pairing dialog,
+  in the setup wizard and on the Logs header: TalkBack reads "Allow plain HTTP, off, switch",
+  and a tap anywhere on the row flips it. The wizard's cards say whether they are checked or
+  selected, the schedule's days are read as whole days with checked or not, and the interval or
+  times choice, the Logs filter, the resolution choices and the bottom tabs say which one is
+  selected; the tab names are no longer read twice. The line under Sync Now is read out when a
+  sync finishes, and so is the wizard's test ping result. Status that was only a colour is now
+  also said: the home screen widget's dot reads "Last sync succeeded" or "Last sync failed", the
+  dashboard reads "Last sync, failed" with the time, and a type whose permission is missing
+  reads "Steps, permission missing". The cross that removes a webhook URL or header was 32dp
+  and now takes the full 48dp touch target.
 - Three German texts on the sync schedule addressed you as "Sie" while the rest of the app says
   "du"; they now say "du" too. The notification setting for a single failed sync read
   "fehlgeschlagenen" and now reads "fehlgeschlagener".

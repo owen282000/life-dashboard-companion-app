@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,6 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -94,20 +94,18 @@ fun LogsScreen() {
         item {
             // Payloads are raw health data and are the bulk of what the log store keeps, so
             // they are truncated unless the user wants them whole for debugging.
+            val bannerInteraction = remember { MutableInteractionSource() }
             StatusBanner(
                 accent = accent,
                 title = stringResource(R.string.logs_keep_full_payloads),
                 subtitle = if (keepFullPayloads) stringResource(R.string.logs_keep_full_payloads_on)
-                else stringResource(R.string.logs_keep_full_payloads_off)
+                else stringResource(R.string.logs_keep_full_payloads_off),
+                modifier = Modifier.switchRow(keepFullPayloads, bannerInteraction) {
+                    keepFullPayloads = it
+                    preferencesManager.setKeepFullPayloads(it)
+                }
             ) {
-                Switch(
-                    checked = keepFullPayloads,
-                    onCheckedChange = {
-                        keepFullPayloads = it
-                        preferencesManager.setKeepFullPayloads(it)
-                    },
-                    colors = bannerSwitchColors(accent)
-                )
+                RowSwitch(keepFullPayloads, bannerInteraction, colors = bannerSwitchColors(accent))
             }
         }
         item { SyncStatsCard(allLogs) }

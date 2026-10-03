@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -37,10 +39,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -52,6 +56,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -106,6 +116,8 @@ fun StatusBanner(
     accent: Color,
     title: String,
     subtitle: String,
+    /** On the banner's content, e.g. [switchRow] when the trailing control is a [RowSwitch]. */
+    modifier: Modifier = Modifier,
     trailing: (@Composable RowScope.() -> Unit)? = null
 ) {
     Surface(
@@ -115,7 +127,7 @@ fun StatusBanner(
         shadowElevation = 6.dp
     ) {
         Row(
-            modifier = Modifier
+            modifier = modifier
                 .background(
                     Brush.horizontalGradient(
                         listOf(accent, lerpTowardsWhite(accent, 0.28f))
@@ -295,7 +307,13 @@ fun ExpandableRow(
 /** A small labelled switch row inside an expanded body. */
 @Composable
 fun SwitchLine(title: String, description: String?, checked: Boolean, accent: Color, onCheckedChange: (Boolean) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    val interaction = remember { MutableInteractionSource() }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .switchRow(checked, interaction, onCheckedChange),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyMedium)
             if (description != null) {
@@ -303,9 +321,54 @@ fun SwitchLine(title: String, description: String?, checked: Boolean, accent: Co
             }
         }
         Spacer(modifier = Modifier.width(8.dp))
-        Switch(checked = checked, onCheckedChange = onCheckedChange, colors = SwitchDefaults.colors(checkedTrackColor = accent))
+        RowSwitch(checked, interaction, colors = SwitchDefaults.colors(checkedTrackColor = accent))
     }
 }
+
+/**
+ * Makes a label and a [RowSwitch] one control. TalkBack reads "<label>, on, switch" instead of
+ * an unnamed switch next to a separate text, and a tap anywhere on the row flips it. The
+ * press goes to [interactionSource], which the [RowSwitch] shares, so the switch shows the
+ * press as it always did and the row itself draws no ripple.
+ */
+fun Modifier.switchRow(
+    checked: Boolean,
+    interactionSource: MutableInteractionSource,
+    onCheckedChange: (Boolean) -> Unit
+): Modifier = toggleable(
+    value = checked,
+    interactionSource = interactionSource,
+    indication = null,
+    role = Role.Switch,
+    onValueChange = onCheckedChange
+)
+
+/**
+ * The switch inside a [switchRow]: drawn, but not a second target, since the row is the
+ * control. Keeps the 48dp the switch takes when it handles taps itself, so rows keep their size.
+ */
+@Composable
+fun RowSwitch(
+    checked: Boolean,
+    interactionSource: MutableInteractionSource,
+    modifier: Modifier = Modifier,
+    colors: SwitchColors = SwitchDefaults.colors()
+) {
+    Switch(
+        checked = checked,
+        onCheckedChange = null,
+        modifier = modifier.minimumInteractiveComponentSize(),
+        colors = colors,
+        interactionSource = interactionSource
+    )
+}
+
+/**
+ * A line that appears or changes after an action, such as the outcome of Sync Now: TalkBack
+ * reads it out without the user having to find it. Put it on the line and on a parent that
+ * stays in place, because Android announces a line that appears through its parent.
+ */
+fun Modifier.announced(): Modifier = semantics { liveRegion = LiveRegionMode.Polite }
 
 /** The filled text field used everywhere: quiet at rest, an accent ring when focused. */
 @Composable
@@ -451,12 +514,23 @@ fun SegmentedFilter(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
-        Row(modifier = Modifier.padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            modifier = Modifier
+                .padding(4.dp)
+                .selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             options.forEachIndexed { index, label ->
                 val selected = index == selectedIndex
                 Surface(
                     onClick = { onSelect(index) },
-                    modifier = Modifier.weight(1f),
+                    // One of a few: TalkBack says which is chosen, not just the label.
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics {
+                            role = Role.RadioButton
+                            this.selected = selected
+                        },
                     shape = RoundedCornerShape(9.dp),
                     color = if (selected) MaterialTheme.colorScheme.surface else Color.Transparent,
                     shadowElevation = if (selected) 1.dp else 0.dp

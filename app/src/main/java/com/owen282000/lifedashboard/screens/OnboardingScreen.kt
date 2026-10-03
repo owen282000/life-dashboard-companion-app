@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,7 +41,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,6 +62,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -237,6 +243,7 @@ fun OnboardingScreen(
                                 title = stringResource(R.string.onboarding_feature_health),
                                 description = stringResource(R.string.onboarding_feature_health_desc),
                                 selected = healthConnect,
+                                kind = ChoiceKind.Toggle,
                                 onClick = { healthConnect = !healthConnect }
                             )
                             ChoiceCard(
@@ -244,6 +251,7 @@ fun OnboardingScreen(
                                 title = stringResource(R.string.onboarding_feature_screen),
                                 description = stringResource(R.string.onboarding_feature_screen_desc),
                                 selected = screenTime,
+                                kind = ChoiceKind.Toggle,
                                 onClick = { screenTime = !screenTime }
                             )
                         }
@@ -265,6 +273,7 @@ fun OnboardingScreen(
                                     stringResource(R.string.onboarding_scan_desc)
                                 },
                                 selected = webhookSecret.isNotBlank(),
+                                kind = ChoiceKind.Action,
                                 onClick = onScanRequested
                             )
                             ChoiceCard(
@@ -272,6 +281,7 @@ fun OnboardingScreen(
                                 title = stringResource(R.string.onboarding_webhook_option),
                                 description = stringResource(R.string.onboarding_webhook_desc),
                                 selected = useWebhook,
+                                kind = ChoiceKind.Toggle,
                                 onClick = { useWebhook = !useWebhook }
                             ) {
                                 FilledField(
@@ -302,7 +312,15 @@ fun OnboardingScreen(
                                 // here as soon as the URL needs it, so the test ping does not fail
                                 // with a hint to go read the logs on the very first screen.
                                 if (webhookUrl.trim().startsWith("http://", ignoreCase = true)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                    val httpInteraction = remember { MutableInteractionSource() }
+                                    Row(
+                                        modifier = Modifier.switchRow(allowHttp, httpInteraction) {
+                                            allowHttp = it
+                                            preferencesManager.setAllowHttpWebhooks(it)
+                                            pingResult = null
+                                        },
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
                                                 stringResource(R.string.webhook_allow_plain_http),
@@ -315,14 +333,10 @@ fun OnboardingScreen(
                                             )
                                         }
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Switch(
-                                            colors = SwitchDefaults.colors(checkedTrackColor = Accent),
+                                        RowSwitch(
                                             checked = allowHttp,
-                                            onCheckedChange = {
-                                                allowHttp = it
-                                                preferencesManager.setAllowHttpWebhooks(it)
-                                                pingResult = null
-                                            }
+                                            interactionSource = httpInteraction,
+                                            colors = SwitchDefaults.colors(checkedTrackColor = Accent)
                                         )
                                     }
                                 }
@@ -363,15 +377,19 @@ fun OnboardingScreen(
                                         )
                                     }
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    pingResult?.let { ok ->
-                                        Text(
-                                            stringResource(
-                                                if (ok) R.string.health_test_ping_delivered
-                                                else R.string.health_test_ping_failed
-                                            ),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = if (ok) Accent.ink() else MaterialTheme.colorScheme.error
-                                        )
+                                    // Always there, so TalkBack reads the result when it appears.
+                                    Box(modifier = Modifier.announced()) {
+                                        pingResult?.let { ok ->
+                                            Text(
+                                                stringResource(
+                                                    if (ok) R.string.health_test_ping_delivered
+                                                    else R.string.health_test_ping_failed
+                                                ),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = if (ok) Accent.ink() else MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.announced()
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -381,6 +399,7 @@ fun OnboardingScreen(
                                 title = stringResource(R.string.onboarding_mqtt_option),
                                 description = stringResource(R.string.onboarding_mqtt_desc),
                                 selected = useMqtt,
+                                kind = ChoiceKind.Toggle,
                                 onClick = { useMqtt = !useMqtt }
                             ) {
                                 FilledField(
@@ -399,13 +418,15 @@ fun OnboardingScreen(
                                         modifier = Modifier.weight(1f)
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
-                                    Text(stringResource(R.string.mqtt_tls), style = MaterialTheme.typography.bodyMedium)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Switch(
-                                        checked = mqttTls,
-                                        onCheckedChange = { mqttTls = it },
-                                        colors = SwitchDefaults.colors(checkedTrackColor = Accent)
-                                    )
+                                    val tlsInteraction = remember { MutableInteractionSource() }
+                                    Row(
+                                        modifier = Modifier.switchRow(mqttTls, tlsInteraction) { mqttTls = it },
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(stringResource(R.string.mqtt_tls), style = MaterialTheme.typography.bodyMedium)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        RowSwitch(mqttTls, tlsInteraction, colors = SwitchDefaults.colors(checkedTrackColor = Accent))
+                                    }
                                 }
                                 // The same hint as on the MQTT card: the wizard starts on 1883 without TLS.
                                 if (!mqttTls && mqttHost.isNotBlank() && !MqttSupport.isPrivateHost(mqttHost)) {
@@ -452,6 +473,7 @@ fun OnboardingScreen(
                                 title = stringResource(R.string.onboarding_types_essentials),
                                 description = stringResource(R.string.onboarding_types_essentials_desc),
                                 selected = preset == OnboardingSupport.TypePreset.ESSENTIALS,
+                                kind = ChoiceKind.Single,
                                 onClick = { preset = OnboardingSupport.TypePreset.ESSENTIALS }
                             )
                             ChoiceCard(
@@ -459,6 +481,7 @@ fun OnboardingScreen(
                                 title = stringResource(R.string.onboarding_types_all),
                                 description = stringResource(R.string.onboarding_types_all_desc),
                                 selected = preset == OnboardingSupport.TypePreset.ALL,
+                                kind = ChoiceKind.Single,
                                 onClick = { preset = OnboardingSupport.TypePreset.ALL }
                             )
                             ChoiceCard(
@@ -466,6 +489,7 @@ fun OnboardingScreen(
                                 title = stringResource(R.string.onboarding_types_later),
                                 description = stringResource(R.string.onboarding_types_later_desc),
                                 selected = preset == OnboardingSupport.TypePreset.LATER,
+                                kind = ChoiceKind.Single,
                                 onClick = { preset = OnboardingSupport.TypePreset.LATER }
                             )
                         }
@@ -710,10 +734,22 @@ private fun TaskCard(number: Int, title: String, subtitle: String) {
     }
 }
 
+/** What a [ChoiceCard] is to TalkBack. All three look the same. */
+private enum class ChoiceKind {
+    /** One of several that can be on together: read as a checkbox, checked or not. */
+    Toggle,
+
+    /** One of a set where picking it drops the others: read as a radio button. */
+    Single,
+
+    /** Opens something; its selected look means it is done, which its description says. */
+    Action
+}
+
 /**
  * A selectable card: icon tile, title and description in a row, with optional content that
  * unfolds underneath while selected. Selection shows as an accent border plus a filled tile,
- * so no radio button is needed.
+ * so no radio button is needed; [kind] tells TalkBack what the border means.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -722,12 +758,27 @@ private fun ChoiceCard(
     title: String,
     description: String,
     selected: Boolean,
+    kind: ChoiceKind,
     onClick: () -> Unit,
     content: (@Composable () -> Unit)? = null
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics {
+                when (kind) {
+                    ChoiceKind.Toggle -> {
+                        role = Role.Checkbox
+                        toggleableState = ToggleableState(selected)
+                    }
+                    ChoiceKind.Single -> {
+                        role = Role.RadioButton
+                        this.selected = selected
+                    }
+                    ChoiceKind.Action -> role = Role.Button
+                }
+            },
         shape = ChoiceShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
