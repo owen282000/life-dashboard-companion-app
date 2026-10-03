@@ -32,8 +32,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -46,6 +54,7 @@ import java.time.DayOfWeek
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.format.TextStyle
 
 /**
  * The sync schedule of one tab: interval or fixed times, an optional weekday filter and
@@ -228,6 +237,7 @@ private fun TimesList(
 @Composable
 private fun DayPicker(accent: Color, schedule: ScheduleDraft, onChange: (ScheduleDraft) -> Unit) {
     Text(stringResource(R.string.schedule_days_title), style = MaterialTheme.typography.bodyMedium)
+    val locale = LocalConfiguration.current.locales[0]
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
         DayOfWeek.entries.forEach { day ->
             val selected = day in schedule.days
@@ -236,11 +246,23 @@ private fun DayPicker(accent: Color, schedule: ScheduleDraft, onChange: (Schedul
                     val days = if (selected) schedule.days - day else schedule.days + day
                     onChange(schedule.copy(days = days))
                 },
-                modifier = Modifier.weight(1f),
+                // On or off is only a tint, and "Mo" is a lot to ask of a screen reader:
+                // TalkBack hears the whole day and whether it is checked.
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics {
+                        role = Role.Checkbox
+                        toggleableState = ToggleableState(selected)
+                    },
                 shape = RoundedCornerShape(9.dp),
                 color = if (selected) accent.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant
             ) {
-                Box(modifier = Modifier.padding(vertical = 9.dp), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .padding(vertical = 9.dp)
+                        .clearAndSetSemantics { contentDescription = day.getDisplayName(TextStyle.FULL, locale) },
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
                         dayLabel(day),
                         fontSize = 12.sp,

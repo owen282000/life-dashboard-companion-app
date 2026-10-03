@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Tune
@@ -16,6 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,14 +102,22 @@ private fun TypeResolution(
 ) {
     Text(label, style = MaterialTheme.typography.bodyMedium)
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         SeriesResolution.entries.forEach { resolution ->
             val isSelected = resolution == selected
             Surface(
                 onClick = { onSelect(resolution) },
-                modifier = Modifier.weight(if (resolution == SeriesResolution.RAW) 1.7f else 1f),
+                // The choice is shown by tint alone, so TalkBack is told which one is selected.
+                modifier = Modifier
+                    .weight(if (resolution == SeriesResolution.RAW) 1.7f else 1f)
+                    .semantics {
+                        role = Role.RadioButton
+                        this.selected = isSelected
+                    },
                 shape = RoundedCornerShape(9.dp),
                 color = if (isSelected) accent.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant
             ) {

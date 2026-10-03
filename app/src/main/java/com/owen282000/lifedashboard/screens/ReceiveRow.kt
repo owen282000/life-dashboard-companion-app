@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard.screens
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,17 +13,19 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ReceiveSettings
@@ -142,14 +145,22 @@ fun ReceiveRow(
         }
         offered.forEach { type ->
             val granted = type.writePermission in grantedPermissions
+            val checked = type in receive.types && granted
+            val interaction = remember { MutableInteractionSource() }
+            val lockedLabel = stringResource(R.string.receive_type_permission_missing_a11y, stringResource(type.dataType.displayNameRes))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(if (granted || type in receive.types) 1f else 0.6f),
+                    .alpha(if (granted || type in receive.types) 1f else 0.6f)
+                    .switchRow(checked, interaction) { onToggleType(type, it) },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    // The lock says "no write permission" only to the eye.
+                    modifier = if (granted) Modifier else Modifier.clearAndSetSemantics { contentDescription = lockedLabel },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     if (!granted) {
                         Icon(
                             Icons.Filled.Lock,
@@ -161,9 +172,9 @@ fun ReceiveRow(
                     }
                     Text(stringResource(type.dataType.displayNameRes), style = MaterialTheme.typography.bodyMedium)
                 }
-                Switch(
-                    checked = type in receive.types && granted,
-                    onCheckedChange = { onToggleType(type, it) },
+                RowSwitch(
+                    checked = checked,
+                    interactionSource = interaction,
                     modifier = Modifier.height(24.dp),
                     colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = accent)
                 )

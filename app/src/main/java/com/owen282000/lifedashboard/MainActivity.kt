@@ -21,6 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -360,8 +364,13 @@ private fun NavBarItem(
 
     Surface(
         onClick = onClick,
+        // The label below names the tab; the tint is what says it is the open one.
         modifier = modifier
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = 4.dp)
+            .semantics {
+                role = Role.Tab
+                this.selected = selected
+            },
         shape = RoundedCornerShape(16.dp),
         color = backgroundColor
     ) {
@@ -372,7 +381,8 @@ private fun NavBarItem(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = label,
+                // The text under it already says it; naming the icon too made TalkBack say it twice.
+                contentDescription = null,
                 tint = contentColor,
                 modifier = Modifier.size(24.dp)
             )

@@ -18,7 +18,17 @@ object SyncStatusStore {
         val lastSyncMillis: Long?,
         val lastSuccess: Boolean,
         val recordsToday: Int
-    )
+    ) {
+        /** What the green or red dot means, for whoever cannot see the colour. */
+        val outcome: Outcome
+            get() = when {
+                lastSyncMillis == null -> Outcome.NEVER
+                lastSuccess -> Outcome.SUCCEEDED
+                else -> Outcome.FAILED
+            }
+    }
+
+    enum class Outcome { NEVER, SUCCEEDED, FAILED }
 
     /**
      * Records one sync outcome, app-wide (what the widget shows) and per [source] (what each

@@ -35,6 +35,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -46,6 +48,7 @@ import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ScreenTimeData
 import com.owen282000.lifedashboard.ScreenTimeManager
+import com.owen282000.lifedashboard.SyncOutcomeText
 import com.owen282000.lifedashboard.SyncStatusStore
 import com.owen282000.lifedashboard.appPreferences
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
@@ -92,7 +95,8 @@ fun DashboardCard(refreshKey: Any? = null) {
                 StatTile(stringResource(R.string.dashboard_lifetime), "${stats?.records ?: 0}", stringResource(R.string.dashboard_records))
                 LastSyncTile(
                     millis = status?.lastSyncMillis,
-                    dotColor = if (status?.lastSuccess != false) HealthPrimary else MaterialTheme.colorScheme.error
+                    dotColor = if (status?.lastSuccess != false) HealthPrimary else MaterialTheme.colorScheme.error,
+                    outcome = status?.outcome
                 )
             }
             if (stepsPerDay.size >= 2) {
@@ -232,9 +236,17 @@ private fun StatTile(label: String, value: String, unit: String) {
     }
 }
 
+/**
+ * The time of the last sync with a dot. The dot's colour is the outcome, so [outcome] is
+ * read out with the time: "Last sync, failed, 14:02". Screen Time has no outcome to give.
+ */
 @Composable
-private fun LastSyncTile(millis: Long?, dotColor: Color) {
-    Column(horizontalAlignment = Alignment.End) {
+private fun LastSyncTile(millis: Long?, dotColor: Color, outcome: SyncStatusStore.Outcome? = null) {
+    val outcomeLabel = outcome?.let { o -> SyncOutcomeText.dashboardRes(o)?.let { stringResource(it) } }
+    Column(
+        horizontalAlignment = Alignment.End,
+        modifier = Modifier.semantics(mergeDescendants = true) {}
+    ) {
         Text(stringResource(R.string.dashboard_last_sync), style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
@@ -243,6 +255,7 @@ private fun LastSyncTile(millis: Long?, dotColor: Color) {
                     .size(8.dp)
                     .clip(CircleShape)
                     .background(dotColor)
+                    .then(if (outcomeLabel != null) Modifier.semantics { contentDescription = outcomeLabel } else Modifier)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(

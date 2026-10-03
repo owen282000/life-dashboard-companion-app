@@ -22,6 +22,8 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.semantics.contentDescription
+import androidx.glance.semantics.semantics
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -39,7 +41,8 @@ class SyncStatusWidget : GlanceAppWidget() {
             recordsToday = context.resources.getQuantityString(R.plurals.widget_records_today, status.recordsToday),
             lastSync = status.lastSyncMillis?.let {
                 context.getString(R.string.widget_synced_at, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(it)))
-            } ?: context.getString(R.string.widget_no_syncs)
+            } ?: context.getString(R.string.widget_no_syncs),
+            outcome = SyncOutcomeText.widgetRes(status.outcome)?.let { context.getString(it) }
         )
         provideContent {
             GlanceTheme {
@@ -63,7 +66,13 @@ class SyncStatusWidget : GlanceAppWidget() {
 }
 
 /** The widget's text, resolved from resources before composing, in the phone's language. */
-private class WidgetLabels(val title: String, val recordsToday: String, val lastSync: String)
+private class WidgetLabels(
+    val title: String,
+    val recordsToday: String,
+    val lastSync: String,
+    /** What the dot's colour says, for TalkBack; null before the first sync. */
+    val outcome: String?
+)
 
 @androidx.compose.runtime.Composable
 private fun WidgetContent(status: SyncStatusStore.Status, labels: WidgetLabels) {
@@ -81,6 +90,10 @@ private fun WidgetContent(status: SyncStatusStore.Status, labels: WidgetLabels) 
                     .cornerRadius(4.dp)
                     .background(
                         ColorProvider(if (status.lastSuccess) Color(0xFF2E7D32) else Color(0xFFC62828))
+                    )
+                    .then(
+                        labels.outcome?.let { outcome -> GlanceModifier.semantics { contentDescription = outcome } }
+                            ?: GlanceModifier
                     )
             ) {}
             Spacer(modifier = GlanceModifier.size(6.dp))

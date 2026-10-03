@@ -72,6 +72,7 @@
     <string name="receive_no_types_yet">De volgende synchronisatie vraagt Home Assistant welke types het aanbiedt.</string>
     <string name="receive_choose_type">Zet hieronder een type aan om het te ontvangen.</string>
     <string name="receive_permission_missing">Schrijftoestemming ontbreekt: %1$s</string>
+    <string name="receive_type_permission_missing_a11y">%1$s, schrijftoestemming ontbreekt</string>
     <string name="receive_summary_needs_pairing">Koppeling met Home Assistant nodig</string>
     <string name="receive_summary_update_integration">Werk de integratie bij</string>
     <string name="receive_summary_nothing_mapped">Geen types gekoppeld in Home Assistant</string>
@@ -187,6 +188,7 @@
         <item quantity="other">%1$d datatypes geselecteerd</item>
     </plurals>
     <string name="health_data_types_selected_of">%1$d van %2$d geselecteerd</string>
+    <string name="health_type_permission_missing_a11y">%1$s, toestemming ontbreekt</string>
     <string name="health_data_types_title">Datatypes</string>
     <string name="data_type_steps">Stappen</string>
     <string name="data_type_sleep">Slaap</string>
@@ -257,6 +259,8 @@
 
     <!-- Dashboardkaarten op de Health Connect- en Schermtijd-schermen -->
     <string name="dashboard_last_sync">Laatste synchronisatie</string>
+    <string name="dashboard_last_sync_succeeded">Gelukt</string>
+    <string name="dashboard_last_sync_failed">Mislukt</string>
     <string name="dashboard_lifetime">Totaal</string>
     <string name="dashboard_min">min</string>
     <string name="dashboard_minutes_unit">%1$d min</string>
@@ -623,4 +627,6 @@
     </plurals>
     <string name="widget_synced_at">Gesynct om %1$s</string>
     <string name="widget_no_syncs">Nog geen syncs</string>
+    <string name="widget_last_sync_succeeded">Laatste sync gelukt</string>
+    <string name="widget_last_sync_failed">Laatste sync mislukt</string>
 </resources>

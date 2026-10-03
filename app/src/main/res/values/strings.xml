@@ -74,6 +74,7 @@
     <string name="receive_no_types_yet">The next sync asks Home Assistant which types it offers.</string>
     <string name="receive_choose_type">Switch on a type below to receive it.</string>
     <string name="receive_permission_missing">Write permission missing: %1$s</string>
+    <string name="receive_type_permission_missing_a11y">%1$s, write permission missing</string>
     <string name="receive_summary_needs_pairing">Needs pairing with Home Assistant</string>
     <string name="receive_summary_update_integration">Update the integration</string>
     <string name="receive_summary_nothing_mapped">No types mapped in Home Assistant</string>
@@ -189,6 +190,7 @@
         <item quantity="other">%1$d data types selected</item>
     </plurals>
     <string name="health_data_types_selected_of">%1$d of %2$d selected</string>
+    <string name="health_type_permission_missing_a11y">%1$s, permission missing</string>
     <string name="health_data_types_title">Data Types</string>
     <!-- The names of the data types, as shown on screen. The payload, MQTT and the stored settings use the enum name, never these. -->
     <string name="data_type_steps">Steps</string>
@@ -260,6 +262,8 @@
 
     <!-- Dashboard cards on the Health Connect and Screen Time screens -->
     <string name="dashboard_last_sync">Last sync</string>
+    <string name="dashboard_last_sync_succeeded">Succeeded</string>
+    <string name="dashboard_last_sync_failed">Failed</string>
     <string name="dashboard_lifetime">Lifetime</string>
     <string name="dashboard_min">min</string>
     <string name="dashboard_minutes_unit">%1$d min</string>
@@ -626,4 +630,6 @@
     </plurals>
     <string name="widget_synced_at">Synced %1$s</string>
     <string name="widget_no_syncs">No syncs yet</string>
+    <string name="widget_last_sync_succeeded">Last sync succeeded</string>
+    <string name="widget_last_sync_failed">Last sync failed</string>
 </resources>
