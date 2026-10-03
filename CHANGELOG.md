@@ -87,6 +87,17 @@ All notable changes to this project are documented in this file. The format is b
   Text buttons, a focused field's label and error messages follow, since the light theme's
   primary and error colours are now those darker shades. Tiles, icons, switches and the brand
   green itself are unchanged, and the iOS app already worked this way.
+- A sync that Android ended at the wrong moment could lose what it had read. The app stored how
+  far it had read the moment the post returned, but only put a payload that failed in the outbox
+  after that, once Receive was done, so an app killed in between had moved past those records
+  without keeping them anywhere: they never reached Home Assistant and no later sync read them
+  again. That went for a sync's records, a payload with only deletions, and the Screen Time
+  week. A sync now writes its payload to the phone before it moves anything, sends it, and
+  deletes that copy once a webhook accepted it; when the post fails or the sync is stopped or
+  killed, the copy waits in the outbox and the next sync delivers it. A stopped sync therefore
+  now leaves its payload in the outbox instead of reading the same records again next time. The
+  other sync that the Quick Settings tile starts alongside does not send a payload that is still
+  on its way. The iOS app already worked this way.
 
 ### Security
 

@@ -103,9 +103,10 @@ class SchedulerChainTest {
 
     /**
      * T48. A run Android stops while it waits on the receiver queues exactly one successor and
-     * loses nothing: no outbox item, no moved watermark, the stored deletion kept for the next
-     * run, and no trace of a failure, because a stop is not a failed sync. The run that follows
-     * delivers, and the chain is still one chain.
+     * loses nothing: the payload, written ahead of its post with the stored deletion in it, waits
+     * in the outbox while the watermark has moved past its records, and there is no trace of a
+     * failure, because a stop is not a failed sync. The run that follows delivers it, and the
+     * chain is still one chain.
      *
      * Until F1 the CancellationException of the stop was caught by WebhookManager's catch-all
      * around the backoff delay and logged as a failed delivery.
@@ -137,9 +138,10 @@ class SchedulerChainTest {
         val unwound = System.currentTimeMillis() - stoppedAt
         assertTrue("unwound within 3 s, took $unwound ms", unwound < 3_000)
         assertEquals(emptyList<WorkInfo>(), Work.enqueued(Work.HEALTH_SLOT_A))
-        assertEquals("nothing queued in the outbox", 0, PendingSyncStore.forContext(context).size())
-        assertEquals("the watermark did not move", null, prefs.getHealthLastSyncTimestamp(STEPS))
-        assertEquals("the deletion waits for the next run", pending, prefs.getPendingDeletions())
+        val queued = PendingSyncStore.forContext(context).peekAll().single()
+        assertTrue("the payload waits in the outbox, with the deletion", "deleted-before-the-stop" in queued.payload)
+        assertNotNull("the watermark moved past what it holds", prefs.getHealthLastSyncTimestamp(STEPS))
+        assertEquals("the deletion left storage for the payload", DeletionSummary.EMPTY, prefs.getPendingDeletions())
         assertEquals("a stop is not a failure", 0, TestSetup.streak("HEALTH_CONNECT"))
         val failures = prefs.getWebhookLogs(LogType.HEALTH_CONNECT).filter { !it.success }
         assertEquals("no failed delivery logged for a stop: ${failures.map { it.errorMessage }}", 0, failures.size)
