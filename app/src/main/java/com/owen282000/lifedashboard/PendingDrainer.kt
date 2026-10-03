@@ -17,6 +17,9 @@ import java.util.UUID
  * the receiving side that an update fixes (the Home Assistant integration answers 400 for
  * any error while reading a payload), and is dropped only after [REFUSED_MAX_AGE_MS] of
  * refusals. Payloads carry a `sequence`, so a receiver can order what then arrives late.
+ *
+ * A payload a sync is still posting is not in the queue (see [PendingSyncStore.writeAhead]),
+ * so a drain beside that sync, the tile's other sync, never posts it a second time.
  */
 object PendingDrainer {
 
@@ -41,6 +44,9 @@ object PendingDrainer {
     suspend fun drain(context: Context) = lock.withLock { drainLocked(context) }
 
     private suspend fun drainLocked(context: Context) {
+        // A payload a sync wrote ahead of its post and never saw the end of, because its
+        // process died, joins the queue here. One a running sync is posting stays out of it.
+        PendingSyncStore.recoverInFlight(context)
         val store = PendingSyncStore.forContext(context)
         val items = store.peekAll()
         if (items.isEmpty()) return

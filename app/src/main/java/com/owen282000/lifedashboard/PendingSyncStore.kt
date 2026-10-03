@@ -16,9 +16,13 @@ import java.util.UUID
 /**
  * Store-and-forward outbox for payloads whose webhook delivery failed (server down, no
  * network). Items are persisted as one JSON file each and drained at the start of the next
- * sync, so sync watermarks can safely advance the moment a payload is read: delivery is
+ * sync, so sync watermarks can safely advance once a payload is on disk: delivery is
  * guaranteed to happen eventually instead of re-reading (and possibly re-losing) the data.
- * Mirrors the iOS app's PendingSyncStore. Pure file-based so it is unit testable on the JVM.
+ *
+ * A sync writes its payload here before it moves anything, see [writeAhead]: first into
+ * [inFlightDir], where the drain does not look, and from there into the outbox when the post
+ * does not deliver it. Mirrors the iOS app's PendingSyncStore and its WriteAhead. Pure
+ * file-based so it is unit testable on the JVM.
  */
 class PendingSyncStore(private val dir: File) {
 
@@ -41,12 +45,90 @@ class PendingSyncStore(private val dir: File) {
     private val json = Json { ignoreUnknownKeys = true }
 
     /**
+     * Payloads a sync is posting right now. A subdirectory, so the outbox's own listings
+     * ([peekAll], [size]) never see them: the drain must not post a payload its sync is still
+     * waiting on, and the tile starts the health and Screen Time syncs together, each draining.
+     */
+    private val inFlightDir = File(dir, IN_FLIGHT_DIR)
+
+    /**
      * Queues a payload and returns what it pushed out undelivered, oldest first. Their records
      * are gone for good (the watermarks moved on when they were read), so the caller reports
-     * them: see [Companion.enqueue].
+     * them: see [Companion.report]. The syncs queue through [writeAhead]; this is the same
+     * step without a post in between.
      */
-    fun enqueue(payload: String, dataType: String, logType: String, recordCount: Int, nowMillis: Long): List<PendingItem> {
-        dir.mkdirs()
+    fun enqueue(payload: String, dataType: String, logType: String, recordCount: Int, nowMillis: Long): List<PendingItem> =
+        queueInFlight(writeInFlight(payload, dataType, logType, recordCount, nowMillis))
+
+    /**
+     * Runs a sync's delivery write-ahead, in the order of the iOS app's WriteAhead:
+     * 1. the payload goes to disk as an in-flight item, out of the drain's sight;
+     * 2. [commit] stores what reading it moved (watermarks, bucket carry, the deletions it
+     *    carries), which is safe now that the payload cannot be lost;
+     * 3. [post] sends it;
+     * 4. delivered, the item is removed; anything else, a failed post, a throw or a
+     *    cancellation (a stopped worker), puts it in the outbox like any failed payload, and
+     *    [onQueued] gets what that pushed out.
+     * A process that dies anywhere in there leaves the item in flight, and the next drain
+     * queues it ([recoverInFlight]). Every record is then delivered, queued, or still ahead of
+     * its watermark; at worst a payload arrives twice, which a receiver deduplicates on uuid.
+     * A payload that cannot be written fails the sync before anything moved.
+     */
+    suspend fun <T> writeAhead(
+        payload: String,
+        dataType: String,
+        logType: String,
+        recordCount: Int,
+        nowMillis: Long,
+        commit: () -> Unit,
+        post: suspend () -> Result<T>,
+        onQueued: (List<PendingItem>) -> Unit
+    ): Result<T> {
+        val item = writeInFlight(payload, dataType, logType, recordCount, nowMillis)
+        var delivered = false
+        try {
+            commit()
+            val outcome = post()
+            delivered = outcome.isSuccess
+            return outcome
+        } finally {
+            if (delivered) landInFlight(item.id) else onQueued(queueInFlight(item))
+        }
+    }
+
+    /**
+     * Turns what a dead process left in flight into queued items, with the cap and the Screen
+     * Time replacement, and returns what that pushed out. Items of a sync still running in
+     * this process are left alone. Called by the drain, which every sync runs first.
+     */
+    fun recoverInFlight(): List<PendingItem> {
+        val files = inFlightDir.listFiles() ?: return emptyList()
+        // A temp file of a write that died with its process; a live one belongs to a sync.
+        files.filter { it.extension == "tmp" && it.nameWithoutExtension !in LIVE }.forEach { it.delete() }
+        return files.filter { it.extension == "json" }.flatMap { file ->
+            val id = file.nameWithoutExtension
+            if (!claim(id)) return@flatMap emptyList()
+            val item = try {
+                json.decodeFromString<PendingItem>(file.readText())
+            } catch (e: Exception) {
+                // Only outside damage makes one, see [peekAll].
+                file.delete()
+                release(id)
+                return@flatMap emptyList()
+            }
+            queueInFlight(item)
+        }
+    }
+
+    /** The ids of the payloads in flight; none of them is in [peekAll]. */
+    fun inFlightIds(): List<String> =
+        inFlightDir.listFiles { f -> f.extension == "json" }?.map { it.nameWithoutExtension }.orEmpty()
+
+    /**
+     * Writes an in-flight item. Its id is claimed before the file exists, so a drain running
+     * beside it never takes it for a leftover.
+     */
+    private fun writeInFlight(payload: String, dataType: String, logType: String, recordCount: Int, nowMillis: Long): PendingItem {
         val item = PendingItem(
             id = UUID.randomUUID().toString(),
             payload = payload,
@@ -55,9 +137,52 @@ class PendingSyncStore(private val dir: File) {
             recordCount = recordCount,
             createdAt = nowMillis
         )
-        if (logType == LogType.SCREEN_TIME.name) return replaceSnapshot(item)
-        write(item)
-        return enforceCap(item)
+        claim(item.id)
+        try {
+            inFlightDir.mkdirs()
+            write(item, inFlightDir)
+        } catch (e: Exception) {
+            release(item.id)
+            throw e
+        }
+        return item
+    }
+
+    /** Delivered: the in-flight copy goes. */
+    private fun landInFlight(id: String) {
+        try {
+            File(inFlightDir, "$id.json").delete()
+        } finally {
+            release(id)
+        }
+    }
+
+    /**
+     * Moves an in-flight item into the outbox by renaming its file, so it is in flight or
+     * queued at every moment and never both. Returns what the cap or the Screen Time
+     * replacement pushed out.
+     */
+    private fun queueInFlight(item: PendingItem): List<PendingItem> = try {
+        if (item.logType == LogType.SCREEN_TIME.name) {
+            replaceSnapshot(item) { placed ->
+                write(placed, inFlightDir)
+                moveIn(placed.id)
+            }
+        } else {
+            moveIn(item.id)
+            enforceCap(item)
+        }
+    } finally {
+        release(item.id)
+    }
+
+    private fun moveIn(id: String) {
+        Files.move(
+            File(inFlightDir, "$id.json").toPath(),
+            File(dir, "$id.json").toPath(),
+            StandardCopyOption.ATOMIC_MOVE,
+            StandardCopyOption.REPLACE_EXISTING
+        )
     }
 
     /**
@@ -87,14 +212,14 @@ class PendingSyncStore(private val dir: File) {
         // Replaced by a newer Screen Time snapshot while the drain was posting it: writing it
         // back would queue it again.
         if (!File(dir, "${item.id}.json").exists()) return
-        write(item.copy(attempts = item.attempts + 1))
+        write(item.copy(attempts = item.attempts + 1), dir)
     }
 
     fun size(): Int = dir.listFiles { f -> f.extension == "json" }?.size ?: 0
 
     /** Temp file plus rename, so a crash mid-write leaves the old file or none, never half of one. */
-    private fun write(item: PendingItem) {
-        val temp = File(dir, "${item.id}.tmp")
+    private fun write(item: PendingItem, into: File) {
+        val temp = File(into, "${item.id}.tmp")
         try {
             FileOutputStream(temp).use { out ->
                 out.write(json.encodeToString(item).toByteArray())
@@ -102,7 +227,7 @@ class PendingSyncStore(private val dir: File) {
             }
             Files.move(
                 temp.toPath(),
-                File(dir, "${item.id}.json").toPath(),
+                File(into, "${item.id}.json").toPath(),
                 StandardCopyOption.ATOMIC_MOVE,
                 StandardCopyOption.REPLACE_EXISTING
             )
@@ -131,15 +256,15 @@ class PendingSyncStore(private val dir: File) {
      * 7: only after more than a week without a delivery does a replaced snapshot hold a day the
      * new one lacks, and then it is returned to be reported. The undelivered days start at the
      * newest day of the first snapshot that failed, where the last delivery, normally one sync
-     * earlier, left off.
+     * earlier, left off. [place] puts the new snapshot in the outbox before the old ones go.
      */
-    private fun replaceSnapshot(item: PendingItem): List<PendingItem> {
-        val queued = peekAll().filter { it.logType == item.logType }
+    private fun replaceSnapshot(item: PendingItem, place: (PendingItem) -> Unit): List<PendingItem> {
+        val queued = peekAll().filter { it.logType == item.logType && it.id != item.id }
         val days = screenTimeDays(item.payload)
         val since = (queued.map { it.undeliveredSince ?: screenTimeDays(it.payload).maxOrNull() } + days.maxOrNull())
             .filterNotNull()
             .minOrNull()
-        write(item.copy(undeliveredSince = since))
+        place(item.copy(undeliveredSince = since))
         queued.forEach { remove(it.id) }
         if (since == null) return emptyList()
         return queued.filter { old -> screenTimeDays(old.payload).any { it >= since && it !in days } }
@@ -166,22 +291,55 @@ class PendingSyncStore(private val dir: File) {
 
         private const val STALE_TEMP_MS = 60L * 60 * 1000
 
+        private const val IN_FLIGHT_DIR = "in_flight"
+
+        /**
+         * The in-flight ids a sync of this process holds. Memory on purpose: a process that
+         * dies takes it along, and what it left in flight is then free for [recoverInFlight].
+         */
+        private val LIVE: MutableSet<String> = java.util.Collections.synchronizedSet(mutableSetOf())
+
+        private fun claim(id: String): Boolean = LIVE.add(id)
+
+        private fun release(id: String) {
+            LIVE.remove(id)
+        }
+
         fun forContext(context: android.content.Context): PendingSyncStore =
             PendingSyncStore(File(context.filesDir, "pending_sync"))
 
-        /**
-         * Queues a payload in the app's outbox and reports each payload it pushed out
-         * undelivered: a row in the Logs tab, and a notification, since their records are lost.
-         */
-        fun enqueue(
+        /** [PendingSyncStore.writeAhead] in the app's outbox, with [report] for what queuing pushed out. */
+        suspend fun <T> writeAhead(
             context: android.content.Context,
             payload: String,
             dataType: String,
             logType: String,
             recordCount: Int,
-            nowMillis: Long
-        ) {
-            val dropped = forContext(context).enqueue(payload, dataType, logType, recordCount, nowMillis)
+            commit: () -> Unit,
+            post: suspend () -> Result<T>
+        ): Result<T> = forContext(context).writeAhead(
+            payload = payload,
+            dataType = dataType,
+            logType = logType,
+            recordCount = recordCount,
+            nowMillis = System.currentTimeMillis(),
+            commit = commit,
+            post = post,
+            onQueued = { dropped -> report(context, logType, dropped, System.currentTimeMillis()) }
+        )
+
+        /** [PendingSyncStore.recoverInFlight] in the app's outbox, with [report] for what it pushed out. */
+        fun recoverInFlight(context: android.content.Context) {
+            forContext(context).recoverInFlight().groupBy { it.logType }.forEach { (logType, dropped) ->
+                report(context, logType, dropped, System.currentTimeMillis())
+            }
+        }
+
+        /**
+         * Reports each payload that queuing pushed out undelivered: a row in the Logs tab, and
+         * a notification, since their records are lost.
+         */
+        private fun report(context: android.content.Context, logType: String, dropped: List<PendingItem>, nowMillis: Long) {
             if (dropped.isEmpty()) return
             val source = if (logType == LogType.SCREEN_TIME.name) LogType.SCREEN_TIME else LogType.HEALTH_CONNECT
             val preferencesManager = PreferencesManager(context)

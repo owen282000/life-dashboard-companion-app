@@ -152,10 +152,11 @@ class HealthSyncManager(
             // out; passes after that carry none.
             //
             // What this sync reads is joined with anything an earlier sync read but could not
-            // deliver, and the whole lot stays in storage until a payload has actually been
-            // handed to the webhook. A sync that finds no records, or whose records all land in
-            // open buckets, ends without building a payload at all, and the feed cannot be read
-            // twice, so clearing them any earlier would lose them for good (issue #61).
+            // deliver, and the whole lot stays in storage until a payload that holds it is on
+            // disk, written ahead of its post. A sync that finds no records, or whose records
+            // all land in open buckets, ends without building a payload at all, and the feed
+            // cannot be read twice, so clearing them any earlier would lose them for good
+            // (issue #61).
             // Set when the first read found nothing because Health Connect answered for none of
             // the enabled types; the sync then reports a failure instead of "no new data".
             var healthConnectSilent = false
@@ -248,9 +249,9 @@ class HealthSyncManager(
                     ).also { dailyTotalsOnce = it }
                 // Bucketed series go out once per sync, in its last pass; earlier passes only
                 // collect. The collection is stored together with the watermarks, once the pass
-                // is done: the samples it holds were read above the stored watermark, so storing
-                // it any earlier would let an interrupted pass count them twice, once from the
-                // carry and once from the next read (F4 of P2-4).
+                // is done or its payload is on disk: the samples it holds were read above the
+                // stored watermark, so storing it any earlier would let an interrupted pass count
+                // them twice, once from the carry and once from the next read (F4 of P2-4).
                 val isLastPass = healthData.cappedTypes.isEmpty() || pass == MAX_SYNC_PASSES || quotaHit
                 val resolved = ResolutionApplier.from(
                     healthData,
@@ -284,9 +285,9 @@ class HealthSyncManager(
                     sequence = preferencesManager.nextHealthSyncSequence()
                 )
                 // Held by this payload now, so a later pass of this same sync must not repeat
-                // them. Storage is only cleared once the payload is somewhere durable, below:
-                // a throw from the post would otherwise leave them in neither the webhook, the
-                // outbox, nor the feed they came from, which cannot be read twice.
+                // them. Storage is only cleared once the payload is on disk, in the commit
+                // below: a throw before that would otherwise leave them in neither the webhook,
+                // the outbox, nor the feed they came from, which cannot be read twice.
                 pendingDeletions = DeletionSummary.EMPTY
 
                 val sourcePost = writeBack.sourcePost(jsonPayload)
@@ -301,47 +302,54 @@ class HealthSyncManager(
                     signingSecret = preferencesManager.getHealthWebhookSecret(),
                     source = sourcePost
                 )
-                val postResult = webhookManager.postData(jsonPayload)
+                // Write-ahead (PendingSyncStore.writeAhead): the payload is on disk, out of the
+                // drain's sight, before the commit stores anything that read it, and the post
+                // comes last. Delivered, the copy goes; not delivered, also when the worker is
+                // stopped mid-post, it joins the outbox; a process that dies in between leaves
+                // it for the next drain. A crash can no longer store the watermarks of a payload
+                // that never reached the outbox.
+                //
+                // Watermarks advance regardless of delivery outcome: the outbox guarantees a
+                // later delivery, so re-reading (and potentially double-sending) the same records
+                // is unnecessary. The bucket carry is stored at the same moment, see above. Both
+                // are stored before the post and so before Receive: its follow-ups can take a
+                // minute, and a worker stopped in there would otherwise send this pass's closed
+                // windows again next time, which a receiver that adds up sample counts would
+                // count twice.
+                val passCounts = mutableMapOf<HealthDataType, Int>()
+                val carriedOut = carried
+                val deletionsLeft = pendingDeletions
+                val postResult = PendingSyncStore.writeAhead(
+                    context = context,
+                    payload = jsonPayload,
+                    dataType = "health_connect",
+                    logType = LogType.HEALTH_CONNECT.name,
+                    recordCount = totalRecords,
+                    commit = {
+                        updateSyncTimestamps(healthData, passCounts)
+                        preferencesManager.setBucketCarry(carriedOut)
+                        preferencesManager.setPendingDeletions(deletionsLeft)
+                    },
+                    post = { webhookManager.postData(jsonPayload) }
+                )
+                passCounts.forEach { (type, count) -> syncCounts.merge(type, count, Int::plus) }
                 SyncFailureNotifier.recordDelivery(context, LogType.HEALTH_CONNECT, postResult)
                 postResult.getOrNull()?.let { missedUrls += it.missedUrls; webhookCount = it.urlCount }
                 SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalRecords else 0, LogType.HEALTH_CONNECT)
 
-                // Watermarks advance regardless of delivery outcome: a failed payload goes to the
-                // outbox and is guaranteed to be delivered by a later drain, so re-reading (and
-                // potentially double-sending) the same records is unnecessary. The bucket carry
-                // is stored at the same moment, see above. Both are stored the moment the post
-                // returns, before Receive: its follow-ups can take a minute, and a worker stopped
-                // in there would otherwise send this pass's closed windows again next time, which
-                // a receiver that adds up sample counts would count twice.
-                val passCounts = mutableMapOf<HealthDataType, Int>()
-                updateSyncTimestamps(healthData, passCounts)
-                preferencesManager.setBucketCarry(carried)
-                passCounts.forEach { (type, count) -> syncCounts.merge(type, count, Int::plus) }
-
                 // What the integration sent back rides on this same round trip; the outbox
-                // below only ever holds the plain payload, since a drained payload's answer
-                // is never read and the acks it carried stay stored until one is.
+                // only ever holds the plain payload, since a drained payload's answer is never
+                // read and the acks it carried stay stored until one is.
                 if (sourcePost != null) {
                     postedToSource = true
                     receive(writeBack, sourcePost, postResult)
                 }
 
                 if (postResult.isFailure) {
-                    PendingSyncStore.enqueue(
-                        context = context,
-                        payload = jsonPayload,
-                        dataType = "health_connect",
-                        logType = LogType.HEALTH_CONNECT.name,
-                        recordCount = totalRecords,
-                        nowMillis = System.currentTimeMillis()
-                    )
-                    // On disk in the outbox now, so it will be delivered by a later drain.
-                    preferencesManager.setPendingDeletions(pendingDeletions)
+                    // In the outbox since the post returned, so a later drain delivers it.
                     queuedRecords = totalRecords
                     break
                 }
-                // Delivered.
-                preferencesManager.setPendingDeletions(pendingDeletions)
 
                 if (healthData.cappedTypes.isEmpty()) break
             }
@@ -379,7 +387,18 @@ class HealthSyncManager(
                     signingSecret = preferencesManager.getHealthWebhookSecret(),
                     source = sourcePost
                 )
-                val postResult = webhookManager.postData(deletionPayload)
+                // Write-ahead like the payloads above: the deletions leave storage once the
+                // payload that holds them is on disk, before the post, and a failed or stopped
+                // post leaves that payload in the outbox.
+                val postResult = PendingSyncStore.writeAhead(
+                    context = context,
+                    payload = deletionPayload,
+                    dataType = "health_connect",
+                    logType = LogType.HEALTH_CONNECT.name,
+                    recordCount = 0,
+                    commit = { preferencesManager.setPendingDeletions(DeletionSummary.EMPTY) },
+                    post = { webhookManager.postData(deletionPayload) }
+                )
                 // Reported like any other delivery: a webhook that is down for a run of
                 // deletion-only syncs would otherwise never trip the failure notifier, and the
                 // dashboard would show a last sync that never moved while payloads went out.
@@ -390,22 +409,10 @@ class HealthSyncManager(
                     postedToSource = true
                     receive(writeBack, sourcePost, postResult)
                 }
-                if (postResult.isFailure) {
-                    PendingSyncStore.enqueue(
-                        context = context,
-                        payload = deletionPayload,
-                        dataType = "health_connect",
-                        logType = LogType.HEALTH_CONNECT.name,
-                        recordCount = 0,
-                        nowMillis = System.currentTimeMillis()
-                    )
-                    // queuedRecords stays as it was: it counts records waiting in the outbox,
-                    // and this payload has none, so setting it would tell the user "0 records
-                    // queued for retry". The outbox entry and the failure notifier above
-                    // already record that the delivery failed.
-                }
-                // Durable either way now: delivered, or on disk in the outbox.
-                preferencesManager.setPendingDeletions(DeletionSummary.EMPTY)
+                // A failed one is in the outbox now, and queuedRecords stays as it was: it counts
+                // records waiting in the outbox, and this payload has none, so setting it would
+                // tell the user "0 records queued for retry". The outbox entry and the failure
+                // notifier above already record that the delivery failed.
                 deletionsDelivered = true
             }
 

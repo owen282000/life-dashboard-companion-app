@@ -32,7 +32,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -44,8 +43,10 @@ import java.time.temporal.ChronoUnit
 
 /**
  * A sync that is cancelled (a stopped worker, a timeout, a screen going away) must unwind
- * as a cancellation: no failure logged, no streak, no outbox item, nothing moved. The rule
- * that 1.18.0 taught, tested without WorkManager so only the sync code is in the way.
+ * as a cancellation: no failure logged, no streak, nothing lost. The rule that 1.18.0 taught,
+ * tested without WorkManager so only the sync code is in the way. A payload written ahead of
+ * its post (PendingSyncStore.writeAhead) has moved its watermarks already, so a stop during
+ * the post leaves it in the outbox, without counting it as a failed delivery.
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -87,13 +88,18 @@ class CancellationTest {
         assertEquals("no failed delivery logged for a cancellation: ${failures.map { it.errorMessage }}", 0, failures.size)
         assertEquals(0, TestSetup.streak("HEALTH_CONNECT"))
         assertEquals(statusBefore, SyncStatusStore.read(context, LogType.HEALTH_CONNECT))
-        assertEquals(0, PendingSyncStore.forContext(context).size())
-        assertEquals(null, prefs.getHealthLastSyncTimestamp(STEPS))
+        // Written ahead of the post: the watermark moved and the payload waits in the outbox.
+        assertEquals(1, PendingSyncStore.forContext(context).size())
+        assertEquals(0, PendingSyncStore.forContext(context).inFlightIds().size)
+        assertTrue(prefs.getHealthLastSyncTimestamp(STEPS) != null)
 
-        // The lock is free again: the next sync delivers.
+        // The lock is free again: the next sync delivers the queued payload, with nothing new to read.
         receiver.respond(TestSetup.HEALTH_PATH, 200)
         val next = withTimeout(30_000) { HealthSyncManager(context).performSync().getOrThrow() }
-        assertTrue(next is HealthSyncResult.Success)
+        assertEquals(HealthSyncResult.NoData, next)
+        assertEquals(0, PendingSyncStore.forContext(context).size())
+        assertEquals(200, receiver.exchanges.last().responseCode)
+        assertEquals("the one steps record", 1, Conservation.records(Conservation.parse(receiver.exchanges.last().text)).size)
     }
 
     /**
@@ -114,8 +120,10 @@ class CancellationTest {
         val failures = prefs.getWebhookLogs(LogType.SCREEN_TIME).filter { !it.success }
         assertEquals("no failed delivery logged for a cancellation: ${failures.map { it.errorMessage }}", 0, failures.size)
         assertEquals(0, TestSetup.streak("SCREEN_TIME"))
-        assertEquals(0, PendingSyncStore.forContext(context).size())
-        assertEquals(null, prefs.getScreenTimeLastSyncTimestamp())
+        // Written ahead of the post, like a health payload: the week waits in the outbox.
+        assertEquals("SCREEN_TIME", PendingSyncStore.forContext(context).peekAll().single().logType)
+        assertEquals(0, PendingSyncStore.forContext(context).inFlightIds().size)
+        assertTrue(prefs.getScreenTimeLastSyncTimestamp() != null)
     }
 
     /**
@@ -125,7 +133,8 @@ class CancellationTest {
      *
      * Red before F4 was fixed: the carry was stored before the POST and the watermark only after it, so
      * the interrupted sync left the open minute's samples in the carry while the next read
-     * returned them again, and the window went out with its samples counted twice.
+     * returned them again, and the window went out with its samples counted twice. Since the
+     * write-ahead both are stored together before the post, with the payload on disk.
      */
     @Test
     fun interruptedSyncDoesNotCountBucketedSamplesTwice() = runBlocking {
@@ -144,17 +153,23 @@ class CancellationTest {
         receiver.awaitRequests(1)
         job.cancel()
         job.join()
-        // An interrupted pass stores neither its carry nor its watermark, so the next sync
-        // reads the open minute again and counts it from the read alone.
-        assertEquals("an interrupted pass stores no carry", 0, prefs.getBucketCarry()[HEART_RATE].orEmpty().size)
-        assertNull("nor a watermark", prefs.getHealthLastSyncTimestamp(HEART_RATE))
+        // The pass was written ahead of its post: its carry and its watermark are stored
+        // together, and its payload, with the closed minute, waits in the outbox. The next read
+        // starts past the open minute's samples, so they count from the carry alone.
+        assertEquals("the open minute is carried", openMinute.size, prefs.getBucketCarry()[HEART_RATE].orEmpty().size)
+        assertTrue("past the watermark", prefs.getHealthLastSyncTimestamp(HEART_RATE) != null)
+        assertEquals(1, PendingSyncStore.forContext(context).size())
 
         receiver.respond(TestSetup.HEALTH_PATH, 200)
-        Await.until("the carried minute to be over", 70_000, 500) { Instant.now() > minute.plusSeconds(61) }
+        Await.until("the carried minute to be over", 70_000, 500) { Instant.now() > minute.plusSeconds(63) }
+        // A carried window goes out with the next payload, so the next sync needs a record to read.
+        fixture.insert(fixture.heartRate(listOf(Instant.now().minusSeconds(2) to 80L, Instant.now().minusSeconds(1) to 81L)))
         val mark = receiver.exchanges.size
         TestSetup.syncManager().performSync().getOrThrow()
 
         val buckets = receiver.since(mark).flatMap { Conservation.parse(it.text).arr("heart_rate").orEmpty() }.map { it as JsonObject }
+        val closed = buckets.single { it.str("bucket_start") == minute.minusSeconds(60).toString() }
+        assertEquals("the queued closed minute once", "2", closed.num("sample_count"))
         val carried = buckets.single { it.str("bucket_start") == minute.toString() }
         assertEquals("each sample of the minute once", openMinute.size.toString(), carried.num("sample_count"))
     }

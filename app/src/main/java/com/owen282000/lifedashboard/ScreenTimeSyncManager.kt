@@ -131,23 +131,25 @@ class ScreenTimeSyncManager(private val context: Context) {
                 sequence = preferencesManager.nextHealthSyncSequence()
             )
 
-            // Post to webhook
-            val postResult = webhookManager.postData(jsonPayload)
+            // Write-ahead, as the health sync does (PendingSyncStore.writeAhead): the week is on
+            // disk, out of the drain's sight, before the watermark moves, and the post comes
+            // last. Not delivered, also when the worker is stopped mid-post, it joins the outbox
+            // in place of the week queued before it; a process that dies in between leaves it
+            // for the next drain. The watermark advances regardless of delivery outcome: the
+            // outbox guarantees a later delivery.
+            val postResult = PendingSyncStore.writeAhead(
+                context = context,
+                payload = jsonPayload,
+                dataType = "screen_time",
+                logType = LogType.SCREEN_TIME.name,
+                recordCount = totalApps,
+                commit = { preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis()) },
+                post = { webhookManager.postData(jsonPayload) }
+            )
             SyncFailureNotifier.recordDelivery(context, LogType.SCREEN_TIME, postResult)
             SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalApps else 0, LogType.SCREEN_TIME)
-            // Watermark advances regardless of delivery outcome: a failed payload goes to the
-            // outbox and is guaranteed to be delivered by a later drain.
-            preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis())
 
             if (postResult.isFailure) {
-                PendingSyncStore.enqueue(
-                    context = context,
-                    payload = jsonPayload,
-                    dataType = "screen_time",
-                    logType = LogType.SCREEN_TIME.name,
-                    recordCount = totalApps,
-                    nowMillis = System.currentTimeMillis()
-                )
                 return Result.success(ScreenTimeSyncResult.Queued(totalApps))
             }
 
