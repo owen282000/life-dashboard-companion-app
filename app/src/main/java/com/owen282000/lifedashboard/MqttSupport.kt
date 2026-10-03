@@ -282,6 +282,21 @@ object MqttSupport {
     }
 
     /**
+     * What a sync reports for its MQTT publish: the failure the sync ends with, or null when the
+     * sync's own outcome stands. With a webhook in the section the webhook decides, as it always
+     * did, and a broker that is down shows only on the MQTT status line and in the logs. Without
+     * one the broker is the only place the data went, so a failed publish is a failed sync: the
+     * sync line, the dashboard and the failure streak say so, instead of a green sync that
+     * delivered nothing. [publish] is null when nothing was published. [describe] turns the
+     * publish's reason into the sync's, in the user's language (R.string.mqtt_sync_failed).
+     */
+    fun syncFailure(hasWebhooks: Boolean, publish: Result<Int>?, describe: (reason: String) -> String): Exception? {
+        if (hasWebhooks) return null
+        val error = publish?.exceptionOrNull() ?: return null
+        return Exception(describe(error.message ?: error.javaClass.simpleName), error)
+    }
+
+    /**
      * The set to publish: everything published before, with fresh values on top. A sync only
      * carries the types that had new records, but the broker should hold every sensor the app
      * knows, so a new broker or a fresh Home Assistant sees the whole device at once.

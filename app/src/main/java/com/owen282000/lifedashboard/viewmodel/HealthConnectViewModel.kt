@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.owen282000.lifedashboard.FailureReason
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthPermissionRequests
 import com.owen282000.lifedashboard.HealthSyncResult
@@ -395,7 +396,13 @@ class HealthConnectViewModel(
                 )
                 // The sync may have learned which types the integration offers, or written some.
                 _state.update {
-                    it.copy(syncMessage = message, receiveStatus = settings.receiveStatus(), refreshKey = it.refreshKey + 1)
+                    it.copy(
+                        syncMessage = message,
+                        receiveStatus = settings.receiveStatus(),
+                        // The broker may have failed while the webhook took the payload.
+                        mqttLastStatus = settings.lastMqttStatus(MqttSection.HEALTH),
+                        refreshKey = it.refreshKey + 1
+                    )
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -438,7 +445,7 @@ class HealthConnectViewModel(
             _toasts.tryEmit(
                 result.fold(
                     onSuccess = { UiMessage.PingDelivered },
-                    onFailure = { UiMessage.PingFailedWith(it.message ?: "") }
+                    onFailure = { UiMessage.PingFailedWith(FailureReason.of(it).orEmpty()) }
                 )
             )
         }

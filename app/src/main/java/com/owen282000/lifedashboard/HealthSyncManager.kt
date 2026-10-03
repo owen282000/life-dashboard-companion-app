@@ -141,6 +141,8 @@ class HealthSyncManager(
             var webhookCount = 0
             var lastDelivered: HealthData? = null
             var queuedRecords: Int? = null
+            // Records an MQTT-only setup read this sync, reported once the publish has run.
+            var mqttOnlyRecords = 0
             var anyData = false
             // Samples of bucketed windows still open: carried from the last sync, then from
             // pass to pass, and stored again at the end so a window goes out once, complete.
@@ -231,9 +233,8 @@ class HealthSyncManager(
                     // record list, so there is nothing here for a deletion to withdraw. They
                     // stay in storage rather than being dropped: a user who adds a webhook later
                     // gets them on its first payload, and the feed they came from is gone.
-                    SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, true)
-                    SyncStatusStore.record(context, true, totalRecords, LogType.HEALTH_CONNECT)
-                    LifetimeStats.recordDelivery(context, totalRecords, 0, LogType.HEALTH_CONNECT)
+                    // Whether the records went anywhere is known once the publish below ran.
+                    mqttOnlyRecords += totalRecords
                     val passCounts = mutableMapOf<HealthDataType, Int>()
                     updateSyncTimestamps(healthData, passCounts)
                     passCounts.forEach { (type, count) -> syncCounts.merge(type, count, Int::plus) }
@@ -452,8 +453,9 @@ class HealthSyncManager(
             // Publish the newest values to the user's MQTT broker (Home Assistant Discovery)
             // once per run, after draining: the last batch is the newest thanks to the
             // oldest-first cap. Failures never block the webhook sync; the outcome is stored
-            // and shown in the MQTT settings section.
-            lastDelivered?.let { data ->
+            // and shown in the MQTT settings section. Without a webhook the publish is the
+            // delivery, and its outcome is the sync's (MqttSupport.syncFailure).
+            val mqttResult = lastDelivered?.let { data ->
                 val totalsForMqtt = if (publishToMqtt && !quotaHit) {
                     try {
                         // Yesterday and today, from the set this sync already asked for when it has one.
@@ -467,6 +469,15 @@ class HealthSyncManager(
                     }
                 } else emptyList()
                 MqttPublisher(context).publishHealthData(data, totalsForMqtt)
+            }
+            if (webhookUrls.isEmpty()) {
+                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult) { context.getString(R.string.mqtt_sync_failed, it) }
+                SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, failure == null, FailureReason.of(failure))
+                SyncStatusStore.record(context, failure == null, if (failure == null) mqttOnlyRecords else 0, LogType.HEALTH_CONNECT)
+                // The records stay read: the sensor values are cached, and the next publish
+                // that reaches the broker carries them.
+                if (failure != null) return Result.failure(failure)
+                LifetimeStats.recordDelivery(context, mqttOnlyRecords, 0, LogType.HEALTH_CONNECT)
             }
 
             queuedRecords?.let {

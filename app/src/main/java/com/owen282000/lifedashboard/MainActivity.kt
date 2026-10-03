@@ -182,33 +182,43 @@ class MainActivity : ComponentActivity() {
         val written = PairingApply.apply(link, choice, preferencesManager.asPairingStore())
         if (written.isEmpty()) return
 
-        // The wizard re-reads it instead, and its toast names the wizard's own test button.
-        // No ViewModel here: creating the tabs' ones now would load the settings before the
-        // wizard writes its data types and MQTT broker, and the tabs would show those stale.
+        // The wizard re-reads it instead. No ViewModel here: creating the tabs' ones now would
+        // load the settings before the wizard writes its data types and MQTT broker, and the
+        // tabs would show those stale.
         if (inWizard) {
             pairedInWizard.value = OnboardingSupport.WizardPairing(
                 link = link,
                 written = written,
                 seq = (pairedInWizard.value?.seq ?: 0) + 1
             )
-            Toast.makeText(
-                this,
-                getString(R.string.onboarding_pairing_done, getString(R.string.health_test_ping)),
-                Toast.LENGTH_LONG
-            ).show()
-            return
+        } else {
+            ViewModelProvider(this, HealthConnectViewModel.factory(this))[HealthConnectViewModel::class.java]
+                .reloadFromSettings()
+            ViewModelProvider(this, ScreenTimeViewModel.factory(this))[ScreenTimeViewModel::class.java]
+                .reloadFromSettings()
         }
 
-        ViewModelProvider(this, HealthConnectViewModel.factory(this))[HealthConnectViewModel::class.java]
-            .reloadFromSettings()
-        ViewModelProvider(this, ScreenTimeViewModel.factory(this))[ScreenTimeViewModel::class.java]
-            .reloadFromSettings()
+        confirmPairing(link, written)
+    }
 
-        Toast.makeText(
-            this,
-            getString(R.string.pairing_done, getString(R.string.sync_action_ping)),
-            Toast.LENGTH_LONG
-        ).show()
+    /**
+     * The pairing checks itself: one test ping to the paired address, signed with the paired
+     * secret, and the outcome in a toast. The pairing is written before this and stays written
+     * whatever the ping says: a receiver that is down right now is still the one the user chose,
+     * and the next sync tries it again. No custom headers, like every sync to a paired address.
+     */
+    private fun confirmPairing(link: PairingLink, written: Set<PairingSource>) {
+        val app = applicationContext
+        Toast.makeText(app, getString(R.string.pairing_ping_sending, link.host), Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val logType = if (PairingSource.HEALTH in written) LogType.HEALTH_CONNECT else LogType.SCREEN_TIME
+            val result = TestPing.send(app, listOf(link.url), link.secret, logType)
+            val text = result.fold(
+                onSuccess = { app.getString(R.string.pairing_ping_delivered, link.host) },
+                onFailure = { app.getString(R.string.pairing_ping_failed, link.host, FailureReason.of(it).orEmpty()) }
+            )
+            Toast.makeText(app, text, Toast.LENGTH_LONG).show()
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

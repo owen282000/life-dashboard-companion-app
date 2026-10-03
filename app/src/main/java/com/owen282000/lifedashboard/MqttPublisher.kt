@@ -2,12 +2,19 @@ package com.owen282000.lifedashboard
 
 import android.content.Context
 import com.hivemq.client.mqtt.MqttClient
+import com.hivemq.client.mqtt.MqttClientSslConfig
 import com.hivemq.client.mqtt.datatypes.MqttQos
+import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
+import java.io.IOException
 import java.time.Instant
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 /** MQTT broker configuration; username and password are stored encrypted. */
 data class MqttSettings(
@@ -48,14 +55,106 @@ enum class MqttSection(val prefix: String, val enabledKey: String, val baseTopic
 }
 
 /**
+ * How long the broker gets. The socket, the TLS handshake and the MQTT handshake each have their
+ * own limit, every acknowledgement after that has [STEP_MILLIS], and the whole exchange
+ * [PUBLISH_DEADLINE_MILLIS], which leaves room for a few hundred messages over a slow mobile link
+ * but not for a broker that has stopped answering.
+ */
+object MqttTimeouts {
+    const val SOCKET_CONNECT_MILLIS = 10_000L
+    const val TLS_HANDSHAKE_MILLIS = 10_000L
+    const val MQTT_CONNECT_MILLIS = 10_000L
+
+    /**
+     * The connect as a whole: all three limits above in a row, plus a margin, so HiveMQ's own
+     * limits end a stalled connect first and the error names the step that stalled.
+     */
+    const val CONNECT_DEADLINE_MILLIS = SOCKET_CONNECT_MILLIS + TLS_HANDSHAKE_MILLIS + MQTT_CONNECT_MILLIS + 5_000L
+    const val STEP_MILLIS = 10_000L
+    const val PUBLISH_DEADLINE_MILLIS = 120_000L
+}
+
+/**
+ * The broker did not answer within [millis]. The text the user sees is made from [millis] where
+ * there are resources (R.string.mqtt_no_answer_within); this message is for stack traces.
+ */
+class MqttTimeoutException(val millis: Long) : IOException("No answer within ${millis / 1000} s")
+
+/** A failed publish, with [reason] already in the user's language. */
+class MqttPublishException(reason: String, cause: Throwable) : IOException(reason, cause)
+
+/**
+ * Awaits a HiveMQ future for at most [millis]; running out of time throws
+ * [MqttTimeoutException], a plain failure. Cancelling the caller cancels the wait.
+ *
+ * The wait is on a future derived from this one, never on this one itself: kotlinx's await
+ * cancels the future it waits on when the wait ends early, and a cancelled HiveMQ future
+ * completes at once with a CancellationException, while HiveMQ carries on with the work behind
+ * it. A connect cancelled that way still connects, and nothing would learn of it to disconnect.
+ * This future keeps completing with HiveMQ's real outcome, see [connected].
+ */
+internal suspend fun CompletableFuture<*>.within(millis: Long) {
+    val derived = thenApply { }
+    // The Unit, not the future's value: a disconnect completes with null.
+    withTimeoutOrNull(millis) { derived.await(); Unit } ?: throw MqttTimeoutException(millis)
+}
+
+/**
+ * Waits for [connect], runs [exchange] and disconnects. When anything ends this early (a
+ * failure, a timeout, a cancelled sync), the connection is closed whenever it exists: at once
+ * when it is up, or the moment a connect that was given up on completes after all. Without
+ * that, each stopped sync could leave a connection open, kept alive by its keepalives.
+ * Nothing here waits for that late disconnect: a stopped worker must not wait on the broker.
+ */
+internal suspend fun connected(
+    connect: CompletableFuture<*>,
+    disconnect: () -> CompletableFuture<*>,
+    exchange: suspend () -> Unit
+) {
+    var closed = false
+    try {
+        connect.within(MqttTimeouts.CONNECT_DEADLINE_MILLIS)
+        exchange()
+        disconnect().within(MqttTimeouts.STEP_MILLIS)
+        closed = true
+    } finally {
+        if (!closed) connect.whenComplete { _, error -> if (error == null) disconnect() }
+    }
+}
+
+/**
  * Publishes the latest synced values to the user's MQTT broker with Home Assistant MQTT
  * Discovery, so sensors appear in Home Assistant automatically without any server-side setup.
  * Connect-publish-disconnect per sync; states and discovery configs are published retained so
  * Home Assistant keeps the last values across restarts. Failures never block the webhook sync;
- * the outcome is stored for display in the MQTT settings section. Health Connect and screen
- * time share the broker settings and the Home Assistant device (issue #52).
+ * the outcome is stored for display in the MQTT settings section. Without a webhook the broker
+ * is the only destination, and its failure is the sync's (see [MqttSupport.syncFailure]).
+ * Health Connect and screen time share the broker settings and the Home Assistant device
+ * (issue #52).
  */
 class MqttPublisher(private val context: Context) {
+
+    companion object {
+        /** HiveMQ's default TLS setup (the platform's trust store), with the handshake limit of [MqttTimeouts]. */
+        private val TLS: MqttClientSslConfig = MqttClientSslConfig.builder()
+            .handshakeTimeout(MqttTimeouts.TLS_HANDSHAKE_MILLIS, TimeUnit.MILLISECONDS)
+            .build()
+
+        /** The client for one publish, with the connect limits of [MqttTimeouts]. Builds, never connects. */
+        internal fun clientFor(settings: MqttSettings): Mqtt3AsyncClient =
+            MqttClient.builder()
+                .useMqttVersion3()
+                .identifier("lifedashboard-" + UUID.randomUUID().toString().take(8))
+                .transportConfig()
+                .serverHost(settings.host)
+                .serverPort(settings.port)
+                // Set rather than left at HiveMQ's default, so CONNECT_DEADLINE_MILLIS covers it.
+                .let { if (settings.useTls) it.sslConfig(TLS) else it }
+                .socketConnectTimeout(MqttTimeouts.SOCKET_CONNECT_MILLIS, TimeUnit.MILLISECONDS)
+                .mqttConnectTimeout(MqttTimeouts.MQTT_CONNECT_MILLIS, TimeUnit.MILLISECONDS)
+                .applyTransportConfig()
+                .buildAsync()
+    }
 
     suspend fun publishHealthData(healthData: HealthData, dailyTotals: List<DailyTotals> = emptyList()): Result<Int> =
         publish(MqttSupport.sensorsFrom(healthData, dailyTotals), MqttSection.HEALTH)
@@ -132,14 +231,17 @@ class MqttPublisher(private val context: Context) {
         val slug = MqttSupport.phoneSlug(phoneName)
 
         try {
-            val clientBuilder = MqttClient.builder()
-                .useMqttVersion3()
-                .identifier("lifedashboard-" + UUID.randomUUID().toString().take(8))
-                .serverHost(settings.host)
-                .serverPort(settings.port)
-                .let { if (settings.useTls) it.sslWithDefaultConfig() else it }
-            val client = clientBuilder.buildBlocking()
-
+            val appVersion = try {
+                context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
+            } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+                "unknown"
+            }
+            // Retire sensors that older versions published under other keys, so Home
+            // Assistant does not keep a stale "Steps (latest record)" next to "Steps Today",
+            // and take the previous device off the broker after a rename. See
+            // MqttSupport.topicsFor for the order of the three topics.
+            val retired = MqttSupport.topicsFor(settings.baseTopic, MqttSupport.DEFAULT_DISCOVERY_PREFIX, MqttSupport.RETIRED_SENSOR_KEYS, slug)
+            val client = clientFor(settings)
             val connect = client.connectWith().cleanSession(true)
             if (!settings.username.isNullOrBlank()) {
                 connect.simpleAuth()
@@ -147,46 +249,50 @@ class MqttPublisher(private val context: Context) {
                     .password((settings.password ?: "").toByteArray(Charsets.UTF_8))
                     .applySimpleAuth()
             }
-            connect.send()
-
-            try {
-                val appVersion = try {
-                    context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
-                } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
-                    "unknown"
+            // One deadline over the whole exchange and one per acknowledgement: a broker that
+            // stops answering is noticed within a step, and a slow one cannot hold the worker
+            // past the deadline. The blocking client had neither, so a broker that took the
+            // connection and never answered held the sync, and every sync after it. Each
+            // message still waits for its acknowledgement before the next one goes, which keeps
+            // the order MqttSupport.topicsFor relies on.
+            withTimeoutOrNull(MqttTimeouts.PUBLISH_DEADLINE_MILLIS) {
+                connected(connect.send(), { client.disconnect() }) {
+                    for (topic in clearFirst + retired) {
+                        client.publishWith().topic(topic).payload(ByteArray(0)).qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
+                            .within(MqttTimeouts.STEP_MILLIS)
+                    }
+                    for (sensor in sensors) {
+                        client.publishWith()
+                            .topic(MqttSupport.discoveryTopic(MqttSupport.DEFAULT_DISCOVERY_PREFIX, sensor.key, slug))
+                            .payload(MqttSupport.discoveryConfigJson(sensor, settings.baseTopic, appVersion, phoneName).toByteArray(Charsets.UTF_8))
+                            .qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
+                            .within(MqttTimeouts.STEP_MILLIS)
+                        client.publishWith()
+                            .topic(MqttSupport.stateTopic(settings.baseTopic, sensor.key, slug))
+                            .payload(sensor.state.toByteArray(Charsets.UTF_8))
+                            .qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
+                            .within(MqttTimeouts.STEP_MILLIS)
+                        client.publishWith()
+                            .topic(MqttSupport.attributesTopic(settings.baseTopic, sensor.key, slug))
+                            .payload(MqttSupport.attributesJson(sensor).toByteArray(Charsets.UTF_8))
+                            .qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
+                            .within(MqttTimeouts.STEP_MILLIS)
+                    }
                 }
-                // Retire sensors that older versions published under other keys, so Home
-                // Assistant does not keep a stale "Steps (latest record)" next to "Steps Today",
-                // and take the previous device off the broker after a rename. See
-                // MqttSupport.topicsFor for the order of the three topics.
-                val retired = MqttSupport.topicsFor(settings.baseTopic, MqttSupport.DEFAULT_DISCOVERY_PREFIX, MqttSupport.RETIRED_SENSOR_KEYS, slug)
-                for (topic in clearFirst + retired) {
-                    client.publishWith().topic(topic).payload(ByteArray(0)).qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
-                }
-                for (sensor in sensors) {
-                    client.publishWith()
-                        .topic(MqttSupport.discoveryTopic(MqttSupport.DEFAULT_DISCOVERY_PREFIX, sensor.key, slug))
-                        .payload(MqttSupport.discoveryConfigJson(sensor, settings.baseTopic, appVersion, phoneName).toByteArray(Charsets.UTF_8))
-                        .qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
-                    client.publishWith()
-                        .topic(MqttSupport.stateTopic(settings.baseTopic, sensor.key, slug))
-                        .payload(sensor.state.toByteArray(Charsets.UTF_8))
-                        .qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
-                    client.publishWith()
-                        .topic(MqttSupport.attributesTopic(settings.baseTopic, sensor.key, slug))
-                        .payload(MqttSupport.attributesJson(sensor).toByteArray(Charsets.UTF_8))
-                        .qos(MqttQos.AT_LEAST_ONCE).retain(true).send()
-                }
-            } finally {
-                client.disconnect()
-            }
+            } ?: throw MqttTimeoutException(MqttTimeouts.PUBLISH_DEADLINE_MILLIS)
             setStatus("OK: ${sensors.size} sensors published at ${Instant.now()}")
             Result.success(sensors.size)
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            setStatus("Error: ${e.message ?: e.javaClass.simpleName}")
-            Result.failure(e)
+            val reason = reason(e)
+            setStatus("Error: $reason")
+            Result.failure(MqttPublishException(reason, e))
         }
     }
+
+    /** Why a publish failed, as the status line, the Logs tab and the sync line show it. */
+    private fun reason(e: Exception): String =
+        if (e is MqttTimeoutException) context.getString(R.string.mqtt_no_answer_within, (e.millis / 1000).toInt())
+        else e.message ?: e.javaClass.simpleName
 }

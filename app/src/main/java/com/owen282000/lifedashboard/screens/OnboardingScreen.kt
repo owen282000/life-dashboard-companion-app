@@ -68,6 +68,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.owen282000.lifedashboard.FailureReason
 import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.MqttBroker
 import com.owen282000.lifedashboard.MqttSection
@@ -77,10 +78,11 @@ import com.owen282000.lifedashboard.OnboardingSupport.Step
 import com.owen282000.lifedashboard.PairingSource
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.R
-import com.owen282000.lifedashboard.WebhookManager
+import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
 import com.owen282000.lifedashboard.ui.theme.ink
 import com.owen282000.lifedashboard.ui.theme.onAccent
+import com.owen282000.lifedashboard.viewmodel.UiMessage
 import kotlinx.coroutines.launch
 
 // The tabs colour their accents with HealthPrimary directly rather than through the theme,
@@ -114,7 +116,7 @@ fun OnboardingScreen(
     // Typed in, or filled in by the pairing dialog after a scan. The wizard wrote URLs
     // only until now, which left a scanned secret behind on a fresh install.
     var webhookSecret by remember { mutableStateOf("") }
-    var pingResult by remember { mutableStateOf<Boolean?>(null) }
+    var pingResult by remember { mutableStateOf<UiMessage?>(null) }
     var pinging by remember { mutableStateOf(false) }
     var allowHttp by remember { mutableStateOf(preferencesManager.allowHttpWebhooks()) }
 
@@ -335,22 +337,19 @@ fun OnboardingScreen(
                                         onClick = {
                                             scope.launch {
                                                 pinging = true
-                                                pingResult = try {
-                                                    val payload = """{"test":true,"message":"Test ping from Life Dashboard Companion","timestamp":"${java.time.Instant.now()}","source":"onboarding"}"""
-                                                    WebhookManager(
-                                                        webhookUrls = listOf(webhookUrl.trim()),
-                                                        context = context,
-                                                        dataType = "test",
-                                                        recordCount = 0,
-                                                        logType = LogType.HEALTH_CONNECT,
-                                                        // Signed like the tabs' ping, so a paired receiver can check it.
-                                                        signingSecret = webhookSecret.trim().ifBlank { null }
-                                                    ).postData(payload).isSuccess
-                                                } catch (e: kotlinx.coroutines.CancellationException) {
-                                                    throw e
-                                                } catch (e: Exception) {
-                                                    false
-                                                }
+                                                // Signed like the tabs' ping, so a paired receiver
+                                                // can check it, and named after the section the
+                                                // address goes to, as a sync of it would be.
+                                                pingResult = TestPing.send(
+                                                    context,
+                                                    listOf(webhookUrl.trim()),
+                                                    webhookSecret,
+                                                    if (PairingSource.HEALTH in sections || sections.isEmpty()) LogType.HEALTH_CONNECT else LogType.SCREEN_TIME
+                                                ).fold(
+                                                    // The tabs' messages, so the reason reads the same here.
+                                                    onSuccess = { UiMessage.PingDelivered },
+                                                    onFailure = { UiMessage.PingFailedWith(FailureReason.of(it).orEmpty()) }
+                                                )
                                                 pinging = false
                                             }
                                         }
@@ -363,12 +362,10 @@ fun OnboardingScreen(
                                         )
                                     }
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    pingResult?.let { ok ->
+                                    pingResult?.let { result ->
+                                        val ok = result == UiMessage.PingDelivered
                                         Text(
-                                            stringResource(
-                                                if (ok) R.string.health_test_ping_delivered
-                                                else R.string.health_test_ping_failed
-                                            ),
+                                            result.text(context.resources),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = if (ok) Accent.ink() else MaterialTheme.colorScheme.error
                                         )

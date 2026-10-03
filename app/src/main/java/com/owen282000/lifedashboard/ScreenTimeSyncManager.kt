@@ -98,16 +98,18 @@ class ScreenTimeSyncManager(private val context: Context) {
 
             // Same broker and Home Assistant device as Health Connect (issue #52). Failures
             // never block the webhook delivery; the outcome shows in the MQTT settings section.
-            if (publishToMqtt) {
-                MqttPublisher(context).publishScreenTime(screenTimeDataList)
-            }
+            val mqttResult = if (publishToMqtt) MqttPublisher(context).publishScreenTime(screenTimeDataList) else null
 
-            // MQTT-only setup: nothing to post, nothing to queue.
+            // MQTT-only setup: nothing to post, nothing to queue. The publish was the delivery,
+            // so its outcome is the sync's (MqttSupport.syncFailure).
             if (webhookUrls.isEmpty()) {
-                SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, true)
-                SyncStatusStore.record(context, true, totalApps, LogType.SCREEN_TIME)
-                LifetimeStats.recordDelivery(context, totalApps, 0, LogType.SCREEN_TIME)
+                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult) { context.getString(R.string.mqtt_sync_failed, it) }
+                SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, failure == null, FailureReason.of(failure))
+                SyncStatusStore.record(context, failure == null, if (failure == null) totalApps else 0, LogType.SCREEN_TIME)
+                // Every sync sends the whole week again, so a failed one loses nothing.
                 preferencesManager.setScreenTimeLastSyncTimestamp(System.currentTimeMillis())
+                if (failure != null) return Result.failure(failure)
+                LifetimeStats.recordDelivery(context, totalApps, 0, LogType.SCREEN_TIME)
                 return Result.success(ScreenTimeSyncResult.Success(totalApps, screenTimeDataList.size))
             }
 

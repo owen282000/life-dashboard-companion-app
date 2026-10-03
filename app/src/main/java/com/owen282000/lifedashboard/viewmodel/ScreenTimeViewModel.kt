@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.owen282000.lifedashboard.FailureReason
 import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
 import com.owen282000.lifedashboard.SyncSchedule
@@ -242,7 +243,10 @@ class ScreenTimeViewModel(
                     },
                     onFailure = { UiMessage.SyncFailed(it.message ?: "") }
                 )
-                _state.update { it.copy(syncMessage = message, refreshKey = it.refreshKey + 1) }
+                _state.update {
+                    // The broker may have failed while the webhook took the payload.
+                    it.copy(syncMessage = message, mqttLastStatus = settings.lastMqttStatus(MqttSection.SCREEN_TIME), refreshKey = it.refreshKey + 1)
+                }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -283,7 +287,7 @@ class ScreenTimeViewModel(
             _toasts.tryEmit(
                 result.fold(
                     onSuccess = { UiMessage.PingDelivered },
-                    onFailure = { UiMessage.PingFailedWith(it.message ?: "") }
+                    onFailure = { UiMessage.PingFailedWith(FailureReason.of(it).orEmpty()) }
                 )
             )
         }
