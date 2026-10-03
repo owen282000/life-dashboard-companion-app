@@ -208,6 +208,8 @@
 
     <!-- MQTT-Einstellungskarte -->
     <string name="mqtt_base_topic">Basis-Topic</string>
+    <string name="mqtt_no_answer_within">Keine Antwort innerhalb von %1$d s</string>
+    <string name="mqtt_sync_failed">MQTT-Broker: %1$s</string>
     <string name="mqtt_broker_host">Broker-Host</string>
     <string name="mqtt_broker_host_placeholder">Broker-Host, z. B. 192.168.1.10</string>
     <string name="mqtt_broker_host_shared">Broker-Host (gemeinsam)</string>

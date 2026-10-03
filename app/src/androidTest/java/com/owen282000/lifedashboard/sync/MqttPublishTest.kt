@@ -12,6 +12,7 @@ import com.owen282000.lifedashboard.LogDestination
 import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.MqttTimeouts
+import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ScreenTimeSyncManager
 import com.owen282000.lifedashboard.SyncStatusStore
 import com.owen282000.lifedashboard.appPreferences
@@ -222,7 +223,7 @@ class MqttPublishTest {
 
         val failure = TestSetup.syncManager().performSync().exceptionOrNull()
 
-        assertTrue("the sync fails: $failure", failure?.message.orEmpty().startsWith("MQTT broker: "))
+        assertTrue("the sync fails: $failure", failure?.message.orEmpty().startsWith(context.getString(R.string.mqtt_sync_failed, "")))
         assertEquals(0, receiver.exchanges.size)
         assertTrue(prefs.getLastMqttStatus(MqttSection.HEALTH).orEmpty().startsWith("Error:"))
         assertFalse(SyncStatusStore.read(context, LogType.HEALTH_CONNECT).lastSuccess)

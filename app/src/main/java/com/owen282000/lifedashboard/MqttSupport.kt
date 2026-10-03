@@ -287,12 +287,13 @@ object MqttSupport {
      * did, and a broker that is down shows only on the MQTT status line and in the logs. Without
      * one the broker is the only place the data went, so a failed publish is a failed sync: the
      * sync line, the dashboard and the failure streak say so, instead of a green sync that
-     * delivered nothing. [publish] is null when nothing was published.
+     * delivered nothing. [publish] is null when nothing was published. [describe] turns the
+     * publish's reason into the sync's, in the user's language (R.string.mqtt_sync_failed).
      */
-    fun syncFailure(hasWebhooks: Boolean, publish: Result<Int>?): Exception? {
+    fun syncFailure(hasWebhooks: Boolean, publish: Result<Int>?, describe: (reason: String) -> String): Exception? {
         if (hasWebhooks) return null
         val error = publish?.exceptionOrNull() ?: return null
-        return Exception("MQTT broker: ${error.message ?: error.javaClass.simpleName}", error)
+        return Exception(describe(error.message ?: error.javaClass.simpleName), error)
     }
 
     /**

@@ -23,10 +23,11 @@ All notable changes to this project are documented in this file. The format is b
 ### Fixed
 
 - A broker that took the connection and then never answered held an MQTT publish, and with it
-  the sync and every sync queued behind it, for good. The connection now gets 10 seconds, each
-  message 10 seconds and the whole publish two minutes; after that the publish fails with "No
-  answer within ... s" on the MQTT status line and in the Logs tab, and a sync that is stopped
-  stops the publish with it.
+  the sync and every sync queued behind it, for good. The connection, the TLS handshake and the
+  broker's greeting now get 10 seconds each, every message 10 seconds and the whole publish two
+  minutes; after that the publish fails with "No answer within ... s" on the MQTT status line
+  and in the Logs tab, and a sync that is stopped stops the publish with it. A connection the
+  publish gave up on is closed, also when it only comes up afterwards.
 - With MQTT as the only destination (no webhook), a sync whose broker was down still showed as
   synced, green on the dashboard and never counted towards the failure notification. It now
   fails like a webhook that is down: the line under Sync Now says "Sync failed: MQTT broker:"

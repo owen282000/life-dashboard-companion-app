@@ -467,7 +467,7 @@ class HealthSyncManager(
                 MqttPublisher(context).publishHealthData(data, totalsForMqtt)
             }
             if (webhookUrls.isEmpty()) {
-                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult)
+                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult) { context.getString(R.string.mqtt_sync_failed, it) }
                 SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, failure == null)
                 SyncStatusStore.record(context, failure == null, if (failure == null) mqttOnlyRecords else 0, LogType.HEALTH_CONNECT)
                 // The records stay read: the sensor values are cached, and the next publish

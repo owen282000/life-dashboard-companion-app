@@ -103,7 +103,7 @@ class ScreenTimeSyncManager(private val context: Context) {
             // MQTT-only setup: nothing to post, nothing to queue. The publish was the delivery,
             // so its outcome is the sync's (MqttSupport.syncFailure).
             if (webhookUrls.isEmpty()) {
-                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult)
+                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult) { context.getString(R.string.mqtt_sync_failed, it) }
                 SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, failure == null)
                 SyncStatusStore.record(context, failure == null, if (failure == null) totalApps else 0, LogType.SCREEN_TIME)
                 // Every sync sends the whole week again, so a failed one loses nothing.

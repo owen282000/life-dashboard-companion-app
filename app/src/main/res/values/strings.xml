@@ -210,6 +210,8 @@
 
     <!-- MQTT settings card -->
     <string name="mqtt_base_topic">Base topic</string>
+    <string name="mqtt_no_answer_within">No answer within %1$d s</string>
+    <string name="mqtt_sync_failed">MQTT broker: %1$s</string>
     <string name="mqtt_broker_host">Broker host</string>
     <string name="mqtt_broker_host_placeholder">Broker host, e.g. 192.168.1.10</string>
     <string name="mqtt_broker_host_shared">Broker host (shared)</string>

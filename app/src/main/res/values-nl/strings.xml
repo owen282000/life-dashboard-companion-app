@@ -208,6 +208,8 @@
 
     <!-- MQTT-instellingenkaart -->
     <string name="mqtt_base_topic">Basistopic</string>
+    <string name="mqtt_no_answer_within">Geen antwoord binnen %1$d s</string>
+    <string name="mqtt_sync_failed">MQTT-broker: %1$s</string>
     <string name="mqtt_broker_host">Brokerhost</string>
     <string name="mqtt_broker_host_placeholder">Brokerhost, bijv. 192.168.1.10</string>
     <string name="mqtt_broker_host_shared">Brokerhost (gedeeld)</string>
