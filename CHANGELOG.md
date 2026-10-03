@@ -36,7 +36,9 @@ All notable changes to this project are documented in this file. The format is b
 - The test ping carried no `app_version`, which every payload in docs/webhook-schema.json has
   to carry, so a receiver that validates against the schema refused it. It now has one, the
   wizard's ping names its section (`health_connect` or `screen_time`) instead of `onboarding`,
-  and the schema and docs/webhook.md describe the ping.
+  and the schema and docs/webhook.md describe the ping. A failed Send Test Ping in the setup
+  wizard now says why, "Test ping failed:" and the reason, like Test ping on the tabs, instead
+  of only "check the logs".
 
 - Three German texts on the sync schedule addressed you as "Sie" while the rest of the app says
   "du"; they now say "du" too. The notification setting for a single failed sync read

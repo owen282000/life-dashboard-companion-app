@@ -81,6 +81,7 @@ import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
 import com.owen282000.lifedashboard.ui.theme.ink
 import com.owen282000.lifedashboard.ui.theme.onAccent
+import com.owen282000.lifedashboard.viewmodel.UiMessage
 import kotlinx.coroutines.launch
 
 // The tabs colour their accents with HealthPrimary directly rather than through the theme,
@@ -114,7 +115,7 @@ fun OnboardingScreen(
     // Typed in, or filled in by the pairing dialog after a scan. The wizard wrote URLs
     // only until now, which left a scanned secret behind on a fresh install.
     var webhookSecret by remember { mutableStateOf("") }
-    var pingResult by remember { mutableStateOf<Boolean?>(null) }
+    var pingResult by remember { mutableStateOf<UiMessage?>(null) }
     var pinging by remember { mutableStateOf(false) }
     var allowHttp by remember { mutableStateOf(preferencesManager.allowHttpWebhooks()) }
 
@@ -343,7 +344,11 @@ fun OnboardingScreen(
                                                     listOf(webhookUrl.trim()),
                                                     webhookSecret,
                                                     if (PairingSource.HEALTH in sections || sections.isEmpty()) LogType.HEALTH_CONNECT else LogType.SCREEN_TIME
-                                                ).isSuccess
+                                                ).fold(
+                                                    // The tabs' messages, so the reason reads the same here.
+                                                    onSuccess = { UiMessage.PingDelivered },
+                                                    onFailure = { UiMessage.PingFailedWith(it.message ?: "") }
+                                                )
                                                 pinging = false
                                             }
                                         }
@@ -356,12 +361,10 @@ fun OnboardingScreen(
                                         )
                                     }
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    pingResult?.let { ok ->
+                                    pingResult?.let { result ->
+                                        val ok = result == UiMessage.PingDelivered
                                         Text(
-                                            stringResource(
-                                                if (ok) R.string.health_test_ping_delivered
-                                                else R.string.health_test_ping_failed
-                                            ),
+                                            result.text(context.resources),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = if (ok) Accent.ink() else MaterialTheme.colorScheme.error
                                         )
