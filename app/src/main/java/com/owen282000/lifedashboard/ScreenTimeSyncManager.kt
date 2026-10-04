@@ -31,13 +31,15 @@ class ScreenTimeSyncManager(private val context: Context) {
                 return@withContext Result.failure(screenTimeResult.exceptionOrNull() ?: Exception("Failed to read screen time data"))
             }
 
-            val screenTimeDataList = screenTimeResult.getOrThrow()
+            // The preview shows what a sync sends, so the app filter applies here too.
+            val appFilter = preferencesManager.getScreenTimeAppFilter()
+            val screenTimeDataList = appFilter.apply(screenTimeResult.getOrThrow())
             if (screenTimeDataList.isEmpty()) {
                 return@withContext Result.failure(Exception("No data to preview"))
             }
 
             val json = Json { prettyPrint = true }
-            val payload = buildJsonPayload(screenTimeDataList, getAppVersion(), deviceName())
+            val payload = buildJsonPayload(screenTimeDataList, getAppVersion(), deviceName(), appFilter = appFilter.mode)
             val prettyPayload = json.encodeToString(
                 kotlinx.serialization.json.JsonElement.serializer(),
                 Json.parseToJsonElement(payload)
@@ -85,7 +87,10 @@ class ScreenTimeSyncManager(private val context: Context) {
                 )
             }
 
-            val screenTimeDataList = screenTimeResult.getOrThrow()
+            // The apps the user chose to leave out never leave the phone: not in the payload,
+            // not on MQTT (issue #63). The day totals stay real; see ScreenTimeAppFilter.apply.
+            val appFilter = preferencesManager.getScreenTimeAppFilter()
+            val screenTimeDataList = appFilter.apply(screenTimeResult.getOrThrow())
 
             // Always sync all 7 days - the backend does upsert so duplicates are fine
             // This ensures we always have complete data even if the app wasn't synced for a while
@@ -130,7 +135,8 @@ class ScreenTimeSyncManager(private val context: Context) {
                 screenTimeDataList,
                 getAppVersion(),
                 deviceName(),
-                sequence = preferencesManager.nextHealthSyncSequence()
+                sequence = preferencesManager.nextHealthSyncSequence(),
+                appFilter = appFilter.mode
             )
 
             // Write-ahead, as the health sync does (PendingSyncStore.writeAhead): the week is on
@@ -202,13 +208,16 @@ class ScreenTimeSyncManager(private val context: Context) {
         /**
          * The Screen Time payload. [sequence] is taken from the counter by the sync that sends;
          * the preview passes null, because taking a number there would leave a gap in the
-         * sequence a receiver sees, and looking is not sending.
+         * sequence a receiver sees, and looking is not sending. [appFilter] names the mode of the
+         * app filter the days went through (ScreenTimeAppFilter.apply), never its packages: the
+         * names of the apps someone left out are exactly what should not travel.
          */
         internal fun buildJsonPayload(
             screenTimeDataList: List<ScreenTimeData>,
             appVersion: String,
             device: String,
-            sequence: Long? = null
+            sequence: Long? = null,
+            appFilter: AppFilterMode = AppFilterMode.ALL
         ): String {
             val json = buildJsonObject {
                 put("timestamp", Instant.now().toString())
@@ -219,12 +228,17 @@ class ScreenTimeSyncManager(private val context: Context) {
                 // one, from the outbox or a retry, is recognisable as older: a receiver applies
                 // its days only where no newer week wrote them.
                 sequence?.let { put("sequence", it) }
+                // Only with a filter on, so a receiver knows `apps` is a selection (issue #63).
+                appFilter.payloadName?.let { put("app_filter", it) }
 
                 putJsonArray("screen_time") {
                     screenTimeDataList.forEach { dayData ->
                         add(buildJsonObject {
                             put("date", dayData.date.toString())
                             put("total_screen_time_minutes", dayData.totalScreenTimeMs / 60000)
+                            // The sum of the apps below once a filter took some out; the total
+                            // above stays every app's, so it keeps meaning screen time.
+                            dayData.filteredScreenTimeMs?.let { put("filtered_screen_time_minutes", it / 60000) }
 
                             putJsonArray("apps") {
                                 dayData.apps.forEach { app ->

@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Screen Time can leave apps out, or send only a few (#63). Under Which apps on the Screen Time
+  tab, All except sends every app but the ones ticked, and Only sends just the ticked ones; All
+  stays the default. The apps on offer are the ones used for more than a minute over the last
+  30 days, plus any already ticked. An app filtered out never leaves the phone: it is not in the
+  payload, not on MQTT and not among the top apps, and its name is in the payload in no form.
+  `total_screen_time_minutes` keeps counting every app, so it goes on meaning screen time, and
+  each day carries `filtered_screen_time_minutes`, the time of the apps that are sent, next to
+  `app_filter` at the top of the payload. The MQTT sensors follow the filter, with the real
+  total as the attribute `all_apps_minutes`, and the top app is `none` when the filter leaves no
+  app of today. Every sync re-sends the last seven days, so a change to the list changes those
+  days on a receiver too; the app says so next to the list. The setting is in the settings
+  backup as `screen_time_app_filter`. The Life Dashboard integration follows the filter from
+  its next release.
+
 ### Fixed
 
 - A bucketed window of steps, distance or calories that went out again held only the records

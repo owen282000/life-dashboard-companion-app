@@ -223,6 +223,8 @@ class PreferencesManager(context: Context) {
         private const val KEY_SCREENTIME_WEBHOOK_URLS = "screentime_webhook_urls"
         private const val KEY_SCREENTIME_DAY_BOUNDARY_HOUR = "screentime_day_boundary_hour"
         private const val KEY_SCREENTIME_USE_DAY_BOUNDARY = "screentime_use_day_boundary"
+        private const val KEY_SCREENTIME_APP_FILTER_MODE = "screentime_app_filter_mode"
+        private const val KEY_SCREENTIME_APP_FILTER_PACKAGES = "screentime_app_filter_packages"
 
         // Webhook header keys
         private const val KEY_HEALTH_WEBHOOK_HEADERS = "health_webhook_headers"
@@ -734,6 +736,19 @@ class PreferencesManager(context: Context) {
 
     fun setUseScreenTimeDayBoundary(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_SCREENTIME_USE_DAY_BOUNDARY, enabled).apply()
+    }
+
+    /** Which apps Screen Time sends (issue #63); every app when nothing was chosen. */
+    fun getScreenTimeAppFilter(): ScreenTimeAppFilter = ScreenTimeAppFilter(
+        mode = AppFilterMode.from(prefs.getString(KEY_SCREENTIME_APP_FILTER_MODE, null)),
+        packages = prefs.getStringSet(KEY_SCREENTIME_APP_FILTER_PACKAGES, null)?.toSet().orEmpty()
+    )
+
+    fun setScreenTimeAppFilter(filter: ScreenTimeAppFilter) {
+        prefs.edit()
+            .putString(KEY_SCREENTIME_APP_FILTER_MODE, filter.mode.name)
+            .putStringSet(KEY_SCREENTIME_APP_FILTER_PACKAGES, filter.packages.toSet())
+            .apply()
     }
 
     // ==================== Webhook Logs (Shared) ====================

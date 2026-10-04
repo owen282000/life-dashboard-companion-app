@@ -2,9 +2,13 @@ package com.owen282000.lifedashboard.sync
 
 import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.owen282000.lifedashboard.AppFilterMode
 import com.owen282000.lifedashboard.HealthDataType.STEPS
+import com.owen282000.lifedashboard.ScreenTimeAppFilter
+import com.owen282000.lifedashboard.ScreenTimeManager
 import com.owen282000.lifedashboard.ScreenTimeSyncManager
 import com.owen282000.lifedashboard.WriteBackType
+import com.owen282000.lifedashboard.appPreferences
 import com.owen282000.lifedashboard.harness.AppStateRule
 import com.owen282000.lifedashboard.harness.Conservation
 import com.owen282000.lifedashboard.harness.Hmac
@@ -23,6 +27,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import mockwebserver3.MockResponse
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -83,6 +88,45 @@ class ScreenTimeDeliveryTest {
             assertEquals("Usage stats permission not granted", ScreenTimeSyncManager(context).performSync().exceptionOrNull()?.message)
         } finally {
             ScreenTimeUse.allowUsageAccess()
+        }
+    }
+
+    /**
+     * Issue #63. The app ScreenTimeUse brings to the front (Settings) left out: it is in the
+     * picker's apps, but nowhere in the payload, the day's total still counts it, and the sum of
+     * what is sent goes out next to it. Then only that app: it is all the payload holds.
+     */
+    @Test
+    fun anAppFilteredOutNeverLeavesThePhone() = runBlocking {
+        ScreenTimeUse.ensureToday()
+        TestSetup.screenTime(receiver)
+        val prefs = context.appPreferences()
+        val settings = "com.android.settings"
+        assertTrue("the picker offers what was used", ScreenTimeManager(context, prefs).recentApps().any { it.packageName == settings })
+        try {
+            prefs.setScreenTimeAppFilter(ScreenTimeAppFilter(AppFilterMode.BLOCKLIST, setOf(settings)))
+            ScreenTimeSyncManager(context).performSync().getOrThrow()
+            val blocked = receiver.exchanges.last().text
+            assertEquals(emptyList<String>(), Schema.errors(blocked))
+            assertFalse("the app left out is not in the payload", blocked.contains(settings))
+            val body = Conservation.parse(blocked)
+            assertEquals("blocklist", body.str("app_filter"))
+            body.arr("screen_time").orEmpty().map { it as JsonObject }.forEach { day ->
+                val filtered = day.num("filtered_screen_time_minutes")!!.toLong()
+                assertTrue("the total counts every app", day.num("total_screen_time_minutes")!!.toLong() >= filtered)
+                // Each app's minutes are rounded down on their own, so their sum can fall short by one per app.
+                val apps = day.arr("apps").orEmpty().map { (it as JsonObject).num("minutes")!!.toLong() }
+                assertTrue("the sum of what is sent: $filtered vs $apps", filtered in apps.sum()..(apps.sum() + apps.size))
+            }
+
+            prefs.setScreenTimeAppFilter(ScreenTimeAppFilter(AppFilterMode.ALLOWLIST, setOf(settings)))
+            ScreenTimeSyncManager(context).performSync().getOrThrow()
+            val only = Conservation.parse(receiver.exchanges.last().text)
+            assertEquals("allowlist", only.str("app_filter"))
+            val packages = only.arr("screen_time").orEmpty().flatMap { (it as JsonObject).arr("apps").orEmpty() }.map { (it as JsonObject).str("package") }.toSet()
+            assertEquals(setOf(settings), packages)
+        } finally {
+            prefs.setScreenTimeAppFilter(ScreenTimeAppFilter.ALL)
         }
     }
 

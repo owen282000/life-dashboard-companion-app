@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.owen282000.lifedashboard.AppChoice
+import com.owen282000.lifedashboard.AppFilterMode
 import com.owen282000.lifedashboard.FailureReason
 import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
@@ -41,7 +43,9 @@ data class ScreenTimeUiState(
     val previewData: String? = null,
     val exportJson: String? = null,
     /** Bumped after a manual sync so the dashboard card reloads. */
-    val refreshKey: Int = 0
+    val refreshKey: Int = 0,
+    /** What the app filter's picker offers; null until it has been loaded. */
+    val appChoices: List<AppChoice>? = null
 ) {
     val hasChanges: Boolean get() = draft.differsFrom(saved)
     val canSync: Boolean get() = !isSyncing && draft.hasDestination && hasUsageAccess
@@ -63,6 +67,11 @@ interface ScreenTimeActions {
     fun setPhoneName(name: String)
     fun setFailureNotifications(enabled: Boolean)
     fun setFailureThreshold(threshold: Int)
+    fun setAppFilterMode(mode: AppFilterMode)
+    fun toggleFilteredApp(packageName: String)
+
+    /** Loads what the app filter's picker offers, once; the list is built from usage statistics. */
+    fun loadAppChoices()
     fun save()
 
     /** See HealthActions.reloadFromSettings: for changes made outside this screen. */
@@ -106,6 +115,21 @@ class ScreenTimeViewModel(
     val openUsageAccess: SharedFlow<Unit> = _openUsageAccess.asSharedFlow()
 
     private fun editDraft(transform: (ScreenTimeDraft) -> ScreenTimeDraft) = _state.update { it.copy(draft = transform(it.draft)) }
+
+    override fun setAppFilterMode(mode: AppFilterMode) = editDraft { it.copy(appFilter = it.appFilter.copy(mode = mode)) }
+
+    override fun toggleFilteredApp(packageName: String) = editDraft {
+        val packages = it.appFilter.packages
+        it.copy(appFilter = it.appFilter.copy(packages = if (packageName in packages) packages - packageName else packages + packageName))
+    }
+
+    override fun loadAppChoices() {
+        if (_state.value.appChoices != null) return
+        viewModelScope.launch {
+            val choices = ops.appChoices(_state.value.draft.appFilter.packages)
+            _state.update { it.copy(appChoices = choices) }
+        }
+    }
     private fun editWebhook(transform: (WebhookDraft) -> WebhookDraft) = editDraft { it.copy(webhook = transform(it.webhook)) }
 
     /** Usage access is granted in system settings, so the screen polls this while visible. */

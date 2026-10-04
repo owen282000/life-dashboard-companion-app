@@ -629,4 +629,31 @@
     <string name="widget_no_syncs">Noch keine Syncs</string>
     <string name="widget_last_sync_succeeded">Letzte Synchronisierung erfolgreich</string>
     <string name="widget_last_sync_failed">Letzte Synchronisierung fehlgeschlagen</string>
+    <!-- Screen Time: which apps are sent (issue #63) -->
+    <string name="screentime_apps_title">Welche Apps</string>
+    <string name="screentime_apps_all">Alle Apps</string>
+    <plurals name="screentime_apps_all_except">
+        <item quantity="one">Alle Apps außer %d</item>
+        <item quantity="other">Alle Apps außer %d</item>
+    </plurals>
+    <plurals name="screentime_apps_only">
+        <item quantity="one">Nur %d App</item>
+        <item quantity="other">Nur %d Apps</item>
+    </plurals>
+    <string name="screentime_apps_mode_all">Alle</string>
+    <string name="screentime_apps_mode_except">Alle außer</string>
+    <string name="screentime_apps_mode_only">Nur</string>
+    <string name="screentime_apps_description_all">Jede App wird gesendet, wie bisher. System-UI und der Launcher bleiben immer außen vor.</string>
+    <string name="screentime_apps_description_except">Die Apps, die du ankreuzt, werden nie gesendet: nicht an deinen Webhook und nicht an Home Assistant. Jeder Tag zählt in total_screen_time_minutes weiterhin alle Apps; die gesendeten Apps ergeben zusammen filtered_screen_time_minutes.</string>
+    <string name="screentime_apps_description_only">Nur die Apps, die du ankreuzt, werden gesendet, an deinen Webhook und an Home Assistant. Jeder Tag zählt in total_screen_time_minutes weiterhin alle Apps; die gesendeten Apps ergeben zusammen filtered_screen_time_minutes.</string>
+    <string name="screentime_apps_history_warning">Jede Synchronisierung sendet die letzten sieben Tage erneut, eine Änderung hier ändert also auch diese Tage auf deinem Server und in Home Assistant.</string>
+    <string name="screentime_apps_none_chosen">Keine App angekreuzt: nur die Tagessummen werden gesendet.</string>
+    <string name="screentime_apps_loading">Die Apps, die du genutzt hast, werden gesucht…</string>
+    <string name="screentime_apps_none_used">Keine App länger als eine Minute genutzt in den letzten 30 Tagen.</string>
+    <string name="screentime_apps_search">Apps suchen</string>
+    <string name="screentime_apps_not_used">In den letzten 30 Tagen nicht genutzt</string>
+    <plurals name="screentime_apps_minutes_month">
+        <item quantity="one">%d Minute in den letzten 30 Tagen</item>
+        <item quantity="other">%d Minuten in den letzten 30 Tagen</item>
+    </plurals>
 </resources>

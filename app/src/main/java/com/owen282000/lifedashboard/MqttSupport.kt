@@ -251,32 +251,44 @@ object MqttSupport {
      * Screen time sensors (issue #52): today's and yesterday's total minutes plus today's most
      * used app. "Today" is the newest day in the list, which follows the configured day
      * boundary. Per-app detail travels as attributes; the top app is a text sensor.
+     *
+     * With an app filter on (issue #63) the sensors follow it: the minutes are those of the
+     * apps that are sent, the top app is the most used one among them, and the real total of
+     * every app is an attribute, `all_apps_minutes`, so a dashboard can show both.
      */
     fun sensorsFromScreenTime(days: List<ScreenTimeData>): List<MqttSensor> {
         val today = days.maxByOrNull { it.date } ?: return emptyList()
         val yesterday = days.firstOrNull { it.date == today.date.minusDays(1) }
 
+        fun minutes(day: ScreenTimeData) = ((day.filteredScreenTimeMs ?: day.totalScreenTimeMs) / 60000).toString()
         fun dayAttrs(day: ScreenTimeData): Map<String, String> = buildMap {
             put("date", day.date.toString())
             put("app_count", day.apps.size.toString())
             put("top_apps", day.apps.sortedByDescending { it.totalTimeMs }.take(5)
                 .joinToString(", ") { "${it.appName} (${it.totalTimeMs / 60000} min)" })
+            if (day.filteredScreenTimeMs != null) put("all_apps_minutes", (day.totalScreenTimeMs / 60000).toString())
         }
 
         val sensors = mutableListOf<MqttSensor>()
         sensors += MqttSensor("screen_time_today", "Screen Time Today",
-            (today.totalScreenTimeMs / 60000).toString(), "min", "duration", dayAttrs(today))
+            minutes(today), "min", "duration", dayAttrs(today))
         yesterday?.let {
             sensors += MqttSensor("screen_time_yesterday", "Screen Time Yesterday",
-                (it.totalScreenTimeMs / 60000).toString(), "min", "duration", dayAttrs(it))
+                minutes(it), "min", "duration", dayAttrs(it))
         }
-        today.apps.maxByOrNull { it.totalTimeMs }?.let {
-            sensors += MqttSensor("screen_time_top_app", "Screen Time Top App Today", it.appName,
+        val top = today.apps.maxByOrNull { it.totalTimeMs }
+        if (top != null) {
+            sensors += MqttSensor("screen_time_top_app", "Screen Time Top App Today", top.appName,
                 null, null, mapOf(
-                    "package" to it.packageName,
-                    "minutes" to (it.totalTimeMs / 60000).toString(),
+                    "package" to top.packageName,
+                    "minutes" to (top.totalTimeMs / 60000).toString(),
                     "date" to today.date.toString()
                 ), stateClass = null)
+        } else if (today.filteredScreenTimeMs != null) {
+            // Every app of today was filtered out. The broker keeps the last top app otherwise
+            // (mergeSensors), which may be one the user has just left out.
+            sensors += MqttSensor("screen_time_top_app", "Screen Time Top App Today", NO_TOP_APP,
+                null, null, mapOf("date" to today.date.toString()), stateClass = null)
         }
         return sensors
     }
@@ -311,6 +323,9 @@ object MqttSupport {
      * publish clears them (an empty retained payload on the config topic removes the entity).
      */
     val RETIRED_SENSOR_KEYS: Set<String> = setOf("steps", "distance", "active_calories", "total_calories")
+
+    /** The top app's state when the app filter left no app of today. */
+    const val NO_TOP_APP = "none"
 
     /**
      * Home Assistant MQTT Discovery config payload for a sensor (published retained). With a

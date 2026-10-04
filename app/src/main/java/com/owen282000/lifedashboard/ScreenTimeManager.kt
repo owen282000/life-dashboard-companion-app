@@ -15,8 +15,11 @@ import java.time.ZoneId
 
 data class ScreenTimeData(
     val date: LocalDate,
+    /** Every app's foreground time, also of apps a [ScreenTimeAppFilter] leaves out. */
     val totalScreenTimeMs: Long,
-    val apps: List<AppUsageData>
+    val apps: List<AppUsageData>,
+    /** The sum of [apps] once a filter is on; null without one (see [ScreenTimeAppFilter.apply]). */
+    val filteredScreenTimeMs: Long? = null
 )
 
 data class AppUsageData(
@@ -187,6 +190,28 @@ class ScreenTimeManager(
     }
 
     /**
+     * The apps the picker for [ScreenTimeAppFilter] offers: every app in the foreground for more
+     * than a minute over the last [days], most used first, with System UI and the launcher left
+     * out as everywhere else. Only what the usage statistics report, so it needs no wider
+     * package visibility (see [getAppName]).
+     */
+    fun recentApps(days: Int = PICKER_DAYS): List<AppChoice> {
+        if (!hasPermission()) return emptyList()
+        return try {
+            val now = System.currentTimeMillis()
+            usageStatsManager.queryAndAggregateUsageStats(now - days * 24L * 60 * 60 * 1000, now)
+                .filter { (packageName, stats) -> packageName !in excludedPackages && stats.totalTimeInForeground > 60000 }
+                .map { (packageName, stats) -> AppChoice(packageName, getAppName(packageName), stats.totalTimeInForeground / 60000) }
+                .sortedByDescending { it.minutes }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    /** A display name for [packageName], resolved as for the payload. */
+    fun appName(packageName: String): String = getAppName(packageName)
+
+    /**
      * Resolves a display name for a package that UsageStatsManager already reported.
      *
      * Do NOT add `QUERY_ALL_PACKAGES` or widen the manifest's `<queries>` to make this easier.
@@ -218,6 +243,9 @@ class ScreenTimeManager(
 
     companion object {
         const val LOOKBACK_DAYS = 7
+
+        /** How far back the app picker looks for apps that were used. */
+        const val PICKER_DAYS = 30
 
         private val GENERIC_SEGMENTS = setOf("android", "app", "apps", "mobile", "client", "main", "release", "prod", "free", "pro", "lite")
 

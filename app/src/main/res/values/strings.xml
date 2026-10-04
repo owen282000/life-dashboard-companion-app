@@ -632,4 +632,31 @@
     <string name="widget_no_syncs">No syncs yet</string>
     <string name="widget_last_sync_succeeded">Last sync succeeded</string>
     <string name="widget_last_sync_failed">Last sync failed</string>
+    <!-- Screen Time: which apps are sent (issue #63) -->
+    <string name="screentime_apps_title">Apps to send</string>
+    <string name="screentime_apps_all">All apps</string>
+    <plurals name="screentime_apps_all_except">
+        <item quantity="one">All apps except %d</item>
+        <item quantity="other">All apps except %d</item>
+    </plurals>
+    <plurals name="screentime_apps_only">
+        <item quantity="one">Only %d app</item>
+        <item quantity="other">Only %d apps</item>
+    </plurals>
+    <string name="screentime_apps_mode_all">All</string>
+    <string name="screentime_apps_mode_except">All except</string>
+    <string name="screentime_apps_mode_only">Only</string>
+    <string name="screentime_apps_description_all">Every app goes out, as before. System UI and the launcher are always left out.</string>
+    <string name="screentime_apps_description_except">The apps you tick are never sent: not to your webhook and not to Home Assistant. Each day still counts every app in total_screen_time_minutes; the apps that are sent add up to filtered_screen_time_minutes.</string>
+    <string name="screentime_apps_description_only">Only the apps you tick are sent, to your webhook and to Home Assistant. Each day still counts every app in total_screen_time_minutes; the apps that are sent add up to filtered_screen_time_minutes.</string>
+    <string name="screentime_apps_history_warning">Every sync sends the last seven days again, so a change here also changes those days on your server and in Home Assistant.</string>
+    <string name="screentime_apps_none_chosen">No app ticked: only the day totals go out.</string>
+    <string name="screentime_apps_loading">Looking up the apps you used…</string>
+    <string name="screentime_apps_none_used">No apps used for more than a minute in the last 30 days.</string>
+    <string name="screentime_apps_search">Search apps</string>
+    <string name="screentime_apps_not_used">Not used in the last 30 days</string>
+    <plurals name="screentime_apps_minutes_month">
+        <item quantity="one">%d minute in the last 30 days</item>
+        <item quantity="other">%d minutes in the last 30 days</item>
+    </plurals>
 </resources>

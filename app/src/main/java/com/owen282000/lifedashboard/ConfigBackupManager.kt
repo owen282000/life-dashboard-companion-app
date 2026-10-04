@@ -58,6 +58,7 @@ class ConfigBackupManager(private val context: Context) {
                 keepFullPayloads = prefs.keepFullPayloads(),
                 screenTimeDayBoundaryHour = prefs.getScreenTimeDayBoundaryHour(),
                 screenTimeUseDayBoundary = prefs.useScreenTimeDayBoundary(),
+                screenTimeAppFilter = AppFilterConfig.from(prefs.getScreenTimeAppFilter()),
                 failureNotificationThreshold = SyncFailureNotifier.getThreshold(context),
                 seriesResolutions = prefs.getSeriesResolutions()
                     .filterValues { it != DEFAULT_RESOLUTION }
@@ -139,6 +140,7 @@ class ConfigBackupManager(private val context: Context) {
             keepFullPayloads?.let { prefs.setKeepFullPayloads(it) }
             screenTimeDayBoundaryHour?.let { prefs.setScreenTimeDayBoundaryHour(it) }
             screenTimeUseDayBoundary?.let { prefs.setUseScreenTimeDayBoundary(it) }
+            screenTimeAppFilter?.let { prefs.setScreenTimeAppFilter(it.toFilter()) }
             failureNotificationThreshold?.let { SyncFailureNotifier.setThreshold(context, it) }
             // A backup from before 1.20.0 carries none of these: the phone name, the Receive
             // switches and the source URL (and with it the ledger) stay as they are.

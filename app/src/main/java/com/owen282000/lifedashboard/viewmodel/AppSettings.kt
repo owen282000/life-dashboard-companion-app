@@ -93,7 +93,8 @@ class PreferencesAppSettings(
         ),
         dayBoundaryHour = prefs.getScreenTimeDayBoundaryHour().toString(),
         useDayBoundary = prefs.useScreenTimeDayBoundary(),
-        mqtt = MqttDraft.from(prefs.getMqttSection(MqttSection.SCREEN_TIME), prefs.getSharedMqttBroker())
+        mqtt = MqttDraft.from(prefs.getMqttSection(MqttSection.SCREEN_TIME), prefs.getSharedMqttBroker()),
+        appFilter = prefs.getScreenTimeAppFilter()
     )
 
     override fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int) {
@@ -101,6 +102,7 @@ class PreferencesAppSettings(
         prefs.setScreenTimeWebhookUrls(draft.webhook.urls)
         prefs.setScreenTimeDayBoundaryHour(dayBoundaryHour)
         prefs.setUseScreenTimeDayBoundary(draft.useDayBoundary)
+        prefs.setScreenTimeAppFilter(draft.appFilter)
         prefs.setScreenTimeWebhookHeaders(draft.webhook.headers)
         prefs.setScreenTimeUrlsWithoutHeaders(draft.webhook.urlsWithoutHeaders)
         prefs.setScreenTimeWebhookSecret(draft.webhook.secret.trim())

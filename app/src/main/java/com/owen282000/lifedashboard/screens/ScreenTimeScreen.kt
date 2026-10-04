@@ -101,6 +101,7 @@ fun ScreenTimeContent(
     var mqttExpanded by remember { mutableStateOf(false) }
     var advancedExpanded by remember { mutableStateOf(false) }
     var notificationsExpanded by remember { mutableStateOf(false) }
+    var appsExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -166,6 +167,19 @@ fun ScreenTimeContent(
                 expanded = scheduleExpanded,
                 onToggle = { scheduleExpanded = !scheduleExpanded },
                 onChange = actions::setSchedule
+            )
+        }
+
+        GroupCard {
+            AppFilterRow(
+                accent = accent,
+                filter = draft.appFilter,
+                choices = state.appChoices,
+                expanded = appsExpanded,
+                onToggle = { appsExpanded = !appsExpanded },
+                onModeChange = actions::setAppFilterMode,
+                onToggleApp = actions::toggleFilteredApp,
+                onLoadChoices = actions::loadAppChoices
             )
         }
 

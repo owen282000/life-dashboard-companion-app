@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard.viewmodel
 
+import com.owen282000.lifedashboard.AppChoice
 import com.owen282000.lifedashboard.BackfillJob
 import com.owen282000.lifedashboard.BackfillStart
 import com.owen282000.lifedashboard.BackfillStatus
@@ -127,9 +128,12 @@ internal class FakeScreenTimeOps(
     var usageAccess: Boolean = true,
     var syncResult: Result<ScreenTimeSyncResult> = Result.success(ScreenTimeSyncResult.Success(appCount = 5, dayCount = 1)),
     var previewResult: Result<String> = Result.success("{}"),
-    var pingResult: Result<Unit> = Result.success(Unit)
+    var pingResult: Result<Unit> = Result.success(Unit),
+    var choices: List<AppChoice> = emptyList()
 ) : ScreenTimeOps {
     var syncs = 0
+    var choiceLoads = 0
+    override suspend fun appChoices(listed: Set<String>): List<AppChoice> { choiceLoads++; return choices }
     override fun hasUsageAccess() = usageAccess
     override suspend fun sync(): Result<ScreenTimeSyncResult> { syncs++; return syncResult }
     override suspend fun preview() = previewResult

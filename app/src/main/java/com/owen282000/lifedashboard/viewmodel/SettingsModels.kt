@@ -5,6 +5,7 @@ import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.MqttBroker
 import com.owen282000.lifedashboard.MqttSectionSettings
 import com.owen282000.lifedashboard.QuietWindow
+import com.owen282000.lifedashboard.ScreenTimeAppFilter
 import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.SyncMode
 import com.owen282000.lifedashboard.SyncSchedule
@@ -140,7 +141,9 @@ data class ScreenTimeDraft(
     val dayBoundaryHour: String,
     val useDayBoundary: Boolean,
     val mqtt: MqttDraft,
-    val schedule: ScheduleDraft = ScheduleDraft()
+    val schedule: ScheduleDraft = ScheduleDraft(),
+    /** Which apps are sent (issue #63). */
+    val appFilter: ScreenTimeAppFilter = ScreenTimeAppFilter.ALL
 ) {
     val hasDestination: Boolean get() = webhook.urls.isNotEmpty() || mqtt.section.enabled
 
@@ -150,6 +153,7 @@ data class ScreenTimeDraft(
         return hour != saved.dayBoundaryHour.toIntOrNull() ||
             useDayBoundary != saved.useDayBoundary ||
             webhook != saved.webhook ||
+            appFilter != saved.appFilter ||
             scheduleDiffers(schedule, saved.schedule) ||
             mqtt.withPort().let { it.section to it.sharedBroker } != saved.mqtt.withPort().let { it.section to it.sharedBroker }
     }

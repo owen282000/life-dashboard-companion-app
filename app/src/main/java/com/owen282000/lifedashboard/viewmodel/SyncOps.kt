@@ -2,6 +2,7 @@ package com.owen282000.lifedashboard.viewmodel
 
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
+import com.owen282000.lifedashboard.AppChoice
 import com.owen282000.lifedashboard.BackfillJob
 import com.owen282000.lifedashboard.BackfillStart
 import com.owen282000.lifedashboard.BackfillStatus
@@ -16,7 +17,9 @@ import com.owen282000.lifedashboard.ScreenTimeSyncManager
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
 import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.WriteBackType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 
 /*
  * The side effects the tabs trigger (sync, preview, backfill, test ping, permission checks),
@@ -51,6 +54,13 @@ interface ScreenTimeOps {
     suspend fun sync(): Result<ScreenTimeSyncResult>
     suspend fun preview(): Result<String>
     suspend fun testPing(webhook: WebhookDraft): Result<Unit>
+
+    /**
+     * The apps the app filter's picker offers: the ones used over the last month, most used
+     * first, then the ones in [listed] that were not used, by name, so a chosen app stays
+     * visible and can be taken off the list again.
+     */
+    suspend fun appChoices(listed: Set<String>): List<AppChoice>
 }
 
 class RealHealthOps(private val context: Context) : HealthOps {
@@ -94,4 +104,11 @@ class RealScreenTimeOps(private val context: Context, private val prefs: Prefere
 
     override suspend fun testPing(webhook: WebhookDraft): Result<Unit> =
         TestPing.send(context, webhook.urls, webhook.secret, LogType.SCREEN_TIME, webhook.headers, webhook.urlsWithoutHeaders)
+
+    override suspend fun appChoices(listed: Set<String>): List<AppChoice> = withContext(Dispatchers.IO) {
+        val manager = ScreenTimeManager(context, prefs)
+        val used = manager.recentApps()
+        val known = used.map { it.packageName }.toSet()
+        used + (listed - known).map { AppChoice(it, manager.appName(it), 0) }.sortedBy { it.name.lowercase() }
+    }
 }

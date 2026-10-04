@@ -1848,6 +1848,11 @@
         "additionalProperties": true
       }
     },
+    "app_filter": {
+      "type": "string",
+      "enum": ["blocklist", "allowlist"],
+      "description": "Screen Time payloads only, and only with an app filter on: the apps array of each day is a selection, and filtered_screen_time_minutes its sum"
+    },
     "screen_time": {
       "type": "array",
       "items": {
@@ -1858,7 +1863,12 @@
             "format": "date"
           },
           "total_screen_time_minutes": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Every app's foreground minutes, also of apps an app filter leaves out"
+          },
+          "filtered_screen_time_minutes": {
+            "type": "integer",
+            "description": "The minutes of the apps in this day's apps array; only when an app filter is on (app_filter)"
           }
         },
         "required": [

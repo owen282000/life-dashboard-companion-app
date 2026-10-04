@@ -1,5 +1,8 @@
 package com.owen282000.lifedashboard.viewmodel
 
+import com.owen282000.lifedashboard.AppChoice
+import com.owen282000.lifedashboard.AppFilterMode
+import com.owen282000.lifedashboard.ScreenTimeAppFilter
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,6 +52,42 @@ class ScreenTimeViewModelTest {
         assertEquals("5", settings.screenTime.dayBoundaryHour)
         assertFalse(vm.state.value.hasChanges)
         job.cancel()
+    }
+
+    @Test
+    fun `choosing apps to leave out is a change, and saving keeps the list`() = runTest {
+        val settings = FakeAppSettings()
+        val vm = vm(settings)
+        vm.addUrl("https://example.org/hook")
+        vm.setAppFilterMode(AppFilterMode.BLOCKLIST)
+        vm.toggleFilteredApp("com.google.android.youtube")
+        vm.toggleFilteredApp("com.whatsapp")
+        vm.toggleFilteredApp("com.whatsapp")
+        assertTrue(vm.state.value.hasChanges)
+        vm.save()
+        assertEquals(ScreenTimeAppFilter(AppFilterMode.BLOCKLIST, setOf("com.google.android.youtube")), settings.screenTime.appFilter)
+        assertFalse(vm.state.value.hasChanges)
+    }
+
+    @Test
+    fun `switching back to all apps keeps the list for next time`() {
+        val vm = vm()
+        vm.setAppFilterMode(AppFilterMode.ALLOWLIST)
+        vm.toggleFilteredApp("com.whatsapp")
+        vm.setAppFilterMode(AppFilterMode.ALL)
+        assertEquals(setOf("com.whatsapp"), vm.state.value.draft.appFilter.packages)
+        assertFalse(vm.state.value.draft.appFilter.active)
+    }
+
+    @Test
+    fun `the picker's apps are loaded once`() = runTest {
+        val ops = FakeScreenTimeOps(choices = listOf(AppChoice("com.whatsapp", "WhatsApp", 120)))
+        val vm = vm(ops = ops)
+        assertNull(vm.state.value.appChoices)
+        vm.loadAppChoices()
+        vm.loadAppChoices()
+        assertEquals(listOf("WhatsApp"), vm.state.value.appChoices?.map { it.name })
+        assertEquals(1, ops.choiceLoads)
     }
 
     @Test

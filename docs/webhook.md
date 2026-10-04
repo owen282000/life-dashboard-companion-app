@@ -428,6 +428,31 @@ Every payload ends with a `_diagnostics` object with one entry per enabled type,
 
 Minutes are foreground time per app, derived from Android's activity resume, pause and stop events; background time is not counted. A session also ends on screen off, keyguard and shutdown, System UI and the launcher are excluded, and apps with under one minute per day are omitted, so totals are comparable to Digital Wellbeing (with a custom day boundary they will not match its midnight day exactly). Every sync recomputes and re-sends the last 7 days from the device's event log, so store per date and let the newest payload win for that date. The newest week that failed waits in the outbox and can arrive after a newer one, so the newest is the one with the highest `sequence`, not the one that arrived last (see [Deletions](#deletions) for the counter): store with each date the `sequence` of the payload that wrote it, and apply a day only from a payload with a higher one. Do not ignore a late week as a whole: its oldest date may be one that no newer week covers any more.
 
+### Which apps are sent
+
+Under **Which apps** on the Screen Time tab the user can leave apps out (**All except**) or send only a few (**Only**); by default every app goes out, as before. An app that is filtered out never leaves the phone: it is not in `apps`, not on MQTT and not in the `top_apps` of the Home Assistant sensors, and its name is not in the payload in any form. With a filter on, the payload says so and each day carries one more figure:
+
+```json
+{
+  "source": "screen_time",
+  "app_filter": "blocklist",
+  "screen_time": [
+    {
+      "date": "2025-02-05",
+      "total_screen_time_minutes": 180,
+      "filtered_screen_time_minutes": 135,
+      "apps": [ ... ]
+    }
+  ]
+}
+```
+
+- `app_filter` is `blocklist` or `allowlist`, and absent without a filter.
+- `total_screen_time_minutes` still counts every app, so a stored figure keeps meaning screen time; with a filter the apps no longer add up to it.
+- `filtered_screen_time_minutes` is the time of the apps that are sent, absent without a filter. A day whose apps were all filtered out still comes, with its total, no apps and 0 here.
+
+The Home Assistant sensors follow the filter: the MQTT sensors and the [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) show the time of the apps that are sent, with the real total as the attribute `all_apps_minutes`, and the most used app among those, or `none` when the filter left no app of today. Every sync re-sends the last seven days, so changing the list changes those days on a receiver too: apps sent before disappear from days it already stored. The app says so next to the list.
+
 ## Test ping
 
 **Test ping** on either tab, **Send Test Ping** in the setup wizard, and every QR pairing (right after it is applied, to the paired address with the paired secret) send one small payload with no records in it:

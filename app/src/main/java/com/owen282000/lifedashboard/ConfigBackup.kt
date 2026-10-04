@@ -282,6 +282,19 @@ data class MqttConfig(
  * the file does not have leaves its setting alone: a file from the iPhone app has no full
  * payloads switch and no day boundary.
  */
+/** The Screen Time app filter: a mode name (ALL, BLOCKLIST, ALLOWLIST) and package names. */
+@Serializable
+data class AppFilterConfig(
+    @SerialName("mode") val mode: String,
+    @SerialName("packages") val packages: List<String> = emptyList()
+) {
+    fun toFilter() = ScreenTimeAppFilter(AppFilterMode.from(mode), packages.toSet())
+
+    companion object {
+        fun from(filter: ScreenTimeAppFilter) = AppFilterConfig(filter.mode.name, filter.packages.sorted())
+    }
+}
+
 @Serializable
 data class OptionsConfig(
     @SerialName("enabled_data_types") val enabledDataTypes: List<String>? = null,
@@ -290,6 +303,8 @@ data class OptionsConfig(
     @SerialName("keep_full_payloads") val keepFullPayloads: Boolean? = null,
     @SerialName("screen_time_day_boundary_hour") val screenTimeDayBoundaryHour: Int? = null,
     @SerialName("screen_time_use_day_boundary") val screenTimeUseDayBoundary: Boolean? = null,
+    /** Which apps Screen Time sends (issue #63); absent in older backups and in the iPhone's. */
+    @SerialName("screen_time_app_filter") val screenTimeAppFilter: AppFilterConfig? = null,
     @SerialName("failure_notification_threshold") val failureNotificationThreshold: Int? = null,
     /** Type name to resolution name, only for types not at raw; absent in older backups. */
     @SerialName("series_resolutions") val seriesResolutions: Map<String, String>? = null,

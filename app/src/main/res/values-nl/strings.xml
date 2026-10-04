@@ -629,4 +629,31 @@
     <string name="widget_no_syncs">Nog geen syncs</string>
     <string name="widget_last_sync_succeeded">Laatste sync gelukt</string>
     <string name="widget_last_sync_failed">Laatste sync mislukt</string>
+    <!-- Screen Time: which apps are sent (issue #63) -->
+    <string name="screentime_apps_title">Welke apps</string>
+    <string name="screentime_apps_all">Alle apps</string>
+    <plurals name="screentime_apps_all_except">
+        <item quantity="one">Alle apps behalve %d</item>
+        <item quantity="other">Alle apps behalve %d</item>
+    </plurals>
+    <plurals name="screentime_apps_only">
+        <item quantity="one">Alleen %d app</item>
+        <item quantity="other">Alleen %d apps</item>
+    </plurals>
+    <string name="screentime_apps_mode_all">Alle</string>
+    <string name="screentime_apps_mode_except">Alle behalve</string>
+    <string name="screentime_apps_mode_only">Alleen</string>
+    <string name="screentime_apps_description_all">Elke app gaat mee, zoals altijd. Systeem-UI en het startscherm blijven altijd buiten.</string>
+    <string name="screentime_apps_description_except">De apps die je aanvinkt worden nooit verstuurd: niet naar je webhook en niet naar Home Assistant. Elke dag telt in total_screen_time_minutes nog steeds alle apps; de apps die wel meegaan tellen op tot filtered_screen_time_minutes.</string>
+    <string name="screentime_apps_description_only">Alleen de apps die je aanvinkt worden verstuurd, naar je webhook en naar Home Assistant. Elke dag telt in total_screen_time_minutes nog steeds alle apps; de apps die meegaan tellen op tot filtered_screen_time_minutes.</string>
+    <string name="screentime_apps_history_warning">Elke sync stuurt de laatste zeven dagen opnieuw, dus een wijziging hier verandert die dagen ook op je server en in Home Assistant.</string>
+    <string name="screentime_apps_none_chosen">Geen app aangevinkt: alleen de dagtotalen gaan mee.</string>
+    <string name="screentime_apps_loading">De apps die je gebruikte worden opgezocht…</string>
+    <string name="screentime_apps_none_used">Geen apps langer dan een minuut gebruikt in de afgelopen 30 dagen.</string>
+    <string name="screentime_apps_search">Apps zoeken</string>
+    <string name="screentime_apps_not_used">Niet gebruikt in de afgelopen 30 dagen</string>
+    <plurals name="screentime_apps_minutes_month">
+        <item quantity="one">%d minuut in de afgelopen 30 dagen</item>
+        <item quantity="other">%d minuten in de afgelopen 30 dagen</item>
+    </plurals>
 </resources>

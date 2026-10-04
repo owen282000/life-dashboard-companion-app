@@ -19,6 +19,7 @@ Webhook auth headers, HMAC signing secrets and MQTT passwords are stored encrypt
 | Daily totals, plain HTTP, full payloads, day boundary, failure threshold | The Receive ledger (which readings were written, and their Health Connect ids) |
 | Receive: the switch, the types, "Accept older measurements" and the source URL | |
 | Phone name (MQTT) | |
+| Screen Time: which apps are sent (the mode and the list) | |
 
 Sync state is left out on purpose. Those watermarks describe how far *this* install has read from Health Connect; restoring them on another device would make the next sync skip everything written before the imported timestamp. After an import the new device syncs from its own starting point. The Receive ledger stays behind for the same reason: on a new phone the integration offers again what was not acknowledged, and since every reading is an upsert on its own id that is harmless. The write permissions are Android's and are asked for again per type.
 
@@ -78,6 +79,7 @@ Plain exports are readable JSON:
     "include_daily_totals": true,
     "allow_http_webhooks": false,
     "phone_name": "Pixel 8",
+    "screen_time_app_filter": { "mode": "BLOCKLIST", "packages": ["com.google.android.youtube"] },
     "receive_enabled": true,
     "receive_types": ["weight", "blood_pressure"],
     "receive_older_measurements": false,
@@ -87,6 +89,8 @@ Plain exports are readable JSON:
 ```
 
 `urls_without_headers` lists the webhook URLs of that section that QR pairing added, which get none of its custom headers. A backup written before this list existed has none, and imports as it always did: the app sent the headers to every URL then.
+
+`screen_time_app_filter` holds which apps Screen Time sends: `mode` is `ALL`, `BLOCKLIST` (every app but the listed ones) or `ALLOWLIST` (only the listed ones), and `packages` the list, which is kept with `ALL` too. A backup from before the filter existed has none, and importing it leaves the filter as it is. The package names are in the file in plain text, also in a backup without secrets: they say which apps you chose to leave out or to send.
 
 `receive_source_url` is only applied when it is one of the phone's health webhook URLs after the import: the file's own when it has `webhook_urls`, otherwise the ones already on the phone. Any other URL clears the source. A backup written before 1.20.0 has none of the `phone_name` and `receive_*` keys, and importing it leaves the phone name, the Receive switches and the ledger as they are.
 
@@ -114,7 +118,7 @@ The iteration count comes from the file, so it is bounded: a file asking for few
 
 The [iOS app](https://github.com/owen282000/life-dashboard-companion-app-ios) writes the same format and encrypts it the same way, so a file moves between the two apps in either direction. Its files carry `"platform": "ios"`, which this app does not write but reads to tell the two apart, and `failure_notifications_enabled`, the failure notification switch, which this app has too but does not back up yet. This app ignores that one, like any key it does not know, so its own switch stays as it is.
 
-An iPhone file has no Screen Time section, no Screen Time MQTT keys and none of the Android-only options (full payloads, the day boundary, resolutions, Receive). Like any key a file leaves out, they keep the values on the phone, so importing one on a phone that also syncs Screen Time leaves that setup as it is. The preview says so.
+An iPhone file has no Screen Time section, no Screen Time MQTT keys and none of the Android-only options (full payloads, the day boundary, the Screen Time app filter, resolutions, Receive). Like any key a file leaves out, they keep the values on the phone, so importing one on a phone that also syncs Screen Time leaves that setup as it is. The preview says so.
 
 Two values in an iPhone file name the iPhone, and this app does not take them over, the way the iPhone app treats a file from here:
 

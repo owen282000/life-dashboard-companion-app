@@ -33,6 +33,7 @@ What individual source apps do and do not write is collected in [DATA_SOURCES.md
 - **Configurable day boundary** for night owls: set the boundary to 4 AM and phone usage between midnight and 4 AM counts towards the previous day, instead of an arbitrary midnight cutoff
 - Syncs the last 7 days of usage data
 - App names resolved from package names
+- **Choose which apps are sent**: leave some out, or send only a few. An app left out never leaves the phone, the day's real total stays, and the time of the apps that are sent goes out as its own figure
 
 ## Webhook configuration
 
