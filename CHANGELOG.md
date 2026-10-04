@@ -32,12 +32,13 @@ All notable changes to this project are documented in this file. The format is b
 
 - Auth headers, signing secrets and MQTT passwords are stored with AES-256-GCM and a key the
   Android Keystore holds, in place of the deprecated security-crypto library. The first start
-  after the update moves them over in one step, so nothing has to be entered again, and checks
-  them before using the new store; the old file stays for one more release. Secrets are still
-  never kept unencrypted: when the Keystore cannot be used they are not read or saved, as
-  before, and the next start tries again. New is what happens when they cannot be recovered
-  (the key is gone, or the Keystore stayed unusable for a day of tries): the app says so and
-  asks for them again, where it used to drop every secret typed in until it was reinstalled.
+  after the update moves them over in one step, so nothing has to be entered again, reads them
+  back, and only then deletes the old file, so a secret changed later cannot come back from it.
+  Secrets are still never kept unencrypted: when the Keystore cannot be used they are not read
+  or saved, as before, and the next start tries again, however long that lasts. New is what
+  happens when they cannot be recovered (the key itself is gone or broken on three separate
+  boots, or the old file stayed unreadable): the app says so and asks for them again, where it
+  used to drop every secret typed in until it was reinstalled.
 
 ### Fixed
 

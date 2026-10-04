@@ -73,6 +73,9 @@ interface ScreenTimeActions {
 
     /** Loads what the app filter's picker offers, once; the list is built from usage statistics. */
     fun loadAppChoices()
+
+    /** See HealthActions.dismissSecretsLost. */
+    fun dismissSecretsLost()
     fun save()
 
     /** See HealthActions.reloadFromSettings: for changes made outside this screen. */
@@ -138,6 +141,11 @@ class ScreenTimeViewModel(
     fun refreshUsageAccess() {
         val granted = ops.hasUsageAccess()
         if (granted != _state.value.hasUsageAccess) _state.update { it.copy(hasUsageAccess = granted) }
+    }
+
+    override fun dismissSecretsLost() {
+        settings.dismissSecretsReentry()
+        _state.update { it.copy(secretsNeedReentry = settings.secretsNeedReentry) }
     }
 
     /** See HealthConnectViewModel.refreshSharedSettings: the two settings both tabs show. */

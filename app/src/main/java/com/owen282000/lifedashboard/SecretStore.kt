@@ -2,8 +2,9 @@ package com.owen282000.lifedashboard
 
 import android.content.SharedPreferences
 import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
+import android.security.keystore.UserNotAuthenticatedException
+import java.security.InvalidKeyException
 import java.security.KeyStore
 import java.security.UnrecoverableKeyException
 import java.util.Base64
@@ -39,8 +40,11 @@ class KeystoreCipher private constructor(private val key: SecretKey) : SecretCip
         val cipher = Cipher.getInstance(TRANSFORMATION)
         // The Keystore picks a random IV (randomized encryption is required by default).
         cipher.init(Cipher.ENCRYPT_MODE, key)
+        // Keymaster does not always hand the IV back; a blob without it could never be read again.
+        val iv = cipher.iv
+        check(iv != null && iv.size == IV_BYTES) { "no usable IV" }
         cipher.updateAAD(aad)
-        return cipher.iv + cipher.doFinal(plain)
+        return iv + cipher.doFinal(plain)
     }
 
     override fun decrypt(blob: ByteArray, aad: ByteArray): ByteArray {
@@ -60,9 +64,9 @@ class KeystoreCipher private constructor(private val key: SecretKey) : SecretCip
         /**
          * Opens the key under [alias]. Only when [allowCreate] is a missing key generated: once
          * the store holds values, a key that does not show up is a failure, never a reason to
-         * make a new one over the old. On Android 8 to 11 the Keystore can answer "no such key"
-         * for one that exists when its daemon is busy, and generating then would destroy the
-         * real key. Throws when the Keystore cannot be used.
+         * make a new one over the old. On Android 8 to 11 the Keystore answers "no such key" for
+         * one that exists when its daemon cannot be reached, and generating then would destroy
+         * the real key. Throws when the Keystore cannot be used.
          */
         fun open(alias: String, allowCreate: Boolean): SecretCipher {
             val keyStore = KeyStore.getInstance(PROVIDER).apply { load(null) }
@@ -86,12 +90,36 @@ class KeystoreCipher private constructor(private val key: SecretKey) : SecretCip
 
         /**
          * Whether [e] says the key itself is gone or unusable for good, as opposed to a Keystore
-         * that is busy or briefly unreachable. Only these can ever lead to a new key.
+         * that is busy, unreachable or broken as a whole. Only these can ever lead to a new key.
+         *
+         * Android reports nearly every Keystore failure as an [InvalidKeyException] or an
+         * [UnrecoverableKeyException], a system error or a secure hardware that stopped
+         * answering included, with the Keystore's own error as the cause. A key that is missing
+         * or permanently invalidated comes without that cause. So the cause decides: only an
+         * error about the key itself (not found, corrupted, an invalid blob) counts, and anything
+         * else, an unknown error too, does not, because a new key does not help a Keystore that
+         * fails as a whole, and destroys the old key a later fix would have brought back.
          */
-        fun isDefinitive(e: Throwable): Boolean =
-            e is KeyMissingException || e is UnrecoverableKeyException || e is KeyPermanentlyInvalidatedException ||
-                // An invalid key blob shows only when the cipher is set up, at the first decrypt.
-                e is java.security.InvalidKeyException
+        fun isDefinitive(
+            e: Throwable,
+            isKeystoreError: (Throwable) -> Boolean = { it.javaClass.name == KEYSTORE_ERROR }
+        ): Boolean {
+            if (e is KeyMissingException) return true
+            // Locked or not yet initialised; our key is not bound to either.
+            if (e is UserNotAuthenticatedException) return false
+            if (e !is InvalidKeyException && e !is UnrecoverableKeyException) return false
+            val cause = generateSequence(e.cause) { it.cause }.firstOrNull(isKeystoreError) ?: return true
+            // The message, not the error code: Android 13 and later file an invalid key blob under
+            // a general KeyMint failure, and before 13 the error class is hidden. Every version
+            // starts the message with the same words (13 and later add the code after them).
+            val message = cause.message.orEmpty()
+            return KEY_ERRORS.any { message.startsWith(it) }
+        }
+
+        private const val KEYSTORE_ERROR = "android.security.KeyStoreException"
+
+        /** The Keystore's messages for errors about one key. */
+        private val KEY_ERRORS = listOf("Key not found", "Key blob corrupted", "Invalid key blob", "Key permanently invalidated")
     }
 }
 
@@ -170,7 +198,8 @@ class EncryptedStore(private val backing: SharedPreferences, private val cipher:
     fun seal(key: String, value: String): String =
         PREFIX + ENCODER.encodeToString(cipher.encrypt(value.toByteArray(Charsets.UTF_8), aad(key)))
 
-    private fun open(key: String, stored: String): Opened {
+    /** How [stored], as it would be stored under [key], comes out. */
+    fun open(key: String, stored: String): Opened {
         if (!stored.startsWith(PREFIX)) return Opened.WrongKey
         val blob = try {
             DECODER.decode(stored.substring(PREFIX.length))
@@ -215,6 +244,7 @@ class EncryptedStore(private val backing: SharedPreferences, private val cipher:
         /** The backing editor with every change sealed, or null when sealing failed (nothing is written then). */
         private fun prepare(): SharedPreferences.Editor? {
             var entered = false
+            var removed = false
             val sealed = linkedMapOf<String, String?>()
             if (clearing) {
                 backing.all.keys.filterNot { it.startsWith(INTERNAL_PREFIX) }.forEach { sealed[it] = null }
@@ -222,7 +252,12 @@ class EncryptedStore(private val backing: SharedPreferences, private val cipher:
             for ((key, value) in puts) {
                 if (value.isNullOrBlank()) {
                     // Nothing to keep: but a value that could not be read is not taken for empty.
-                    if (key !in unreadable && backing.contains(key)) sealed[key] = null
+                    if (key !in unreadable && backing.contains(key)) {
+                        // Versions before this one stored empty usernames and "{}" for no headers;
+                        // saving those as empty again removes nothing the user had.
+                        if (!isEmptyValue(getString(key, null))) removed = true
+                        sealed[key] = null
+                    }
                     continue
                 }
                 if (key !in unreadable && value == getString(key, null)) continue
@@ -236,6 +271,9 @@ class EncryptedStore(private val backing: SharedPreferences, private val cipher:
             sealed.forEach { (key, value) -> if (value == null) editor.remove(key) else editor.putString(key, value) }
             // A real secret written means they are being entered again, so the note goes.
             if (entered) editor.remove(NEEDS_REENTRY)
+            // Whatever the user set or removed is theirs now: an old store still waiting to be read
+            // must not put back a secret they removed on purpose.
+            if (entered || removed || clearing) editor.remove(LEGACY_PENDING)
             sealed.forEach { (key, value) ->
                 if (value == null) {
                     cache.remove(key)
@@ -259,9 +297,15 @@ class EncryptedStore(private val backing: SharedPreferences, private val cipher:
         /** Bookkeeping keys in the same file: the migration marker, the probe, the re-entry note, counters. */
         const val INTERNAL_PREFIX = "__"
         const val NEEDS_REENTRY = "__needs_reentry"
+
+        /** An old store that could not be read at the migration and may still fill in; see SecretVaultLogic. */
+        const val LEGACY_PENDING = "__legacy_pending"
         private const val PREFIX = "v1:"
         private val ENCODER = Base64.getEncoder()
         private val DECODER = Base64.getDecoder()
         private fun aad(key: String) = "v1:$key".toByteArray(Charsets.UTF_8)
+
+        /** No value, as far as the user is concerned: nothing, blank, or an empty header map. */
+        private fun isEmptyValue(value: String?) = value.isNullOrBlank() || value.trim() == "{}"
     }
 }

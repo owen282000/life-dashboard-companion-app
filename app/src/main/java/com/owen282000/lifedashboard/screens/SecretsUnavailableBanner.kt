@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -66,10 +68,11 @@ fun SecretsUnavailableBanner(modifier: Modifier = Modifier) {
  * Shown when saved secrets were lost and have to be entered again: the Keystore key that
  * encrypted them is gone (a restore, or a Keystore that stayed broken for a day), or the store
  * of an earlier version could not be read. Unlike [SecretsUnavailableBanner], saving works here,
- * and saving any secret makes it go away.
+ * and saving any secret makes it go away; so does [onDismiss], for a user who has entered what
+ * they still need.
  */
 @Composable
-fun SecretsLostBanner(modifier: Modifier = Modifier) {
+fun SecretsLostBanner(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -92,6 +95,9 @@ fun SecretsLostBanner(modifier: Modifier = Modifier) {
                 color = OnErrorContainer,
                 modifier = Modifier.weight(1f)
             )
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.common_close), tint = OnErrorContainer)
+            }
         }
     }
 }

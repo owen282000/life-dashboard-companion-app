@@ -53,6 +53,7 @@ class SecretStoreTest {
         openCipher = { allowCreate -> KeystoreCipher.open(alias, allowCreate) },
         resetKey = { KeystoreCipher.delete(alias) },
         legacyExists = { legacy && file(legacyName).exists() },
+        legacyHasValues = { SecretVault.holdsSecrets(prefs(legacyName)) },
         openLegacy = { legacyStore() },
         deleteLegacy = { context.deleteSharedPreferences(legacyName) },
         legacyPlainKeys = PreferencesManager.LEGACY_PLAIN_SECRET_KEYS,
@@ -91,6 +92,17 @@ class SecretStoreTest {
     }
 
     @Test
+    fun aSecurityCryptoFileWithoutSecretsIsNotReadAndGoes() {
+        // Opening it is enough for security-crypto to write its own keys into the file.
+        legacyStore().edit().putString("health_webhook_secret", "x").remove("health_webhook_secret").commit()
+        assertTrue(file(legacyName).exists())
+        assertFalse("only its own keys", SecretVault.holdsSecrets(prefs(legacyName)))
+        val opened = logic().open()
+        assertEquals("nothing was lost, so nothing is asked for", SecretState.READY, opened.state)
+        assertFalse(file(legacyName).exists())
+    }
+
+    @Test
     fun theFileOnDiskHoldsNoSecretInPlainText() {
         val opened = logic(legacy = false).open()
         opened.store.edit()
@@ -107,7 +119,8 @@ class SecretStoreTest {
         logic(legacy = false).open().store.edit().putString("health_webhook_secret", "hmac-1").commit()
         KeystoreCipher.delete(alias)
         // A missing key after the migration is a failure, never a reason to make a new one here
-        // and now: on Android 8 to 11 the Keystore says that of keys that exist when it is busy.
+        // and now: on Android 8 to 11 the Keystore says that of keys that exist when it cannot
+        // be reached.
         val reopened = logic(legacy = false).open()
         assertEquals(SecretState.UNAVAILABLE, reopened.state)
         assertTrue(reopened.store is com.owen282000.lifedashboard.InMemoryPrefs)

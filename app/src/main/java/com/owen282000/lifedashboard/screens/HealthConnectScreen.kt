@@ -188,7 +188,7 @@ fun HealthConnectContent(
         // Keystore outage: secrets cannot be read or saved, so say so rather than let
         // syncs fail with unexplained auth errors.
         if (state.secretsUnavailable) SecretsUnavailableBanner()
-        if (state.secretsNeedReentry) SecretsLostBanner()
+        if (state.secretsNeedReentry) SecretsLostBanner(onDismiss = actions::dismissSecretsLost)
 
         GroupCard {
             DataTypesRow(

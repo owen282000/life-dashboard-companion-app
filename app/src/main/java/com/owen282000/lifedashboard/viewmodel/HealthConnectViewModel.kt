@@ -124,6 +124,9 @@ interface HealthActions {
     fun setPhoneName(name: String)
     fun setFailureNotifications(enabled: Boolean)
     fun setFailureThreshold(threshold: Int)
+
+    /** The banner about lost secrets was dismissed. */
+    fun dismissSecretsLost()
     fun save()
 
     /**
@@ -227,6 +230,11 @@ class HealthConnectViewModel(
      * certificate), which that tab may have changed. The draft is left alone, so an
      * unsaved edit here survives a look at the other tab.
      */
+    override fun dismissSecretsLost() {
+        settings.dismissSecretsReentry()
+        _state.update { it.copy(secretsNeedReentry = settings.secretsNeedReentry) }
+    }
+
     fun refreshSharedSettings() {
         _state.update {
             it.copy(

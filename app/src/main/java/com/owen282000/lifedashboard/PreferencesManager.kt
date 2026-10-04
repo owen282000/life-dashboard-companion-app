@@ -33,9 +33,12 @@ class PreferencesManager(context: Context) {
 
     /**
      * True when saved secrets were lost (the Keystore key is gone, or the old store stayed
-     * unreadable) and have to be entered again. Saving any secret clears it.
+     * unreadable) and have to be entered again. Saving a secret, or dismissing the banner, clears it.
      */
     val secretsNeedReentry: Boolean get() = vault.needsReentry
+
+    /** The user dismissed the request to enter the secrets again. */
+    fun dismissSecretsReentry() = vault.dismissReentry()
 
     /** Removes every saved secret; for tests that start from a clean state. */
     fun clearAllSecrets() {
