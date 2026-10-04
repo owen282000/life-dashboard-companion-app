@@ -121,7 +121,13 @@ data class HealthData(
      */
     val whole: HealthData? = null,
     /** The range per type that [whole] holds everything of. */
-    val wholeCoverage: Map<HealthDataType, ReadCoverage> = emptyMap()
+    val wholeCoverage: Map<HealthDataType, ReadCoverage> = emptyMap(),
+    /**
+     * Each delivered record's metadata by its Health Connect id, when the read was asked for it
+     * (P2-7). A heart rate or skin temperature sample's uuid is `<record id>#<millis>`, so it
+     * looks up by the part before the `#`.
+     */
+    val recordMeta: Map<String, RecordMeta> = emptyMap()
 )
 
 data class BasalMetabolicRateData(

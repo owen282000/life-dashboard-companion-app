@@ -656,4 +656,8 @@
         <item quantity="one">%d minuut in de afgelopen 30 dagen</item>
         <item quantity="other">%d minuten in de afgelopen 30 dagen</item>
     </plurals>
+    <!-- Record metadata (P2-7) -->
+    <string name="health_record_metadata">Recordmetadata</string>
+    <string name="health_record_metadata_title">Recordmetadata in payload</string>
+    <string name="health_record_metadata_description">Voegt aan elk record toe wanneer het voor het laatst gewijzigd is, de eigen id en versie van de schrijvende app, hoe het is vastgelegd, het apparaat en de tijdzone, waar Health Connect die heeft. Maakt payloads groter, het meest bij hartslag.</string>
 </resources>

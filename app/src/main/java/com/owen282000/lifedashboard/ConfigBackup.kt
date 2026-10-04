@@ -299,6 +299,8 @@ data class AppFilterConfig(
 data class OptionsConfig(
     @SerialName("enabled_data_types") val enabledDataTypes: List<String>? = null,
     @SerialName("include_daily_totals") val includeDailyTotals: Boolean? = null,
+    /** Record metadata on every record (P2-7); absent in older backups and in the iPhone's. */
+    @SerialName("include_record_metadata") val includeRecordMetadata: Boolean? = null,
     @SerialName("allow_http_webhooks") val allowHttpWebhooks: Boolean? = null,
     @SerialName("keep_full_payloads") val keepFullPayloads: Boolean? = null,
     @SerialName("screen_time_day_boundary_hour") val screenTimeDayBoundaryHour: Int? = null,

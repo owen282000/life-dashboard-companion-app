@@ -172,6 +172,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_WRITEBACK_REPORT = "report"
 
         private const val KEY_INCLUDE_DAILY_TOTALS = "include_daily_totals"
+        private const val KEY_INCLUDE_RECORD_METADATA = "include_record_metadata"
         private const val KEY_ALLOW_HTTP_WEBHOOKS = "allow_http_webhooks"
         private const val KEY_CLIENT_CERT_ALIAS = "client_cert_alias"
 
@@ -480,6 +481,13 @@ class PreferencesManager(context: Context) {
 
     /** Daily deduplicated totals in the payload (aggregate API merges phone + watch). */
     fun includeDailyTotals(): Boolean = prefs.getBoolean(KEY_INCLUDE_DAILY_TOTALS, true)
+
+    /** Record metadata on every record of a Health Connect payload (P2-7); off by default. */
+    fun includeRecordMetadata(): Boolean = prefs.getBoolean(KEY_INCLUDE_RECORD_METADATA, false)
+
+    fun setIncludeRecordMetadata(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_INCLUDE_RECORD_METADATA, enabled).apply()
+    }
 
     /**
      * Plain http:// webhook URLs are refused unless the user opts in, for endpoints only

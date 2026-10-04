@@ -66,7 +66,8 @@ class HealthSyncManager(
                 enabledTypes,
                 lastSyncTimestamps,
                 coveredUntil = enabledTypes.associateWith { preferencesManager.getHealthCoveredUntil(it) },
-                wholeWindows = ResolutionApplier.wholeRequests(preferencesManager.getSeriesResolutions(), preferencesManager.getBucketCarry())
+                wholeWindows = ResolutionApplier.wholeRequests(preferencesManager.getSeriesResolutions(), preferencesManager.getBucketCarry()),
+                includeMetadata = preferencesManager.includeRecordMetadata()
             )
             if (healthDataResult.isFailure) {
                 return@withContext Result.failure(healthDataResult.exceptionOrNull() ?: Exception("Failed to read health data"))
@@ -220,7 +221,8 @@ class HealthSyncManager(
                     typesToRead,
                     lastSyncTimestamps,
                     coveredUntil = enabledTypes.associateWith { preferencesManager.getHealthCoveredUntil(it) },
-                    wholeWindows = ResolutionApplier.wholeRequests(resolutions, carried)
+                    wholeWindows = ResolutionApplier.wholeRequests(resolutions, carried),
+                    includeMetadata = preferencesManager.includeRecordMetadata()
                 )
                 if (healthDataResult.isFailure) {
                     if (anyData) break
@@ -719,7 +721,8 @@ class HealthSyncManager(
                     windowStart = windowStart,
                     windowEnd = windowEnd,
                     wholeWindows = wholeWindows,
-                    windowFor = alignedWindows
+                    windowFor = alignedWindows,
+                    includeMetadata = preferencesManager.includeRecordMetadata()
                 )
                 val healthData = readResult.getOrElse {
                     return failed(BackfillFailure.Read(it.message ?: it.javaClass.simpleName))
@@ -1158,7 +1161,7 @@ class HealthSyncManager(
                             put("count", step.count)
                             put("start_time", step.startTime.toString())
                             put("end_time", step.endTime.toString())
-                            step.uuid?.let { u -> put("uuid", u) }
+                            step.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                             step.source?.let { s -> put("source", s) }
                         })
                     }
@@ -1171,7 +1174,7 @@ class HealthSyncManager(
                         add(buildJsonObject {
                             put("session_end_time", sleep.sessionEndTime.toString())
                             put("duration_seconds", sleep.duration.seconds)
-                            sleep.uuid?.let { u -> put("uuid", u) }
+                            sleep.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                             sleep.source?.let { s -> put("source", s) }
                             putJsonArray("stages") {
                                 sleep.stages.forEach { stage ->
@@ -1193,7 +1196,7 @@ class HealthSyncManager(
                     healthData.heartRate.forEach { add(buildJsonObject {
                         put("bpm", it.bpm)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1205,7 +1208,7 @@ class HealthSyncManager(
                         put("meters", it.meters)
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1217,7 +1220,7 @@ class HealthSyncManager(
                         put("calories", it.calories)
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1229,7 +1232,7 @@ class HealthSyncManager(
                         put("calories", it.calories)
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1240,7 +1243,7 @@ class HealthSyncManager(
                     healthData.weight.forEach { add(buildJsonObject {
                         put("kilograms", it.kilograms)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1251,7 +1254,7 @@ class HealthSyncManager(
                     healthData.height.forEach { add(buildJsonObject {
                         put("meters", it.meters)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1263,7 +1266,7 @@ class HealthSyncManager(
                         put("systolic", it.systolic)
                         put("diastolic", it.diastolic)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1274,7 +1277,7 @@ class HealthSyncManager(
                     healthData.bloodGlucose.forEach { add(buildJsonObject {
                         put("mmol_per_liter", it.mmolPerLiter)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1285,7 +1288,7 @@ class HealthSyncManager(
                     healthData.oxygenSaturation.forEach { add(buildJsonObject {
                         put("percentage", it.percentage)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1296,7 +1299,7 @@ class HealthSyncManager(
                     healthData.bodyTemperature.forEach { add(buildJsonObject {
                         put("celsius", it.celsius)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1307,7 +1310,7 @@ class HealthSyncManager(
                     healthData.respiratoryRate.forEach { add(buildJsonObject {
                         put("rate", it.rate)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1318,7 +1321,7 @@ class HealthSyncManager(
                     healthData.restingHeartRate.forEach { add(buildJsonObject {
                         put("bpm", it.bpm)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1331,7 +1334,7 @@ class HealthSyncManager(
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
                         put("duration_seconds", it.duration.seconds)
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1343,7 +1346,7 @@ class HealthSyncManager(
                         put("liters", it.liters)
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1362,7 +1365,7 @@ class HealthSyncManager(
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
                         put("duration_seconds", it.duration.seconds)
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1373,7 +1376,7 @@ class HealthSyncManager(
                     healthData.bodyFat.forEach { add(buildJsonObject {
                         put("percentage", it.percentage)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1384,7 +1387,7 @@ class HealthSyncManager(
                     healthData.leanBodyMass.forEach { add(buildJsonObject {
                         put("kilograms", it.kilograms)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1395,7 +1398,7 @@ class HealthSyncManager(
                     healthData.boneMass.forEach { add(buildJsonObject {
                         put("kilograms", it.kilograms)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1406,7 +1409,7 @@ class HealthSyncManager(
                     healthData.bodyWaterMass.forEach { add(buildJsonObject {
                         put("kilograms", it.kilograms)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1417,7 +1420,7 @@ class HealthSyncManager(
                     healthData.hrv.forEach { add(buildJsonObject {
                         put("heart_rate_variability_millis", it.heartRateVariabilityMillis)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1428,7 +1431,7 @@ class HealthSyncManager(
                     healthData.menstruationPeriod.forEach { add(buildJsonObject {
                         put("start_time", it.startTime.toString())
                         put("end_time", it.endTime.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1439,7 +1442,7 @@ class HealthSyncManager(
                     healthData.menstruationFlow.forEach { add(buildJsonObject {
                         put("flow", it.flow)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1450,7 +1453,7 @@ class HealthSyncManager(
                     healthData.basalMetabolicRate.forEach { add(buildJsonObject {
                         put("kilocalories_per_day", it.kilocaloriesPerDay)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1461,7 +1464,7 @@ class HealthSyncManager(
                     healthData.vo2Max.forEach { add(buildJsonObject {
                         put("vo2_ml_per_min_per_kg", it.vo2MillilitersPerMinuteKilogram)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1473,7 +1476,7 @@ class HealthSyncManager(
                         put("delta_celsius", it.deltaCelsius)
                         it.baselineCelsius?.let { b -> put("baseline_celsius", b) }
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1484,7 +1487,7 @@ class HealthSyncManager(
                     healthData.basalBodyTemperature.forEach { add(buildJsonObject {
                         put("celsius", it.celsius)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1494,7 +1497,7 @@ class HealthSyncManager(
                 putJsonArray("intermenstrual_bleeding") {
                     healthData.intermenstrualBleeding.forEach { add(buildJsonObject {
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1505,7 +1508,7 @@ class HealthSyncManager(
                     healthData.ovulationTest.forEach { add(buildJsonObject {
                         put("result", it.result)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1517,7 +1520,7 @@ class HealthSyncManager(
                         put("appearance", it.appearance)
                         put("sensation", it.sensation)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1528,7 +1531,7 @@ class HealthSyncManager(
                     healthData.sexualActivity.forEach { add(buildJsonObject {
                         put("protection_used", it.protectionUsed)
                         put("time", it.time.toString())
-                        it.uuid?.let { u -> put("uuid", u) }
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
                         it.source?.let { s -> put("source", s) }
                     }) }
                 }
@@ -1580,4 +1583,12 @@ class HealthSyncManager(
             "1.0"
         }
     }
+}
+
+/**
+ * The record's `metadata` object (P2-7), when the read kept it: looked up by the record's id,
+ * which for a heart rate or skin temperature sample is the part of its uuid before the `#`.
+ */
+private fun kotlinx.serialization.json.JsonObjectBuilder.putRecordMeta(data: HealthData, uuid: String) {
+    data.recordMeta[uuid.substringBefore('#')]?.let { put("metadata", it.toJson()) }
 }

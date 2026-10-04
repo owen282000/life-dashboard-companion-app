@@ -27,6 +27,8 @@ interface AppSettings {
 
     fun includeDailyTotals(): Boolean
     fun setIncludeDailyTotals(enabled: Boolean)
+    fun includeRecordMetadata(): Boolean
+    fun setIncludeRecordMetadata(enabled: Boolean)
     fun allowHttpWebhooks(): Boolean
     fun setAllowHttpWebhooks(enabled: Boolean)
     fun clientCertAlias(): String?
@@ -116,6 +118,8 @@ class PreferencesAppSettings(
 
     override fun includeDailyTotals() = prefs.includeDailyTotals()
     override fun setIncludeDailyTotals(enabled: Boolean) = prefs.setIncludeDailyTotals(enabled)
+    override fun includeRecordMetadata() = prefs.includeRecordMetadata()
+    override fun setIncludeRecordMetadata(enabled: Boolean) = prefs.setIncludeRecordMetadata(enabled)
     override fun allowHttpWebhooks() = prefs.allowHttpWebhooks()
     override fun setAllowHttpWebhooks(enabled: Boolean) = prefs.setAllowHttpWebhooks(enabled)
     override fun clientCertAlias() = prefs.clientCertAlias()

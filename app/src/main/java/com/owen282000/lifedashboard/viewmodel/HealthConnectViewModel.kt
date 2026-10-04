@@ -44,6 +44,8 @@ data class HealthUiState(
     /** Bumped after a manual sync so the dashboard card reloads, as on the Screen Time tab. */
     val refreshKey: Int = 0,
     val includeDailyTotals: Boolean = false,
+    /** Record metadata on every record (P2-7); applied at once, like daily totals. */
+    val includeRecordMetadata: Boolean = false,
     val allowHttpWebhooks: Boolean = false,
     /** KeyChain alias of the client certificate (mTLS) presented to webhooks, null for none. */
     val clientCertAlias: String? = null,
@@ -115,6 +117,7 @@ interface HealthActions {
     fun dismissPermissionPrompt()
     fun setMqtt(mqtt: MqttDraft)
     fun setIncludeDailyTotals(enabled: Boolean)
+    fun setIncludeRecordMetadata(enabled: Boolean)
     fun setAllowHttpWebhooks(enabled: Boolean)
     fun setClientCertAlias(alias: String?)
     fun setPhoneName(name: String)
@@ -173,6 +176,7 @@ class HealthConnectViewModel(
                 saved = saved,
                 draft = saved,
                 includeDailyTotals = settings.includeDailyTotals(),
+                includeRecordMetadata = settings.includeRecordMetadata(),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
                 phoneName = settings.phoneName(),
@@ -315,6 +319,11 @@ class HealthConnectViewModel(
         _state.update { it.copy(includeDailyTotals = enabled) }
     }
 
+    override fun setIncludeRecordMetadata(enabled: Boolean) {
+        settings.setIncludeRecordMetadata(enabled)
+        _state.update { it.copy(includeRecordMetadata = enabled) }
+    }
+
     override fun setAllowHttpWebhooks(enabled: Boolean) {
         settings.setAllowHttpWebhooks(enabled)
         _state.update { it.copy(allowHttpWebhooks = enabled) }
@@ -367,6 +376,7 @@ class HealthConnectViewModel(
                 saved = saved,
                 draft = saved,
                 includeDailyTotals = settings.includeDailyTotals(),
+                includeRecordMetadata = settings.includeRecordMetadata(),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
                 phoneName = settings.phoneName(),

@@ -6,6 +6,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
+- Record metadata (P2-7): with Record metadata in payload on, under Advanced on the Health tab,
+  every record carries Health Connect's metadata under `metadata`: `last_modified`, the writing
+  app's `client_record_id` and `client_record_version`, `recording_method`, the `device` and the
+  zone offset (`zone_offset` for a record at one moment, `start_zone_offset` and
+  `end_zone_offset` for a record over a period), each only when Health Connect has it. With
+  `last_modified` a receiver can tell a night of sleep that a band is still revising from the
+  settled one. Off by default, since it adds bytes to every record; in the settings backup as
+  `include_record_metadata`. See Record metadata in docs/webhook.md.
 - Screen Time can leave apps out, or send only a few (#63). Under Which apps on the Screen Time
   tab, All except sends every app but the ones ticked, and Only sends just the ticked ones; All
   stays the default. The apps on offer are the ones used for more than a minute over the last

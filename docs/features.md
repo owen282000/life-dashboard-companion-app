@@ -23,6 +23,8 @@ Cycle tracking covers logged data from cycle apps that write to Health Connect, 
 
 What individual source apps do and do not write is collected in [DATA_SOURCES.md](DATA_SOURCES.md).
 
+**Record metadata** (Health tab, Advanced, off by default) adds Health Connect's metadata to every record: when the source last changed it, its own id and version, how it was recorded, the device and the time zone offset. See [webhook.md](webhook.md#record-metadata).
+
 ### Backfill
 
 **Backfill** on the Health tab sends the last 30, 90 or 365 days of every enabled type to your webhooks, in 3-day chunks, oldest first, without touching what the regular sync keeps track of. Past 30 days it needs Health Connect's history access, which the dialog asks for. It runs as a background job: it carries on when you leave the screen, the tab shows where it is when you come back, and **Stop** ends it. The app remembers the last payload that went through, also inside a busy chunk, so a backfill that Android stops or that runs out of Health Connect's read quota continues right after it by itself, and one whose delivery failed continues there when you pick the same length again within a day. After six runs in a row that sent nothing it stops and says why. Switching data types on or off while it is under way makes it start over at the first chunk, so every chunk carries the same types. The Logs tab has one row per run, with how far it got and how many records it sent; a delivery that failed has its own row. The payload fields are in [webhook.md](webhook.md#deletions).

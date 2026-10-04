@@ -67,6 +67,10 @@ class HealthConnectManager(
     // What the current read was asked to keep whole windows of, and what it kept; see
     // WholeWindowRequest and HealthData.whole.
     private var wholeRequests: Map<HealthDataType, WholeWindowRequest> = emptyMap()
+
+    // Record metadata of what the current read delivers, by record id, when asked for (P2-7).
+    private var collectMetadata = false
+    private val recordMeta = mutableMapOf<String, RecordMeta>()
     private val wholeRecords = mutableMapOf<HealthDataType, List<Record>>()
     private val wholeCoverage = mutableMapOf<HealthDataType, ReadCoverage>()
 
@@ -91,7 +95,9 @@ class HealthConnectManager(
          * backfill reads a bucketed type from bucket bound to bucket bound, so no window is
          * split between two of its chunks of days (P2-16).
          */
-        windowFor: Map<HealthDataType, Pair<Instant, Instant>> = emptyMap()
+        windowFor: Map<HealthDataType, Pair<Instant, Instant>> = emptyMap(),
+        /** Keep each delivered record's metadata for the payload (P2-7); see [HealthData.recordMeta]. */
+        includeMetadata: Boolean = false
     ): Result<HealthData> {
         return try {
             diagnostics.clear()
@@ -101,6 +107,8 @@ class HealthConnectManager(
             readIds.clear()
             quotaExhausted = false
             wholeRequests = wholeWindows
+            collectMetadata = includeMetadata
+            recordMeta.clear()
             wholeRecords.clear()
             wholeCoverage.clear()
             readStartedAt = System.currentTimeMillis()
@@ -245,7 +253,8 @@ class HealthConnectManager(
                 coveredUntil = if (windowStart != null) emptyMap() else
                     LookbackWindow.covered(enabledTypes, cappedTypes, unreadTypes, endTime, coveredUntil),
                 whole = wholeData(),
-                wholeCoverage = wholeCoverage.toMap()
+                wholeCoverage = wholeCoverage.toMap(),
+                recordMeta = recordMeta.toMap()
             ))
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
@@ -411,6 +420,7 @@ class HealthConnectManager(
                 idOf = { it.metadata.id }
             )
             if (limited.size < filtered.size) cappedTypes += type
+            if (collectMetadata) limited.forEach { recordMeta[it.metadata.id] = RecordMeta.of(it) }
             watermarkFor(limited, own, capped = limited.size < filtered.size)?.let { watermarks[type] = it }
             val times = limited.map(timeOf)
             val rawTimes = paged.records.map(timeOf)
@@ -667,6 +677,7 @@ class HealthConnectManager(
             )
             val capped = includedRecords.size < newRecords.size
             if (capped) cappedTypes += HealthDataType.HEART_RATE
+            if (collectMetadata) includedRecords.forEach { recordMeta[it.metadata.id] = RecordMeta.of(it) }
             watermarkFor(includedRecords, own, capped)?.let { watermarks[HealthDataType.HEART_RATE] = it }
             val limited = includedRecords.flatMap { record ->
                 record.samples.map { sample -> sample to record }
@@ -1160,6 +1171,7 @@ class HealthConnectManager(
             )
             val capped = includedRecords.size < newRecords.size
             if (capped) cappedTypes += HealthDataType.SKIN_TEMPERATURE
+            if (collectMetadata) includedRecords.forEach { recordMeta[it.metadata.id] = RecordMeta.of(it) }
             watermarkFor(includedRecords, own, capped)?.let { watermarks[HealthDataType.SKIN_TEMPERATURE] = it }
             val limited = includedRecords.flatMap { record ->
                 record.deltas.map { SkinSample(it, record.baseline, record.metadata.dataOrigin.packageName, "${record.metadata.id}#${it.time.toEpochMilli()}") }

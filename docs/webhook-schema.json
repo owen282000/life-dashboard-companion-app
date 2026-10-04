@@ -204,6 +204,9 @@
               "uuid": {
                 "type": "string",
                 "description": "Stable record id for server-side deduplication"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
               }
             },
             "required": [
@@ -301,6 +304,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -332,6 +338,9 @@
               "uuid": {
                 "type": "string",
                 "description": "Stable record id for server-side deduplication"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
               }
             },
             "required": [
@@ -416,6 +425,9 @@
               "uuid": {
                 "type": "string",
                 "description": "Stable record id for server-side deduplication"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
               }
             },
             "required": [
@@ -493,6 +505,9 @@
               "uuid": {
                 "type": "string",
                 "description": "Stable record id for server-side deduplication"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
               }
             },
             "required": [
@@ -570,6 +585,9 @@
               "uuid": {
                 "type": "string",
                 "description": "Stable record id for server-side deduplication"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
               }
             },
             "required": [
@@ -640,6 +658,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -668,6 +689,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -699,6 +723,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -728,6 +755,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -759,6 +789,9 @@
               "uuid": {
                 "type": "string",
                 "description": "Stable record id for server-side deduplication"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
               }
             },
             "required": [
@@ -836,6 +869,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -867,6 +903,9 @@
               "uuid": {
                 "type": "string",
                 "description": "Stable record id for server-side deduplication"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
               }
             },
             "required": [
@@ -944,6 +983,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -979,6 +1021,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1012,6 +1057,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1258,6 +1306,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1296,6 +1347,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1324,6 +1378,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1352,6 +1409,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1380,6 +1440,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1408,6 +1471,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1439,6 +1505,9 @@
               "uuid": {
                 "type": "string",
                 "description": "Stable record id for server-side deduplication"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
               }
             },
             "required": [
@@ -1517,6 +1586,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1550,6 +1622,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1578,6 +1653,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1606,6 +1684,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1640,6 +1721,9 @@
               "uuid": {
                 "type": "string",
                 "description": "Stable record id for server-side deduplication"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
               }
             },
             "required": [
@@ -1717,6 +1801,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1742,6 +1829,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1775,6 +1865,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1806,6 +1899,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1839,6 +1935,9 @@
           "uuid": {
             "type": "string",
             "description": "Stable record id for server-side deduplication"
+          },
+          "metadata": {
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -1850,7 +1949,10 @@
     },
     "app_filter": {
       "type": "string",
-      "enum": ["blocklist", "allowlist"],
+      "enum": [
+        "blocklist",
+        "allowlist"
+      ],
       "description": "Screen Time payloads only, and only with an app filter on: the apps array of each day is a selection, and filtered_screen_time_minutes its sum"
     },
     "screen_time": {
@@ -1925,5 +2027,78 @@
     "app_version",
     "source"
   ],
-  "additionalProperties": true
+  "additionalProperties": true,
+  "definitions": {
+    "recordMetadata": {
+      "type": "object",
+      "description": "Health Connect's metadata of the record, when Record metadata is on in the app (off by default). Fields Health Connect did not have are absent.",
+      "properties": {
+        "last_modified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the record was last written; a source that revises a record moves it"
+        },
+        "client_record_id": {
+          "type": "string",
+          "description": "The writing app's own id for the record"
+        },
+        "client_record_version": {
+          "type": "integer",
+          "description": "The writing app's version of the record; only with client_record_id"
+        },
+        "recording_method": {
+          "type": "string",
+          "enum": [
+            "active",
+            "automatic",
+            "manual",
+            "unknown"
+          ]
+        },
+        "device": {
+          "type": "object",
+          "properties": {
+            "manufacturer": {
+              "type": "string"
+            },
+            "model": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "watch",
+                "phone",
+                "scale",
+                "ring",
+                "head_mounted",
+                "fitness_band",
+                "chest_strap",
+                "smart_display",
+                "unknown"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "zone_offset": {
+          "type": "string",
+          "description": "UTC offset of a record at one moment, such as +02:00"
+        },
+        "start_zone_offset": {
+          "type": "string",
+          "description": "UTC offset at the start of a record over a period"
+        },
+        "end_zone_offset": {
+          "type": "string",
+          "description": "UTC offset at its end"
+        }
+      },
+      "required": [
+        "last_modified",
+        "recording_method"
+      ],
+      "additionalProperties": false
+    }
+  }
 }

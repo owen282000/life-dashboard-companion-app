@@ -9,7 +9,7 @@ Want a ready-made backend? [life-dashboard-stack](https://github.com/owen282000/
 - [Health Connect payload](#health-connect-payload)
   - [Activity](#activity) - [Body](#body) - [Body composition](#body-composition) - [Vitals](#vitals) - [Sleep](#sleep)
   - [Nutrition](#nutrition) - [Mindfulness](#mindfulness) - [Cycle tracking](#cycle-tracking) - [Metabolic and fitness](#metabolic-and-fitness)
-  - [Daily totals](#daily-totals) - [Deletions](#deletions) - [Data resolution](#data-resolution) - [Diagnostics](#diagnostics)
+  - [Daily totals](#daily-totals) - [Deletions](#deletions) - [Data resolution](#data-resolution) - [Record metadata](#record-metadata) - [Diagnostics](#diagnostics)
 - [Screen Time payload](#screen-time-payload)
 - [Test ping](#test-ping)
 - [Delivery, retries and signing](#delivery-retries-and-signing)
@@ -372,6 +372,33 @@ A backfill reads an accumulated series from window bound to window bound rather 
 `_resolutions` names the window per series so a receiver can store the data correctly without being configured separately. It lists only the bucketed series, and is absent when nothing is bucketed.
 
 Bucketing applies to webhook payloads. The Home Assistant sensors always publish the latest value or today's total, and `daily_totals` is unaffected because it comes from Health Connect's own aggregate.
+
+### Record metadata
+
+With **Record metadata in payload** on (Health tab, Advanced; off by default), every record carries Health Connect's metadata for it under `metadata`:
+
+```json
+"sleep": [
+  { "session_end_time": "2026-10-04T06:12:00Z", "duration_seconds": 30120, "uuid": "8c1f...", "source": "com.fitbit.FitbitMobile",
+    "metadata": {
+      "last_modified": "2026-10-04T08:41:17.203Z",
+      "client_record_id": "sleep-2026-10-03",
+      "client_record_version": 4,
+      "recording_method": "automatic",
+      "device": { "manufacturer": "Google", "model": "Pixel Watch 3", "type": "watch" },
+      "start_zone_offset": "+02:00",
+      "end_zone_offset": "+02:00"
+    } }
+]
+```
+
+- `last_modified` is when the source last wrote the record. A band that keeps revising a night after waking moves it with every revision, so a receiver can tell an intermediate duration from the settled one, and keep the copy with the newest `last_modified` when two arrive out of order.
+- `client_record_id` and `client_record_version` are the writing app's own id and version for the record, when it gave them. A source that writes a record again under the same id raises the version.
+- `recording_method` is `active` (a workout the user started), `automatic` (recorded in the background), `manual` (typed in) or `unknown`.
+- `device` is the device the source says it recorded on; `type` is one of `watch`, `phone`, `scale`, `ring`, `head_mounted`, `fitness_band`, `chest_strap`, `smart_display` or `unknown`.
+- `zone_offset` belongs to a record at one moment (a weight, a heart rate variability reading), `start_zone_offset` and `end_zone_offset` to a record over a period (steps, a night, a workout). They are the offsets the source wrote, which is how a receiver puts a record on the local day it happened on, also after travelling.
+
+Anything Health Connect does not have is left out, so `metadata` holds at least `last_modified` and `recording_method`. Heart rate and skin temperature samples carry the metadata of the record they belong to. A bucketed series has none: a window has no single record. Records the app wrote itself through Receive never go out, with or without metadata. It makes payloads larger, by roughly 150 to 250 bytes per record, which matters most for dense heart rate; [Data resolution](#data-resolution) is the way to keep those small.
 
 ### Diagnostics
 

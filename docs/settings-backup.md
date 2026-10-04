@@ -16,7 +16,7 @@ Webhook auth headers, HMAC signing secrets and MQTT passwords are stored encrypt
 | Sync intervals | Health Connect permissions |
 | MQTT brokers, topics and switches | Usage access permission |
 | The 33 data-type toggles | Which entities Home Assistant sends (that choice lives in the integration) |
-| Daily totals, plain HTTP, full payloads, day boundary, failure threshold | The Receive ledger (which readings were written, and their Health Connect ids) |
+| Daily totals, record metadata, plain HTTP, full payloads, day boundary, failure threshold | The Receive ledger (which readings were written, and their Health Connect ids) |
 | Receive: the switch, the types, "Accept older measurements" and the source URL | |
 | Phone name (MQTT) | |
 | Screen Time: which apps are sent (the mode and the list) | |
@@ -77,6 +77,7 @@ Plain exports are readable JSON:
   "options": {
     "enabled_data_types": ["STEPS", "HEART_RATE"],
     "include_daily_totals": true,
+    "include_record_metadata": false,
     "allow_http_webhooks": false,
     "phone_name": "Pixel 8",
     "screen_time_app_filter": { "mode": "BLOCKLIST", "packages": ["com.google.android.youtube"] },

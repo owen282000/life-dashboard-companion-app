@@ -70,6 +70,7 @@
             "WEIGHT"
         ],
         "include_daily_totals": false,
+        "include_record_metadata": true,
         "allow_http_webhooks": true,
         "keep_full_payloads": true,
         "screen_time_day_boundary_hour": 5,

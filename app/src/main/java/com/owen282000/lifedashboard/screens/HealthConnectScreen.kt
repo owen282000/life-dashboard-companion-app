@@ -264,6 +264,7 @@ fun HealthConnectContent(
                 title = stringResource(R.string.sync_advanced_title),
                 subtitle = listOfNotNull(
                     if (state.includeDailyTotals) stringResource(R.string.health_daily_totals) else stringResource(R.string.health_no_daily_totals),
+                    if (state.includeRecordMetadata) stringResource(R.string.health_record_metadata) else null,
                     if (state.allowHttpWebhooks) stringResource(R.string.sync_advanced_plain_http_allowed) else stringResource(R.string.sync_advanced_https_only),
                     if (state.clientCertAlias != null) stringResource(R.string.sync_advanced_client_cert) else null,
                     MqttSupport.phoneSlug(state.phoneName)?.let { stringResource(R.string.sync_advanced_phone_name, it) }
@@ -277,6 +278,13 @@ fun HealthConnectContent(
                     state.includeDailyTotals,
                     accent,
                     actions::setIncludeDailyTotals
+                )
+                SwitchLine(
+                    stringResource(R.string.health_record_metadata_title),
+                    stringResource(R.string.health_record_metadata_description),
+                    state.includeRecordMetadata,
+                    accent,
+                    actions::setIncludeRecordMetadata
                 )
                 SwitchLine(
                     stringResource(R.string.webhook_allow_plain_http),

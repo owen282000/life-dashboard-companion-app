@@ -53,6 +53,9 @@ internal class FakeAppSettings(
 
     override fun includeDailyTotals() = dailyTotals
     override fun setIncludeDailyTotals(enabled: Boolean) { dailyTotals = enabled }
+    var recordMetadata = false
+    override fun includeRecordMetadata() = recordMetadata
+    override fun setIncludeRecordMetadata(enabled: Boolean) { recordMetadata = enabled }
     override fun allowHttpWebhooks() = allowHttp
     override fun setAllowHttpWebhooks(enabled: Boolean) { allowHttp = enabled }
     override fun clientCertAlias() = certAlias

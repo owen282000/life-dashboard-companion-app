@@ -54,6 +54,7 @@ class ConfigBackupManager(private val context: Context) {
             options = OptionsConfig(
                 enabledDataTypes = prefs.getHealthEnabledDataTypes().map { it.name }.sorted(),
                 includeDailyTotals = prefs.includeDailyTotals(),
+                includeRecordMetadata = prefs.includeRecordMetadata(),
                 allowHttpWebhooks = prefs.allowHttpWebhooks(),
                 keepFullPayloads = prefs.keepFullPayloads(),
                 screenTimeDayBoundaryHour = prefs.getScreenTimeDayBoundaryHour(),
@@ -136,6 +137,7 @@ class ConfigBackupManager(private val context: Context) {
                 )
             }
             includeDailyTotals?.let { prefs.setIncludeDailyTotals(it) }
+            includeRecordMetadata?.let { prefs.setIncludeRecordMetadata(it) }
             allowHttpWebhooks?.let { prefs.setAllowHttpWebhooks(it) }
             keepFullPayloads?.let { prefs.setKeepFullPayloads(it) }
             screenTimeDayBoundaryHour?.let { prefs.setScreenTimeDayBoundaryHour(it) }

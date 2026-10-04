@@ -659,4 +659,8 @@
         <item quantity="one">%d minute in the last 30 days</item>
         <item quantity="other">%d minutes in the last 30 days</item>
     </plurals>
+    <!-- Record metadata (P2-7) -->
+    <string name="health_record_metadata">Record metadata</string>
+    <string name="health_record_metadata_title">Record metadata in payload</string>
+    <string name="health_record_metadata_description">Adds to every record when it was last changed, the writing app\'s own id and version, how it was recorded, the device and the time zone offset, where Health Connect has them. Makes payloads larger, most for heart rate.</string>
 </resources>
