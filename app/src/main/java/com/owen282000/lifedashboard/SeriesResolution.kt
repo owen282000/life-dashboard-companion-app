@@ -108,7 +108,13 @@ data class Bucket(
     val total: Double,
     val sampleCount: Int,
     /** Sources that contributed, so a bucket mixing phone and watch data is still traceable. */
-    val sources: List<String> = emptyList()
+    val sources: List<String> = emptyList(),
+    /**
+     * True when the bucket holds every sample Health Connect had in the window when it was
+     * built, not only the samples a sync happened to read as new. A receiver replaces a stored
+     * window with a complete bucket instead of adding to it (P2-16).
+     */
+    val complete: Boolean = false
 )
 
 /**
@@ -215,7 +221,34 @@ object SeriesBucketing {
         )
     }
 
+    /** The start of the window of [resolution] that [time] falls in; [time] itself at raw. */
+    fun alignDown(time: Instant, resolution: SeriesResolution): Instant =
+        resolution.bucket?.let { alignDown(time, it.toMillis()) } ?: time
+
     /** The start of the bucket [time] falls in, aligned to the epoch. */
     private fun alignDown(time: Instant, windowMillis: Long): Instant =
         Instant.ofEpochMilli(Math.floorDiv(time.toEpochMilli(), windowMillis) * windowMillis)
 }
+
+/**
+ * What a read keeps of a bucketed type besides the records that changed (P2-16).
+ *
+ * A window that goes out again because one of its records was written again, edited or
+ * arrived late would otherwise carry only that record, and a receiver adding it to the window
+ * it holds counts a rewritten record twice. The read already fetches everything in its range
+ * before it filters on modification time, so keeping the rest of the affected windows costs no
+ * extra call of Health Connect's quota. Kept from the window of the earliest changed record, or
+ * of [keepFrom] when that is earlier (the samples a sync is still holding for an open window).
+ */
+data class WholeWindowRequest(val resolution: SeriesResolution, val keepFrom: Instant? = null)
+
+/**
+ * The range over which a read holds everything Health Connect had for one type, so a window
+ * inside it can be built whole. A window that reaches outside it cannot.
+ */
+data class ReadCoverage(val from: Instant, val to: Instant) {
+    fun covers(start: Instant, end: Instant): Boolean = !start.isBefore(from) && !end.isAfter(to)
+}
+
+/** Every sample of one type inside [coverage], ready to build a window whole from. */
+data class WholeContent(val samples: List<CarriedSample>, val coverage: ReadCoverage)

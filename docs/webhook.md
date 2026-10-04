@@ -348,21 +348,26 @@ A bucketed series replaces its raw array under the same key, and the objects ins
 ],
 "steps": [
   { "bucket_start": "2025-02-05T08:00:00Z", "bucket_end": "2025-02-05T09:00:00Z",
-    "sample_count": 12, "total": 1840 }
+    "sample_count": 12, "total": 1840, "complete": true }
 ],
 "_resolutions": { "heart_rate": "1m", "steps": "1h" }
 ```
 
 Measured values (heart rate, HRV, oxygen saturation, respiratory rate, skin temperature) are averaged, with `min` and `max` kept because an average alone cannot tell a night's sleep from a sprint. Accumulated quantities (steps, distance, active and total calories) are summed into `total`, and carry no average: the mean of a sum describes the records that went in, not the window.
 
-Four things worth knowing when you store these:
+Four things worth knowing when you store these, and a fifth below:
 
 - **Windows are aligned to the clock**, not to the first sample. A 15-minute window starts at :00, :15, :30 or :45 in UTC, so buckets from different syncs line up instead of drifting.
 - **`sample_count` says how complete a bucket is.** A window with two samples and one with sixty are both one object; without the count you cannot tell them apart or merge them.
 - **A window is normally sent once, complete.** Bucketed series arrive in the last payload of a sync, even when a large backlog made the sync deliver its raw records in several payloads. A window that is still filling when a sync runs is not sent yet; its samples are kept and bucketed together with the next sync's records, so the bucket goes out whole. The sync's incremental watermark is not involved.
 - **Empty windows produce nothing.** No bucket means nothing was measured, which is not the same as a measured zero.
 
-The exception is a record that arrives late for a window already sent, such as a watch uploading hours after the fact, or a record edited afterwards. That window is sent again with only the late samples. Every bucket carries enough to merge exactly, so a receiver that keys on `bucket_start` should combine rather than replace: add the `sample_count`s, add the `total`s, take the smaller `min` and the larger `max`, and weight the `avg` by `sample_count` (`(avg1 * n1 + avg2 * n2) / (n1 + n2)`). A receiver that simply keeps the object with the larger `sample_count` is right in every case but that one.
+A window can still go out again: a record arrives late for a window already sent (a watch uploading hours after the fact), a record is edited, or a source writes records again that it wrote before. Some sources re-export their last hour on every sync under the same record ids, which Health Connect stores as new versions of the same records. So a receiver keys on the series and `bucket_start`, and what it does with a bucket for a window it already holds depends on one field:
+
+- **`"complete": true`: replace the stored window.** The bucket holds every sample Health Connect had in the window when it was built, not only the ones that changed, so it is the whole window as it stands. Adding it to the stored one would count a rewritten record twice.
+- **No `complete`: combine.** The bucket holds only the samples that changed: add the `sample_count`s, add the `total`s, take the smaller `min` and the larger `max`, and weight the `avg` by `sample_count` (`(avg1 * n1 + avg2 * n2) / (n1 + n2)`). The app sends one when it could not read the whole window: one reaching back past the range the sync read (a week before the last complete read, 30 days at most), or a read that had to skip part of its range. 1.22.0 and older never mark a bucket, and every window they sent again holds only the late samples; a record they read again because its source wrote it again is counted twice by this rule, and there is nothing in the payload to tell that case apart.
+
+A backfill reads a bucketed type from window bound to window bound rather than over its chunks of days, so every window lies inside one chunk and goes out once, complete. The window that contains the moment the backfill started is left to the normal sync. Before the release after 1.22.0, the window that straddled each chunk bound went out with only its part after the bound.
 
 `_resolutions` names the window per series so a receiver can store the data correctly without being configured separately. It lists only the bucketed series, and is absent when nothing is bucketed.
 

@@ -20,16 +20,22 @@ import java.time.Instant
  * once, whole. The sync's watermark is never touched; it tracks when records were written, a
  * different axis from when they were measured.
  *
- * The one case left that sends a window twice is a record arriving late for a window already
- * sent. Buckets carry enough (`sample_count`, `avg`, `min`, `max`, `total`) for a receiver to
- * merge that exactly, and the docs say how.
+ * Which windows go out is decided by the samples collected; what a closed window holds comes
+ * from [whole] where the read kept the window whole (P2-16). A window can go out again: a
+ * source rewrites the last hour on every export, edits a record, or a watch uploads late. Built
+ * from only the record that changed, the bucket would make a receiver that adds it to the stored
+ * window count a rewritten record twice. Built whole, it is marked complete and replaces the
+ * stored window instead. A window the read could not hold whole goes out as before, unmarked,
+ * for a receiver to combine.
  */
 class ResolutionApplier(
     private val resolutions: Map<HealthDataType, SeriesResolution>,
     /** Samples collected earlier: from the last sync, or from earlier passes of this one. */
     private val carriedIn: Map<HealthDataType, List<CarriedSample>> = emptyMap(),
     /** False for a pass that only collects; true for the pass that sends. */
-    private val emit: Boolean = true
+    private val emit: Boolean = true,
+    /** Everything the reads of this sync held per type over a range, to build windows whole from. */
+    private val whole: Map<HealthDataType, WholeContent> = emptyMap()
 ) {
 
     /** The bucketed series, keyed by the payload name they replace ("heart_rate", "steps"). */
@@ -91,57 +97,143 @@ class ResolutionApplier(
 
         // An empty array still goes in when everything is being held: the series is bucketed,
         // so the payload must not fall back to the raw samples the receiver asked not to get.
-        series[payloadKey] = ResolutionPayload.bucketsJson(split.closed, family)
+        series[payloadKey] = ResolutionPayload.bucketsJson(split.closed.mapNotNull { wholeOrAsIs(type, it) }, family)
         used[payloadKey] = resolution
     }
 
+    /**
+     * Every window [content] holds, built whole and marked complete, for a backfill: its read
+     * of a bucketed type runs from bucket bound to bucket bound, so each window lies wholly
+     * inside it. Nothing is collected or held. Without [content] the series goes out empty,
+     * which still keeps its raw records out of the payload.
+     */
+    fun bucketWhole(type: HealthDataType, payloadKey: String, content: WholeContent?, family: ResolutionFamily, recordsRead: Int) {
+        val resolution = resolutions[type] ?: DEFAULT_RESOLUTION
+        if (resolution == SeriesResolution.RAW) return
+        bucketedKeys += payloadKey
+        absorbedRecords += recordsRead
+        val buckets = content?.let { c ->
+            SeriesBucketing.bucket(c.samples, resolution, { it.time }, { it.value }, { it.source })
+                .filter { c.coverage.covers(it.start, it.end) }
+                .map { it.copy(complete = true) }
+        }.orEmpty()
+        series[payloadKey] = ResolutionPayload.bucketsJson(buckets, family)
+        used[payloadKey] = resolution
+    }
+
+    /**
+     * [bucket] rebuilt from everything the reads held for its window, marked complete; [bucket]
+     * itself, unmarked, when they did not hold the window whole. Null when the window turns
+     * out to hold nothing any more: the records the held samples came from were deleted, and a
+     * window never sent before has nothing to replace.
+     */
+    private fun wholeOrAsIs(type: HealthDataType, bucket: Bucket): Bucket? {
+        val content = whole[type]?.takeIf { it.coverage.covers(bucket.start, bucket.end) } ?: return bucket
+        val resolution = resolutions[type] ?: return bucket
+        val inWindow = content.samples.filter { !it.time.isBefore(bucket.start) && it.time.isBefore(bucket.end) }
+        return SeriesBucketing.bucket(inWindow, resolution, { it.time }, { it.value }, { it.source })
+            .singleOrNull()?.copy(complete = true)
+    }
+
+    /** One configurable series: which type, under which payload key, and how to read its samples. */
+    private class Series(
+        val type: HealthDataType,
+        val key: String,
+        val family: ResolutionFamily,
+        val samplesOf: (HealthData) -> List<CarriedSample>
+    )
+
     companion object {
+
+        private val SERIES: List<Series> = listOf(
+            Series(HealthDataType.HEART_RATE, "heart_rate", ResolutionFamily.SAMPLED) { d ->
+                d.heartRate.map { CarriedSample(it.time, it.bpm.toDouble(), it.source) }
+            },
+            Series(HealthDataType.HEART_RATE_VARIABILITY, "heart_rate_variability", ResolutionFamily.SAMPLED) { d ->
+                d.hrv.map { CarriedSample(it.time, it.heartRateVariabilityMillis, it.source) }
+            },
+            Series(HealthDataType.OXYGEN_SATURATION, "oxygen_saturation", ResolutionFamily.SAMPLED) { d ->
+                d.oxygenSaturation.map { CarriedSample(it.time, it.percentage, it.source) }
+            },
+            Series(HealthDataType.RESPIRATORY_RATE, "respiratory_rate", ResolutionFamily.SAMPLED) { d ->
+                d.respiratoryRate.map { CarriedSample(it.time, it.rate, it.source) }
+            },
+            Series(HealthDataType.SKIN_TEMPERATURE, "skin_temperature", ResolutionFamily.SAMPLED) { d ->
+                d.skinTemperature.map { CarriedSample(it.time, it.deltaCelsius, it.source) }
+            },
+            Series(HealthDataType.STEPS, "steps", ResolutionFamily.ACCUMULATED) { d ->
+                d.steps.map { CarriedSample(it.startTime, it.count.toDouble(), it.source) }
+            },
+            Series(HealthDataType.DISTANCE, "distance", ResolutionFamily.ACCUMULATED) { d ->
+                d.distance.map { CarriedSample(it.startTime, it.meters, it.source) }
+            },
+            Series(HealthDataType.ACTIVE_CALORIES, "active_calories", ResolutionFamily.ACCUMULATED) { d ->
+                d.activeCalories.map { CarriedSample(it.startTime, it.calories, it.source) }
+            },
+            Series(HealthDataType.TOTAL_CALORIES, "total_calories", ResolutionFamily.ACCUMULATED) { d ->
+                d.totalCalories.map { CarriedSample(it.startTime, it.calories, it.source) }
+            }
+        )
+
+        /**
+         * What a read should keep whole of each bucketed type: from the window of the earliest
+         * changed record, or of the earliest sample [carried] for it when that is earlier, so a
+         * window still being held can be built whole once it closes.
+         */
+        fun wholeRequests(
+            resolutions: Map<HealthDataType, SeriesResolution>,
+            carried: Map<HealthDataType, List<CarriedSample>> = emptyMap()
+        ): Map<HealthDataType, WholeWindowRequest> =
+            resolutions.filter { (type, resolution) -> resolution != SeriesResolution.RAW && ResolutionFamily.of(type) != null }
+                .mapValues { (type, resolution) -> WholeWindowRequest(resolution, carried[type]?.minOfOrNull { it.time }) }
+
+        /** What [data]'s read kept whole, per type, as samples. Empty when it kept nothing. */
+        fun wholeContent(data: HealthData): Map<HealthDataType, WholeContent> {
+            val kept = data.whole ?: return emptyMap()
+            return SERIES.mapNotNull { s -> data.wholeCoverage[s.type]?.let { s.type to WholeContent(s.samplesOf(kept), it) } }.toMap()
+        }
+
         /**
          * Buckets every configurable series in [data] according to [resolutions].
          *
          * Types with no resolution family, and anything left at raw, are untouched and keep
          * flowing through the payload builder as records. A type in [HealthData.cappedTypes]
          * gets the newest measurement collected so far as its boundary instead of [now].
+         * [whole] is what the reads of the sync so far held whole, see [wholeContent].
          */
         fun from(
             data: HealthData,
             resolutions: Map<HealthDataType, SeriesResolution>,
             now: Instant = Instant.now(),
             carriedIn: Map<HealthDataType, List<CarriedSample>> = emptyMap(),
-            emit: Boolean = true
-        ): ResolutionApplier = ResolutionApplier(resolutions, carriedIn, emit).apply {
-            fun <T> series(
-                type: HealthDataType, key: String, records: List<T>, family: ResolutionFamily,
-                timeOf: (T) -> Instant, valueOf: (T) -> Double, sourceOf: (T) -> String?
-            ) {
-                val samples = records.map { CarriedSample(timeOf(it), valueOf(it), sourceOf(it)) }
-                val boundary = if (type in data.cappedTypes) {
-                    (carriedIn[type].orEmpty() + samples).maxOfOrNull { it.time }?.let { minOf(it, now) } ?: now
+            emit: Boolean = true,
+            whole: Map<HealthDataType, WholeContent> = wholeContent(data)
+        ): ResolutionApplier = ResolutionApplier(resolutions, carriedIn, emit, whole).apply {
+            SERIES.forEach { s ->
+                val samples = s.samplesOf(data)
+                val boundary = if (s.type in data.cappedTypes) {
+                    (carriedIn[s.type].orEmpty() + samples).maxOfOrNull { it.time }?.let { minOf(it, now) } ?: now
                 } else now
-                bucketSeries(type, key, samples, boundary, family)
+                bucketSeries(s.type, s.key, samples, boundary, s.family)
             }
+        }
 
-            val sampled = ResolutionFamily.SAMPLED
-            series(HealthDataType.HEART_RATE, "heart_rate", data.heartRate, sampled,
-                { it.time }, { it.bpm.toDouble() }, { it.source })
-            series(HealthDataType.HEART_RATE_VARIABILITY, "heart_rate_variability", data.hrv, sampled,
-                { it.time }, { it.heartRateVariabilityMillis }, { it.source })
-            series(HealthDataType.OXYGEN_SATURATION, "oxygen_saturation", data.oxygenSaturation, sampled,
-                { it.time }, { it.percentage }, { it.source })
-            series(HealthDataType.RESPIRATORY_RATE, "respiratory_rate", data.respiratoryRate, sampled,
-                { it.time }, { it.rate }, { it.source })
-            series(HealthDataType.SKIN_TEMPERATURE, "skin_temperature", data.skinTemperature, sampled,
-                { it.time }, { it.deltaCelsius }, { it.source })
-
-            val accumulated = ResolutionFamily.ACCUMULATED
-            series(HealthDataType.STEPS, "steps", data.steps, accumulated,
-                { it.startTime }, { it.count.toDouble() }, { it.source })
-            series(HealthDataType.DISTANCE, "distance", data.distance, accumulated,
-                { it.startTime }, { it.meters }, { it.source })
-            series(HealthDataType.ACTIVE_CALORIES, "active_calories", data.activeCalories, accumulated,
-                { it.startTime }, { it.calories }, { it.source })
-            series(HealthDataType.TOTAL_CALORIES, "total_calories", data.totalCalories, accumulated,
-                { it.startTime }, { it.calories }, { it.source })
+        /**
+         * Buckets a backfill chunk: every window of a bucketed type built whole from what the
+         * read kept ([HealthData.whole], over the type's bucket-aligned range), all of them
+         * complete. Only on a window's first chunk ([emit]); a later chunk reads the types still
+         * draining, whose windows were built whole from the first chunk's read already, and
+         * sends their series empty so the raw records stay out.
+         */
+        fun forBackfill(
+            data: HealthData,
+            resolutions: Map<HealthDataType, SeriesResolution>,
+            emit: Boolean
+        ): ResolutionApplier = ResolutionApplier(resolutions).apply {
+            val content = wholeContent(data)
+            SERIES.forEach { s ->
+                bucketWhole(s.type, s.key, content[s.type].takeIf { emit }, s.family, s.samplesOf(data).size)
+            }
         }
     }
 }

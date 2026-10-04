@@ -42,6 +42,9 @@ object ResolutionPayload {
         if (bucket.sources.isNotEmpty()) {
             put("sources", buildJsonArray { bucket.sources.forEach { add(it) } })
         }
+        // Only when true: a bucket without it is one a receiver combines with what it holds,
+        // which is how every bucket before P2-16 was meant to be read.
+        if (bucket.complete) put("complete", true)
     }
 
     fun bucketsJson(buckets: List<Bucket>, family: ResolutionFamily): JsonArray = buildJsonArray {

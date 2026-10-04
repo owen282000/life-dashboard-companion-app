@@ -112,7 +112,16 @@ data class HealthData(
      * Stored with the watermarks, the next sync's range reaches back from there. Empty for a
      * backfill.
      */
-    val coveredUntil: Map<HealthDataType, Instant> = emptyMap()
+    val coveredUntil: Map<HealthDataType, Instant> = emptyMap(),
+    /**
+     * For the bucketed types the read was asked to keep whole windows of (see
+     * [WholeWindowRequest]): every record Health Connect holds in [wholeCoverage], changed or
+     * not, the app's own Receive writes left out as everywhere else. Null when nothing was kept.
+     * Only for building complete buckets; never sent as records.
+     */
+    val whole: HealthData? = null,
+    /** The range per type that [whole] holds everything of. */
+    val wholeCoverage: Map<HealthDataType, ReadCoverage> = emptyMap()
 )
 
 data class BasalMetabolicRateData(

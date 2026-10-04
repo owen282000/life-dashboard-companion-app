@@ -237,6 +237,11 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
               }
             },
             "required": [
@@ -365,6 +370,11 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
               }
             },
             "required": [
@@ -439,6 +449,11 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
               }
             },
             "required": [
@@ -511,6 +526,11 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
               }
             },
             "required": [
@@ -583,6 +603,11 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
               }
             },
             "required": [
@@ -772,6 +797,11 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
               }
             },
             "required": [
@@ -875,6 +905,11 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
               }
             },
             "required": [
@@ -1442,6 +1477,11 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
               }
             },
             "required": [
@@ -1638,6 +1678,11 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
               }
             },
             "required": [

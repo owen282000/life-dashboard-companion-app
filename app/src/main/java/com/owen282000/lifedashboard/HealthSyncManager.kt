@@ -65,7 +65,8 @@ class HealthSyncManager(
             val healthDataResult = healthConnectManager.readHealthData(
                 enabledTypes,
                 lastSyncTimestamps,
-                coveredUntil = enabledTypes.associateWith { preferencesManager.getHealthCoveredUntil(it) }
+                coveredUntil = enabledTypes.associateWith { preferencesManager.getHealthCoveredUntil(it) },
+                wholeWindows = ResolutionApplier.wholeRequests(preferencesManager.getSeriesResolutions(), preferencesManager.getBucketCarry())
             )
             if (healthDataResult.isFailure) {
                 return@withContext Result.failure(healthDataResult.exceptionOrNull() ?: Exception("Failed to read health data"))
@@ -161,6 +162,12 @@ class HealthSyncManager(
             // Samples of bucketed windows still open: carried from the last sync, then from
             // pass to pass, and stored again at the end so a window goes out once, complete.
             var carried = preferencesManager.getBucketCarry()
+            val resolutions = preferencesManager.getSeriesResolutions()
+            // What the reads of this sync held whole per bucketed type, the newest read of a type
+            // winning: a closed window is built from it, complete, rather than from only the
+            // samples that changed (P2-16). A later pass reads only the types still draining, so
+            // the others keep what the pass that read them held.
+            var whole = emptyMap<HealthDataType, WholeContent>()
 
             // Deletions are read once per sync, not per pass: the changes feed is consumed by
             // reading it, so a second pass would find it empty and the first pass's deletions
@@ -212,7 +219,8 @@ class HealthSyncManager(
                 val healthDataResult = healthConnectManager.readHealthData(
                     typesToRead,
                     lastSyncTimestamps,
-                    coveredUntil = enabledTypes.associateWith { preferencesManager.getHealthCoveredUntil(it) }
+                    coveredUntil = enabledTypes.associateWith { preferencesManager.getHealthCoveredUntil(it) },
+                    wholeWindows = ResolutionApplier.wholeRequests(resolutions, carried)
                 )
                 if (healthDataResult.isFailure) {
                     if (anyData) break
@@ -221,6 +229,7 @@ class HealthSyncManager(
                     )
                 }
                 val healthData = healthDataResult.getOrThrow()
+                whole = whole + ResolutionApplier.wholeContent(healthData)
                 draining = healthData.cappedTypes
                 if (healthData.quotaExhausted) quotaHit = true
                 healthData.readIds.forEach { (type, ids) ->
@@ -270,9 +279,10 @@ class HealthSyncManager(
                 val isLastPass = healthData.cappedTypes.isEmpty() || pass == MAX_SYNC_PASSES || quotaHit
                 val resolved = ResolutionApplier.from(
                     healthData,
-                    preferencesManager.getSeriesResolutions(),
+                    resolutions,
                     carriedIn = carried,
-                    emit = isLastPass
+                    emit = isLastPass,
+                    whole = whole
                 )
                 carried = resolved.carriedOut
 
@@ -691,12 +701,25 @@ class HealthSyncManager(
             var draining: Set<HealthDataType>? = progress.job.draining?.let { typesOf(it) }
             val windowUnread = typesOf(progress.job.windowUnread).toMutableSet()
             var lastChunkRecords = 0
+            // A bucketed type is read from bucket bound to bucket bound, so every window lies in
+            // one chunk of days and is built whole there; reading it over the days' own bounds
+            // split the window at each bound in two halves, the first of which was dropped
+            // (P2-16). Its raw records are not sent, so its range can differ from the others'.
+            val resolutions = preferencesManager.getSeriesResolutions()
+            val bucketed = ResolutionApplier.wholeRequests(resolutions).keys
+            val alignedWindows = bucketed.associateWith { type ->
+                val resolution = resolutions.getValue(type)
+                SeriesBucketing.alignDown(windowStart, resolution) to SeriesBucketing.alignDown(windowEnd, resolution)
+            }.filterValues { (from, to) -> from.isBefore(to) }
+            val wholeWindows = alignedWindows.mapValues { (type, range) -> WholeWindowRequest(resolutions.getValue(type), keepFrom = range.first) }
             for (pass in firstPass..MAX_PASSES_PER_BACKFILL_WINDOW) {
                 val readResult = healthConnectManager.readHealthData(
                     draining ?: enabledTypes,
                     lastSyncTimestamps = cursor,
                     windowStart = windowStart,
-                    windowEnd = windowEnd
+                    windowEnd = windowEnd,
+                    wholeWindows = wholeWindows,
+                    windowFor = alignedWindows
                 )
                 val healthData = readResult.getOrElse {
                     return failed(BackfillFailure.Read(it.message ?: it.javaClass.simpleName))
@@ -752,13 +775,9 @@ class HealthSyncManager(
                         // short and must not treat missing ids as deleted.
                         "window_complete" to JsonPrimitive(drained)
                     ),
-                    // A backfill window lies wholly in the past, so every bucket in it is
-                    // closed; passing the window end as "now" says so without consulting the clock.
-                    resolved = ResolutionApplier.from(
-                        healthData,
-                        preferencesManager.getSeriesResolutions(),
-                        now = windowEnd
-                    ),
+                    // Every window of a bucketed type goes out whole in the first chunk, which reads
+                    // the type's whole aligned range; later chunks only drain raw records.
+                    resolved = ResolutionApplier.forBackfill(healthData, resolutions, emit = pass == 1),
                     sequence = preferencesManager.nextHealthSyncSequence()
                 )
                 val webhookManager = WebhookManager(
