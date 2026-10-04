@@ -30,6 +30,7 @@ import java.time.ZoneId
  *   with a higher one is an upsert: the ids stay and the modification time moves, the way a
  *   source that re-exports its last hour on every sync rewrites what it wrote before
  * - `per`: the steps in each minute record (default 10)
+ * - `chunk`: records per insert call (default 100); one call is one write to Health Connect
  */
 @RunWith(AndroidJUnit4::class)
 class ReviseForSuite {
@@ -46,6 +47,7 @@ class ReviseForSuite {
         val watch = Device(manufacturer = "LdFixture", model = "Watch", type = Device.TYPE_WATCH)
         val version = args.getString("version")?.toLong() ?: 1L
         val perMinute = args.getString("per")?.toLong() ?: 10L
+        val chunk = args.getString("chunk")?.toInt() ?: 100
 
         val records: List<Record> = when (args.getString("kind")) {
             "sleep" -> {
@@ -76,8 +78,8 @@ class ReviseForSuite {
         val type = records.first()::class
         for (op in args.getString("ops")!!.split(",")) {
             when (op) {
-                "insert" -> records.chunked(100).forEach { client.insertRecords(it) }
-                "reinsert" -> records.take(keep).chunked(100).forEach { client.insertRecords(it) }
+                "insert" -> records.chunked(chunk).forEach { client.insertRecords(it) }
+                "reinsert" -> records.take(keep).chunked(chunk).forEach { client.insertRecords(it) }
                 "delete" -> client.deleteRecords(type, emptyList(), records.map { it.metadata.clientRecordId!! })
                 else -> error("unknown op $op")
             }
