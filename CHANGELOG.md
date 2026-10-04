@@ -6,9 +6,16 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [1.23.0] - 2026-10-04
 
+### Highlights
+
+- Screen Time can leave apps out, or send only the ones you pick. An app you filter out never leaves the phone.
+- Optional record metadata (last modified, recording method, device) for receivers that want it.
+- Saved secrets move from the deprecated security-crypto library to AES-GCM with a key in the Android Keystore, without entering them again.
+- With a data resolution set, steps, distance and calories are no longer counted twice, and a backfill no longer drops records.
+
 ### Added
 
-- Record metadata (P2-7): with Record metadata in payload on, under Advanced on the Health tab,
+- Record metadata: with Record metadata in payload on, under Advanced on the Health tab,
   every record carries Health Connect's metadata under `metadata`: `last_modified`, the writing
   app's `client_record_id` and `client_record_version`, `recording_method`, the `device` and the
   zone offset (`zone_offset` for a record at one moment, `start_zone_offset` and
@@ -16,37 +23,38 @@ All notable changes to this project are documented in this file. The format is b
   `last_modified` a receiver can tell a night of sleep that a band is still revising from the
   settled one. Off by default, since it adds bytes to every record; in the settings backup as
   `include_record_metadata`. See Record metadata in docs/webhook.md.
-- Screen Time can leave apps out, or send only a few (#63). Under Which apps on the Screen Time
-  tab, All except sends every app but the ones ticked, and Only sends just the ticked ones; All
+- Screen Time can leave apps out, or send only a few ([#63](https://github.com/owen282000/life-dashboard-companion-app/issues/63)). Under Apps to send on the Screen Time
+  tab, All except sends every app but the ones selected, and Only sends just the selected ones; All
   stays the default. The apps on offer are the ones used for more than a minute over the last
-  30 days, plus any already ticked. An app filtered out never leaves the phone: it is not in the
-  payload, not on MQTT and not among the top apps, and its name is in the payload in no form.
+  30 days, plus any already selected. An app filtered out never leaves the phone: it is not in the
+  payload, not on MQTT and not among the top apps, and its name appears nowhere in the payload.
   `total_screen_time_minutes` keeps counting every app, so it goes on meaning screen time, and
   each day carries `filtered_screen_time_minutes`, the time of the apps that are sent, next to
   `app_filter` at the top of the payload. The MQTT sensors follow the filter, with the real
   total as the attribute `all_apps_minutes`, and the top app is `none` when the filter leaves no
-  app of today. Every sync re-sends the last seven days, so a change to the list changes those
+  app for today. Every sync re-sends the last seven days, so a change to the list changes those
   days on a receiver too; the app says so next to the list. The setting is in the settings
   backup as `screen_time_app_filter`. The Life Dashboard integration follows the filter from
-  its next release.
+  0.8.0: its screen time sensors and statistics count the apps that are sent, with the real
+  total as the attribute `all_apps_minutes`.
 
 ### Changed
 
 - Auth headers, signing secrets and MQTT passwords are stored with AES-256-GCM and a key the
   Android Keystore holds, in place of the deprecated security-crypto library. The first start
-  after the update moves them over in one step, so nothing has to be entered again, reads them
-  back, and only then deletes the old file, so a secret changed later cannot come back from it.
+  after the update moves them over in one step, reads them back, and only then deletes the old
+  file, so a secret changed later cannot come back from it. Nothing has to be entered again.
   Secrets are still never kept unencrypted: when the Keystore cannot be used they are not read
-  or saved, as before, and the next start tries again, however long that lasts. New is what
-  happens when they cannot be recovered (the key itself is gone or broken on three separate
-  boots, or the old file stayed unreadable): the app says so and asks for them again, where it
-  used to drop every secret typed in until it was reinstalled.
+  or saved, as before, and the next start tries again, however long that lasts. New in this release:
+  when they cannot be recovered (the key itself is gone or broken on three separate boots, or
+  the old file stayed unreadable), the app says so and asks for them again, where it used to
+  drop every secret typed in until it was reinstalled.
 
 ### Fixed
 
 - A bucketed window of steps, distance or calories that went out again held only the records
   that had changed, and the docs told receivers to add it to the window they held. A source that
-  writes its last hour again on every export, under the same record ids, made every sync add
+  writes its last hour again on every export, under the same record IDs, made every sync add
   that hour once more, and an edited record was added on top of its old value. Such a window is
   now built from everything Health Connect holds in it, which the sync already reads, so it
   costs no extra call of the read quota, and it carries `"complete": true` so a receiver
@@ -63,17 +71,24 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [1.22.0] - 2026-10-03
 
+### Highlights
+
+- With several webhooks, a sync that reached only some of them now says so ("Delivered to 1 of 2 destinations, see Logs"), and a notification names the address that keeps failing.
+- Pairing by QR code or pairing link sends a signed test ping right away and says whether it arrived.
+- Backfill runs in the background, keeps going when you leave the screen and picks up where it left off.
+- A sync that Android stops partway through no longer loses data: the payload waits in the outbox for the next sync.
+
 ### Added
 
 - With two or more webhooks in a section, a sync that reached some of them and not the others
-  counted as delivered without a word, so the one that missed it never got that data: it is not
-  queued for a single address yet. The line under Sync Now now says "Delivered to 1 of 2
-  destinations, see Logs", and after as many of those in a row as the failure notification
-  waits for, a notification names the address that keeps missing out (its host only). And when
-  pairing with Home Assistant replaces the section's signing secret while the section has other
-  addresses, the pairing dialog names them: they get payloads signed with the new secret from
-  then on, so one that checks signatures, such as the stack, starts refusing until it gets the
-  new secret too.
+  counted as delivered without a word, so the one that missed it never got that data: it is
+  not queued for a single address yet. The line under Sync Now now says "Delivered to 1 of 2
+  destinations, see Logs". When that keeps happening for as many syncs in a row as the failure
+  notification is set to, a notification names the address that keeps failing (its host only).
+  And when pairing with Home Assistant replaces the section's signing secret while the section
+  has other addresses, the pairing dialog names them: they get payloads signed with the new
+  secret from then on, so one that checks signatures, such as the stack, starts refusing until
+  it gets the new secret too.
 - Pairing with a QR code or a pairing link now checks itself: right after the pairing is
   written, the app sends a test ping to the paired address, signed with the paired secret, and
   says "Paired with <host>, test ping delivered", or why the ping failed. A failed ping leaves
@@ -92,7 +107,7 @@ All notable changes to this project are documented in this file. The format is b
   when you left the screen or Android ended the app, and running it again started at the first
   3-day chunk. Now it carries on after you leave, the tab shows where it is when you come back,
   Stop ends it and a new one can be started right after. The app remembers the last payload
-  that went through, also halfway through a busy chunk: a backfill that Android stops, that runs
+  that went through, even halfway through a busy chunk: a backfill that Android stops, that runs
   out of Health Connect's read quota or whose delivery fails continues right after it, by itself
   after a stop or the quota (a few minutes later), and when you pick the same length again
   within a day after a failure; the Backfill dialog says so. After six runs in a row that sent
@@ -126,9 +141,9 @@ All notable changes to this project are documented in this file. The format is b
   broker's greeting now get 10 seconds each, every message 10 seconds and the whole publish two
   minutes; after that the publish fails with "No answer within ... s" on the MQTT status line
   and in the Logs tab, and a sync that is stopped stops the publish with it. A connection the
-  publish gave up on is closed, also when it only comes up afterwards.
+  publish gave up on is closed, even when it only comes up afterward.
 - With MQTT as the only destination (no webhook), a sync whose broker was down still showed as
-  synced, green on the dashboard and never counted towards the failure notification. It now
+  synced, green on the dashboard and never counted toward the failure notification. It now
   fails like a webhook that is down: the line under Sync Now says "Sync failed: MQTT broker:"
   and the reason, the dashboard shows the failure, and the failure notification counts it. With
   a webhook as well the webhook still decides, and the MQTT status line now shows the broker's
@@ -147,7 +162,7 @@ All notable changes to this project are documented in this file. The format is b
   selected, the schedule's days are read as whole days with checked or not, and the interval or
   times choice, the Logs filter, the resolution choices and the bottom tabs say which one is
   selected; the tab names are no longer read twice. The line under Sync Now is read out when a
-  sync finishes, and so is the wizard's test ping result. Status that was only a colour is now
+  sync finishes, and so is the wizard's test ping result. Status that was only a color is now
   also said: the home screen widget's dot reads "Last sync succeeded" or "Last sync failed", the
   dashboard reads "Last sync, failed" with the time, and a type whose permission is missing
   reads "Steps, permission missing". The cross that removes a webhook URL or header was 32dp
@@ -163,14 +178,14 @@ All notable changes to this project are documented in this file. The format is b
   the export does not have the rest either. TalkBack reads "Payload" and the number of
   characters instead of the whole payload, and a row's payload is formatted without holding up
   the screen.
-- Text in the app's accent and status colours was hard to read. In the light theme green, purple,
+- Text in the app's accent and status colors was hard to read. In the light theme green, purple,
   blue, amber and red words on white came out at 2 to 3.9:1, under the 4.5:1 that small text
-  needs, and the white titles on the tab headers were 2.6:1 on green. Words in those colours
-  now use a darker shade of the same colour in the light theme and a lighter one where the dark
+  needs, and the white titles on the tab headers were 2.6:1 on green. Words in those colors
+  now use a darker shade of the same color in the light theme and a lighter one where the dark
   theme needed it, so every one reads at 4.5:1 or more, also in status pills and selected
   chips. The tab headers and filled buttons carry dark text, black on Screen Time's purple.
   Text buttons, a focused field's label and error messages follow, since the light theme's
-  primary and error colours are now those darker shades. Tiles, icons, switches and the brand
+  primary and error colors are now those darker shades. Tiles, icons, switches and the brand
   green itself are unchanged, and the iOS app already worked this way.
 - A sync that Android ended at the wrong moment could lose what it had read. The app stored how
   far it had read the moment the post returned, but only put a payload that failed in the outbox
@@ -196,6 +211,11 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [1.21.2] - 2026-09-28
 
+### Highlights
+
+- A sync no longer uses up Health Connect's read quota when a source such as Fitbit keeps rewriting records.
+- Deletions go out with the first payload instead of waiting until a backlog is sent.
+
 ### Fixed
 
 - A sync could use up Health Connect's read quota, after which it failed to read most data
@@ -212,10 +232,16 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [1.21.1] - 2026-09-27
 
+### Highlights
+
+- A night of sleep or a day of calories that Fitbit revised no longer disappears from a receiver.
+- The home screen widget follows the phone's language.
+- When two log rows are written at the same moment, both are now kept.
+
 ### Fixed
 
 - A night of sleep or a day of calories that Fitbit revised could disappear from a receiver.
-  Fitbit revises by deleting records and writing them again under the same ids, and the app
+  Fitbit revises by deleting records and writing them again under the same IDs, and the app
   sent the records and also named them in `deleted_records`. A record that exists again is
   no longer named deleted
   ([#71](https://github.com/owen282000/life-dashboard-companion-app/issues/71), [#72](https://github.com/owen282000/life-dashboard-companion-app/issues/72)).
@@ -226,6 +252,13 @@ All notable changes to this project are documented in this file. The format is b
   Logs tab now keeps every row.
 
 ## [1.21.0] - 2026-09-27
+
+### Highlights
+
+- Setup recommends the Life Dashboard integration for Home Assistant: install it from HACS and scan its code.
+- The app asks only for the Health Connect permissions of the types you switch on.
+- The outbox holds up to 700 failed Health Connect syncs, a week at the 15-minute interval, and a sync that is dropped anyway is reported in a notification.
+- A phone that did not sync for more than a week catches up on up to 30 days of changes.
 
 ### Changed
 
@@ -282,10 +315,10 @@ All notable changes to this project are documented in this file. The format is b
 
 - A sync that Android stopped while the webhook was slow to answer showed up in the Logs tab
   as a failed delivery ("Job was cancelled"), and a stopped Screen Time sync did the same. A
-  stopped sync now simply stops: no failed row, no step towards the failure notification,
+  stopped sync now ends quietly: no failed row, no step toward the failure notification,
   and what it had not delivered yet is sent by the next run.
 - A stopped sync could keep the worker waiting for up to ten seconds, until the webhook's
-  read timeout, before it let go. The request is now cancelled together with the sync.
+  read timeout, before it let go. The request is now canceled together with the sync.
 - A scheduled sync that found Health Connect not answering, as can happen while the phone
   dozes, waited for it without limit while reading records or the day totals, the same way
   the deletion step did before 1.18.1. Every Health Connect call in the read step now gives up
@@ -308,7 +341,7 @@ All notable changes to this project are documented in this file. The format is b
   password, although such an import promises to keep the credentials on the device. They are
   now kept, for the same broker (host, port and TLS).
 - A watch that uploaded a large backlog in one go could still produce one oversized payload,
-  the situation the crash in #38 came from. Health Connect gives every record of one upload
+  the situation the crash in [#38](https://github.com/owen282000/life-dashboard-companion-app/issues/38) came from. Health Connect gives every record of one upload
   the same modification time, and the limit per sync could not stop inside such a group. The
   sync now also remembers the last record it sent, so every payload stays within the limit
   and the rest follows in the next pass. Nothing is sent twice or skipped across the update.
@@ -332,7 +365,7 @@ All notable changes to this project are documented in this file. The format is b
   starts is taken into account, and its "last used" on the new day is the start of that day.
 - The outbox could drop undelivered Health Connect syncs without a word once it was full.
   Each dropped sync is now a failed row in the Logs tab, and a notification, "Health Connect
-  data was lost", counts them. It stays until you swipe it away, also after the next
+  data was lost", counts them. It stays until you swipe it away, even after the next
   successful delivery, and appears even with "Notify after failed syncs" off. The same goes
   for Screen Time days that fall out of the queued week before they were delivered.
 - A crash or power loss while the outbox was being written could lose the payload being
@@ -355,7 +388,7 @@ All notable changes to this project are documented in this file. The format is b
   reads and writes, where the data goes, what stays on the phone, your control and a contact,
   with a link to the full policy on GitHub. Back returns to Health Connect. The Privacy
   policy card in About opens the same screen.
-- On the nights summer time starts or ends, fixed sync times such as 07:00 ran an hour early
+- On the nights daylight saving time starts or ends, fixed sync times such as 07:00 ran an hour early
   or late, and "every N minutes" schedules with a weekday filter or quiet hours got uneven
   gaps. Fixed times now keep their time, a time in the hour that is skipped in March, such as
   02:30, runs at 03:30, and a time in the hour that repeats in October runs once.
@@ -386,6 +419,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [1.20.0] - 2026-09-26
 
+### Highlights
+
+- Receive: a scale or blood pressure monitor connected to Home Assistant can write its readings into Health Connect, switched on per type.
+- Phone name, for two phones on one MQTT broker.
+- Readings that came from Home Assistant are never sent back to it.
+
 ### Added
 
 - Receive: measurements from Home Assistant into Health Connect, for a scale or blood
@@ -398,8 +437,8 @@ All notable changes to this project are documented in this file. The format is b
   integration's answer (0.7.0 or later) to the webhook the app already sends, signed under a
   key derived from the shared secret and bound to that request, so a proxy or a cloudhook in
   between cannot inject a reading. Readings keep their own time, a resend is an upsert on the
-  integration's id and version, readings older than 30 days need "Accept older measurements",
-  and the app tells the integration per reading what happened. Every round is a row in the
+  integration's ID and version, readings older than 30 days need "Accept older measurements",
+  and the app tells the integration per reading what happened. Every exchange is a row in the
   Logs tab, "Health · from Home Assistant", folding out to each reading; the line under Sync
   Now says how much was written. A sync with nothing to send still asks the integration once.
 - Phone name, under Advanced on both tabs, for two phones on one MQTT broker. A named phone
@@ -480,7 +519,7 @@ All notable changes to this project are documented in this file. The format is b
   in the window as deleted. An empty window now sends one payload as well, so an empty
   window is distinguishable from an unreported one.
 - Every Health Connect payload carries a `sequence` counter that only goes up, so a
-  retry that arrives after a newer payload can be recognised as stale instead of undoing
+  retry that arrives after a newer payload can be recognized as stale instead of undoing
   it. Previewing data does not take a number: looking is not sending.
 - A sync whose only change is a deletion, which is what removing a meal without adding
   one looks like, now sends a payload carrying the deletion and no records, and reports
@@ -512,26 +551,26 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Fixed
 
-- The scanner could not read the pairing code Home Assistant shows in its dark theme, which draws light modules on a dark card. The decoder read dark-on-light only; it now tries both. This, not distance or resolution, is why the phone's own camera app read the same code instantly
+- The scanner could not read the pairing code Home Assistant shows in its dark theme, which draws light modules on a dark card. The decoder read dark-on-light only; it now tries both. This, not distance or resolution, is why the phone's own camera app read the same code instantly.
 
 ## [1.16.3] - 2026-09-16
 
 ### Fixed
 
 - The scanner still read nothing where the phone's own camera app read the same code instantly. Measured against blurred frames rather than guessed at: what decides it is how much of the frame the code covers, not the resolution and not the length of the code. A code filling a quarter of the frame is unreadable at any resolution; one filling most of it survives several pixels of camera softness
-- The scanner now shows an outline for the code to fill and says that closer is better, pins autofocus to the middle of the frame rather than letting it settle on the text under the code, applies a modest zoom, and analyses at 960p
+- The scanner now shows an outline for the code to fill and says that closer is better, pins autofocus to the middle of the frame rather than letting it settle on the text under the code, applies a modest zoom, and analyzes at 960p
 
 ## [1.16.2] - 2026-09-16
 
 ### Fixed
 
-- The scanner in the app analysed camera frames at 640x480, which is not enough to read a pairing code through the softness of a hand-held camera: the phone's own camera app reads the same code instantly because it works at full resolution. Frames are now analysed at 720p, which roughly doubles the blur the code survives
+- The scanner in the app analyzed camera frames at 640x480, which is not enough to read a pairing code through the softness of a hand-held camera: the phone's own camera app reads the same code instantly because it works at full resolution. Frames are now analyzed at 720p, which roughly doubles the blur the code survives.
 
 ## [1.16.1] - 2026-09-15
 
 ### Fixed
 
-- The scanner in the app found nothing while the phone's own camera read the same pairing code instantly. A camera buffer routinely ends before the padding of its last row, and the decoder demanded a full padded rectangle, so every real frame was discarded before it could be read
+- The scanner in the app found nothing while the phone's own camera read the same pairing code instantly. A camera buffer routinely ends before the padding of its last row, and the decoder demanded a full padded rectangle, so every real frame was discarded before it could be read.
 
 ## [1.16.0] - 2026-09-15
 
@@ -589,7 +628,7 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 ### Changed
 
-- Home Assistant sensors for steps, distance, active and total calories now carry today's total from the deduplicated daily aggregate instead of the last record. "Steps (latest record): 7 steps" was true and useless; "Steps Today: 6,412" is what a dashboard wants. Their entity ids change accordingly (`steps_today` and so on); the old `steps`, `distance`, `active_calories` and `total_calories` sensors are removed from the broker and from Home Assistant on the next publish
+- Home Assistant sensors for steps, distance, active and total calories now carry today's total from the deduplicated daily aggregate instead of the last record. "Steps (latest record): 7 steps" was true and useless; "Steps Today: 6,412" is what a dashboard wants. Their entity IDs change accordingly (`steps_today` and so on); the old `steps`, `distance`, `active_calories` and `total_calories` sensors are removed from the broker and from Home Assistant on the next publish
 - Every MQTT publish sends the full set of sensors the app has mapped so far, not only the types that had new records in that sync. Pointing the app at a new broker, or adding Home Assistant later, now shows the whole device after one sync instead of one sensor at a time
 
 ### Fixed
@@ -623,11 +662,11 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 - MQTT publishes now appear in the Logs tab next to webhook deliveries, with the broker, sensor count and the error when the broker could not be reached. Until now a failing broker was only visible as a one-line status inside the MQTT settings
 - A test ping on the Screen Time tab, which has its own webhook URLs but had no way to test them
 - The failure-notification setting is reachable from both tabs; it was always app-wide but only shown on Health Connect
-- `PRIVACY.md`, a plain-language privacy policy, linked from the About screen together with the documentation, the changelog of the running version, the issue tracker and the licence
+- `PRIVACY.md`, a plain-language privacy policy, linked from the About screen together with the documentation, the changelog of the running version, the issue tracker and the license
 
 ### Changed
 
-- The three tabs and the About screen share one design: a coloured status banner per tab (green Health Connect, purple Screen Time, blue Logs) with the permission state and one action in it, a stat card, settings grouped in cards of icon rows with the webhook and MQTT destinations side by side, one sync button with the secondary actions as tiles, and the About hero on the brand's dark ground with the mark. The red "permissions required" card is gone; the banner says it instead. Logs rows show the destination as an icon and the outcome as one word, and the log filter is a segmented control
+- The three tabs and the About screen share one design: a colored status banner per tab (green Health Connect, purple Screen Time, blue Logs) with the permission state and one action in it, a stat card, settings grouped in cards of icon rows with the webhook and MQTT destinations side by side, one sync button with the secondary actions as tiles, and the About hero on the brand's dark ground with the mark. The red "permissions required" card is gone; the banner says it instead. Logs rows show the destination as an icon and the outcome as one word, and the log filter is a segmented control
 - The two sync tabs are backed by view models (`HealthConnectViewModel`, `ScreenTimeViewModel`) exposing `StateFlow`, with the screens as pure functions of state and callbacks and the shared sections (webhook, MQTT, notifications, data types) as separate composables. One `PreferencesManager` is shared through the Application instead of being constructed per screen. The models are unit tested against in-memory fakes: validation, change tracking, sync outcomes and permission flows
 - A destination is now either a webhook URL or MQTT: saving and syncing no longer insist on a webhook URL when MQTT is enabled
 - The release build is minified with R8 and resource shrinking, which takes the APK from 19 MB to about 4 MB. Keep rules cover HiveMQ/Netty, kotlinx.serialization, enum names stored in preferences and WorkManager's Room database; `mapping.txt` is kept with the build outputs
@@ -693,12 +732,12 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 ### Added
 
-- Plain HTTP webhooks for private LAN/VPN receivers, behind an explicit "Allow plain HTTP webhooks" switch; `http://` URLs stay refused with a clear log message until it is on, and HTTPS remains the default (#51)
-- MQTT publishing for Screen Time: today's and yesterday's total minutes and today's most used app, with the top five apps as attributes, under the same Home Assistant device; screen time syncs also run with MQTT alone and no webhook configured (#52)
+- Plain HTTP webhooks for private LAN/VPN receivers, behind an explicit "Allow plain HTTP webhooks" switch; `http://` URLs stay refused with a clear log message until it is on, and HTTPS remains the default ([#51](https://github.com/owen282000/life-dashboard-companion-app/issues/51))
+- MQTT publishing for Screen Time: today's and yesterday's total minutes and today's most used app, with the top five apps as attributes, under the same Home Assistant device; screen time syncs also run with MQTT alone and no webhook configured ([#52](https://github.com/owen282000/life-dashboard-companion-app/issues/52))
 - MQTT settings are now symmetric: Health Connect and Screen Time each have their own switch and base topic, share one broker connection by default (existing settings carry over), and either section can switch to its own broker
 - Collapsible "Advanced" and "Notifications" cards, with the daily totals and plain HTTP switches under Advanced
 - At-a-glance card at the top of the Screen Time tab: today's minutes, today's most used app, last sync, and a 7-day minutes sparkline, matching the Health Connect dashboard card
-- `raw_min_time`, `raw_max_time` and `raw_latest_modified_time` in `_diagnostics`, describing everything Health Connect returned before the incremental filter, so a receiver can tell "the source app has not written it yet" from "the filter dropped it" (#53)
+- `raw_min_time`, `raw_max_time` and `raw_latest_modified_time` in `_diagnostics`, describing everything Health Connect returned before the incremental filter, so a receiver can tell "the source app has not written it yet" from "the filter dropped it" ([#53](https://github.com/owen282000/life-dashboard-companion-app/issues/53))
 - `docs/DATA_SOURCES.md`: what individual source apps (Fitbit, Cronometer, Health Sync, Zepp, Garmin) do and do not write, and how screen time is measured
 
 ### Changed
@@ -721,21 +760,21 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 ### Added
 
-- Full `NutritionRecord` export: food name, meal type and all 38 further nutrients Health Connect exposes (fibre, sugars, fat subtypes, cholesterol, minerals, vitamins, caffeine), with units in the key suffix; the four original keys are unchanged and every new field is optional (#50)
+- Full `NutritionRecord` export: food name, meal type and all 38 further nutrients Health Connect exposes (fiber, sugars, fat subtypes, cholesterol, minerals, vitamins, caffeine), with units in the key suffix; the four original keys are unchanged and every new field is optional ([#50](https://github.com/owen282000/life-dashboard-companion-app/issues/50))
 
 ## [1.9.0] - 2026-09-08
 
 ### Fixed
 
-- Heart Rate Variability could never be granted: the manifest declared a nonexistent permission name (#40); the permission request list is now derived from the data type enum, which also restores the 10 newest types that had silently dropped out of the permission dialog
-- Heart-rate backlogs no longer grow faster than they drain: a sync run now delivers up to 8 capped batches instead of one (#38)
-- Records sharing the cap-boundary modification time are no longer skipped: the oldest-first cap extends across timestamp ties, keeping the strict watermark filter safe (#38)
-- Backfill drains each 3-day window until exhausted instead of dropping dense data past the per-type cap (#39)
-- The pagination loop treats an empty page token as completion, matching Health Connect behavior (#38)
+- Heart Rate Variability could never be granted: the manifest declared a nonexistent permission name ([#40](https://github.com/owen282000/life-dashboard-companion-app/issues/40)); the permission request list is now derived from the data type enum, which also restores the 10 newest types that had silently dropped out of the permission dialog
+- Heart-rate backlogs no longer grow faster than they drain: a sync run now delivers up to 8 capped batches instead of one ([#38](https://github.com/owen282000/life-dashboard-companion-app/issues/38))
+- Records sharing the cap-boundary modification time are no longer skipped: the oldest-first cap extends across timestamp ties, keeping the strict watermark filter safe ([#38](https://github.com/owen282000/life-dashboard-companion-app/issues/38))
+- Backfill drains each 3-day window until exhausted instead of dropping dense data past the per-type cap ([#39](https://github.com/owen282000/life-dashboard-companion-app/issues/39))
+- The pagination loop treats an empty page token as completion, matching Health Connect behavior ([#38](https://github.com/owen282000/life-dashboard-companion-app/issues/38))
 
 ### Added
 
-- `READ_HEALTH_DATA_HISTORY` permission, requested with the normal flow and surfaced in the backfill dialog: without it Health Connect caps reads at 30 days before the first grant, so long backfills silently returned only recent data (#39)
+- `READ_HEALTH_DATA_HISTORY` permission, requested with the normal flow and surfaced in the backfill dialog: without it Health Connect caps reads at 30 days before the first grant, so long backfills silently returned only recent data ([#39](https://github.com/owen282000/life-dashboard-companion-app/issues/39))
 
 ## [1.8.0] - 2026-08-27
 
@@ -776,7 +815,7 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 ### Added
 
-- Record `uuid` on every payload record (stable Health Connect id) for server-side deduplication, matching the iOS companion app
+- Record `uuid` on every payload record (stable Health Connect ID) for server-side deduplication, matching the iOS companion app
 - Local notification after repeated sync failures, with an in-app toggle and threshold (3/5/10)
 - Home screen widget with last sync result and records delivered today
 - Quick Settings tile to trigger an immediate sync

@@ -1,7 +1,3 @@
-Added:
-
-- Client certificates (mTLS) for webhooks, for a Home Assistant or receiver behind a
-  reverse proxy that requires one. Install the certificate in Android's credential store,
-  then pick it under Advanced settings in Health Connect or Screen Time; the choice applies
-  to both, and the Advanced row's summary names it. Every webhook request presents it,
-... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
+New
+- Client certificates (mTLS) for webhooks, for a Home Assistant or receiver behind a reverse proxy that requires one. Install the certificate in Android's credential store, then pick it under Advanced settings in Health Connect or Screen Time; the choice applies to both, and the Advanced row's summary names it.
+Full release notes: https://github.com/owen282000/life-dashboard-companion-app/releases/tag/1.19.0

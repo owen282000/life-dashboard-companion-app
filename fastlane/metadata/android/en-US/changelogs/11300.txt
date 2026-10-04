@@ -1,4 +1,7 @@
-Added:
-
-- A first-run wizard. A fresh install used to open on the Health tab with 33 toggles and no destination; the wizard now asks what to sync (Health Connect, Screen Time or both), where the data should go (a webhook URL with a test ping, an MQTT broker, or both, applied only to the sources you picked) and which health data types to start with (the essentials, all 33, or none yet), then ...
-... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
+New
+- A first-run wizard asks what to sync, where it should go (a webhook with a test ping, an MQTT broker, or both) and which data types to start with. Every choice stays editable, and you can skip it.
+- MQTT publishes show up in the Logs tab next to webhook deliveries.
+Improved
+- One design for the three tabs and the About screen.
+- The APK shrank from 19 MB to about 4 MB.
+Full release notes: https://github.com/owen282000/life-dashboard-companion-app/releases/tag/1.13.0

@@ -1,15 +1,15 @@
 name: Bug report
-description: Something is broken or not working as documented
+description: Something is broken or does not work as documented
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        For setup questions and "how do I get X into Home Assistant", use
-        [Discussions](https://github.com/owen282000/life-dashboard-companion-app/discussions)
-        instead. The [troubleshooting guide](https://github.com/owen282000/life-dashboard-companion-app/blob/main/docs/usage.md#troubleshooting)
-        answers the most common problems: syncs stopping after a while, plain HTTP being
-        refused, totals that look far too high, and nightly metrics arriving late.
+        For setup questions and "how do I get X into Home Assistant", use [Discussions](https://github.com/owen282000/life-dashboard-companion-app/discussions) instead.
+
+        The [troubleshooting guide](https://github.com/owen282000/life-dashboard-companion-app/blob/main/docs/usage.md#troubleshooting) answers the most common problems: syncs stopping after a while, plain HTTP being refused, totals that look far too high, and nightly metrics arriving late.
+
+        A security problem goes to [a private report](https://github.com/owen282000/life-dashboard-companion-app/security/advisories/new), not here.
   - type: checkboxes
     id: checked
     attributes:
@@ -23,7 +23,7 @@ body:
     id: description
     attributes:
       label: What happened?
-      description: A clear description of the bug.
+      description: What you saw on your phone or in Home Assistant, as exactly as you can.
     validations:
       required: true
   - type: textarea
@@ -37,7 +37,7 @@ body:
     attributes:
       label: Steps to reproduce
       placeholder: |
-        1. Enable data type X
+        1. Switch on data type X
         2. Tap Sync Now
         3. ...
     validations:
@@ -46,11 +46,12 @@ body:
     id: destination
     attributes:
       label: Where does the data go?
-      description: The two paths behave differently, and this narrows it down immediately.
+      description: The paths behave differently, so this narrows it down right away.
       options:
-        - Webhook
-        - MQTT / Home Assistant
-        - Both
+        - Home Assistant, through the Life Dashboard integration
+        - MQTT broker (Home Assistant MQTT Discovery)
+        - My own webhook
+        - More than one of these
         - Not sure
     validations:
       required: true
@@ -59,46 +60,56 @@ body:
     attributes:
       label: Which app wrote the data to Health Connect?
       description: >
-        The single most useful answer for a data bug. Sources differ in what they write and
-        when; docs/DATA_SOURCES.md was largely built from these reports. Leave empty for a
-        Screen Time issue.
-      placeholder: "Fitbit, Zepp, Garmin Connect, Samsung Health, Health Sync, the phone itself, ..."
+        The most useful answer for a data bug. Source apps differ in what they write and when;
+        docs/DATA_SOURCES.md was largely built from these reports. Leave it empty for a Screen
+        Time issue.
+      placeholder: "Garmin Connect, Fitbit, Samsung Health, Zepp, the phone itself, ..."
   - type: dropdown
     id: channel
     attributes:
       label: Where did you install the app from?
-      description: Builds can differ, and an F-Droid build may lag behind the GitHub release.
       options:
-        - GitHub release
-        - F-Droid
-        - IzzyOnDroid
+        - GitHub Releases
         - Obtainium
+        - F-Droid
         - Built from source
+        - Other
     validations:
       required: true
   - type: input
     id: version
     attributes:
       label: App version
-      placeholder: "1.14.0 (see the About screen)"
+      description: Shown on the About screen.
+      placeholder: "1.23.0"
+    validations:
+      required: true
+  - type: input
+    id: phone
+    attributes:
+      label: Phone model
+      placeholder: "Samsung Galaxy S24"
     validations:
       required: true
   - type: input
     id: android
     attributes:
-      label: Android version and device
-      placeholder: "Android 16, Samsung Galaxy S24"
+      label: Android version
+      placeholder: "Android 16"
     validations:
       required: true
   - type: input
     id: healthconnect
     attributes:
       label: Health Connect version (if relevant)
-      placeholder: "See Health Connect app info"
+      placeholder: "See the Health Connect app info"
   - type: textarea
     id: logs
     attributes:
-      label: Relevant delivery logs
+      label: Delivery log
       description: >
-        Expand the failing entry on the Logs tab. Remove or redact your webhook URL, broker
-        address and any personal health data before pasting.
+        On the Logs tab, expand the failing entry and paste what it shows, or tap Export logs,
+        pick CSV and attach the file here by dragging it into this box. The CSV lists each
+        delivery with its time, address, status and error, without health values. The JSON
+        export holds the full payloads, so it contains your health data: attach it only if it
+        is needed. Remove your webhook URL, broker address and any personal data first.

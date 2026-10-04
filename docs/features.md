@@ -1,168 +1,293 @@
 # Features
 
-Everything Life Dashboard Companion does, in detail. For setup and day-to-day use see [usage.md](usage.md); for the payload your server receives see [webhook.md](webhook.md).
+What Life Dashboard Companion does, section by section. For setup and day-to-day use see [usage.md](usage.md); for the payload your server receives see [webhook.md](webhook.md).
 
-## Health Connect integration
+## At a glance
 
-Syncs data from Google Health Connect to your webhooks, the Home Assistant integration or MQTT, with a per-data-type toggle and permission management, and a configurable sync interval (minimum 15 minutes).
+- **Every record.** Each heart rate sample, sleep stage, meal and workout, with the app that wrote it and a stable ID, plus deduplicated daily totals.
+- **Home Assistant, MQTT or any webhook.** The Life Dashboard integration (paired by QR code), MQTT Discovery, or any server that accepts a JSON POST.
+- **A year of history.** Backfill sends up to 365 days, so your graphs start full.
+- **Two-way with Health Connect.** With the Life Dashboard integration, readings from a scale or blood pressure monitor in Home Assistant go into Health Connect, where Samsung Health and Google Health pick up the weight and body fat.
+- **Screen time per app**, next to your health data, with a day that ends when you go to bed.
+- **No cloud of its own and no analytics.** Data goes only to the destinations you set.
 
-### 33 supported data types
+## Contents
 
-| Category | Types |
-|---|---|
-| Activity | Steps, Distance, Active Calories, Total Calories, Exercise Sessions |
-| Body | Weight, Height, Body Temperature, Skin Temperature, Basal Body Temperature |
-| Body composition | Body Fat %, Lean Body Mass, Bone Mass, Body Water Mass |
-| Vitals | Heart Rate, Resting Heart Rate, Heart Rate Variability (HRV), Blood Pressure, Blood Glucose, Oxygen Saturation, Respiratory Rate, Basal Metabolic Rate, VO2 Max |
-| Sleep | Sleep sessions with stages |
-| Nutrition | Hydration, Nutrition records |
-| Mindfulness | Meditation sessions (from apps like Waking Up, Headspace) |
-| Cycle tracking | Menstruation Period, Menstruation Flow, Intermenstrual Bleeding, Ovulation Test, Cervical Mucus, Sexual Activity, Basal Body Temperature |
+- [Health data](#health-data)
+- [Screen time](#screen-time)
+- [Destinations](#destinations)
+- [Scheduling](#scheduling)
+- [History and backfill](#history-and-backfill)
+- [Reliability](#reliability)
+- [Receiving from Home Assistant](#receiving-from-home-assistant)
+- [Privacy and security](#privacy-and-security)
+- [Accessibility and languages](#accessibility-and-languages)
+- [Widget, tile and automation apps](#widget-tile-and-automation-apps)
+- [Status on the phone](#status-on-the-phone)
+- [Preview, export and logs](#preview-export-and-logs)
+- [Settings backup](#settings-backup)
+- [How this compares to the Home Assistant companion app](#how-this-compares-to-the-home-assistant-companion-app)
 
-Cycle tracking covers logged data from cycle apps that write to Health Connect, such as Clue and Flo. Samsung Health does not share cycle data with Health Connect, and predictions stay in the source app.
+<a id="33-supported-data-types"></a>
 
-What individual source apps do and do not write is collected in [DATA_SOURCES.md](DATA_SOURCES.md).
+## Health data
 
-**Record metadata** (Health tab, Advanced, off by default) adds Health Connect's metadata to every record: when the source last changed it, its own id and version, how it was recorded, the device and the time zone offset. See [webhook.md](webhook.md#record-metadata).
+The app reads 33 Health Connect data types. Each has its own switch and its own permission, so you share only what you choose. Every enabled type goes to your webhooks as individual records; 24 of them also become a sensor in Home Assistant, through the integration or MQTT. The integration adds minutes per day for workouts and mindfulness sessions.
 
-### Backfill
-
-**Backfill** on the Health tab sends the last 30, 90 or 365 days of every enabled type to your webhooks, in 3-day chunks, oldest first, without touching what the regular sync keeps track of. Past 30 days it needs Health Connect's history access, which the dialog asks for. It runs as a background job: it carries on when you leave the screen, the tab shows where it is when you come back, and **Stop** ends it. The app remembers the last payload that went through, also inside a busy chunk, so a backfill that Android stops or that runs out of Health Connect's read quota continues right after it by itself, and one whose delivery failed continues there when you pick the same length again within a day. After six runs in a row that sent nothing it stops and says why. Switching data types on or off while it is under way makes it start over at the first chunk, so every chunk carries the same types. The Logs tab has one row per run, with how far it got and how many records it sent; a delivery that failed has its own row. The payload fields are in [webhook.md](webhook.md#deletions).
-
-## Screen Time tracking
-
-- Tracks foreground time per app via Android's `UsageStatsManager`, with System UI and the launcher excluded so totals are comparable to Digital Wellbeing
-- **Configurable day boundary** for night owls: set the boundary to 4 AM and phone usage between midnight and 4 AM counts towards the previous day, instead of an arbitrary midnight cutoff
-- Syncs the last 7 days of usage data
-- App names resolved from package names
-- **Choose which apps are sent**: leave some out, or send only a few. An app left out never leaves the phone, the day's real total stays, and the time of the apps that are sent goes out as its own figure
-
-## Webhook configuration
-
-- **Pairing by QR code** - the [Home Assistant integration](https://github.com/owen282000/life-dashboard-ha) shows a code; the phone's camera or the scanner in the app fills in the address and the secret, after one confirmation. See [Pairing by QR code](usage.md#pairing-by-qr-code)
-- **HMAC signing** with a generated secret: one tap produces 32 bytes of entropy as hex, and the same value on your server verifies every `X-Signature`
-- **Multiple webhook URLs** - send to several endpoints simultaneously
-- **Custom headers** - auth tokens, API keys, or any custom HTTP header, per category, sent to the URLs you typed in and never to one that QR pairing added
-- **HMAC payload signing** - optional `X-Signature` header so your server can verify the sender
-- **Test ping** - send a small test payload to verify your server setup without waiting for real data
-- **Retries with backoff** - transient failures are retried automatically; permanent errors fail fast
-- **Separate configuration** - different URLs, headers and signing secrets for Health and Screen Time
-- **HTTPS by default, plain HTTP on request** - `http://` URLs are refused unless "Allow plain HTTP webhooks" is switched on, for Home Assistant or receivers only reachable over a private LAN or VPN
-- **Client certificates (mTLS)** - present a certificate from Android's credential store to every webhook, for servers behind a reverse proxy that requires one
-
-Delivery details, retry rules and signature verification are described in [webhook.md](webhook.md#delivery-retries-and-signing).
-
-## How this compares to the Home Assistant companion app
-
-The [Home Assistant companion app](https://companion.home-assistant.io/docs/core/sensors) ships Health Connect sensors of its own, so if you run Home Assistant the fair question is why you would add this app. The short answer: the companion app gives you the latest value of 25 metrics inside Home Assistant; this app gives you every record of 33 types, wherever you want them. Verified against the companion app's documentation on 14 September 2026.
-
-| | HA companion app | Life Dashboard Companion |
+| Category | Type | Sensor in Home Assistant |
 |---|---|---|
-| Health Connect coverage | 25 sensors | 33 data types |
-| Exercise sessions, nutrition, sleep stages, cycle tracking, mindfulness, skin temperature | Missing ([open issue](https://github.com/home-assistant/android/issues/4804)) | Supported |
-| Detail | Latest value or daily aggregate per sensor | Every record, with the source app and a stable id, plus deduplicated daily totals |
-| History | "Only the last 30 days of data is used" | Unlimited, with backfill of up to a year |
-| Screen time | Last used app; total screen-on time through History Stats | Foreground time per app, custom day boundary |
-| Destination | Your Home Assistant | Home Assistant through the Life Dashboard integration or MQTT Discovery, and any webhook backend |
-| Direction | Export only | Both: Health Connect to your server, and Home Assistant to Health Connect |
-| Delivery | Sensor updates | HMAC-signed webhooks, retries, store-and-forward outbox, delivery logs |
-| Android | 9+ on the Play build, 14+ otherwise | 8.0+ |
+| Activity | Steps | Today's total |
+| Activity | Distance | Today's total |
+| Activity | Active calories | Today's total |
+| Activity | Total calories | Today's total |
+| Activity | Exercise sessions | No; minutes per day in the integration's statistics |
+| Body | Weight | Latest value |
+| Body | Height | Latest value |
+| Body | Body temperature | Latest value |
+| Body | Skin temperature | Latest value (the delta) |
+| Body | Basal body temperature | Latest value |
+| Body composition | Body fat | Latest value |
+| Body composition | Lean body mass | Latest value |
+| Body composition | Bone mass | Latest value |
+| Body composition | Body water mass | Latest value |
+| Vitals | Heart rate | Latest value |
+| Vitals | Resting heart rate | Latest value |
+| Vitals | Heart rate variability (HRV) | Latest value |
+| Vitals | Blood pressure | Latest value (systolic and diastolic) |
+| Vitals | Blood glucose | Latest value |
+| Vitals | Oxygen saturation | Latest value |
+| Vitals | Respiratory rate | Latest value |
+| Vitals | Basal metabolic rate | Latest value |
+| Vitals | VO2 max | Latest value |
+| Sleep | Sleep sessions, with stages | Last sleep duration |
+| Nutrition | Hydration | Latest value |
+| Nutrition | Nutrition (meals and nutrients) | No, records only |
+| Mindfulness | Meditation sessions (from apps such as Waking Up or Headspace) | No; minutes per day in the integration's statistics |
+| Cycle tracking | Menstruation period | No, records only |
+| Cycle tracking | Menstruation flow | No, records only |
+| Cycle tracking | Intermenstrual bleeding | No, records only |
+| Cycle tracking | Ovulation test | No, records only |
+| Cycle tracking | Cervical mucus | No, records only |
+| Cycle tracking | Sexual activity | No, records only |
 
-The two are complementary rather than rivals: keep the companion app for presence, notifications and device sensors, and add this app when you want the full health pipeline, history, or delivery to anything that is not Home Assistant.
+Cycle tracking covers what cycle apps such as Clue and Flo write to Health Connect. Samsung Health doesn't share cycle data with Health Connect, and predictions stay in the source app. What individual source apps do and don't write is collected in [DATA_SOURCES.md](DATA_SOURCES.md).
 
-## Home Assistant and MQTT
+**Daily totals.** Next to the raw records, each payload carries `daily_totals` for steps, distance and calories, computed by Health Connect so that a walk recorded by both your phone and your watch counts once. On by default; see [webhook.md](webhook.md#daily-totals).
 
-Two ways in. The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha),
-installed through HACS, is the recommended one: it receives the webhook directly and needs
-no broker; it is paired by scanning a QR code, keeps history in long-term statistics (a day
-per day, also for a backfill and for screen time), and comes with an example dashboard.
-MQTT, described below, is the alternative: it publishes retained latest values through
-Discovery and suits a setup that already has a broker and does not need the history.
-Either one, not both.
+**Record metadata.** Off by default. Under **Advanced** on the **Health** tab, **Record metadata in payload** adds Health Connect's metadata to every record: when the source last changed it, the source's own ID and version, the recording method, the device and the time zone offsets. See [webhook.md](webhook.md#record-metadata).
+
+### Data resolution
+
+Dense series can make payloads large: a heart rate sample per second is 86,400 records a day. Under **Data Resolution** on the **Health** tab you choose, per type, whether to send every record or one value per 1, 5, 15 or 60 minutes.
+
+- Measured values (heart rate, for example) are averaged, with the minimum and maximum kept, so you can still tell sleep from a sprint. Accumulated values (steps, distance, calories) are summed.
+- Windows align to the clock, and every window says how many samples went into it. A window still filling when a sync runs waits until it is complete.
+- The payload names the resolution it used per series, so the receiver needs no matching setting.
+- Everything defaults to every record. Bucketing loses detail, so the app never turns it on for you.
+
+[webhook.md](webhook.md#data-resolution) shows the bucketed shape, and how a window that's sent again replaces the earlier copy.
+
+## Screen time
+
+- Foreground time per app, read from Android's usage statistics. System UI and the launcher are left out, so the totals line up with Digital Wellbeing.
+- **A custom day boundary**, on by default at 04:00: phone use between midnight and 04:00 counts toward the day before. Under **Day Boundary** on the **Screen Time** tab, **Day starts at** sets the hour and **Enable day boundary** switches it off.
+- Every sync sends the last 7 days, so the next sync corrects a day that was still in progress at the last one.
+- App names are resolved from package names.
+- **Apps to send.** Send every app (**All**), every app except the ones you select (**All except**), or only the ones you select (**Only**). The list shows the apps you used in the last 30 days, with their minutes; when it's long, **Search apps** finds one by name. With **Only** and nothing selected, only the daily totals go out. An app that's filtered out never leaves the phone: it isn't in the payload, not on MQTT and not among the top apps. `total_screen_time_minutes` still counts the apps you left out, and `filtered_screen_time_minutes` holds the time of the apps that are sent. See [webhook.md](webhook.md#which-apps-are-sent).
+
+Screen time has its own webhooks, schedule and MQTT switch, separate from Health Connect.
+
+## Destinations
+
+A section (Health Connect or Screen Time) can send to the Life Dashboard integration, to MQTT, to webhooks of your own, or to several at once.
+
+### Home Assistant and MQTT
+
+There are two ways into Home Assistant. Use one, not both: with both you get two devices holding the same numbers.
+
+**The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha)** is the recommended one. You install it through HACS (as a custom repository for now) and pair the phone by scanning a QR code. It receives the webhook directly, needs no broker, keeps every day in long-term statistics (a backfill and screen time included), and comes with an example dashboard. It is also the only way to [receive measurements](#receiving-from-home-assistant) on the phone.
+
+**MQTT with Home Assistant Discovery** suits a setup that already has a broker and only needs current values. Point the app at the broker, and sensors for 24 of the 33 types, plus screen time, appear under one device without any configuration in Home Assistant.
 
 <img src="screenshots/mqtt.png" alt="The MQTT section in the app: broker host, port, optional credentials and a shared base topic" width="300" align="right">
 
 <img src="screenshots/home-assistant.png" alt="The device Home Assistant creates from the app's MQTT discovery messages, with its sensors" width="560">
 
-- **MQTT publishing with Home Assistant Discovery** - point the app at your MQTT broker and sensors for 24 of the 33 types appear in Home Assistant automatically, grouped under one device: today's totals for steps, distance and calories, and the latest value for heart rate, sleep duration, weight, blood pressure and the other point-in-time types. No server-side configuration needed.
-- States and discovery configs are published retained, so values survive Home Assistant restarts
-- Optional TLS and username/password authentication; credentials are stored encrypted on-device
-- The other nine are event-like types (exercise, nutrition, mindfulness, cycle tracking) and remain webhook-only. Every publish carries the full set of sensors the app has mapped so far, so a new broker or a fresh Home Assistant sees the whole device after one sync
-- Screen Time publishes too: today's and yesterday's total minutes and today's most used app (top five apps as attributes), under the same Home Assistant device. Health Connect and Screen Time each have their own switch and base topic and share one broker connection by default; either section can switch to its own broker.
-- **Two phones on one broker**: give each a name under Advanced > Phone name. A named phone publishes under its own device (`Life Dashboard Companion (Pixel 8)`) and its own topics (`<base>/<slug>/<key>/state`); a phone without a name publishes exactly what it always did, so a household with one phone changes nothing.
+#### The sensors
 
-## Receiving from Home Assistant
+Both routes create the same sensors, each one the first time its type arrives, so you only get the types you sync. Grouped by key:
 
-The other direction, from 1.20.0: a scale or a blood pressure monitor that talks to Home Assistant, and not to the phone, lands in Health Connect. The **Receive** row on the Health Connect tab switches it on per type, and the [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) (0.7.0 or later) chooses which entities go, per phone, under its options. There is no second channel and no second secret: the measurements ride back in the integration's signed answer to the webhook the app already sends, bound to that very request, so nothing between the phone and Home Assistant can slip a reading in.
+- **Today's totals:** `steps_today`, `distance_today`, `active_calories_today`, `total_calories_today`, each with the day as a `date` attribute.
+- **Latest value:** `heart_rate`, `resting_heart_rate`, `heart_rate_variability`, `sleep_duration`, `weight`, `height`, `blood_pressure_systolic`, `blood_pressure_diastolic`, `blood_glucose`, `oxygen_saturation`, `body_temperature`, `skin_temperature_delta`, `basal_body_temperature`, `respiratory_rate`, `hydration`, `body_fat`, `lean_body_mass`, `bone_mass`, `body_water_mass`, `basal_metabolic_rate`, `vo2_max`. Each carries `measured_at`, `source` (the app that wrote the record) and `uuid` (the record's ID) as attributes. In the integration, a type you send per time window under **Data Resolution** shows the average of the newest window instead, with `sample_count`, `min`, `max` and `sources` as attributes.
+- **Screen time:** `screen_time_today` and `screen_time_yesterday` in minutes, with `date`, `app_count` and `top_apps` (the top five with their minutes) as attributes, and `screen_time_top_app`, today's most used app, with `package`, `minutes` and `date`. With an app filter on, the minutes are those of the apps that are sent and `all_apps_minutes` holds the real total (in the integration, 0.8.0 or newer).
 
-- Seven types: weight, height, body fat, lean body mass, bone mass, body water mass and blood pressure. Each has its own switch and its own Health Connect write permission, asked for the moment the switch goes on and never in the bulk request; refused means off. Nothing else is declared.
-- Measurements keep their own time, not the sync's, and a repeat is an upsert: the integration's id and version become Health Connect's client record id and version, so a resend changes nothing and a correction wins.
-- Readings older than 30 days are refused unless "Accept older measurements" is on. The integration's "Send history to phone" button sends up to 30 days; its `life_dashboard.queue_history` service goes back up to 90, and that is where the switch matters.
-- What the app writes never goes back out: those records are left out of the outgoing payload and of `deleted_records`, and counted in `_diagnostics` as `own_records_skipped`.
-- When another app already writes the same type to Health Connect, the app says so when the switch goes on: a scale's own app plus Home Assistant is two readings a day.
-- Every round is a row in the Logs tab, folding out to each reading with its outcome; values only when full payloads are kept.
+Over MQTT the key is part of the topic (`<base>/<key>/state`), and the sensors sit on a device called Life Dashboard Companion. With the integration, they sit on a device with the **Name** you gave when you added the integration, and the entity ID is that name plus the key: "Pixel 8" gives `sensor.pixel_8_steps_today`. Three sensors have a different name in the integration:
 
-Health Connect is the destination this app can promise; what another app shows of it is that app's choice. Checked on 26 September 2026:
-
-| App | Reads from Health Connect |
+| MQTT key | Integration entity |
 |---|---|
-| Google Health (the Fitbit app's successor) | Weight, body fat, blood glucose, exercise and nutrition; blood pressure is not in its list |
-| Samsung Health | Says both directions and confirmed weight and body fat from a Withings scale through Health Connect in May 2026; community reports say body composition does not always come through, and blood pressure from third parties is unverified |
-| Garmin Connect | Does not read weight from Health Connect |
+| `sleep_duration` | `sensor.<phone>_last_sleep_duration` (**Last sleep duration**) |
+| `hydration` | `sensor.<phone>_last_drink` (**Last drink**) |
+| `screen_time_top_app` | `sensor.<phone>_most_used_app_today` (**Most used app today**) |
 
-The protocol is documented in [webhook.md](webhook.md#inbound-what-the-integration-may-answer). The next phase adds blood glucose, body temperature, oxygen saturation and single heart rate readings over the same channel; a generic inbound URL and an MQTT command topic, for setups without the integration, come only on request.
+The other nine types (exercise, nutrition, mindfulness and the six cycle tracking types) are events, not single values, so neither route turns them into sensors. The integration counts workouts and mindfulness sessions as minutes per day in its statistics. Single meals, cycle tracking entries and workout details reach only a webhook of your own, as records.
 
-The setup per scale, Xiaomi, Renpho, Eufy, Withings or a cloud account, is in [recipes/scale-to-health-connect.md](recipes/scale-to-health-connect.md).
+#### What only the integration adds
 
-## Data resolution
+- **Long-term statistics.** One value per day for steps, distance, active and total calories, sleep minutes, exercise minutes, mindfulness minutes, hydration and screen time, each on its own date, so a year of backfill shows up as a year of days. Heart rate, weight, blood pressure and the other measured values get an hourly mean, minimum and maximum. The IDs look like `life_dashboard:<entry id>_steps`; pick them by name in the **Statistics graph** card.
+- **Diagnostics.** `last_health_sync` and `last_screen_time_sync` hold the time of the last payload of each kind. A **Test ping** updates them too, which is the quickest check that pairing worked.
+- **History for the phone.** Once an entity is mapped for [receiving](#receiving-from-home-assistant), a **Send history to phone** button queues up to 30 days of its readings for the phone.
 
-- **Per type, choose every record or one value per window** (1, 5 or 15 minutes, or hourly). Dense series are where payloads go wrong: a heart rate sample per second is 86,400 records a day
-- Measured values are averaged with their minimum and maximum kept; accumulated quantities (steps, distance, calories) are summed. An average heart rate hides whether someone slept or sprinted, so the range travels with it
-- Windows align to the clock and every bucket says how many samples went into it. A window still filling when a sync runs is held until it is complete, so it normally goes out once; late records for a window already sent produce a second object that merges exactly with the first
-- The payload names the resolution it used per series, so a receiver does not have to be configured to match
-- Everything defaults to every record: bucketing is lossy and is offered, never applied on your behalf
+#### How MQTT behaves
 
-## Sync scheduling
+- States and discovery configs are retained, so values survive a Home Assistant restart. Every publish carries every sensor the app has mapped so far, so a new broker or a fresh Home Assistant sees the whole device after one sync.
+- TLS and a username and password are optional. The credentials are stored encrypted. When the broker isn't on a private network and TLS is off, the settings warn you.
+- Health Connect and Screen Time each have their own switch and **Base topic**. They share one broker connection by default. Switch off **Use the shared broker** in a tab's **MQTT** row to give that section a broker of its own.
+- **Topics.** The **Base topic** is `lifedashboard` unless you change it. Each sensor has a state topic `<base>/<key>/state` and a JSON attributes topic `<base>/<key>/attributes`, and its discovery config is at `homeassistant/sensor/life_dashboard_companion_<key>/config`.
+- **Two phones on one broker:** give each a name under **Advanced > Phone name**. A named phone publishes under its own device, such as `Life Dashboard Companion (Pixel 8)`, with its name as a slug in its topics (`<base>/<slug>/<key>/state`, `<base>/<slug>/<key>/attributes`) and in its discovery topic (`homeassistant/sensor/life_dashboard_companion_<slug>_<key>/config`). A phone without a name keeps the plain topics.
+
+The step-by-step setup for both is in [usage.md](usage.md#phone-to-home-assistant).
+
+<a id="webhook-configuration"></a>
+
+### Webhooks
+
+Any server that accepts a JSON POST can receive the data: your own backend, Node-RED, n8n, or the example [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack).
+
+- **Several URLs per section**, and separate URLs, headers and signing secrets for Health Connect and Screen Time.
+- **Custom headers** for auth tokens or API keys. They go to the URLs you typed in, never to one that QR pairing added.
+- **HMAC signing.** With a signing secret set, every request carries an `X-Signature` header (HMAC-SHA256 of the body), so your server can check the sender. **Generate** creates a secret of 32 random bytes as hex.
+- **Test ping** sends a small payload marked `test: true`, signed when a secret is set, so you can check an address and a secret before any data goes there.
+- **Retries.** A request that fails for a temporary reason is tried three times with a growing wait in between; a permanent error fails at once.
+- **QR pairing** with the Home Assistant integration fills in the address and the secret after one confirmation. See [Pairing by QR code](usage.md#pairing-by-qr-code).
+
+Retry rules are in [webhook.md](webhook.md#responses-retries-and-timeouts), and how to check a signature in [Verifying the signature](webhook.md#verifying-the-signature).
+
+### More than one destination
+
+A section can have several webhooks and MQTT at the same time. When a sync reaches some webhooks and not others, the line under **Sync Now** says so, for example "Delivered to 1 of 2 destinations, see Logs." If it keeps happening for as many syncs in a row as you set under **Notifications** (3, 5 or 10), a notification names the host that keeps failing. The app doesn't queue the missed data for that address, so check the **Logs** tab.
+
+## Scheduling
 
 <img src="screenshots/sync-schedule.png" alt="Sync Schedule set to fixed times: 09:00, 11:00 and 14:00, on Monday, Wednesday, Thursday, Saturday and Sunday" width="300" align="right">
 
-- **Two modes per source** - a fixed interval (minimum 15 minutes, as before) or a list of times of day. Health Connect and Screen Time are scheduled separately, so screen time can sync hourly while health syncs at 08:00 and 21:00
-- **Fixed times** suit data that arrives in batches: a watch writes the night to Health Connect when it syncs in the morning, so one sync at 08:00 puts the sleep, resting heart rate and HRV in Home Assistant before you look at it
-- **Weekday filter** - any subset of days, for schedules that should stay quiet at the weekend
-- **Quiet hours** - never sync between two times. An interval sync resumes at the end of the window; a fixed time inside the window is skipped rather than moved, so the app never invents a sync you did not ask for
-- The row warns when a combination would never sync (no days left, no times, or every time inside the quiet hours) instead of going silent
-- Schedules travel with the settings backup
+Health Connect and Screen Time each have their own **Sync Schedule**, so screen time can sync every hour while health data syncs at 08:00 and 21:00.
 
-## Automation
+- **Every X minutes**, 15 minutes at the shortest (Android's limit for background work).
+- **At fixed times**, a list of times of day. This suits data that arrives in batches: a watch writes the night to Health Connect when it syncs in the morning, so a sync at 08:00 puts last night's sleep, resting heart rate and HRV in Home Assistant before you look.
+- **Days**: any set of weekdays.
+- **Quiet hours**: never sync between two times. An interval sync resumes at the end of the window; a fixed time inside the window is skipped, not moved.
+- The schedule warns when a combination would never sync (no days, no times, or every time inside the quiet hours).
+- **Sync Now** runs a sync at any moment. The schedule is part of the [settings backup](settings-backup.md).
 
-- **Home screen widget** - last sync result and records delivered today at a glance
-- **Quick Settings tile** - trigger an immediate sync from the notification shade. A tap within a minute of the last accepted sync from the tile or the broadcast is ignored, and on Android 10 and later the tile says "Try again in a minute"
-- **Tasker / MacroDroid support** - trigger syncs with an explicit broadcast intent: `com.owen282000.lifedashboard.ACTION_SYNC`. Any app can send it, so it only starts a normal sync of what you configured, and a broadcast within a minute of the last accepted one, from the tile or a broadcast, is ignored
-- **Failure notifications** - local notification after repeated failed syncs, with a configurable threshold
+## History and backfill
 
-## Data tools
+A regular sync reads what changed since the last one, reaching back a week for records that a source writes late. To fill a receiver with older data, use backfill.
 
-- **Data preview** - **View** on the Health and Screen Time tabs shows the exact JSON payload before syncing
-- **Export as CSV/JSON** - **Export** on the Health and Screen Time tabs shares the current data, and **Export logs** on the Logs tab the delivery log, via the Android share sheet. The file stays in the app's cache until the next export replaces it, or until the app starts more than a day later; see [PRIVACY.md](../PRIVACY.md#what-stays-on-the-device)
-- **Sync history dashboard** - overview of success rates, record counts and recent failures on the Logs tab
-- **Settings backup and restore** - export every webhook, header, secret, MQTT broker and toggle as a JSON file, and import it on another device. See [settings-backup.md](settings-backup.md)
+### Backfill
 
-## General
+**Backfill** on the **Health** tab sends the last 30, 90 or 365 days of every enabled type to your webhooks.
 
-<img src="screenshots/about.png" alt="The About screen: brand header with the version, and what the app reads from Health Connect and Screen Time" width="300" align="right">
+- It goes in 3-day chunks, oldest first, and doesn't touch what the regular sync keeps track of. A receiver can drop records sent twice by their `uuid`.
+- Data from more than 30 days before you first gave the app access needs Health Connect's history access, which the dialog asks for.
+- Backfill goes to webhooks, and the Life Dashboard integration counts as one. MQTT carries only the latest value of each type, so a backfill has nothing to add there.
+- As a background job, it keeps going when you leave the screen; the tab shows its progress when you come back, and **Stop** ends it.
+- When Android stops it, or Health Connect's read quota runs out, it continues by itself from the last payload that went through. After a failed delivery, start a backfill of the same length within a day and it continues from there.
+- After six runs in a row that sent nothing, it stops and says why.
+- Switching data types on or off while it runs starts it over at the first chunk, so every chunk carries the same types.
+- The **Logs** tab shows one row per run, with how far it got and how many records it sent.
 
+The payload fields a receiver can use to reconcile a window (`backfill`, `window_start`, `window_end`, `window_complete`) are described in [webhook.md](webhook.md#backfill-windows).
 
-- **Background sync** - uses WorkManager for reliable background execution
-- **Logs** - every webhook delivery and MQTT publish with status, error and payload, for debugging
-- **Health Connect install check** - clear guidance when Health Connect is missing or outdated
-- **Modern UI** - Material 3 design with dark mode support
-- **Languages** - English, Dutch and German, following the system language
+## Reliability
 
-## Tech stack
+- **A store-and-forward outbox.** Each sync writes its payload to the phone before it moves on, and deletes that copy only once a webhook has accepted it. When the server is down, the network is gone, or Android kills the app partway through, the payload waits in the outbox and the next sync delivers it first. The outbox holds up to 700 Health Connect payloads, a week of failed syncs at the 15-minute interval. Screen time keeps only its newest snapshot, since each one carries the whole week.
+- **Deletions.** When a record is deleted in Health Connect, the next payload names it in `deleted_records`, so a receiver can drop it. See [webhook.md](webhook.md#deletions).
+- **Catch-up after a pause.** A phone that was off, asleep or force-stopped picks up where it left off, reaching back up to 30 days. When the pause was longer, the payload says which range it couldn't read, and a backfill fills it.
+- **Health Connect's read quota.** When Health Connect refuses reads because its quota is used up, the sync delivers what it has read so far and the next sync continues. It isn't counted as an outage.
+- **Pairing checks itself.** Right after a QR pairing, the app sends a test ping with the new secret and says "Paired with <host>, test ping delivered", or why the ping failed.
+- **Failure notifications.** After a number of failed syncs in a row (3 by default; pick 3, 5 or 10 under **Notifications**), a local notification tells you, with the last error. [usage.md](usage.md#notifications-optional) lists every notification the app posts, including the one for data the outbox had to drop.
 
-- **Kotlin** - modern Android development
-- **Jetpack Compose** - declarative UI with Material 3
-- **Health Connect SDK** - official Google Health Connect API
-- **WorkManager** - reliable background task scheduling
-- **OkHttp** - HTTP client with retry logic
-- **Kotlinx Serialization** - JSON serialization
+Background work runs on Android's WorkManager. The app checks that Health Connect is installed and up to date, and says what to do when it isn't.
+
+## Receiving from Home Assistant
+
+The other direction: readings from a scale or a blood pressure monitor that talks to Home Assistant, and not to the phone, go into Health Connect. The **Receive** row on the **Health** tab switches it on per type, and the [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) (0.7.0 or later) chooses which entities go to which phone. There is no second channel and no second secret. The measurements come back in the integration's signed response to the webhook call the app already makes, and that response is tied to its request. Nothing between the phone and Home Assistant can slip a reading in.
+
+- **Seven types:** weight, height, body fat, lean body mass, bone mass, body water mass and blood pressure. Each has its own switch and its own Health Connect write permission, asked for when you switch it on. Refusing the permission leaves the type off.
+- Measurements keep the time they were taken. A repeat is an update, not a second record: the integration's ID and version become Health Connect's client record ID and version, so a resend changes nothing and a correction replaces the old value.
+- Readings older than 30 days are refused unless **Accept older measurements** is on. The integration's **Send history to phone** button sends up to 30 days, as far back as Home Assistant's recorder keeps states (10 days by default); its `life_dashboard.queue_history` action goes back up to 90.
+- What the app writes never goes back out: those records are left out of the outgoing payload and of `deleted_records`, and counted in `_diagnostics` as `own_records_skipped`.
+- If another app already writes the same type to Health Connect, the app warns you as you switch the type on: a scale's own app plus Home Assistant means two readings a day.
+- Each response from Home Assistant that carries readings gets a row in the **Logs** tab, and so does a response the app rejects. The row expands to show each reading and its outcome. The values show only when **Keep full payloads**, at the top of the **Logs** tab, is on.
+
+This app can only promise that a reading reaches Health Connect. Whether another app shows it is up to that app. Checked on September 26, 2026:
+
+| App | Reads from Health Connect |
+|---|---|
+| Google Health (the Fitbit app's successor) | Weight, body fat, blood glucose, exercise and nutrition; blood pressure isn't in its list |
+| Samsung Health | Says it reads and writes, and confirmed weight and body fat from a Withings scale through Health Connect in May 2026; community reports say body composition doesn't always come through, and blood pressure from third parties is unverified |
+| Garmin Connect | Doesn't read weight from Health Connect |
+
+The protocol is in [webhook.md](webhook.md#inbound-what-the-integration-may-send-back). The setup per scale (Xiaomi, Renpho, Eufy, Withings or a cloud account) is in [recipes/scale-to-health-connect.md](recipes/scale-to-health-connect.md).
+
+## Privacy and security
+
+- **No account, no cloud of its own, no analytics or crash reporting.** The app sends data only to the webhooks and brokers you set. [PRIVACY.md](../PRIVACY.md) has the full policy.
+- **Encrypted secrets.** Auth headers, signing secrets and MQTT passwords are encrypted with AES-256-GCM, using a key that the Android Keystore generates and holds. They are never stored unencrypted: when the Keystore can't be used, they are neither read nor saved until it can. If the key is lost for good, a banner says so and asks you to enter them again.
+- **HTTPS by default.** An `http://` URL is refused unless you switch on **Allow plain HTTP webhooks**, which is meant for a Home Assistant server or receiver you only reach on your LAN or over a VPN.
+- **Client certificates (mTLS).** The app can present a certificate from Android's credential store to every webhook, for servers behind a reverse proxy that requires one. Install it in Android's settings first, then pick it under **Advanced > Client certificate (mTLS)** with **Choose**. MQTT doesn't use it.
+- **Android backup leaves out** the secrets, the webhook logs (which hold raw health data) and the Receive ledger. Your other settings carry over to a new phone through Android's backup and device transfer; the secrets move only through an encrypted [settings backup](settings-backup.md).
+- **Exports are cleaned up.** An exported file waits in the app's cache until the next export replaces it, or until the app starts more than a day later. See [PRIVACY.md](../PRIVACY.md#what-stays-on-the-device).
+
+## Accessibility and languages
+
+- **TalkBack.** Every switch row is one control that TalkBack reads with its name and state, such as "Allow plain HTTP webhooks, off, switch", and a tap anywhere on the row flips it. Selected tabs, filters and schedule days are announced, as is the result of a sync or a test ping. Status that was only a color is spoken too: the widget reads "Last sync succeeded" or "Last sync failed".
+- **Contrast.** Text in the accent and status colors reads at 4.5:1 or more, in both the light and dark themes.
+- **Material 3** with a dark theme that follows the system.
+- **Languages:** English, Dutch and German, following the system language.
+
+<a id="automation"></a>
+
+## Widget, tile and automation apps
+
+- **Home screen widget** with the last sync result and the number of records delivered today, for both sections together.
+- **Quick Settings tile** (**Sync Life Dashboard**) that syncs Health Connect and Screen Time from the notification shade. Add it by editing the Quick Settings panel.
+- **Tasker and MacroDroid** can start a sync with a broadcast. The package is required: Android doesn't deliver the broadcast to the app without it.
+  - In Tasker, add the **System > Send Intent** action with Action `com.owen282000.lifedashboard.ACTION_SYNC`, Package `com.owen282000.lifedashboard` and Target **Broadcast Receiver**.
+  - In MacroDroid, add the **Send Intent** action with the same action and package name, and target **Broadcast**.
+  - From a computer: `adb shell am broadcast -n com.owen282000.lifedashboard/.SyncBroadcastReceiver -a com.owen282000.lifedashboard.ACTION_SYNC`
+
+  It runs a normal sync of Health Connect and Screen Time to the destinations you configured, nothing more. It reads no extras from the intent.
+- The tile and the broadcast share a one-minute limit: a second trigger within a minute of the last accepted one is ignored, and on Android 10 and later the tile says "Try again in a minute".
+
+## Status on the phone
+
+The top of the **Health** tab shows how many records went out **Today** and over the app's **Lifetime**, when the **Last sync** ran and whether it worked, and a small chart of your steps per day over the last week. The **Screen Time** tab shows today's minutes, the **Top app** of the day, the **Last sync**, and a chart of minutes per day over the last week.
+
+## Preview, export and logs
+
+- **Preview:** **View** on the **Health** and **Screen Time** tabs shows the JSON payload the next sync would send, without sending it. A long payload is truncated on screen; **Export** has all of it.
+- **Export:** **Export** on the **Health** and **Screen Time** tabs shares the current data as JSON through the Android share sheet.
+- **Logs:** the **Logs** tab lists up to the last 100 webhook deliveries, MQTT publishes, backfill runs and readings received from Home Assistant, with status, error and payload. Tap a row to see its details. The switch at the top, **Keep full payloads**, stores whole payloads; otherwise they're shortened to save space. Below it, a summary shows the success rate, the number of deliveries and of records delivered, each section's successes, and the time of the last success. **All**, **Health** and **Screen Time** filter the list. **Export logs** shares the logs shown as CSV or JSON, and **Clear logs** deletes the logs shown from the phone, after asking.
+
+## Settings backup
+
+Under **About > Backup & restore** you can export your webhooks, headers, secrets, MQTT brokers, schedules and options as a JSON file, and import it on another phone. With secrets included, the file is encrypted with a password. The same format moves between this app and the iOS app. See [settings-backup.md](settings-backup.md).
+
+## How this compares to the Home Assistant companion app
+
+The [Home Assistant companion app](https://companion.home-assistant.io/docs/core/sensors) ships Health Connect sensors of its own, so if you run Home Assistant you may wonder what this app adds. The companion app gives you the latest value of 25 metrics inside Home Assistant; this app gives you every record of 33 types, wherever you want them. Checked against the companion app's documentation on September 14, 2026.
+
+| | HA companion app | Life Dashboard Companion |
+|---|---|---|
+| Health Connect coverage | 25 sensors | 33 data types |
+| Exercise sessions, nutrition, sleep stages, cycle tracking, mindfulness, skin temperature | Missing ([open issue](https://github.com/home-assistant/android/issues/4804)) | Supported |
+| Detail | Latest value or daily aggregate per sensor | Every record, with the source app and a stable ID, plus deduplicated daily totals |
+| History | "Only the last 30 days of data is used" | Unlimited, with backfill of up to a year |
+| Screen time | Last used app; total screen-on time through History Stats | Foreground time per app, custom day boundary |
+| Destination | Your Home Assistant | Home Assistant through the Life Dashboard integration or MQTT Discovery, and any webhook backend |
+| Direction | Export only | Both: Health Connect to your server, and Home Assistant to Health Connect through the Life Dashboard integration |
+| Delivery | Sensor updates | HMAC-signed webhooks, retries, store-and-forward outbox, delivery logs |
+| Android | 9+ on the Play build, 14+ otherwise | 9+ for Health Connect, 8.0+ for screen time |
+
+The two work side by side. Keep the companion app for presence, notifications and device sensors, and add this app when you want the full health history, writing into Health Connect, or delivery to something other than Home Assistant.

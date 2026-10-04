@@ -1,47 +1,59 @@
-# Garmin in Home Assistant, without a Garmin login
+# Garmin in Home Assistant via Health Connect, without a Garmin login
 
-The usual way to get Garmin data into Home Assistant is the [Garmin Connect integration](https://github.com/cyberjunky/home-assistant-garmin_connect), which logs in to Garmin's cloud with your account. That works until Garmin changes its login: in March 2026 it did, logins failed with MFA errors and "429 Too Many Requests" ([#420](https://github.com/cyberjunky/home-assistant-garmin_connect/issues/420), [#428](https://github.com/cyberjunky/home-assistant-garmin_connect/issues/428)), and the library underneath was [deprecated](https://github.com/matin/garth/discussions/222). The integration was rewritten and works again since April, but the dependency on Garmin's login remains.
+Garmin Connect on your phone writes your watch's data into Health Connect. Life Dashboard Companion reads it there and sends it to Home Assistant, so Home Assistant never needs your Garmin username, password or MFA code:
 
-Since July 2025 (Garmin Connect 5.14.1), Garmin Connect also writes your data into Health Connect on the phone. From there this app sends it to Home Assistant with no Garmin account involved.
+```
+Garmin watch  ->  Garmin Connect  ->  Health Connect  ->  Life Dashboard Companion  ->  Home Assistant
+```
 
-## Step 1: let Garmin Connect write to Health Connect
+The same data can also go to an MQTT broker or to any webhook that accepts a JSON POST.
 
-In Garmin Connect: **Settings > Connected Apps > Health Connect**, then grant the data types. It needs Android 14 or later. ([Garmin's support page](https://support.garmin.com/en-US/?faq=JToBEy0jfe6pIygark2Ui5))
+## What arrives
 
-## Step 2: the app and the integration
-
-Install Life Dashboard Companion and pair it with the Home Assistant integration: [Phone to Home Assistant](../usage.md#with-the-integration). Turn on the types below in the app, grant their Health Connect permissions, and tap **Sync Now**.
-
-## What comes through
-
-From Garmin's list of what it writes to Health Connect, these are the types this app sends on:
+From Garmin's list of what it writes to Health Connect, these are the types this app passes on:
 
 | Area | Types |
 |---|---|
 | Activity | Steps, distance, active calories, total calories, activities as exercise sessions |
-| Sleep | Sleep with stages |
+| Sleep | Sleep sessions with stages |
 | Heart | Heart rate |
 | Body | Weight, body fat |
 
-In Home Assistant, day totals and the latest reading become sensors, and every day goes into long-term statistics on its own date.
+In Home Assistant, daily totals and the latest readings become sensors, and each day is stored in long-term statistics on its own date. On a phone where Samsung Health or another app also counts steps, the daily totals still count every step once: they come from Health Connect's own deduplicated figures ([why](../usage.md#samsung-health-and-garmin-both-write-steps-will-they-double)).
 
-**What Garmin keeps to itself:** Body Battery, stress, HRV status, training load, Pulse Ox, respiration and resting heart rate are not written to Health Connect. If you want those in Home Assistant, the Garmin Connect integration is the only way; the two can run side by side. Floors, speed and cadence are written but are not among this app's types.
+Garmin also writes floors, speed, elevation gained, cycling cadence and swimming strokes, which aren't among this app's types.
 
-## When it arrives
+## What stays with Garmin
 
-Garmin Connect writes to Health Connect after each successful sync with the watch. Data can therefore reach Health Connect hours after it was recorded, with its original time, and this app still picks it up on the next sync: it looks at when a record was written, not at the time it describes.
+Not in Garmin's list (as of October 2026): Body Battery, stress, HRV status, training load, Pulse Ox, respiration and resting heart rate. Health Connect has no type for Body Battery, stress or training load at all. Garmin can change the list with any Garmin Connect update. If you want those in Home Assistant, the [Garmin Connect integration](https://github.com/cyberjunky/home-assistant-garmin_connect) reads them from Garmin's cloud; it can run side by side with this app.
 
-## Scale readings the other way
+## Setup
 
-Garmin does not read anything from Health Connect: "this is a one-way transfer". Readings this app writes into Health Connect from a Home Assistant scale will reach Samsung Health or Google Health, but not Garmin Connect. For that, the Garmin Connect integration has its own action to upload body composition.
+In Garmin Connect: **Settings > Connected Apps > Health Connect**, then grant the data types. It needs Garmin Connect 5.14.1 or later and Android 14 or later. ([Garmin's support page](https://support.garmin.com/en-US/?faq=JToBEy0jfe6pIygark2Ui5))
+
+For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install Life Dashboard Companion](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **Data Types** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
+
+## Good to know
+
+### When it arrives
+
+Garmin Connect writes to Health Connect after each successful sync with the watch. Data can therefore reach Health Connect hours after it was recorded, with its original time. This app still picks it up on the next sync, because it looks at when a record was written, not at the time it describes.
+
+### Readings the other way
+
+Garmin doesn't read anything from Health Connect; its support page calls it "a one-way transfer". Readings this app writes into Health Connect from a Home Assistant scale reach Samsung Health or Google Health, but not Garmin Connect. For that, the Garmin Connect integration has its own action to upload body composition. [Your scale into Samsung Health or Google Health](../recipes/scale-to-health-connect.md) covers getting a scale into Home Assistant first.
 
 ## Compared with the Garmin Connect integration
+
+The [Garmin Connect integration](https://github.com/cyberjunky/home-assistant-garmin_connect) logs in to Garmin's cloud with your account. In March 2026 Garmin changed its login, and the integration's logins failed with MFA errors and "429 Too Many Requests" until a rewrite in April ([#420](https://github.com/cyberjunky/home-assistant-garmin_connect/issues/420), [#428](https://github.com/cyberjunky/home-assistant-garmin_connect/issues/428)).
 
 | | Garmin Connect integration | This app |
 |---|---|---|
 | Setup | Garmin username, password and MFA in Home Assistant | Install, scan a QR code |
 | Where the data comes from | Garmin's cloud | Your phone, pushed by the app |
-| Body Battery, stress, training load | Yes | No, Garmin does not share them |
+| Body Battery, stress, training load | Yes | No, Garmin doesn't share them |
 | History | Current values | Every day in long-term statistics, backfill up to a year |
-| Breaks when Garmin changes its login | Can | No |
+| Breaks when Garmin changes its login | It can, and did in March 2026 | No |
 | Other brands | Garmin only | Any app that writes to Health Connect |
+
+Last checked: October 2026.

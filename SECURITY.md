@@ -1,6 +1,8 @@
-# Security Policy
+# Security policy
 
-## Supported Versions
+Life Dashboard Companion moves health data from your phone to servers you run. This page explains how to [check that an APK is genuine](#verifying-a-release), and how to [report a security problem](#reporting-a-vulnerability).
+
+## Supported versions
 
 Only the latest release receives security fixes.
 
@@ -25,13 +27,13 @@ Compare it against a downloaded APK with `apksigner` from the Android SDK build 
 apksigner verify --print-certs app-release.apk | grep "SHA-256 digest"
 ```
 
-That prints the same value without separators and in lower case, which is the other common way of writing it:
+That prints the same value without separators and in lowercase, which is the other common way of writing it:
 
 ```
 271406d5baf790506e914d82aca2533336ae083d01c79fbacb0015f42e4ff61f
 ```
 
-A different fingerprint means the APK was not signed by this project, whatever the file is called. F-Droid pins the same value as `AllowedAPKSigningKeys`.
+A different fingerprint means the APK was not signed by this project, whatever the file is called. The F-Droid submission, which is still in review, pins the same value as `AllowedAPKSigningKeys`.
 
 **The provenance attestation** links the APK to the workflow run and the commit that produced it. With the [GitHub CLI](https://cli.github.com/):
 
@@ -41,13 +43,13 @@ gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion
 
 Use `--repo` rather than `--owner`: the owner form accepts an attestation from any repository under the account, so an APK built by a different project of the same owner would pass.
 
-It exits quietly with status 0 when the APK is genuine and fails when the file was modified or came from somewhere else. To see what it actually proves, ask for the details:
+When the APK is genuine, it prints `Verification succeeded!` with the workflow and the tag that built it, and exits with status 0. It fails when the file was modified or came from somewhere else. For the full record, including the commit, ask for JSON:
 
 ```bash
 gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion-app --format json
 ```
 
-For any release that names `.github/workflows/release.yml`, the tag it was built from and the commit behind it. For 1.14.0, for example, `refs/tags/1.14.0` and commit `619dfb30f257362c26d842cc803ea402046fcd3c`, which is the same commit F-Droid builds from.
+The output names the workflow (`.github/workflows/release.yml`), the tag the release was built from and the commit behind that tag. For 1.23.0, for example, that is `refs/tags/1.23.0` and commit `81c6b74d7fd1a619b7d08c582c3cf94a17e3586e`. Once the app is listed on F-Droid, F-Droid builds from that same tagged commit.
 
 The `app-release.apk.sigstore.json` published next to each APK is the same attestation for checking without a network round trip:
 
@@ -55,14 +57,32 @@ The `app-release.apk.sigstore.json` published next to each APK is the same attes
 gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion-app --bundle app-release.apk.sigstore.json
 ```
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-Please do not open a public issue for security vulnerabilities.
+Please do not open a public issue for a security vulnerability.
 
-Instead, use [GitHub's private vulnerability reporting](https://github.com/owen282000/life-dashboard-companion-app/security/advisories/new) for this repository. You will get a response as soon as possible, and a fix will be prioritized based on severity.
+Report it through [GitHub's private vulnerability reporting](https://github.com/owen282000/life-dashboard-companion-app/security/advisories/new) for this repository. If you do not have a GitHub account, email owenvogelaar@hotmail.com instead, with "Security" in the subject.
 
-Since this app handles health and app usage data, reports about the following are especially welcome:
+Useful in a report: the app version, the Android version, what an attacker needs (another app on the phone, a position on the network, access to the receiving server), and the steps to reproduce it.
 
-- Leaking health or screen time data to anywhere other than the user-configured webhooks
-- Weaknesses in the HMAC signing implementation
-- Insecure storage of secrets or payloads on the device
+### What happens next
+
+- You get a reply within 7 days, confirming the report and saying whether it is in scope.
+- The target for a fix depends on severity: a release within 14 days for a problem that exposes health data or secrets, within 30 days for a moderate problem, and in a regular release for a minor one. If a fix needs longer, you hear why and when to expect it.
+- The fix is published as a [GitHub security advisory](https://github.com/owen282000/life-dashboard-companion-app/security/advisories) once the release is out, with a CVE where one applies.
+- You are credited in the advisory and the changelog by the name you choose, unless you prefer not to be named.
+
+The project has one maintainer and no bug bounty.
+
+## Scope
+
+The app handles health and app usage data, so reports about any of these are especially welcome:
+
+- **Data leaving for the wrong place.** Health or screen time data reaching anything other than the webhooks and the MQTT broker the user configured, or a Screen Time app that was filtered out leaving the phone.
+- **Pairing links and App Links.** The `https://owen282000.github.io/life-dashboard-companion-app/pair` App Link and the `lifedashboard://pair` link: a link that changes a destination without the confirmation dialog, switches on a data type, or leaks the secret in the link.
+- **The exported sync receiver.** `SyncBroadcastReceiver` is exported without a permission on purpose, so automation apps such as Tasker can start a sync. It should do nothing more than start a sync to the configured destinations, at most once a minute. Anything more is in scope.
+- **Receive.** The path that writes measurements from Home Assistant into Health Connect: a response accepted without a valid signature, a replayed response, a write of a type the user did not switch on, or a change to a record another app wrote.
+- **Stored secrets.** Auth headers, HMAC signing keys and MQTT passwords, which are encrypted with an Android Keystore key and kept out of Android's backup; the encrypted settings export; and secrets or health data ending up in the system log.
+- **Transport.** Webhook TLS, the plain HTTP opt-in, client certificates (mTLS), MQTT over TLS, and the HMAC request signature.
+
+Out of scope: problems that need a rooted phone or a malicious app with permissions the user granted to it, and the receiving side. The Home Assistant integration has its own policy in [owen282000/life-dashboard-ha](https://github.com/owen282000/life-dashboard-ha/security/policy), and the iOS app in [owen282000/life-dashboard-companion-app-ios](https://github.com/owen282000/life-dashboard-companion-app-ios/security/policy).

@@ -1,12 +1,16 @@
 name: Feature request
-description: Suggest an improvement or new capability
+description: Suggest an improvement or a new capability
 labels: [enhancement]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        An idea you want to talk through first fits well in [Discussions](https://github.com/owen282000/life-dashboard-companion-app/discussions). A request for the iOS app belongs in [its own repository](https://github.com/owen282000/life-dashboard-companion-app-ios/issues), and one for the Home Assistant side in [life-dashboard-ha](https://github.com/owen282000/life-dashboard-ha/issues).
   - type: textarea
     id: problem
     attributes:
       label: What problem would this solve?
-      description: Describe the use case, not just the solution.
+      description: Describe what you are trying to do and where the app gets in the way, before the solution you have in mind.
     validations:
       required: true
   - type: textarea
@@ -19,4 +23,7 @@ body:
     id: context
     attributes:
       label: Additional context
-      description: For payload changes, note whether the iOS companion app has the same feature and what its payload looks like.
+      description: >
+        Screenshots, the source app or device involved, or how you would use the data in Home
+        Assistant. For a change to the payload, say whether the iOS app has the same
+        feature and what its payload looks like, since both apps share one format.

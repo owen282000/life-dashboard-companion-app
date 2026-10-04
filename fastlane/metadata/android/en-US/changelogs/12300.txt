@@ -1,7 +1,8 @@
-Added:
-
-- Record metadata (P2-7): with Record metadata in payload on, under Advanced on the Health tab,
-  every record carries Health Connect's metadata under metadata: last_modified, the writing
-  app's client_record_id and client_record_version, recording_method, the device and the
-  zone offset (zone_offset for a record at one moment, start_zone_offset and
-... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
+New
+- Screen Time: leave apps out, or send only the ones you pick. Filtered apps never leave your phone.
+- Optional record metadata (last modified, recording method, device) for advanced receivers.
+Improved
+- Saved secrets move off a deprecated encryption library, with nothing to enter again.
+Fixed
+- With a data resolution set, steps, distance and calories are no longer counted twice when an app rewrites an hour.
+- A backfill with a data resolution set no longer drops records.

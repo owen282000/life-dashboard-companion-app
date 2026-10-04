@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!--
+  Source for docs/how-it-works.png, the flow diagram in the README: wearables and apps write
+  to Health Connect, the app reads it plus screen time and sends it to Home Assistant, MQTT
+  or a webhook, and Home Assistant can send measurements back for the app to write into
+  Health Connect. Drawn at twice the size it is shown at (900 px wide in the README), with
+  transparent corners so it sits on GitHub's light and dark theme alike. Phones get
+  how-it-works-phone.html instead. Same identity as banner.html: #14181C to #101C1C, #30B77E.
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+      --headless=new --screenshot=docs/how-it-works.png --window-size=1800,840 \
+      --hide-scrollbars --force-device-scale-factor=1 \
+      --default-background-color=00000000 docs/brand/how-it-works.html
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1800px; height: 840px; overflow: hidden; background: transparent; }
+  .card {
+    position: absolute; inset: 0; border-radius: 40px; overflow: hidden;
+    background: radial-gradient(130% 130% at 25% 20%, #171D21 0%, #14181C 45%, #101C1C 100%);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #E8EDEF;
+  }
+  .grid {
+    position: absolute; inset: 0; opacity: 0.5;
+    background-image:
+      linear-gradient(rgba(48,183,126,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(48,183,126,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .col-title {
+    position: absolute; top: 52px; font-size: 25px; font-weight: 700;
+    letter-spacing: 2.5px; text-transform: uppercase; color: #7E8B91;
+  }
+  .chip {
+    position: absolute; left: 70px; width: 360px; height: 76px; border-radius: 20px;
+    background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.09);
+    display: flex; align-items: center; padding: 0 28px; font-size: 31px; font-weight: 600;
+  }
+  .chip.more {
+    height: 92px; font-size: 26px; line-height: 1.25; color: #9AA6AB; font-weight: 400;
+    font-style: italic; border-style: dashed;
+  }
+  .box {
+    position: absolute; border-radius: 28px; padding: 0 34px;
+    background: rgba(255,255,255,0.045); border: 2px solid rgba(255,255,255,0.1);
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .box h3 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; }
+  .box p { margin-top: 10px; font-size: 26px; line-height: 1.35; color: #AEB8BC; }
+  .hc { left: 560px; top: 240px; width: 340px; height: 230px; }
+  .st { left: 560px; top: 530px; width: 340px; height: 160px; }
+  .app {
+    left: 1000px; top: 290px; width: 280px; height: 320px; align-items: center; text-align: center;
+    border: 3px solid rgba(48,183,126,0.75); background: rgba(48,183,126,0.08);
+    box-shadow: 0 0 60px rgba(48,183,126,0.18);
+  }
+  .app img { width: 120px; height: 120px; border-radius: 28px; display: block; margin-bottom: 20px; }
+  .app h3 { font-size: 34px; line-height: 1.15; }
+  .dest { left: 1370px; width: 380px; }
+  .dest h3 { font-size: 34px; }
+  .dest p { font-size: 25px; }
+  .ha { top: 130px; height: 190px; border-color: rgba(48,183,126,0.6); }
+  .mqtt { top: 350px; height: 160px; }
+  .hook { top: 540px; height: 160px; }
+  svg { position: absolute; inset: 0; }
+  .back {
+    position: absolute; left: 1175px; top: 134px; transform: translate(-50%, -50%);
+    padding: 8px 22px; border-radius: 999px; white-space: nowrap;
+    background: #162420; border: 2px solid rgba(48,183,126,0.45);
+    font-size: 23px; color: #6FD7A6; font-weight: 600;
+  }
+  .foot {
+    position: absolute; left: 0; right: 0; bottom: 46px; text-align: center;
+    font-size: 26px; color: #7E8B91;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid"></div>
+
+  <svg width="1800" height="840" viewBox="0 0 1800 840">
+    <defs>
+      <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0 0 L10 5 L0 10 z" fill="#30B77E"/>
+      </marker>
+      <marker id="g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0 0 L10 5 L0 10 z" fill="#5C6A70"/>
+      </marker>
+    </defs>
+    <!-- wearables into Health Connect -->
+    <g stroke="#5C6A70" stroke-width="3" fill="none" marker-end="url(#g)">
+      <path d="M430 188 C 500 188, 500 330, 552 336"/>
+      <path d="M430 280 C 490 280, 500 345, 552 348"/>
+      <path d="M430 372 C 490 372, 505 357, 552 356"/>
+      <path d="M430 464 C 490 464, 505 368, 552 364"/>
+      <path d="M430 564 C 500 564, 500 380, 552 374"/>
+    </g>
+    <!-- Health Connect and screen time into the app -->
+    <g stroke="#30B77E" stroke-width="5" fill="none" marker-end="url(#a)">
+      <path d="M900 355 C 950 355, 945 420, 992 420"/>
+      <path d="M900 610 C 950 610, 945 500, 992 500"/>
+    </g>
+    <!-- app out to the three destinations -->
+    <g stroke="#30B77E" stroke-width="5" fill="none" marker-end="url(#a)">
+      <path d="M1280 410 C 1330 410, 1312 225, 1362 225"/>
+      <path d="M1280 450 C 1325 450, 1318 430, 1362 430"/>
+      <path d="M1280 490 C 1330 490, 1312 620, 1362 620"/>
+    </g>
+    <!-- Home Assistant sends measurements back; the app writes them into Health Connect -->
+    <path d="M1420 128 C 1330 40, 1180 60, 1140 282" stroke="#30B77E" stroke-width="4"
+          stroke-dasharray="14 12" fill="none" marker-end="url(#a)" opacity="0.85"/>
+  </svg>
+
+  <div class="col-title" style="left:70px">Your apps and devices</div>
+  <div class="col-title" style="left:560px; width:720px; text-align:center">On your phone</div>
+  <div class="col-title" style="left:1370px">Your server</div>
+
+  <div class="chip" style="top:150px">Garmin</div>
+  <div class="chip" style="top:242px">Samsung Health</div>
+  <div class="chip" style="top:334px">Fitbit, Pixel Watch</div>
+  <div class="chip" style="top:426px">Oura, Withings</div>
+  <div class="chip more" style="top:518px">or any other app that writes to Health Connect</div>
+
+  <div class="back">Measurements, written back</div>
+
+  <div class="box hc"><h3>Health Connect</h3><p>Steps, sleep, heart rate, weight and 29 more types</p></div>
+  <div class="box st"><h3>Screen time</h3><p>Minutes per app, from Android</p></div>
+
+  <div class="box app">
+    <img src="../../fastlane/metadata/android/en-US/images/icon.png" alt="">
+    <h3>Life Dashboard<br>Companion</h3>
+  </div>
+
+  <div class="box dest ha"><h3>Home Assistant</h3><p>QR pairing, sensors and a year of history</p></div>
+  <div class="box dest mqtt"><h3>MQTT</h3><p>Sensors that set themselves up</p></div>
+  <div class="box dest hook"><h3>Webhook</h3><p>JSON to your own server</p></div>
+
+  <div class="foot">No cloud in between. Nothing leaves the phone except to the places you set.</div>
+</div>
+</body>
+</html>

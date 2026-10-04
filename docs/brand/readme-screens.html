@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!--
+  Source for docs/readme-screens.png, the row of app screens in the README: four
+  screenshots from docs/screenshots/ with a caption under each. Drawn at twice the size it
+  is shown at (900 px wide in the README), with transparent corners so it sits on GitHub's
+  light and dark theme alike. Same identity as banner.html: #14181C to #101C1C, #30B77E.
+  Swap a screenshot in docs/screenshots/ and render again to update it.
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+      --headless=new --screenshot=docs/readme-screens.png --window-size=1800,1010 \
+      --hide-scrollbars --force-device-scale-factor=1 \
+      --default-background-color=00000000 docs/brand/readme-screens.html
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1800px; height: 1010px; overflow: hidden; background: transparent; }
+  .card {
+    position: absolute; inset: 0; border-radius: 40px; overflow: hidden;
+    background: radial-gradient(130% 130% at 25% 20%, #171D21 0%, #14181C 45%, #101C1C 100%);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #E8EDEF;
+  }
+  .grid {
+    position: absolute; inset: 0; opacity: 0.5;
+    background-image:
+      linear-gradient(rgba(48,183,126,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(48,183,126,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .row {
+    position: absolute; left: 0; right: 0; top: 64px;
+    display: flex; justify-content: center; gap: 64px;
+  }
+  .shot { width: 360px; }
+  .phone {
+    width: 360px; height: 738px; border-radius: 40px; overflow: hidden;
+    border: 3px solid rgba(255,255,255,0.12);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.45), 0 0 0 10px rgba(255,255,255,0.025);
+  }
+  .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  h3 { margin-top: 34px; font-size: 32px; font-weight: 800; letter-spacing: -0.3px; }
+  p { margin-top: 8px; font-size: 25px; line-height: 1.35; color: #AEB8BC; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid"></div>
+  <div class="row">
+    <div class="shot">
+      <div class="phone"><img src="../screenshots/health-connect.png" alt=""></div>
+      <h3>Health Connect</h3>
+      <p>33 data types, each with its own switch</p>
+    </div>
+    <div class="shot">
+      <div class="phone"><img src="../screenshots/screen-time.png" alt=""></div>
+      <h3>Screen time</h3>
+      <p>Minutes per app, with your own day boundary</p>
+    </div>
+    <div class="shot">
+      <div class="phone"><img src="../screenshots/sync-schedule.png" alt=""></div>
+      <h3>Schedule</h3>
+      <p>An interval or fixed times, with quiet hours</p>
+    </div>
+    <div class="shot">
+      <div class="phone"><img src="../screenshots/data-resolution.png" alt=""></div>
+      <h3>Resolution</h3>
+      <p>Every record, or averages and totals per window</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

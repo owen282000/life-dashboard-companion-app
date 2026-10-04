@@ -1,4 +1,3 @@
-Added:
-
-- Settings backup and restore under About: export every webhook URL, header, signing secret, MQTT broker and toggle as a JSON file and import it on another device. Exports that carry secrets are encrypted with a password (AES-256-GCM, PBKDF2-HMAC-SHA256); a secret-free export can be shared without handing over access. Importing shows a preview of what will be replaced first, and ...
-... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
+New
+- Settings backup and restore under About: export every webhook URL, header, signing secret, MQTT broker and toggle as a JSON file and import it on another device. Exports that carry secrets are encrypted with a password (AES-256-GCM, PBKDF2-HMAC-SHA256); a secret-free export can be shared without handing over access.
+Full release notes: https://github.com/owen282000/life-dashboard-companion-app/releases/tag/1.12.0

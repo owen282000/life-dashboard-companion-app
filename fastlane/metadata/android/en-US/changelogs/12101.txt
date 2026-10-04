@@ -1,9 +1,4 @@
-Fixed:
-
-- A night of sleep or a day of calories that Fitbit revised could disappear from a receiver.
-  Fitbit revises by deleting records and writing them again under the same ids, and the app
-  sent the records and also named them in deleted_records. A record that exists again is
-  no longer named deleted
-  (#71, #72).
-- The home screen widget showed its text in English only. "Records ...
-... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
+Fixed
+- A night of sleep or a day of calories that Fitbit revised no longer disappears from Home Assistant or your server.
+- The home screen widget now follows the phone's language (Dutch and German).
+- When two log rows are written at the same moment, both are now kept.

@@ -1,1 +1,1 @@
-Sync Health Connect and Screen Time data to your own webhooks or MQTT. No cloud.
+Health Connect and screen time to Home Assistant, MQTT or webhooks. No cloud.

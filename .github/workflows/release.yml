@@ -130,15 +130,16 @@ jobs:
       - name: Check the fastlane changelog for this release is committed
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          # F-Droid and IzzyOnDroid read release notes from fastlane/, keyed by versionCode.
-          # The file is generated from CHANGELOG.md and committed, so a release cannot ship
-          # without it; regenerating here proves the committed copy is up to date.
+          # F-Droid reads release notes from fastlane/, keyed by versionCode. The file is
+          # drafted from CHANGELOG.md, edited by hand and committed. The script never
+          # overwrites an existing file, so anything it writes here means the file for this
+          # tag was missing from the commit.
           chmod +x scripts/generate-fastlane-changelogs.sh
           ./scripts/generate-fastlane-changelogs.sh "$GITHUB_REF_NAME"
-          if ! git diff --quiet -- fastlane/metadata/android/en-US/changelogs; then
-            echo "The fastlane changelog for $GITHUB_REF_NAME is missing or stale."
-            echo "Run scripts/generate-fastlane-changelogs.sh and commit the result."
-            git diff -- fastlane/metadata/android/en-US/changelogs
+          if [ -n "$(git status --porcelain -- fastlane/metadata/android/en-US/changelogs)" ]; then
+            echo "The fastlane changelog for $GITHUB_REF_NAME is missing."
+            echo "Run scripts/generate-fastlane-changelogs.sh, edit the draft and commit it."
+            git status --porcelain -- fastlane/metadata/android/en-US/changelogs
             exit 1
           fi
       - name: Check version.properties matches the tag

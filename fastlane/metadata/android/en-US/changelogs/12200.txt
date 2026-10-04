@@ -1,7 +1,8 @@
-Added:
-
-- With two or more webhooks in a section, a sync that reached some of them and not the others
-  counted as delivered without a word, so the one that missed it never got that data: it is not
-  queued for a single address yet. The line under Sync Now now says "Delivered to 1 of 2
-  destinations, see Logs", and after as many of those in a row as the failure notification
-... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
+New
+- With several webhooks, a sync that reached only some of them now says so, and a notification names the one that keeps failing.
+- Pairing by QR code sends a test ping right away and tells you whether it arrived.
+Improved
+- Backfill runs in the background, keeps going when you leave the screen and picks up where it left off.
+Fixed
+- A sync that Android stops partway through no longer loses data: the payload waits in the outbox.
+- Better TalkBack support and text contrast.

@@ -1,107 +1,163 @@
 #!/usr/bin/env bash
 #
-# Generates fastlane/metadata/android/en-US/changelogs/<versionCode>.txt from CHANGELOG.md.
+# Writes fastlane/metadata/android/en-US/changelogs/<versionCode>.txt, the release notes F-Droid
+# and Google Play show for each version.
 #
-# F-Droid and Google Play both read per-version changelogs from that directory, named after the
-# app's versionCode. The versionCode is derived from the semver tag exactly as app/build.gradle.kts
-# does it (major * 10000 + minor * 100 + patch), so the two never drift apart.
+# The versionCode is derived from the semver tag exactly as app/build.gradle.kts does it
+# (major * 10000 + minor * 100 + patch), so the two never drift apart.
 #
-# Play truncates release notes at 500 characters, so entries are trimmed to fit with a pointer to
-# the full changelog rather than being cut mid-sentence.
+# Store notes are short, plain text and written for the person updating the app, so a file that
+# already exists is treated as hand-written and is never overwritten. For a version without one,
+# the script writes a first draft from CHANGELOG.md to edit before committing:
+#
+#   1. the "### Highlights" (or "#### Highlights") list of the version's section, if it has one;
+#   2. otherwise the first list in the section, under its heading as "New", "Improved" or "Fixed".
+#
+# Bullets are unwrapped to one line each and stripped of markdown. Play cuts release notes at
+# 500 characters, so the draft keeps whole bullets while they fit and then ends with a link to
+# the full notes. It never cuts inside a sentence: a first bullet that is too long on its own is
+# shortened at a sentence end, and when not even one sentence fits the draft is only the link.
+#
+# Hand-written notes group bullets under "New", "Improved" and "Fixed" lines; sort the draft's
+# bullets under those before committing.
 #
 # Usage:
 #   scripts/generate-fastlane-changelogs.sh            # every released version in CHANGELOG.md
 #   scripts/generate-fastlane-changelogs.sh 1.11.0     # just this one
 #
+# Environment:
+#   REGENERATE=1   overwrite existing files with a fresh draft (discards hand-written notes)
+#   DRY_RUN=1      print each draft to stdout and write nothing
+#
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-CHANGELOG="CHANGELOG.md"
-OUT_DIR="fastlane/metadata/android/en-US/changelogs"
-MAX_CHARS=500
+[ -f CHANGELOG.md ] || { echo "No CHANGELOG.md found" >&2; exit 1; }
 
-[ -f "$CHANGELOG" ] || { echo "No $CHANGELOG found" >&2; exit 1; }
-mkdir -p "$OUT_DIR"
+python3 - "$@" << 'PYTHON'
+import os, re, sys
 
-version_code() {
-    echo "$1" | awk -F. '{ print $1 * 10000 + $2 * 100 + $3 }'
-}
+CHANGELOG = "CHANGELOG.md"
+OUT_DIR = "fastlane/metadata/android/en-US/changelogs"
+MAX_CHARS = 499  # Play's limit is 500, and the file ends with a newline
+RELEASES = "https://github.com/owen282000/life-dashboard-companion-app/releases/tag/"
 
-# Body of one "## [X.Y.Z]" section, stripped of headings and blank padding.
-section_body() {
-    awk -v tag="$1" '
-        $0 ~ "^## \\[" tag "\\]" { found = 1; next }
-        /^## \[/ { found = 0 }
-        found { print }
-    ' "$CHANGELOG"
-}
+regenerate = os.environ.get("REGENERATE") == "1"
+dry_run = os.environ.get("DRY_RUN") == "1"
 
-# CHANGELOG.md uses "### Added" / "### Fixed" headings and "- " bullets. Play and F-Droid render
-# plain text, so headings become a bare label line and markdown decoration is stripped.
-to_plain_text() {
-    sed -e 's/^### \(.*\)$/\1:/' \
-        -e 's/`//g' \
-        -e 's/\*\*//g' \
-        -e 's/\[\([^]]*\)\](\([^)]*\))/\1/g' \
-      | cat -s \
-      | sed -e '/./,$!d'
-}
+text = open(CHANGELOG, encoding="utf-8").read()
 
-trim_to_limit() {
-    local text="$1"
-    if [ "${#text}" -le "$MAX_CHARS" ]; then
-        printf '%s\n' "$text"
+
+def version_code(version):
+    major, minor, patch = (int(part) for part in version.split("."))
+    return major * 10000 + minor * 100 + patch
+
+
+def section(version):
+    match = re.search(r"^## \[" + re.escape(version) + r"\][^\n]*\n(.*?)(?=^## \[|\Z)", text, re.M | re.S)
+    return match.group(1) if match else ""
+
+
+def plain(line):
+    """Markdown to the plain text Play and F-Droid render."""
+    line = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", line)        # [text](url) -> text
+    line = line.replace("`", "").replace("**", "")
+    line = re.sub(r"\s*\((?:#\d+(?:,\s*)?)+\)", "", line)        # orphan issue refs: (#71, #72)
+    return re.sub(r"\s+", " ", line).strip()
+
+
+def bullets(block):
+    """The "- " items of a markdown block, each unwrapped to one line."""
+    items = []
+    for line in block.splitlines():
+        if line.startswith("- "):
+            items.append(line[2:])
+        elif items and line.startswith((" ", "\t")) and line.strip():
+            items[-1] += " " + line.strip()
+        elif items and not line.strip():
+            continue
+        elif items:
+            break
+    return ["- " + plain(item) for item in items if plain(item)]
+
+
+def draft_lines(body):
+    """Highlights when the section has them, otherwise its first list under its heading."""
+    blocks = re.split(r"^(#{3,4} [^\n]*)\n", body, flags=re.M)
+    # blocks = [preamble, heading1, body1, heading2, body2, ...]
+    pairs = list(zip(blocks[1::2], blocks[2::2]))
+    for heading, block in pairs:
+        if re.fullmatch(r"#{3,4} Highlights\s*", heading):
+            return [], bullets(block)
+    for heading, block in pairs:
+        items = bullets(block)
+        if items:
+            name = heading.lstrip("#").strip()
+            return [{"Added": "New", "Changed": "Improved", "Security": "Fixed"}.get(name, name)], items
+    return [], bullets(blocks[0])
+
+
+def first_sentences(item, budget):
+    """The longest run of whole sentences of one bullet that fits the budget, or None."""
+    best = None
+    for match in re.finditer(r"[.!?](?=\s+[A-Z(\"]|$)", item):
+        candidate = item[: match.end()]
+        if len(candidate) <= budget:
+            best = candidate
+    return best
+
+
+def draft(version):
+    header, items = draft_lines(section(version))
+    if not items:
+        return None
+    notice = "Full release notes: " + RELEASES + version
+    full = "\n".join(header + items)
+    if len(full) <= MAX_CHARS:
+        return full
+    budget = MAX_CHARS - len(notice) - 1
+    kept = list(header)
+    for item in items:
+        if len("\n".join(kept + [item])) <= budget:
+            kept.append(item)
+        else:
+            break
+    if len(kept) == len(header):
+        room = budget - len("\n".join(header + [""]))
+        shortened = first_sentences(items[0], room)
+        if shortened is None:
+            return notice
+        kept.append(shortened)
+    return "\n".join(kept + [notice])
+
+
+def write_one(version):
+    path = os.path.join(OUT_DIR, f"{version_code(version)}.txt")
+    exists = os.path.exists(path)
+    note = draft(version)
+    if dry_run:
+        state = "exists, kept" if exists and not regenerate else "would write"
+        print(f"== {path} ({version}, {state})")
+        print(note if note is not None else "(no changelog section)")
         return
-    fi
-    local notice="... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md"
-    local budget=$(( MAX_CHARS - ${#notice} - 1 ))
-
-    # Keep whole lines while they fit. A bullet that alone exceeds the budget is cut at a
-    # word boundary rather than dropped, so the entry is never empty.
-    printf '%s\n' "$text" | awk -v budget="$budget" '
-        function emit(line) { print line; total += length(line) + 1 }
-        {
-            if ($0 == "") { if (total > 0 && total + 1 <= budget) emit(""); next }
-            if (total + length($0) + 1 <= budget) { emit($0); next }
-            room = budget - total - 4
-            if (room > 40 && substr($0, 1, 2) == "- ") {
-                cut = substr($0, 1, room)
-                sub(/[^ ]*$/, "", cut)
-                sub(/[ ,;:]+$/, "", cut)
-                if (length(cut) > 20) emit(cut " ...")
-            }
-            exit
-        }
-    '
-    printf '%s\n' "$notice"
-}
-
-write_one() {
-    local version="$1"
-    local code
-    code="$(version_code "$version")"
-
-    local body
-    body="$(section_body "$version" | to_plain_text)"
-
-    if [ -z "$(printf '%s' "$body" | tr -d '[:space:]')" ]; then
-        echo "skip $version (no changelog section)"
+    if exists and not regenerate:
+        print(f"keep {path} ({version}, already written; REGENERATE=1 replaces it)")
         return
-    fi
+    if note is None:
+        print(f"skip {version} (no changelog section)")
+        return
+    os.makedirs(OUT_DIR, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as out:
+        out.write(note + "\n")
+    print(f"wrote {path} ({version}, {len(note)} characters): review it before committing")
 
-    trim_to_limit "$body" > "$OUT_DIR/$code.txt"
-    echo "wrote $OUT_DIR/$code.txt ($version, $(wc -c < "$OUT_DIR/$code.txt" | tr -d ' ') bytes)"
-}
 
-if [ $# -ge 1 ]; then
-    write_one "$1"
-    exit 0
-fi
-
-# Every released version in the changelog; "Unreleased" has no versionCode yet.
-grep -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' "$CHANGELOG" \
-  | tr -d '#[] ' \
-  | while read -r version; do
-        write_one "$version"
-    done
+args = sys.argv[1:]
+if args:
+    write_one(args[0])
+else:
+    # Every released version in the changelog; "Unreleased" has no versionCode yet.
+    for version in re.findall(r"^## \[(\d+\.\d+\.\d+)\]", text, re.M):
+        write_one(version)
+PYTHON

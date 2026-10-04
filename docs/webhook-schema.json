@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/owen282000/life-dashboard-companion-app/blob/main/docs/webhook-schema.json",
   "title": "Life Dashboard Companion webhook payload",
-  "description": "Health Connect payload POSTed to configured webhooks. Only enabled data types with records appear; every record additionally carries optional source and uuid fields. The same schema is used by the iOS companion app (source: healthkit_ios).",
+  "description": "Every JSON body the app POSTs to a webhook: Health Connect payloads (source health_connect), Screen Time payloads (source screen_time), test pings (test: true) and the heartbeats of Receive. A record array is present only when it holds at least one record, so a payload never carries an empty one. Every record also carries source (the package that wrote it) and uuid (Health Connect's record id). The iOS app sends the same shape with source healthkit_ios. Field-by-field documentation is in webhook.md next to this file.",
   "type": "object",
   "properties": {
     "timestamp": {
@@ -19,9 +19,13 @@
         "screen_time"
       ]
     },
+    "device": {
+      "type": "string",
+      "description": "Screen Time payloads only: the phone's manufacturer and model, such as \"Google Pixel 8\""
+    },
     "sequence": {
       "type": "integer",
-      "description": "Increases with every payload this install sends, health_connect and screen_time alike (one counter, so per source it can skip). A receiver that keeps the highest sequence it has applied per source can ignore an older health_connect payload that arrives late after a retry. For screen_time compare per date instead: each payload re-sends a sliding week, so a late one can still hold the oldest date that no newer payload covers; keep the sequence that last wrote each date and apply a day only from a payload with a higher one. Optional: 1.20.0 and older send none on screen_time payloads and healthkit_ios may omit it, so treat a missing field as unknown rather than zero."
+      "description": "Increases with every payload this install sends, health_connect and screen_time alike (one counter, so per source it can skip). A receiver that keeps the highest sequence it has applied per source can ignore an older health_connect payload that arrives late after a retry. For screen_time compare per date instead: each payload re-sends a sliding week, so a late one can still hold the oldest date that no newer payload covers; keep the sequence that last wrote each date and apply a day only from a payload with a higher one. Optional: absent on test pings and Receive heartbeats, on screen_time payloads from 1.20.0 and older, and healthkit_ios may omit it, so treat a missing field as unknown rather than zero."
     },
     "deleted_records": {
       "type": "array",
@@ -46,7 +50,7 @@
     },
     "deletions_unavailable": {
       "type": "array",
-      "description": "Types whose deletion tracking was interrupted, because the phone did not sync for over 30 days. Deletions in that gap were never observed; reconcile these types against a completed backfill window instead. Absent when nothing was interrupted.",
+      "description": "Payload keys of the types whose deletions this sync cannot vouch for: the change feed of the type expired (Health Connect forgets it after 30 days without a read), held more changes than one sync reads, could not be read, or did not answer within the deletion step's time limit (5 s per type, 20 s in total). Deletions of these types may be missing; reconcile them against a completed backfill window. Absent when every type could vouch for its deletions.",
       "items": {
         "type": "string"
       }
@@ -69,7 +73,7 @@
           "until": {
             "type": "string",
             "format": "date-time",
-            "description": "Where the range the sync read started"
+            "description": "Where the range the sync read started (read_from in _diagnostics), not the time of the newest such record"
           }
         },
         "required": [
@@ -94,24 +98,120 @@
     "window_start": {
       "type": "string",
       "format": "date-time",
-      "description": "Backfill only: start of the window this payload belongs to"
+      "description": "Backfill only: start of the window this payload belongs to. Windows are 72 hours long (the last one can be shorter), the first starting 30, 90 or 365 days before the moment the backfill started, so their bounds fall at that time of day, not at midnight"
     },
     "window_end": {
       "type": "string",
       "format": "date-time",
-      "description": "Backfill only: end of the window this payload belongs to"
+      "description": "Backfill only: end of the window this payload belongs to; the last window ends at the moment the backfill started"
     },
     "window_complete": {
       "type": "boolean",
-      "description": "Backfill only: true on the last payload of a window, meaning every record the phone holds for that window has now been sent. A receiver may treat uuids it holds in that range that were not in the window as deleted. False means the window was split and more is coming."
+      "description": "Backfill only: true on the last payload of a window, meaning every record the phone holds for that window has now been sent. A receiver may treat uuids it holds in that range that were not in the window as deleted. False means the window is not complete yet: either more payloads of it follow, or the backfill stopped at this window (a type could not be read, or the window needed more than 400 payloads) and sends it again from the start when it runs again. Never treat missing uuids as deleted on false."
     },
     "_diagnostics": {
       "type": "object",
-      "description": "Per-type read diagnostics; see README. Since 1.20.0 each entry also carries own_records_skipped: records this app wrote itself (Receive) that were left out of the payload. read_from is where the time range read for the type started; lookback_gap_from is null unless the phone did not sync for so long that the range could not reach back far enough, and then records timestamped from lookback_gap_from up to read_from that were written or edited in that time were not read (a backfill of that range recovers them)."
+      "description": "Per payload key, what Health Connect returned for each type this payload read. Present on Health Connect payloads that carry records and on the payload of an empty backfill window; absent on Screen Time payloads, test pings, heartbeats and payloads that carry only deletions. A payload after the first of one sync has entries only for the types still draining a backlog.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "permission_granted": {
+            "type": "boolean"
+          },
+          "page_count": {
+            "type": "integer",
+            "description": "Pages Health Connect returned"
+          },
+          "raw_record_count": {
+            "type": "integer",
+            "description": "Records Health Connect returned for the read range, before the watermark filter; samples for heart rate and skin temperature"
+          },
+          "raw_min_time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Oldest timestamp among those records"
+          },
+          "raw_max_time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Newest timestamp among those records"
+          },
+          "raw_latest_modified_time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Newest modification time among those records"
+          },
+          "filtered_record_count": {
+            "type": "integer",
+            "description": "Records delivered in this payload"
+          },
+          "min_time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Oldest timestamp among the delivered records"
+          },
+          "max_time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Newest timestamp among the delivered records"
+          },
+          "last_sync": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The watermark this read filtered against"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why the type was not read, or was read only in part; null otherwise"
+          },
+          "own_records_skipped": {
+            "type": "integer",
+            "description": "Records this app wrote itself through Receive that were left out of the payload"
+          },
+          "read_from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Where the read range started"
+          },
+          "lookback_gap_from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null unless the phone did not sync for so long that the range could not reach back far enough: records timestamped from here up to read_from that were written or edited in that time were not read, and a backfill of that range sends them"
+          }
+        },
+        "additionalProperties": true
+      }
     },
     "writeback": {
       "type": "object",
-      "description": "Health Connect payloads to the Life Dashboard integration only, when Receive is on (1.20.0): what the phone can write, and the outcome of what the integration sent last time. Absent on every other payload. The integration's answer is described in webhook.md under Inbound.",
+      "description": "Health Connect payloads to the Life Dashboard integration only, when Receive is on: what the phone can write, and the outcome of what the integration sent last time. Absent on every other payload. The integration's response is described in webhook.md under Inbound.",
       "properties": {
         "protocol": {
           "const": 1
@@ -265,7 +365,8 @@
         "properties": {
           "session_end_time": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "End of the session; its start is session_end_time minus duration_seconds"
           },
           "duration_seconds": {
             "type": "integer"
@@ -276,7 +377,8 @@
               "type": "object",
               "properties": {
                 "stage": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "On Android one of unknown, awake, sleeping, out_of_bed, light, deep, rem, awake_in_bed"
                 },
                 "start_time": {
                   "type": "string",
@@ -337,7 +439,7 @@
               },
               "uuid": {
                 "type": "string",
-                "description": "Stable record id for server-side deduplication"
+                "description": "<record id>#<sample time in epoch milliseconds>: one record holds many samples, and a deletion names the record id"
               },
               "metadata": {
                 "$ref": "#/definitions/recordMetadata"
@@ -1001,7 +1103,8 @@
         "type": "object",
         "properties": {
           "type": {
-            "type": "string"
+            "type": "string",
+            "description": "Health Connect's ExerciseSessionRecord exercise type constant as a decimal string, such as \"56\" (running) or \"79\" (walking). The iOS app sends a name instead."
           },
           "start_time": {
             "type": "string",
@@ -1109,7 +1212,7 @@
           "dietary_fibre_g": {
             "type": "number",
             "minimum": 0,
-            "description": "Dietary fibre in grams; omitted when the source app did not write it"
+            "description": "Dietary fiber in grams; omitted when the source app did not write it"
           },
           "sugars_g": {
             "type": "number",
@@ -1219,37 +1322,37 @@
           "vitamin_a_mcg": {
             "type": "number",
             "minimum": 0,
-            "description": "Vitamin a in micrograms; omitted when the source app did not write it"
+            "description": "Vitamin A in micrograms; omitted when the source app did not write it"
           },
           "vitamin_b6_mg": {
             "type": "number",
             "minimum": 0,
-            "description": "Vitamin b6 in milligrams; omitted when the source app did not write it"
+            "description": "Vitamin B6 in milligrams; omitted when the source app did not write it"
           },
           "vitamin_b12_mcg": {
             "type": "number",
             "minimum": 0,
-            "description": "Vitamin b12 in micrograms; omitted when the source app did not write it"
+            "description": "Vitamin B12 in micrograms; omitted when the source app did not write it"
           },
           "vitamin_c_mg": {
             "type": "number",
             "minimum": 0,
-            "description": "Vitamin c in milligrams; omitted when the source app did not write it"
+            "description": "Vitamin C in milligrams; omitted when the source app did not write it"
           },
           "vitamin_d_mcg": {
             "type": "number",
             "minimum": 0,
-            "description": "Vitamin d in micrograms; omitted when the source app did not write it"
+            "description": "Vitamin D in micrograms; omitted when the source app did not write it"
           },
           "vitamin_e_mg": {
             "type": "number",
             "minimum": 0,
-            "description": "Vitamin e in milligrams; omitted when the source app did not write it"
+            "description": "Vitamin E in milligrams; omitted when the source app did not write it"
           },
           "vitamin_k_mcg": {
             "type": "number",
             "minimum": 0,
-            "description": "Vitamin k in micrograms; omitted when the source app did not write it"
+            "description": "Vitamin K in micrograms; omitted when the source app did not write it"
           },
           "thiamin_mg": {
             "type": "number",
@@ -1308,7 +1411,8 @@
             "description": "Stable record id for server-side deduplication"
           },
           "metadata": {
-            "$ref": "#/definitions/recordMetadata"
+            "$ref": "#/definitions/recordMetadata",
+            "description": "Not sent: nutrition records carry no metadata, even with Record metadata on"
           }
         },
         "required": [
@@ -1327,7 +1431,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The session's title; absent when the source wrote none"
           },
           "start_time": {
             "type": "string",
@@ -1720,7 +1825,7 @@
               },
               "uuid": {
                 "type": "string",
-                "description": "Stable record id for server-side deduplication"
+                "description": "<record id>#<sample time in epoch milliseconds>: one record holds many samples, and a deletion names the record id"
               },
               "metadata": {
                 "$ref": "#/definitions/recordMetadata"
@@ -1883,10 +1988,23 @@
         "type": "object",
         "properties": {
           "appearance": {
-            "type": "string"
+            "enum": [
+              "dry",
+              "sticky",
+              "creamy",
+              "watery",
+              "egg_white",
+              "unusual",
+              "unknown"
+            ]
           },
           "sensation": {
-            "type": "string"
+            "enum": [
+              "light",
+              "medium",
+              "heavy",
+              "unknown"
+            ]
           },
           "time": {
             "type": "string",
@@ -1962,32 +2080,66 @@
         "properties": {
           "date": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "description": "The day as the app counts it: from the Screen Time day boundary (04:00 local time by default) to the same hour the next day, or midnight to midnight with the boundary switched off"
           },
           "total_screen_time_minutes": {
             "type": "integer",
-            "description": "Every app's foreground minutes, also of apps an app filter leaves out"
+            "description": "Every app's foreground minutes, including apps an app filter leaves out"
           },
           "filtered_screen_time_minutes": {
             "type": "integer",
             "description": "The minutes of the apps in this day's apps array; only when an app filter is on (app_filter)"
+          },
+          "apps": {
+            "type": "array",
+            "description": "Apps with more than one minute of foreground time that day; with an app filter on, only the apps the filter lets through",
+            "items": {
+              "type": "object",
+              "properties": {
+                "package": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "The app's label on the phone"
+                },
+                "minutes": {
+                  "type": "integer",
+                  "description": "Foreground minutes that day"
+                },
+                "last_used": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "package",
+                "name",
+                "minutes",
+                "last_used"
+              ],
+              "additionalProperties": true
+            }
           }
         },
         "required": [
           "date"
         ],
         "additionalProperties": true
-      }
+      },
+      "description": "Screen Time payloads only: the last 7 days, one entry per day. Store per date and apply a day only from a payload with a higher sequence than the one that last wrote it."
     },
     "daily_totals": {
       "type": "array",
-      "description": "Optional per-day totals computed with Health Connect's aggregate API, which deduplicates overlapping sources (phone plus watch)",
+      "description": "Per local day, totals from Health Connect's aggregate API, which deduplicates overlapping sources (phone plus watch). Ordinary syncs carry today and the two days before, today's entry being a running total; a backfill carries every day its window touches. Absent when switched off in the app.",
       "items": {
         "type": "object",
         "properties": {
           "date": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "description": "The phone's local day, midnight to midnight"
           },
           "steps": {
             "type": "integer"
@@ -2031,7 +2183,7 @@
   "definitions": {
     "recordMetadata": {
       "type": "object",
-      "description": "Health Connect's metadata of the record, when Record metadata is on in the app (off by default). Fields Health Connect did not have are absent.",
+      "description": "Health Connect's metadata of the record, when Record metadata is on in the app (off by default). Fields Health Connect did not have are absent. Nutrition records and buckets carry none.",
       "properties": {
         "last_modified": {
           "type": "string",
@@ -2083,15 +2235,15 @@
         },
         "zone_offset": {
           "type": "string",
-          "description": "UTC offset of a record at one moment, such as +02:00"
+          "description": "UTC offset of a record at one moment, such as +02:00, or Z for UTC"
         },
         "start_zone_offset": {
           "type": "string",
-          "description": "UTC offset at the start of a record over a period"
+          "description": "UTC offset at the start of a record over a period, such as +02:00, or Z for UTC. Heart rate and skin temperature samples carry the offsets of their record."
         },
         "end_zone_offset": {
           "type": "string",
-          "description": "UTC offset at its end"
+          "description": "UTC offset at its end, in the same form"
         }
       },
       "required": [
