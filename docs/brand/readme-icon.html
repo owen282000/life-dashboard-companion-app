@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+  Source for docs/readme-icon.png, the icon at the top of the README: the store icon
+  (fastlane/metadata/android/en-US/images/icon.png) with rounded corners and a thin edge,
+  on a transparent background so it sits on GitHub's light and dark theme alike.
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+      --headless=new --screenshot=docs/readme-icon.png --window-size=512,512 \
+      --hide-scrollbars --force-device-scale-factor=1 \
+      --default-background-color=00000000 docs/brand/readme-icon.html
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { width: 512px; height: 512px; overflow: hidden; background: transparent; }
+  .icon {
+    position: absolute; inset: 16px;
+    border-radius: 108px;
+    overflow: hidden;
+  }
+  .icon img { width: 100%; height: 100%; display: block; }
+  .edge {
+    position: absolute; inset: 16px; border-radius: 108px;
+    box-shadow: inset 0 0 0 4px rgba(48, 183, 126, 0.35);
+  }
+</style>
+</head>
+<body>
+  <div class="icon"><img src="../../fastlane/metadata/android/en-US/images/icon.png" alt=""></div>
+  <div class="edge"></div>
+</body>
+</html>

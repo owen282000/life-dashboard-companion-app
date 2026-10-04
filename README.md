@@ -1,8 +1,10 @@
 <p align="center">
-  <img src="docs/social-preview.png" alt="Life Dashboard Companion - your health data, your server, no cloud" width="100%">
+  <img src="docs/readme-icon.png" alt="Life Dashboard Companion icon" width="128" height="128">
 </p>
 
 <h1 align="center">Life Dashboard Companion</h1>
+
+<h3 align="center">Your health data, your server, no cloud</h3>
 
 <p align="center">
   <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK" alt="Download APK"></a>
