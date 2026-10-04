@@ -71,6 +71,17 @@ Health Connect is the place on Android where fitness apps keep their data. Garmi
 
 Not sure your watch is covered? The [brand guides](docs/brands/README.md) show what each one actually writes, and what it keeps to itself.
 
+## Part of Life Dashboard
+
+Life Dashboard is four projects that work together. The two apps send the same payload, so an Android phone and an iPhone can feed one Home Assistant or one stack.
+
+| Android app | iPhone app | Home Assistant | Grafana stack |
+|:--:|:--:|:--:|:--:|
+| Health Connect and screen time | Apple Health | Sensors and a year of history | Postgres and Grafana dashboards |
+| **You're here** | [Open repository](https://github.com/owen282000/life-dashboard-companion-app-ios) | [Open repository](https://github.com/owen282000/life-dashboard-ha) | [Open repository](https://github.com/owen282000/life-dashboard-stack) |
+
+Screen time and writing back into Health Connect are Android-only. The iPhone app's [README](https://github.com/owen282000/life-dashboard-companion-app-ios#readme) lists what else an iPhone does differently.
+
 ## Install
 
 <p align="center">
@@ -161,10 +172,6 @@ If you have no backend yet, [life-dashboard-stack](https://github.com/owen282000
 ## Privacy
 
 The app has no analytics, no crash reporting and no ads, and there is no Life Dashboard server. Your data goes from the phone to the destinations you configure and nowhere else. Webhooks use HTTPS unless you switch on **Allow plain HTTP webhooks**, for example for a Home Assistant server on your home network. Secrets are encrypted on the phone with a key from the Android Keystore. [PRIVACY.md](PRIVACY.md) lists every permission and every field that can leave the phone.
-
-## Also on iPhone
-
-[Life Dashboard Companion for iOS](https://github.com/owen282000/life-dashboard-companion-app-ios) sends the same payload from Apple Health and pairs with the same Home Assistant integration, so a mixed household can feed one backend. There is no App Store build yet: you build it with Xcode and install it on your own iPhone. Screen time and writing back are Android-only.
 
 ## Documentation
 
