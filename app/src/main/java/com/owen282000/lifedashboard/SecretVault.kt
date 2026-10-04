@@ -82,7 +82,11 @@ object SecretVault {
                 resetKey = { KeystoreCipher.delete(KEY_ALIAS) },
                 legacyExists = { legacyFile(app).exists() },
                 openLegacy = { openLegacy(app) },
-                deleteLegacy = { app.deleteSharedPreferences(LEGACY_FILE) },
+                deleteLegacy = {
+                    app.deleteSharedPreferences(LEGACY_FILE)
+                    // Its master key served nothing else.
+                    runCatching { KeystoreCipher.delete(MasterKey.DEFAULT_MASTER_KEY_ALIAS) }
+                },
                 legacyPlainKeys = PreferencesManager.LEGACY_PLAIN_SECRET_KEYS,
                 knownKeys = PreferencesManager.SECRET_KEYS,
                 bootCount = { Settings.Global.getInt(app.contentResolver, Settings.Global.BOOT_COUNT, -1).takeIf { it >= 0 } },
@@ -163,45 +167,56 @@ class SecretVaultLogic(
         val cipher = try {
             openCipher(!migrated)
         } catch (e: Exception) {
-            if (!KeystoreCipher.isDefinitive(e) || !countFailure(KEYSTORE)) return unavailable()
-            // The key has been gone or unusable on several boots: start over with a new one.
-            resetKey()
-            val fresh = openCipher(true)
-            val store = EncryptedStore(target, fresh)
-            return if (migrated) wipeForReentry(store) else migrate(store)
+            return failed(e, migrated)
         }
-        clearFailures(KEYSTORE)
         val store = EncryptedStore(target, cipher)
         if (!migrated) return migrate(store)
-        return when (store.peek(PROBE)) {
+        return when (val probe = store.peek(PROBE)) {
             is EncryptedStore.Opened.Value -> {
+                // Failures only end at a key that proved itself, not at one that merely opened.
+                clearFailures(KEYSTORE)
                 absorbLeftovers(store)
                 ready(store)
             }
             EncryptedStore.Opened.WrongKey, null -> wipeForReentry(store)
-            is EncryptedStore.Opened.Failed -> unavailable()
+            is EncryptedStore.Opened.Failed -> failed(probe.error, migrated)
         }
+    }
+
+    /**
+     * A Keystore failure: unavailable, unless it is definitive and has been seen on
+     * [PERSISTENT_BOOTS] boots without the key proving itself in between; then the key is
+     * replaced, the store migrated into if it never was, and otherwise the unreadable values
+     * wiped for the user to enter again.
+     */
+    private fun failed(e: Exception, migrated: Boolean): SecretVault.Opened {
+        if (!KeystoreCipher.isDefinitive(e) || !countFailure(KEYSTORE)) return unavailable()
+        resetKey()
+        val store = EncryptedStore(target, openCipher(true))
+        return if (migrated) wipeForReentry(store) else migrate(store)
     }
 
     private fun migrate(store: EncryptedStore): SecretVault.Opened {
         val values = linkedMapOf<String, String>()
         legacyPlainKeys.forEach { key -> plain.getString(key, null)?.let { values[key] = it } }
-        var legacyLost = false
+        // Complete when the old store gave every value it holds; incomplete keeps it, and asks.
+        var complete = true
         if (legacyExists()) {
             val legacy = readLegacy()
             if (legacy != null) {
-                values.putAll(legacy)
+                values.putAll(legacy.values)
+                complete = legacy.complete
                 clearFailures(LEGACY)
             } else {
                 if (!countFailure(LEGACY)) return unavailable()
-                legacyLost = true
+                complete = false
             }
         }
         val editor = target.edit().clear()
         values.forEach { (key, value) -> editor.putString(key, store.seal(key, value)) }
         editor.putString(PROBE, store.seal(PROBE, PROBE_VALUE))
         editor.putBoolean(MARKER, true)
-        if (legacyLost) {
+        if (!complete) {
             editor.putBoolean(EncryptedStore.NEEDS_REENTRY, true)
             editor.putBoolean(LEGACY_PENDING, true)
         }
@@ -213,43 +228,64 @@ class SecretVaultLogic(
             return unavailable()
         }
         removePlainCopies()
-        if (!legacyLost && legacyExists()) deleteLegacy()
+        if (complete && legacyExists()) deleteLegacy()
         return ready(store)
     }
 
     /**
-     * After the migration: an old store that could not be read then is tried again for as long
-     * as it exists, and what it holds fills the keys still empty; plain secrets that a restore
-     * of an old backup brought back are moved in the same way. A value entered since wins.
+     * After the migration, on every start that opens the store:
+     * - plain secrets that a restore of an old backup brought back are removed, not taken in:
+     *   the store already holds what the user has set since, and a plain copy must not stay;
+     * - an old store that could not be read at the migration is tried again, but only while
+     *   the user is still asked to enter the secrets again: it fills the keys with nothing
+     *   stored, and when it gave everything, the request goes. Once the user has entered a
+     *   secret, a key left empty may be empty on purpose, so the old store is dropped then;
+     * - an old store that is still there otherwise (the process stopped between the migration
+     *   and its deletion) is deleted.
      */
     private fun absorbLeftovers(store: EncryptedStore) {
-        val found = linkedMapOf<String, String>()
-        legacyPlainKeys.forEach { key -> plain.getString(key, null)?.let { found[key] = it } }
-        val pending = target.getBoolean(LEGACY_PENDING, false)
-        val legacy = if (pending && legacyExists()) readLegacy() else null
-        legacy?.let { found.putAll(it) }
-        // Only keys with nothing stored at all: a value that is there but cannot be read right
-        // now is not replaced by an older one.
-        val missing = found.filterKeys { !target.contains(it) }
-        if (missing.isNotEmpty()) {
-            val editor = target.edit()
-            missing.forEach { (key, value) -> editor.putString(key, store.seal(key, value)) }
-            if (!editor.commit()) return
-        }
         removePlainCopies()
-        if (legacy != null) {
-            target.edit().remove(LEGACY_PENDING).commit()
-            deleteLegacy()
+        if (!legacyExists()) {
+            if (target.contains(LEGACY_PENDING)) target.edit().remove(LEGACY_PENDING).commit()
+            return
         }
+        val waiting = target.getBoolean(LEGACY_PENDING, false) && target.getBoolean(EncryptedStore.NEEDS_REENTRY, false)
+        if (!waiting) {
+            if (target.contains(LEGACY_PENDING)) target.edit().remove(LEGACY_PENDING).commit()
+            deleteLegacy()
+            return
+        }
+        val legacy = readLegacy() ?: return
+        val editor = target.edit()
+        legacy.values.filterKeys { !target.contains(it) }.forEach { (key, value) -> editor.putString(key, store.seal(key, value)) }
+        if (legacy.complete) editor.remove(EncryptedStore.NEEDS_REENTRY).remove(LEGACY_PENDING)
+        if (!editor.commit()) return
+        if (legacy.complete) deleteLegacy()
     }
 
-    /** The old store's secrets, or null when it cannot be read. One bad entry costs only itself. */
-    private fun readLegacy(): Map<String, String>? = try {
+    /** What an old store gave, and whether that was all it holds. */
+    private class LegacyRead(val values: Map<String, String>, val complete: Boolean)
+
+    /**
+     * The old store's secrets, or null when it cannot be read. When reading it whole fails,
+     * every known key is tried on its own; what fails then is missing, so the read is not
+     * complete, and when nothing at all could be read it counts as unreadable, not as empty.
+     */
+    private fun readLegacy(): LegacyRead? = try {
         val old = openLegacy()
         try {
-            old.all.mapNotNull { (key, value) -> (value as? String)?.let { key to it } }.toMap()
+            LegacyRead(old.all.mapNotNull { (key, value) -> (value as? String)?.let { key to it } }.toMap(), complete = true)
         } catch (e: Exception) {
-            knownKeys.mapNotNull { key -> runCatching { old.getString(key, null) }.getOrNull()?.let { key to it } }.toMap()
+            var failures = 0
+            val values = knownKeys.mapNotNull { key ->
+                try {
+                    old.getString(key, null)?.let { key to it }
+                } catch (e: Exception) {
+                    failures++
+                    null
+                }
+            }.toMap()
+            if (values.isEmpty() && failures > 0) null else LegacyRead(values, complete = failures == 0)
         }
     } catch (e: Exception) {
         null
@@ -262,10 +298,13 @@ class SecretVaultLogic(
     }
 
     private fun wipeForReentry(store: EncryptedStore): SecretVault.Opened {
+        // An old store still waiting to be read can still fill in what is wiped here.
+        val pending = target.getBoolean(LEGACY_PENDING, false)
         val ok = target.edit().clear()
             .putString(PROBE, store.seal(PROBE, PROBE_VALUE))
             .putBoolean(MARKER, true)
             .putBoolean(EncryptedStore.NEEDS_REENTRY, true)
+            .apply { if (pending) putBoolean(LEGACY_PENDING, true) }
             .commit()
         return if (ok) ready(store) else unavailable()
     }

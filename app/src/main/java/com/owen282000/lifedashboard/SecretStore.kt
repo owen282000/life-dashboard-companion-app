@@ -89,7 +89,9 @@ class KeystoreCipher private constructor(private val key: SecretKey) : SecretCip
          * that is busy or briefly unreachable. Only these can ever lead to a new key.
          */
         fun isDefinitive(e: Throwable): Boolean =
-            e is KeyMissingException || e is UnrecoverableKeyException || e is KeyPermanentlyInvalidatedException
+            e is KeyMissingException || e is UnrecoverableKeyException || e is KeyPermanentlyInvalidatedException ||
+                // An invalid key blob shows only when the cipher is set up, at the first decrypt.
+                e is java.security.InvalidKeyException
     }
 }
 
@@ -105,9 +107,9 @@ class KeystoreCipher private constructor(private val key: SecretKey) : SecretCip
  * Decrypted values are kept in memory for the life of the process, as the old store kept its
  * keys: one Keystore call per value, not per read. A value whose tag does not match (another
  * key wrote it, or it was altered) reads as absent. A value the Keystore could not decrypt
- * right now also reads as absent, but is then never overwritten or removed by this process:
- * the settings screens save every field at once, and an empty field shown during a Keystore
- * hiccup would otherwise replace a real password.
+ * right now also reads as absent, but an empty write does not remove it: the settings screens
+ * save every field at once, and an empty field shown during a Keystore hiccup would otherwise
+ * replace a real password. A real new value is always written.
  *
  * Only strings are stored; nothing secret is anything else. The other typed puts throw, so a
  * secret can never land unencrypted by accident. Writing a value equal to the stored one does
@@ -215,17 +217,15 @@ class EncryptedStore(private val backing: SharedPreferences, private val cipher:
             var entered = false
             val sealed = linkedMapOf<String, String?>()
             if (clearing) {
-                backing.all.keys.filterNot { it.startsWith(INTERNAL_PREFIX) || it in unreadable }.forEach { sealed[it] = null }
+                backing.all.keys.filterNot { it.startsWith(INTERNAL_PREFIX) }.forEach { sealed[it] = null }
             }
             for ((key, value) in puts) {
-                if (key in unreadable) continue
-                val current = getString(key, null)
-                if (key in unreadable) continue
                 if (value.isNullOrBlank()) {
-                    if (backing.contains(key)) sealed[key] = null
+                    // Nothing to keep: but a value that could not be read is not taken for empty.
+                    if (key !in unreadable && backing.contains(key)) sealed[key] = null
                     continue
                 }
-                if (value == current) continue
+                if (key !in unreadable && value == getString(key, null)) continue
                 sealed[key] = try {
                     seal(key, value)
                 } catch (e: Exception) {
@@ -237,7 +237,12 @@ class EncryptedStore(private val backing: SharedPreferences, private val cipher:
             // A real secret written means they are being entered again, so the note goes.
             if (entered) editor.remove(NEEDS_REENTRY)
             sealed.forEach { (key, value) ->
-                if (value == null) cache.remove(key) else puts[key]?.let { cache[key] = it }
+                if (value == null) {
+                    cache.remove(key)
+                } else {
+                    puts[key]?.let { cache[key] = it }
+                    unreadable.remove(key)
+                }
             }
             return editor
         }

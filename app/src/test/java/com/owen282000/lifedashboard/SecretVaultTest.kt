@@ -27,6 +27,9 @@ class SecretVaultTest {
         var busy = false
         var encryptFails = false
 
+        /** Thrown by every decrypt, the way a key the Keystore holds but cannot use fails. */
+        var decryptError: Exception? = null
+
         override fun encrypt(plain: ByteArray, aad: ByteArray): ByteArray {
             if (busy || encryptFails) throw ProviderException("keystore busy")
             val iv = ByteArray(12).also { SecureRandom().nextBytes(it) }
@@ -38,6 +41,7 @@ class SecretVaultTest {
 
         override fun decrypt(blob: ByteArray, aad: ByteArray): ByteArray {
             if (busy) throw ProviderException("keystore busy")
+            decryptError?.let { throw it }
             if (blob.size <= 12) throw javax.crypto.AEADBadTagException("too short")
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
             cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, blob, 0, 12))
@@ -235,8 +239,18 @@ class SecretVaultTest {
         assertEquals("hmac", secret(logic().open()))
     }
 
+    private fun loseLegacyOnThreeBoots(): SecretVault.Opened {
+        legacyFails = true
+        for (b in 1..3) {
+            boot = b
+            newProcess()
+            logic().open()
+        }
+        return logic().open()
+    }
+
     @Test
-    fun `an old store that cannot be read is given up only on the third boot, and read later when it can be`() {
+    fun `an old store that cannot be read is given up only on the third boot`() {
         legacyFails = true
         plain.edit().putString("health_webhook_secret", "plain").commit()
         repeat(20) { assertEquals("many tries in one boot count once", SecretState.UNAVAILABLE, logic().open().state) }
@@ -249,22 +263,77 @@ class SecretVaultTest {
         assertEquals(SecretState.NEEDS_REENTRY, opened.state)
         assertEquals("what could be saved is saved", "plain", secret(opened))
         assertFalse("kept, to try again", legacyDeleted)
+    }
 
-        // Entered again in the meantime, then the old store turns out readable after all.
-        opened.store.edit().putString("health_webhook_secret", "entered").commit()
+    @Test
+    fun `an old store readable after all fills everything while nothing was entered, and ends the request`() {
+        loseLegacyOnThreeBoots()
         legacyFails = false
         legacy = oldStore("health_webhook_secret" to "old", "mqtt_password" to "from-old")
         val later = logic().open()
-        assertEquals("what was entered wins", "entered", secret(later))
-        assertEquals("what was missing comes from the old store", "from-old", secret(later, "mqtt_password"))
+        assertEquals("old", secret(later))
+        assertEquals("from-old", secret(later, "mqtt_password"))
+        assertEquals(SecretState.READY, logic().open().state)
         assertTrue(legacyDeleted)
     }
 
     @Test
-    fun `plain secrets a restore brings back later are moved in and removed`() {
+    fun `once the user entered a secret, an old store readable after all brings nothing back`() {
+        loseLegacyOnThreeBoots().store.edit().putString("health_webhook_secret", "entered").commit()
+        legacyFails = false
+        legacy = oldStore("health_webhook_secret" to "old", "mqtt_password" to "left-empty-on-purpose")
+        val later = logic().open()
+        assertEquals("entered", secret(later))
+        assertNull("a key left empty may be empty on purpose", secret(later, "mqtt_password"))
+        assertTrue(legacyDeleted)
+    }
+
+    @Test
+    fun `a wiped store keeps waiting for an old store that is still to be read`() {
+        loseLegacyOnThreeBoots()
+        cipher = SoftwareCipher()
+        logic().open()
+        assertTrue(target.getBoolean(SecretVaultLogic.LEGACY_PENDING, false))
+    }
+
+    @Test
+    fun `an old store of which no value can be read counts as unreadable, not as empty`() {
+        legacy = object : SharedPreferences by oldStore("health_webhook_secret" to "x") {
+            override fun getAll(): MutableMap<String, *> = throw SecurityException("keyset")
+            override fun getString(key: String?, defValue: String?): String? = throw SecurityException("keyset")
+        }
+        assertEquals(SecretState.UNAVAILABLE, logic().open().state)
+        assertFalse(legacyDeleted)
+    }
+
+    @Test
+    fun `an old store that loses one value gives the rest, asks for the secrets and is kept`() {
+        val inner = oldStore("health_webhook_secret" to "hmac", "mqtt_password" to "pw")
+        legacy = object : SharedPreferences by inner {
+            override fun getAll(): MutableMap<String, *> = throw SecurityException("one bad entry")
+            override fun getString(key: String?, defValue: String?): String? =
+                if (key == "mqtt_password") throw SecurityException("bad entry") else inner.getString(key, defValue)
+        }
+        val opened = logic().open()
+        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
+        assertEquals("hmac", secret(opened))
+        assertFalse(legacyDeleted)
+    }
+
+    @Test
+    fun `an old file still there after a stop between migration and deletion goes on the next start`() {
+        legacy = oldStore("health_webhook_secret" to "hmac")
+        logic().open()
+        legacyDeleted = false
+        logic().open()
+        assertTrue(legacyDeleted)
+    }
+
+    @Test
+    fun `plain secrets a restore brings back later are removed, not taken in`() {
         logic().open()
         plain.edit().putString("health_webhook_secret", "restored").commit()
-        assertEquals("restored", secret(logic().open()))
+        assertNull(secret(logic().open()))
         assertNull(plain.getString("health_webhook_secret", null))
     }
 
@@ -388,6 +457,50 @@ class SecretVaultTest {
         opened.store.edit().putString("health_webhook_secret", "new").commit()
         assertFalse(opened.needsReentry)
         assertEquals(SecretState.READY, logic().open().state)
+    }
+
+    @Test
+    fun `a new value typed after a hiccup is saved`() {
+        logic().open().store.edit().putString("health_webhook_headers", "{\"Authorization\":\"Bearer old\"}").commit()
+        val opened = logic().open()
+        cipher.busy = true
+        assertNull(opened.store.getString("health_webhook_headers", null))
+        cipher.busy = false
+        opened.store.edit().putString("health_webhook_headers", "{\"Authorization\":\"Bearer new\"}").commit()
+        assertEquals("{\"Authorization\":\"Bearer new\"}", logic().open().store.getString("health_webhook_headers", null))
+    }
+
+    @Test
+    fun `a key that is there but cannot be used is replaced after three boots without proving itself`() {
+        logic().open().store.edit().putString("health_webhook_secret", "hmac").commit()
+        cipher.decryptError = java.security.InvalidKeyException("invalid key blob")
+        for (b in 2..3) {
+            boot = b
+            newProcess()
+            assertEquals(SecretState.UNAVAILABLE, logic().open().state)
+        }
+        assertEquals(0, keyResets)
+        boot = 4
+        newProcess()
+        val opened = logic().open()
+        assertEquals(1, keyResets)
+        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
+    }
+
+    @Test
+    fun `a key that proves itself in between starts the count again`() {
+        logic().open().store.edit().putString("health_webhook_secret", "hmac").commit()
+        cipher.decryptError = java.security.InvalidKeyException("invalid key blob")
+        for (b in 2..3) { boot = b; newProcess(); logic().open() }
+        cipher.decryptError = null
+        boot = 4; newProcess()
+        assertEquals(SecretState.READY, logic().open().state)
+        cipher.decryptError = java.security.InvalidKeyException("invalid key blob")
+        for (b in 5..6) { boot = b; newProcess(); assertEquals(SecretState.UNAVAILABLE, logic().open().state) }
+        assertEquals(0, keyResets)
+        assertTrue("the value is still there", target.contains("health_webhook_secret"))
+        cipher.decryptError = null
+        assertEquals("hmac", secret(logic().open()))
     }
 
     @Test
