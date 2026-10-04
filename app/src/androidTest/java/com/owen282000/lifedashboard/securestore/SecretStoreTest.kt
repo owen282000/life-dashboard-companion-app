@@ -62,7 +62,7 @@ class SecretStoreTest {
 
     @After
     fun cleanUp() {
-        listOf(targetName, plainName, legacyName).forEach { prefs(it).edit().clear().commit() }
+        listOf(targetName, plainName, legacyName).forEach { context.deleteSharedPreferences(it) }
         runCatching { KeystoreCipher.delete(alias) }
     }
 
