@@ -17,6 +17,7 @@ The YAML below uses the integration's entity IDs. `<phone>` is the device name a
 | `sensor.<phone>_screen_time_today` | **Screen Time Today** | Minutes on the phone today, with the attributes `date`, `app_count` and `top_apps` |
 | `sensor.<phone>_screen_time_yesterday` | **Screen Time Yesterday** | Yesterday's final total, with the same attributes |
 | `sensor.<phone>_most_used_app_today` | **Screen Time Top App Today** | The name of today's most used app, with the attributes `package` and `minutes` |
+| `sensor.<phone>_<app>_screen_time` | Not over MQTT | One app's minutes today, such as `sensor.pixel_8_youtube_screen_time`, with the attributes `app`, `package`, `date` and `week_minutes`. One per app, created disabled (integration 0.9.0 or newer) |
 
 Over MQTT the sensors sit on the Life Dashboard Companion device, and their entity IDs start with `sensor.life_dashboard_companion_`. Look up the exact IDs under **Settings > Devices & services > Entities** and use those in place of the integration's.
 
@@ -55,7 +56,30 @@ A `numeric_state` trigger fires when the value goes from below the limit to abov
 
 ## 2. A limit for one app
 
-Home Assistant gets the minutes per app through `top_apps`, which lists today's five most used apps. This template trigger reads one app's minutes from it and fires when they reach the limit, here an hour of YouTube:
+The integration gives every app a sensor of its own with its minutes today. They are created disabled, so enable the one you need first: open your phone's device under **Settings > Devices & services > Life Dashboard**, show the disabled entities, open the app's sensor and switch on **Enabled**. Home Assistant reloads the integration about 30 seconds later, and the sensor shows today's minutes.
+
+A notification after an hour of YouTube:
+
+```yaml
+alias: YouTube limit
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.<phone>_youtube_screen_time
+    above: 60
+actions:
+  - action: notify.mobile_app_<phone>
+    data:
+      title: Screen time
+      message: An hour of YouTube today.
+```
+
+- Like the daily limit, it fires once a day. The sensor reads 0 when the next day starts, also for an app you don't open that day, so the trigger is ready again.
+- An app gets a sensor once it has 5 minutes over the days the last sync carried, and a phone gets 50 app sensors at most, the most used apps first. An app you stop using keeps its sensor, so the automation keeps working.
+- The sensor belongs to the app's package, so it stays the same when the app is renamed.
+
+### Over MQTT
+
+MQTT has no sensor per app. There, `top_apps` on Screen Time Today lists today's five most used apps, and this template trigger reads one app's minutes from it:
 
 ```yaml
 alias: YouTube limit
@@ -77,6 +101,7 @@ actions:
 - Write the app's name exactly as it appears in `top_apps`. A name with characters that mean something in a regular expression, such as `+`, `.` or brackets, needs those in square brackets: `Disney[+]`.
 - An app outside today's top five isn't in `top_apps`, so the trigger can't see it. An app over its limit is usually among the five.
 - Like the daily limit, it fires once a day: the template turns false when the new day starts, and true again when the app passes the limit that day.
+- Over MQTT, look up the entity ID of Screen Time Today under **Settings > Devices & services > Entities** and use it in place of `sensor.<phone>_screen_time_today`.
 
 When the limit is for whichever app you use most, the **Most used app today** sensor is simpler:
 
@@ -147,4 +172,4 @@ actions:
 
 ## Where it is kept
 
-Every sync updates these sensors, and Home Assistant's recorder keeps their history for 10 days by default, with the `top_apps` text. The integration also keeps screen time per day in long-term statistics, without a time limit. Everyone with access to Home Assistant and its backups can see which apps you used and when. Apps you leave out in the app never get there.
+Every sync updates these sensors, and Home Assistant's recorder keeps their history for 10 days by default, with the `top_apps` text. That includes the sensors per app you enabled; they add nothing to long-term statistics. The integration also keeps total screen time per day in long-term statistics, without a time limit. Everyone with access to Home Assistant and its backups can see which apps you used and when. Apps you leave out in the app never get there.

@@ -188,7 +188,7 @@ Units are converted to what Health Connect wants; a percentage where a mass is e
 
 **How it is labeled.** An entity with `device_class: weight` is recorded in Health Connect as a reading from a scale; an `input_number` helper as entered by hand.
 
-**Where the readings are kept.** Readings that wait for the phone sit in Home Assistant's `.storage/life_dashboard.<entry>.writeback`, which goes into Home Assistant backups. Template sensors with `state_class: measurement` also keep your weight and body composition in Home Assistant's long-term statistics, with no time limit. Over MQTT on port 1883 without TLS, every weighing is readable on your network by any client allowed to subscribe to its topic.
+**Where the readings are kept.** Readings that wait for the phone sit in Home Assistant's `.storage/life_dashboard.<entry>.writeback`, which goes into Home Assistant backups and is deleted when you remove the phone from the integration. Template sensors with `state_class: measurement` also keep your weight and body composition in Home Assistant's long-term statistics, with no time limit. Over MQTT on port 1883 without TLS, every weighing is readable on your network by any client allowed to subscribe to its topic.
 
 ## What shows up in the other apps
 
