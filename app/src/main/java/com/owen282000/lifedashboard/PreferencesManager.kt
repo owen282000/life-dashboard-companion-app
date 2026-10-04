@@ -143,6 +143,10 @@ class PreferencesManager(context: Context) {
         val LEGACY_PLAIN_SECRET_KEYS: List<String>
             get() = listOf(KEY_HEALTH_WEBHOOK_HEADERS, KEY_SCREENTIME_WEBHOOK_HEADERS, KEY_HEALTH_WEBHOOK_SECRET, KEY_SCREENTIME_WEBHOOK_SECRET)
 
+        /** Every key the secret store holds: the webhook headers and secrets, and the MQTT credentials per broker. */
+        val SECRET_KEYS: List<String>
+            get() = LEGACY_PLAIN_SECRET_KEYS + listOf("mqtt_", "health_mqtt_", "screentime_mqtt_").flatMap { listOf(it + "username", it + "password") }
+
         private const val WRITEBACK_PREFS_NAME = "life_dashboard_writeback"
 
         // Receive (write-back from Home Assistant, issue #62)
@@ -441,7 +445,9 @@ class PreferencesManager(context: Context) {
     }
 
     fun setHealthWebhookHeaders(headers: Map<String, String>) {
-        val headersJson = Json.encodeToString(headers)
+        // No headers is no value, not "{}": the secret store only counts a real value as a
+        // secret entered again, and has nothing to encrypt.
+        val headersJson = headers.takeIf { it.isNotEmpty() }?.let { Json.encodeToString(it) }
         securePrefs.edit().putString(KEY_HEALTH_WEBHOOK_HEADERS, headersJson).apply()
     }
 
@@ -684,7 +690,7 @@ class PreferencesManager(context: Context) {
     }
 
     fun setScreenTimeWebhookHeaders(headers: Map<String, String>) {
-        val headersJson = Json.encodeToString(headers)
+        val headersJson = headers.takeIf { it.isNotEmpty() }?.let { Json.encodeToString(it) }
         securePrefs.edit().putString(KEY_SCREENTIME_WEBHOOK_HEADERS, headersJson).apply()
     }
 

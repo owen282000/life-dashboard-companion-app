@@ -146,7 +146,10 @@ class ScreenTimeViewModel(
             it.copy(
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
-                phoneName = settings.phoneName()
+                phoneName = settings.phoneName(),
+                // A secret saved on the other tab may have ended the request to enter them again.
+                secretsUnavailable = settings.secretsUnavailable,
+                secretsNeedReentry = settings.secretsNeedReentry
             )
         }
     }

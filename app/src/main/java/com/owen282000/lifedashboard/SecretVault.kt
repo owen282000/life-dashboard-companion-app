@@ -2,6 +2,8 @@ package com.owen282000.lifedashboard
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.SystemClock
+import android.provider.Settings
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import java.io.File
@@ -14,13 +16,14 @@ enum class SecretState {
     /**
      * The Keystore could not be used this time, or the old store not read for migration.
      * Reads are empty and writes are dropped (InMemoryPrefs), never kept in plain storage;
-     * the next process start tries again.
+     * a later start tries again.
      */
     UNAVAILABLE,
 
     /**
-     * Secrets were lost (the Keystore key is gone, or the old store stayed unreadable) and
-     * have to be entered again. Writes work; the note goes as soon as one secret is saved.
+     * Secrets were lost (the Keystore key is gone for good, or the old store stayed
+     * unreadable) and have to be entered again. Writes work; the note goes as soon as one
+     * secret is entered.
      */
     NEEDS_REENTRY
 }
@@ -39,8 +42,11 @@ object SecretVault {
     /** The Keystore alias of their key, separate from security-crypto's master key. */
     const val KEY_ALIAS = "life_dashboard_secrets_v1"
 
-    /** The security-crypto file of 1.6.0 to 1.22, read once to migrate; deleted in a later release. */
+    /** The security-crypto file of 1.6.0 to 1.22, read once to migrate and then deleted. */
     const val LEGACY_FILE = "life_dashboard_secure_prefs"
+
+    /** How long an unavailable store is answered from memory before the Keystore is tried again. */
+    private const val RETRY_AFTER_MS = 30_000L
 
     class Opened(val store: SharedPreferences, val state: SecretState, private val backing: SharedPreferences?) {
         val needsReentry: Boolean get() = backing?.getBoolean(EncryptedStore.NEEDS_REENTRY, false) == true
@@ -51,23 +57,44 @@ object SecretVault {
     @Volatile
     private var opened: Opened? = null
 
-    /** The store; opened, and migrated into, on first use. An unavailable result is not kept. */
+    @Volatile
+    private var unavailableAt = 0L
+    private var unavailable: Opened? = null
+
+    /** Each failure is counted once per process; see [SecretVaultLogic.countFailure]. */
+    private val countedThisProcess = mutableSetOf<String>()
+
+    /**
+     * The store; opened, and migrated into, on first use. An unavailable result is not kept for
+     * good: after [RETRY_AFTER_MS] the next caller tries again, so the many places that build a
+     * PreferencesManager do not each go to the Keystore while it is down.
+     */
     fun open(context: Context): Opened {
         opened?.let { return it }
         synchronized(lock) {
             opened?.let { return it }
+            unavailable?.let { if (SystemClock.elapsedRealtime() - unavailableAt < RETRY_AFTER_MS) return it }
             val app = context.applicationContext ?: context
-            val target = app.getSharedPreferences(FILE, Context.MODE_PRIVATE)
             val result = SecretVaultLogic(
                 plain = app.getSharedPreferences(PreferencesManager.PREFS_FILE, Context.MODE_PRIVATE),
-                target = target,
-                openCipher = { KeystoreCipher.open(KEY_ALIAS) },
+                target = app.getSharedPreferences(FILE, Context.MODE_PRIVATE),
+                openCipher = { allowCreate -> KeystoreCipher.open(KEY_ALIAS, allowCreate) },
                 resetKey = { KeystoreCipher.delete(KEY_ALIAS) },
                 legacyExists = { legacyFile(app).exists() },
                 openLegacy = { openLegacy(app) },
-                legacyPlainKeys = PreferencesManager.LEGACY_PLAIN_SECRET_KEYS
+                deleteLegacy = { app.deleteSharedPreferences(LEGACY_FILE) },
+                legacyPlainKeys = PreferencesManager.LEGACY_PLAIN_SECRET_KEYS,
+                knownKeys = PreferencesManager.SECRET_KEYS,
+                bootCount = { Settings.Global.getInt(app.contentResolver, Settings.Global.BOOT_COUNT, -1).takeIf { it >= 0 } },
+                countedThisProcess = countedThisProcess
             ).open()
-            if (result.state != SecretState.UNAVAILABLE) opened = result
+            if (result.state == SecretState.UNAVAILABLE) {
+                unavailable = result
+                unavailableAt = SystemClock.elapsedRealtime()
+            } else {
+                opened = result
+                unavailable = null
+            }
             return result
         }
     }
@@ -86,73 +113,87 @@ object SecretVault {
 
 /**
  * Opening the secret store and migrating into it, free of Android so every step and every
- * failure can be tested on the JVM. See [open] for the order.
+ * failure can be tested on the JVM. See [open] for the order. Nothing here ever wipes a secret
+ * over a failure that may pass: only a key that is provably wrong (a tag that does not match)
+ * or a definitive Keystore error seen on [PERSISTENT_BOOTS] separate boots does that.
  */
 class SecretVaultLogic(
-    /** The plain settings: secrets of versions before 1.6.0, and the failure counters. */
+    /** The plain settings, where versions before 1.6.0 kept four secrets. */
     private val plain: SharedPreferences,
-    /** The new file the encrypted secrets go to. */
+    /** The new file: encrypted secrets, and the bookkeeping, which is excluded from backup with it. */
     private val target: SharedPreferences,
-    private val openCipher: () -> KeystoreCipher.Opening,
+    private val openCipher: (allowCreate: Boolean) -> SecretCipher,
     private val resetKey: () -> Unit,
     private val legacyExists: () -> Boolean,
     private val openLegacy: () -> SharedPreferences,
+    private val deleteLegacy: () -> Unit,
     private val legacyPlainKeys: List<String>,
-    private val now: () -> Long = System::currentTimeMillis
+    /** Every secret's key, for reading an old store whose all() fails as a whole. */
+    private val knownKeys: List<String>,
+    /** Android's boot counter; null when the phone does not report it. */
+    private val bootCount: () -> Int?,
+    /** The failure kinds already counted in this process. */
+    private val countedThisProcess: MutableSet<String> = mutableSetOf()
 ) {
 
     /**
-     * 1. Open the Keystore key. A failure is temporary ([SecretState.UNAVAILABLE]) until it has
-     *    lasted [PERSISTENT_COUNT] tries over [PERSISTENT_MS]; then the key is replaced and the
-     *    secrets have to be entered again.
-     * 2. Migrated before: check the probe. A probe that does not decrypt means the key that
-     *    wrote it is gone, so the values are wiped and have to be entered again.
+     * 1. Open the Keystore key. Before the migration a missing key is made; after it, a missing
+     *    key is a failure, never a reason to make a new one. A failure is [SecretState.UNAVAILABLE];
+     *    only a definitive one seen on [PERSISTENT_BOOTS] boots replaces the key.
+     * 2. Migrated before: check the probe. A tag that does not match means the key that wrote
+     *    it is gone, so the values are wiped and have to be entered again; any other failure
+     *    is only unavailable. Then pick up what an old store still holds, if it was unreadable
+     *    at the migration, and plain secrets a restore brought back.
      * 3. Not migrated: gather the secrets of the old encrypted store and any older plain ones,
      *    and write them, the probe and the marker in one commit, which replaces the file whole,
-     *    so a process killed halfway leaves no half migration. Read everything back before
-     *    trusting it, and only then remove the plain copies. The old encrypted file stays, for
-     *    a rollback build; a later release deletes it.
+     *    so a process killed halfway leaves no half migration. Read everything back, and only
+     *    then remove the plain copies and delete the old file, so a secret rotated later can
+     *    never come back from it.
+     *
+     * Anything unexpected is unavailable, never a crash and never a wipe.
      */
-    fun open(): SecretVault.Opened {
-        val opening = try {
-            openCipher().also { clearFailures(KEYSTORE) }
-        } catch (e: Exception) {
-            if (!persistentFailure(KEYSTORE)) return unavailable()
-            // The key has been unusable for a day of tries: start over with a new one.
-            val fresh = try {
-                resetKey()
-                openCipher()
-            } catch (again: Exception) {
-                return unavailable()
-            }
-            clearFailures(KEYSTORE)
-            return wipeForReentry(EncryptedStore(target, fresh.cipher))
-        }
-        val store = EncryptedStore(target, opening.cipher)
-        return if (target.getBoolean(MARKER, false)) {
-            if (probeIntact(store)) {
-                ready(store)
-            } else {
-                wipeForReentry(store)
-            }
-        } else {
-            migrate(store)
-        }
+    fun open(): SecretVault.Opened = try {
+        openChecked()
+    } catch (e: Exception) {
+        unavailable()
     }
 
-    /** Whether the probe decrypts, which only the key that wrote it can make it do. */
-    private fun probeIntact(store: EncryptedStore): Boolean = store.peek(PROBE) == PROBE_VALUE
+    private fun openChecked(): SecretVault.Opened {
+        val migrated = target.getBoolean(MARKER, false)
+        val cipher = try {
+            openCipher(!migrated)
+        } catch (e: Exception) {
+            if (!KeystoreCipher.isDefinitive(e) || !countFailure(KEYSTORE)) return unavailable()
+            // The key has been gone or unusable on several boots: start over with a new one.
+            resetKey()
+            val fresh = openCipher(true)
+            val store = EncryptedStore(target, fresh)
+            return if (migrated) wipeForReentry(store) else migrate(store)
+        }
+        clearFailures(KEYSTORE)
+        val store = EncryptedStore(target, cipher)
+        if (!migrated) return migrate(store)
+        return when (store.peek(PROBE)) {
+            is EncryptedStore.Opened.Value -> {
+                absorbLeftovers(store)
+                ready(store)
+            }
+            EncryptedStore.Opened.WrongKey, null -> wipeForReentry(store)
+            is EncryptedStore.Opened.Failed -> unavailable()
+        }
+    }
 
     private fun migrate(store: EncryptedStore): SecretVault.Opened {
         val values = linkedMapOf<String, String>()
         legacyPlainKeys.forEach { key -> plain.getString(key, null)?.let { values[key] = it } }
         var legacyLost = false
         if (legacyExists()) {
-            try {
-                openLegacy().all.forEach { (key, value) -> if (value is String) values[key] = value }
+            val legacy = readLegacy()
+            if (legacy != null) {
+                values.putAll(legacy)
                 clearFailures(LEGACY)
-            } catch (e: Exception) {
-                if (!persistentFailure(LEGACY)) return unavailable()
+            } else {
+                if (!countFailure(LEGACY)) return unavailable()
                 legacyLost = true
             }
         }
@@ -160,16 +201,64 @@ class SecretVaultLogic(
         values.forEach { (key, value) -> editor.putString(key, store.seal(key, value)) }
         editor.putString(PROBE, store.seal(PROBE, PROBE_VALUE))
         editor.putBoolean(MARKER, true)
-        if (legacyLost) editor.putBoolean(EncryptedStore.NEEDS_REENTRY, true)
+        if (legacyLost) {
+            editor.putBoolean(EncryptedStore.NEEDS_REENTRY, true)
+            editor.putBoolean(LEGACY_PENDING, true)
+        }
         if (!editor.commit()) return unavailable()
-        if (values.any { (key, value) -> store.getString(key, null) != value } || !probeIntact(store)) {
+        val intact = store.peek(PROBE) is EncryptedStore.Opened.Value &&
+            values.all { (key, value) -> (store.peek(key) as? EncryptedStore.Opened.Value)?.value == value }
+        if (!intact) {
             target.edit().clear().commit()
             return unavailable()
         }
+        removePlainCopies()
+        if (!legacyLost && legacyExists()) deleteLegacy()
+        return ready(store)
+    }
+
+    /**
+     * After the migration: an old store that could not be read then is tried again for as long
+     * as it exists, and what it holds fills the keys still empty; plain secrets that a restore
+     * of an old backup brought back are moved in the same way. A value entered since wins.
+     */
+    private fun absorbLeftovers(store: EncryptedStore) {
+        val found = linkedMapOf<String, String>()
+        legacyPlainKeys.forEach { key -> plain.getString(key, null)?.let { found[key] = it } }
+        val pending = target.getBoolean(LEGACY_PENDING, false)
+        val legacy = if (pending && legacyExists()) readLegacy() else null
+        legacy?.let { found.putAll(it) }
+        // Only keys with nothing stored at all: a value that is there but cannot be read right
+        // now is not replaced by an older one.
+        val missing = found.filterKeys { !target.contains(it) }
+        if (missing.isNotEmpty()) {
+            val editor = target.edit()
+            missing.forEach { (key, value) -> editor.putString(key, store.seal(key, value)) }
+            if (!editor.commit()) return
+        }
+        removePlainCopies()
+        if (legacy != null) {
+            target.edit().remove(LEGACY_PENDING).commit()
+            deleteLegacy()
+        }
+    }
+
+    /** The old store's secrets, or null when it cannot be read. One bad entry costs only itself. */
+    private fun readLegacy(): Map<String, String>? = try {
+        val old = openLegacy()
+        try {
+            old.all.mapNotNull { (key, value) -> (value as? String)?.let { key to it } }.toMap()
+        } catch (e: Exception) {
+            knownKeys.mapNotNull { key -> runCatching { old.getString(key, null) }.getOrNull()?.let { key to it } }.toMap()
+        }
+    } catch (e: Exception) {
+        null
+    }
+
+    private fun removePlainCopies() {
         if (legacyPlainKeys.any { plain.contains(it) }) {
             plain.edit().apply { legacyPlainKeys.forEach { remove(it) } }.commit()
         }
-        return ready(store)
     }
 
     private fun wipeForReentry(store: EncryptedStore): SecretVault.Opened {
@@ -190,20 +279,30 @@ class SecretVaultLogic(
     private fun unavailable() = SecretVault.Opened(InMemoryPrefs(), SecretState.UNAVAILABLE, null)
 
     /**
-     * Counts a failure of [kind] and says whether it has become permanent: at least
-     * [PERSISTENT_COUNT] tries spread over at least [PERSISTENT_MS], so a phone that is
-     * restarted a few times in a row does not lose its secrets over a Keystore that was slow.
+     * Counts a failure of [kind] and says whether it has become permanent: seen on
+     * [PERSISTENT_BOOTS] separate boots, counted once per boot, so a phone that is off for a
+     * weekend or a burst of failures in one process does not count as a lasting failure, and a
+     * clock that jumps after a dead battery plays no part. A phone that reports no boot counter
+     * counts once per process instead, and needs [PERSISTENT_PROCESSES] of them.
      */
-    private fun persistentFailure(kind: String): Boolean {
-        val first = plain.getLong("$FAIL_FIRST$kind", 0L).takeIf { it > 0 } ?: now()
-        val count = plain.getInt("$FAIL_COUNT$kind", 0) + 1
-        plain.edit().putLong("$FAIL_FIRST$kind", first).putInt("$FAIL_COUNT$kind", count).commit()
-        return count >= PERSISTENT_COUNT && now() - first >= PERSISTENT_MS
+    internal fun countFailure(kind: String): Boolean {
+        val boot = bootCount()
+        val countKey = "$FAIL_COUNT$kind"
+        if (boot == null) {
+            if (!countedThisProcess.add(kind)) return target.getInt(countKey, 0) >= PERSISTENT_PROCESSES
+            val count = target.getInt(countKey, 0) + 1
+            target.edit().putInt(countKey, count).commit()
+            return count >= PERSISTENT_PROCESSES
+        }
+        val bootKey = "$FAIL_BOOT$kind"
+        val count = if (target.getInt(bootKey, -1) == boot) target.getInt(countKey, 0) else target.getInt(countKey, 0) + 1
+        target.edit().putInt(bootKey, boot).putInt(countKey, count).commit()
+        return count >= PERSISTENT_BOOTS
     }
 
     private fun clearFailures(kind: String) {
-        if (plain.contains("$FAIL_COUNT$kind")) {
-            plain.edit().remove("$FAIL_COUNT$kind").remove("$FAIL_FIRST$kind").commit()
+        if (target.contains("$FAIL_COUNT$kind")) {
+            target.edit().remove("$FAIL_COUNT$kind").remove("$FAIL_BOOT$kind").commit()
         }
     }
 
@@ -211,10 +310,11 @@ class SecretVaultLogic(
         const val MARKER = "__migrated_v1"
         const val PROBE = "__probe"
         const val PROBE_VALUE = "life-dashboard"
-        const val PERSISTENT_COUNT = 5
-        const val PERSISTENT_MS = 24L * 60 * 60 * 1000
-        private const val FAIL_COUNT = "secrets_fail_count_"
-        private const val FAIL_FIRST = "secrets_fail_first_"
+        const val LEGACY_PENDING = "__legacy_pending"
+        const val PERSISTENT_BOOTS = 3
+        const val PERSISTENT_PROCESSES = 10
+        private const val FAIL_COUNT = "__fail_count_"
+        private const val FAIL_BOOT = "__fail_boot_"
         private const val KEYSTORE = "keystore"
         private const val LEGACY = "legacy"
     }
