@@ -375,8 +375,11 @@ class HealthConnectManager(
         startTime: Instant,
         endTime: Instant,
         lastSync: Watermark?,
-        /** The moment a bucket counts the record in: its start for an interval, as SeriesBucketing does. */
-        bucketTimeOf: (T) -> Instant = { error("not bucketable") },
+        /**
+         * The moment a bucket counts the record in, its start for an interval as SeriesBucketing
+         * does; only for the types a read can keep whole windows of (see [keepWhole]).
+         */
+        bucketTimeOf: ((T) -> Instant)? = null,
         timeOf: (T) -> Instant
     ): List<T> {
         try {
@@ -400,7 +403,7 @@ class HealthConnectManager(
             // What this app wrote itself (Receive) came from Home Assistant and does not go
             // back to it; see ownRecordsPartition for the watermark rule.
             val (own, filtered) = ownRecordsPartition(fresh)
-            keepWhole(type, paged, filtered, startTime, endTime, bucketTimeOf)
+            if (bucketTimeOf != null) keepWhole(type, paged, filtered, startTime, endTime, bucketTimeOf)
             val limited = ResilientReadLogic.capOldestFirst(
                 filtered,
                 type.maxRecordsPerSync,
