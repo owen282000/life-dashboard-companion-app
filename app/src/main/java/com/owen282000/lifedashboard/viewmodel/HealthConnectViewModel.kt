@@ -54,6 +54,7 @@ data class HealthUiState(
     val failureNotificationsEnabled: Boolean = false,
     val failureThreshold: Int = 3,
     val secretsUnavailable: Boolean = false,
+    val secretsNeedReentry: Boolean = false,
     val mqttLastStatus: String? = null,
     val isSyncing: Boolean = false,
     val isPreviewing: Boolean = false,
@@ -183,6 +184,7 @@ class HealthConnectViewModel(
                 failureNotificationsEnabled = settings.failureNotificationsEnabled(),
                 failureThreshold = settings.failureThreshold(),
                 secretsUnavailable = settings.secretsUnavailable,
+                secretsNeedReentry = settings.secretsNeedReentry,
                 mqttLastStatus = settings.lastMqttStatus(MqttSection.HEALTH),
                 receive = settings.receiveSettings(),
                 receiveStatus = settings.receiveStatus()
@@ -365,7 +367,7 @@ class HealthConnectViewModel(
             schedule = draft.schedule.copy(intervalText = interval.toString()),
             mqtt = draft.mqtt.withPort()
         )
-        _state.update { it.copy(saved = saved, draft = saved) }
+        _state.update { it.copy(saved = saved, draft = saved, secretsNeedReentry = settings.secretsNeedReentry) }
         return UiMessage.Saved
     }
 

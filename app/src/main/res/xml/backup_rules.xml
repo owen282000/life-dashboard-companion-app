@@ -3,10 +3,11 @@
   Android 11 and below (full-backup). Settings are backed up so a new device keeps the
   user's configuration, but never the secrets or the health payloads:
 
-  - life_dashboard_secure_prefs.xml holds webhook auth headers, HMAC signing secrets and
-    MQTT credentials. Its AES key lives in the hardware keystore and is NOT backed up, so
-    restoring the file elsewhere would at best be undecryptable and at worst (if it was
-    written while the keystore was unavailable) leak cleartext secrets off-device.
+  - life_dashboard_secrets.xml holds webhook auth headers, HMAC signing secrets and MQTT
+    credentials, encrypted with an AES key that lives in the Android Keystore and is NOT
+    backed up, so a restored copy could never be decrypted. life_dashboard_secure_prefs.xml
+    is where versions 1.6.0 to 1.22 kept them (security-crypto); it stays excluded for as
+    long as it can exist on a phone.
   - life_dashboard_logs.xml holds raw webhook payloads, i.e. full health data including
     cycle tracking. That must never leave the device through a cloud backup.
 
@@ -21,6 +22,7 @@
 <full-backup-content>
     <include domain="sharedpref" path="."/>
     <exclude domain="sharedpref" path="life_dashboard_secure_prefs.xml"/>
+    <exclude domain="sharedpref" path="life_dashboard_secrets.xml"/>
     <exclude domain="sharedpref" path="life_dashboard_logs.xml"/>
     <exclude domain="sharedpref" path="life_dashboard_writeback.xml"/>
 </full-backup-content>

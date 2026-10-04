@@ -50,6 +50,9 @@ interface AppSettings {
     fun failureThreshold(): Int
     fun setFailureThreshold(threshold: Int)
     val secretsUnavailable: Boolean
+
+    /** Saved secrets were lost and have to be entered again; saving one clears it. */
+    val secretsNeedReentry: Boolean
     fun lastMqttStatus(section: MqttSection): String?
 }
 
@@ -137,5 +140,6 @@ class PreferencesAppSettings(
     override fun failureThreshold() = SyncFailureNotifier.getThreshold(context)
     override fun setFailureThreshold(threshold: Int) = SyncFailureNotifier.setThreshold(context, threshold)
     override val secretsUnavailable: Boolean get() = prefs.secretsUnavailable
+    override val secretsNeedReentry: Boolean get() = prefs.secretsNeedReentry
     override fun lastMqttStatus(section: MqttSection) = prefs.getLastMqttStatus(section)
 }

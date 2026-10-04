@@ -43,7 +43,7 @@ class BackgroundSmokeSetup {
         prefs.setSyncSchedule(LogType.SCREEN_TIME, SyncSchedule(days = emptySet()))
         // The setters apply() in the background and the process ends with the instrumentation;
         // an empty commit() writes each file's whole state to disk before that.
-        listOf("life_dashboard_prefs", "life_dashboard_secure_prefs").forEach {
+        listOf("life_dashboard_prefs", "life_dashboard_secrets").forEach {
             check(InstrumentationRegistry.getInstrumentation().targetContext.getSharedPreferences(it, Context.MODE_PRIVATE).edit().commit())
         }
     }

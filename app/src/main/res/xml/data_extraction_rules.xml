@@ -3,9 +3,9 @@
   Android 12+ (cloud backup and device-to-device transfer). Same rules as backup_rules.xml:
   configuration is carried over, secrets and raw health payloads are not.
 
-  life_dashboard_secure_prefs.xml is keystore-encrypted and its key never leaves the device,
-  so a restored copy is useless at best; excluding it also means a keystore outage that fell
-  back to plain storage can never ship cleartext secrets off-device.
+  life_dashboard_secrets.xml is encrypted with a Keystore key that never leaves the device, so
+  a restored copy is useless at best; life_dashboard_secure_prefs.xml is where versions 1.6.0
+  to 1.22 kept the secrets (security-crypto) and stays excluded while it can exist.
   life_dashboard_logs.xml holds raw webhook payloads (full health data, incl. cycle tracking).
   life_dashboard_writeback.xml is the Receive ledger, this install's state like the watermarks.
 
@@ -17,12 +17,14 @@
     <cloud-backup>
         <include domain="sharedpref" path="."/>
         <exclude domain="sharedpref" path="life_dashboard_secure_prefs.xml"/>
+        <exclude domain="sharedpref" path="life_dashboard_secrets.xml"/>
         <exclude domain="sharedpref" path="life_dashboard_logs.xml"/>
         <exclude domain="sharedpref" path="life_dashboard_writeback.xml"/>
     </cloud-backup>
     <device-transfer>
         <include domain="sharedpref" path="."/>
         <exclude domain="sharedpref" path="life_dashboard_secure_prefs.xml"/>
+        <exclude domain="sharedpref" path="life_dashboard_secrets.xml"/>
         <exclude domain="sharedpref" path="life_dashboard_logs.xml"/>
         <exclude domain="sharedpref" path="life_dashboard_writeback.xml"/>
     </device-transfer>

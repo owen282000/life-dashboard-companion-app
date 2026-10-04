@@ -660,4 +660,6 @@
     <string name="health_record_metadata">Datensatz-Metadaten</string>
     <string name="health_record_metadata_title">Datensatz-Metadaten im Payload</string>
     <string name="health_record_metadata_description">Ergänzt jeden Datensatz um den Zeitpunkt der letzten Änderung, die eigene ID und Version der schreibenden App, die Art der Aufzeichnung, das Gerät und den Zeitzonen-Offset, soweit Health Connect sie hat. Macht Payloads größer, am meisten bei der Herzfrequenz.</string>
+    <!-- The secret store lost its secrets -->
+    <string name="secrets_lost_banner">Gespeicherte Auth-Header, Signing Secrets und MQTT-Passwörter konnten nicht wiederhergestellt werden und müssen neu eingegeben werden. Bis dahin lehnt ein Webhook, der sie prüft, die Daten ab.</string>
 </resources>

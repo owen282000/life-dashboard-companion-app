@@ -127,6 +127,7 @@ fun ScreenTimeContent(
         if (state.hasUsageAccess) {
             ScreenTimeDashboardCard(refreshKey = state.refreshKey)
             if (state.secretsUnavailable) SecretsUnavailableBanner()
+            if (state.secretsNeedReentry) SecretsLostBanner()
         }
 
         GroupCard {

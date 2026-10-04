@@ -3,8 +3,6 @@ package com.owen282000.lifedashboard
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.LocalTime
@@ -16,37 +14,33 @@ class PreferencesManager(context: Context) {
 
     /**
      * Keystore-backed storage for secrets (webhook headers with auth tokens, HMAC secrets,
-     * MQTT credentials).
+     * MQTT credentials): AES-256-GCM with a key the Android Keystore holds, one store for the
+     * whole process ([SecretVault]), which moved the secrets out of security-crypto's file the
+     * first time it opened.
      *
-     * The keystore can be briefly unavailable right after boot, before the user has unlocked
-     * the device for the first time. Falling back to plain SharedPreferences there would keep
-     * background syncs working, but it would silently write secrets in cleartext into a file
-     * that is eligible for cloud backup. Instead the fallback is [InMemoryPrefs]: reads return
-     * nothing and writes are dropped, so a sync during the outage fails loudly (missing auth)
-     * rather than quietly downgrading the user's security.
-     *
-     * [secretsUnavailable] reports this state so the UI can explain it.
+     * When the Keystore cannot be used it is [InMemoryPrefs]: reads return nothing and writes
+     * are dropped, so a sync then fails loudly (missing auth) rather than quietly downgrading
+     * the user's security by keeping a secret in plain storage.
      */
-    private val securePrefs: SharedPreferences = try {
-        val masterKey = MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        EncryptedSharedPreferences.create(
-            context,
-            SECURE_PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    } catch (e: Exception) {
-        InMemoryPrefs()
-    }
+    private val vault: SecretVault.Opened = SecretVault.open(context)
+    private val securePrefs: SharedPreferences = vault.store
 
     /**
      * True when encrypted storage could not be opened, so secrets cannot be read or saved in
-     * this process. Transient: it normally resolves once the device has been unlocked.
+     * this process. Transient: the next start tries again.
      */
-    val secretsUnavailable: Boolean get() = securePrefs is InMemoryPrefs
+    val secretsUnavailable: Boolean get() = vault.state == SecretState.UNAVAILABLE
+
+    /**
+     * True when saved secrets were lost (the Keystore key is gone, or the old store stayed
+     * unreadable) and have to be entered again. Saving any secret clears it.
+     */
+    val secretsNeedReentry: Boolean get() = vault.needsReentry
+
+    /** Removes every saved secret; for tests that start from a clean state. */
+    fun clearAllSecrets() {
+        securePrefs.edit().clear().commit()
+    }
 
     private val logStore = WebhookLogStore(context)
 
@@ -58,24 +52,7 @@ class PreferencesManager(context: Context) {
     private val writeBackPrefs: SharedPreferences = context.getSharedPreferences(WRITEBACK_PREFS_NAME, Context.MODE_PRIVATE)
 
     init {
-        migrateSecretsToEncryptedStorage()
         logStore.migrateFromLegacyPrefs(prefs)
-    }
-
-    /** One-time migration of secrets that older versions kept in plain SharedPreferences. */
-    private fun migrateSecretsToEncryptedStorage() {
-        if (secretsUnavailable) return // Keystore unavailable, nothing to migrate into
-        val secretKeys = listOf(
-            KEY_HEALTH_WEBHOOK_HEADERS, KEY_SCREENTIME_WEBHOOK_HEADERS,
-            KEY_HEALTH_WEBHOOK_SECRET, KEY_SCREENTIME_WEBHOOK_SECRET
-        )
-        for (key in secretKeys) {
-            val plainValue = prefs.getString(key, null) ?: continue
-            if (securePrefs.getString(key, null) == null) {
-                securePrefs.edit().putString(key, plainValue).apply()
-            }
-            prefs.edit().remove(key).apply()
-        }
     }
 
     // ==================== MQTT ====================
@@ -158,7 +135,14 @@ class PreferencesManager(context: Context) {
 
     companion object {
         private const val PREFS_NAME = "life_dashboard_prefs"
-        private const val SECURE_PREFS_NAME = "life_dashboard_secure_prefs"
+
+        /** The plain settings file; [SecretVault] reads the secrets of versions before 1.6.0 from it. */
+        const val PREFS_FILE = PREFS_NAME
+
+        /** The secrets versions before 1.6.0 kept in the plain settings, moved into the store on migration. */
+        val LEGACY_PLAIN_SECRET_KEYS: List<String>
+            get() = listOf(KEY_HEALTH_WEBHOOK_HEADERS, KEY_SCREENTIME_WEBHOOK_HEADERS, KEY_HEALTH_WEBHOOK_SECRET, KEY_SCREENTIME_WEBHOOK_SECRET)
+
         private const val WRITEBACK_PREFS_NAME = "life_dashboard_writeback"
 
         // Receive (write-back from Home Assistant, issue #62)

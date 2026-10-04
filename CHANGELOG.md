@@ -28,6 +28,17 @@ All notable changes to this project are documented in this file. The format is b
   backup as `screen_time_app_filter`. The Life Dashboard integration follows the filter from
   its next release.
 
+### Changed
+
+- Auth headers, signing secrets and MQTT passwords are stored with AES-256-GCM and a key the
+  Android Keystore holds, in place of the deprecated security-crypto library. The first start
+  after the update moves them over in one step, so nothing has to be entered again, and checks
+  them before using the new store; the old file stays for one more release. Secrets are still
+  never kept unencrypted: when the Keystore cannot be used they are not read or saved, as
+  before, and the next start tries again. New is what happens when they cannot be recovered
+  (the key is gone, or the Keystore stayed unusable for a day of tries): the app says so and
+  asks for them again, where it used to drop every secret typed in until it was reinstalled.
+
 ### Fixed
 
 - A bucketed window of steps, distance or calories that went out again held only the records

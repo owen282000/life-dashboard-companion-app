@@ -660,4 +660,6 @@
     <string name="health_record_metadata">Recordmetadata</string>
     <string name="health_record_metadata_title">Recordmetadata in payload</string>
     <string name="health_record_metadata_description">Voegt aan elk record toe wanneer het voor het laatst gewijzigd is, de eigen id en versie van de schrijvende app, hoe het is vastgelegd, het apparaat en de tijdzone, waar Health Connect die heeft. Maakt payloads groter, het meest bij hartslag.</string>
+    <!-- The secret store lost its secrets -->
+    <string name="secrets_lost_banner">Opgeslagen auth-headers, signing secrets en MQTT-wachtwoorden konden niet worden teruggehaald en moeten opnieuw worden ingevoerd. Tot dan weigert een webhook die ze controleert de data.</string>
 </resources>

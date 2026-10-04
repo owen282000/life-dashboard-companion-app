@@ -34,6 +34,7 @@ internal class FakeAppSettings(
     var notifications = true
     var threshold = 3
     override var secretsUnavailable = false
+    override var secretsNeedReentry = false
 
     override fun loadHealth() = health
     override fun saveHealth(draft: HealthDraft, interval: Int) {

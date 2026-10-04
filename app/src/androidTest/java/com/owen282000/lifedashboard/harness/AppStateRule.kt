@@ -6,8 +6,6 @@ import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.time.TimeRangeFilter
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.WorkManager
 import com.owen282000.lifedashboard.PreferencesManager
@@ -64,7 +62,7 @@ class AppStateRule : TestRule {
             }
             deleteOwnHealthRecords(context)
             PREFS.forEach { context.getSharedPreferences(it, Context.MODE_PRIVATE).edit().clear().commit() }
-            securePrefs(context).edit().clear().commit()
+            PreferencesManager(context).clearAllSecrets()
             FILE_DIRS.forEach { dir -> File(context.filesDir, dir).listFiles()?.forEach { it.deleteRecursively() } }
             context.getSystemService(NotificationManager::class.java).cancelAll()
         }
@@ -93,14 +91,5 @@ class AppStateRule : TestRule {
             HcFixture.written.clear()
             firstReset = false
         }
-
-        /** The encrypted preferences, opened exactly as PreferencesManager opens them. */
-        private fun securePrefs(context: Context) = EncryptedSharedPreferences.create(
-            context,
-            "life_dashboard_secure_prefs",
-            MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
     }
 }
