@@ -92,23 +92,25 @@ class ScreenTimeDeliveryTest {
     }
 
     /**
-     * Issue #63. The app ScreenTimeUse brings to the front (Settings) left out: it is in the
-     * picker's apps, but nowhere in the payload, the day's total still counts it, and the sum of
-     * what is sent goes out next to it. Then only that app: it is all the payload holds.
+     * Issue #63. An app that has screen time today (on a fresh emulator the Settings app that
+     * ScreenTimeUse brings to the front) left out: it is in the picker's apps, also while it is
+     * still in front, but nowhere in the payload, the day's total still counts it, and the sum
+     * of what is sent goes out next to it. Then only that app: it is all the payload holds.
      */
     @Test
     fun anAppFilteredOutNeverLeavesThePhone() = runBlocking {
         ScreenTimeUse.ensureToday()
         TestSetup.screenTime(receiver)
         val prefs = context.appPreferences()
-        val settings = "com.android.settings"
-        assertTrue("the picker offers what was used", ScreenTimeManager(context, prefs).recentApps().any { it.packageName == settings })
+        val manager = ScreenTimeManager(context, prefs)
+        val chosen = manager.readScreenTimeData(lookbackDays = 1).getOrThrow().first().apps.first().packageName
+        assertTrue("the picker offers what can be sent", manager.recentApps().any { it.packageName == chosen })
         try {
-            prefs.setScreenTimeAppFilter(ScreenTimeAppFilter(AppFilterMode.BLOCKLIST, setOf(settings)))
+            prefs.setScreenTimeAppFilter(ScreenTimeAppFilter(AppFilterMode.BLOCKLIST, setOf(chosen)))
             ScreenTimeSyncManager(context).performSync().getOrThrow()
             val blocked = receiver.exchanges.last().text
             assertEquals(emptyList<String>(), Schema.errors(blocked))
-            assertFalse("the app left out is not in the payload", blocked.contains(settings))
+            assertFalse("the app left out is not in the payload", blocked.contains(chosen))
             val body = Conservation.parse(blocked)
             assertEquals("blocklist", body.str("app_filter"))
             body.arr("screen_time").orEmpty().map { it as JsonObject }.forEach { day ->
@@ -119,12 +121,12 @@ class ScreenTimeDeliveryTest {
                 assertTrue("the sum of what is sent: $filtered vs $apps", filtered in apps.sum()..(apps.sum() + apps.size))
             }
 
-            prefs.setScreenTimeAppFilter(ScreenTimeAppFilter(AppFilterMode.ALLOWLIST, setOf(settings)))
+            prefs.setScreenTimeAppFilter(ScreenTimeAppFilter(AppFilterMode.ALLOWLIST, setOf(chosen)))
             ScreenTimeSyncManager(context).performSync().getOrThrow()
             val only = Conservation.parse(receiver.exchanges.last().text)
             assertEquals("allowlist", only.str("app_filter"))
             val packages = only.arr("screen_time").orEmpty().flatMap { (it as JsonObject).arr("apps").orEmpty() }.map { (it as JsonObject).str("package") }.toSet()
-            assertEquals(setOf(settings), packages)
+            assertEquals(setOf(chosen), packages)
         } finally {
             prefs.setScreenTimeAppFilter(ScreenTimeAppFilter.ALL)
         }

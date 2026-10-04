@@ -194,14 +194,28 @@ class ScreenTimeManager(
      * than a minute over the last [days], most used first, with System UI and the launcher left
      * out as everywhere else. Only what the usage statistics report, so it needs no wider
      * package visibility (see [getAppName]).
+     *
+     * The aggregated statistics count a session only once its app has left the foreground, so
+     * the app in front right now can be missing from them while the payload, built from the
+     * events, already has it. The week a sync sends is added, so every app that can be sent can
+     * be chosen.
      */
     fun recentApps(days: Int = PICKER_DAYS): List<AppChoice> {
         if (!hasPermission()) return emptyList()
         return try {
             val now = System.currentTimeMillis()
-            usageStatsManager.queryAndAggregateUsageStats(now - days * 24L * 60 * 60 * 1000, now)
+            val month = usageStatsManager.queryAndAggregateUsageStats(now - days * 24L * 60 * 60 * 1000, now)
                 .filter { (packageName, stats) -> packageName !in excludedPackages && stats.totalTimeInForeground > 60000 }
-                .map { (packageName, stats) -> AppChoice(packageName, getAppName(packageName), stats.totalTimeInForeground / 60000) }
+                .mapValues { (_, stats) -> stats.totalTimeInForeground }
+            val week = readScreenTimeData(LOOKBACK_DAYS).getOrNull().orEmpty()
+                .flatMap { it.apps }
+                .groupBy { it.packageName }
+                .mapValues { (_, apps) -> apps.sumOf { it.totalTimeMs } }
+            (month.keys + week.keys)
+                .map { packageName ->
+                    val ms = maxOf(month[packageName] ?: 0L, week[packageName] ?: 0L)
+                    AppChoice(packageName, getAppName(packageName), ms / 60000)
+                }
                 .sortedByDescending { it.minutes }
         } catch (e: Exception) {
             emptyList()
