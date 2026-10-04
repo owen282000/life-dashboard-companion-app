@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.23.0] - 2026-10-04
+
 ### Added
 
 - Record metadata (P2-7): with Record metadata in payload on, under Advanced on the Health tab,

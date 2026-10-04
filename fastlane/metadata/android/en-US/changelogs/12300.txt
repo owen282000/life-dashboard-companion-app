@@ -1,0 +1,7 @@
+Added:
+
+- Record metadata (P2-7): with Record metadata in payload on, under Advanced on the Health tab,
+  every record carries Health Connect's metadata under metadata: last_modified, the writing
+  app's client_record_id and client_record_version, recording_method, the device and the
+  zone offset (zone_offset for a record at one moment, start_zone_offset and
+... full changelog: https://github.com/owen282000/life-dashboard-companion-app/blob/main/CHANGELOG.md
