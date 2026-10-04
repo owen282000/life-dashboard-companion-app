@@ -20,13 +20,14 @@ import java.time.Instant
  * once, whole. The sync's watermark is never touched; it tracks when records were written, a
  * different axis from when they were measured.
  *
- * Which windows go out is decided by the samples collected; what a closed window holds comes
- * from [whole] where the read kept the window whole (P2-16). A window can go out again: a
- * source rewrites the last hour on every export, edits a record, or a watch uploads late. Built
- * from only the record that changed, the bucket would make a receiver that adds it to the stored
- * window count a rewritten record twice. Built whole, it is marked complete and replaces the
- * stored window instead. A window the read could not hold whole goes out as before, unmarked,
- * for a receiver to combine.
+ * Which windows go out is decided by the samples collected. A window can go out again: a
+ * source rewrites the last hour on every export, edits a record, or a watch uploads late. For
+ * an accumulated series a closed window is therefore built from [whole], everything the read
+ * held of it (P2-16): built from only the record that changed, the bucket would make a receiver
+ * that adds it to the stored window count a rewritten record twice. Built whole, it is marked
+ * complete and replaces the stored window instead. A window the read could not hold whole goes
+ * out as before, unmarked, for a receiver to combine, and so does every window of a measured
+ * series, where combining a sample read again leaves the average, minimum and maximum alone.
  */
 class ResolutionApplier(
     private val resolutions: Map<HealthDataType, SeriesResolution>,
@@ -103,7 +104,7 @@ class ResolutionApplier(
 
     /**
      * Every window [content] holds, built whole and marked complete, for a backfill: its read
-     * of a bucketed type runs from bucket bound to bucket bound, so each window lies wholly
+     * of an accumulated type runs from bucket bound to bucket bound, so each window lies wholly
      * inside it. Nothing is collected or held. Without [content] the series goes out empty,
      * which still keeps its raw records out of the payload.
      */
@@ -128,6 +129,7 @@ class ResolutionApplier(
      * window never sent before has nothing to replace.
      */
     private fun wholeOrAsIs(type: HealthDataType, bucket: Bucket): Bucket? {
+        if (ResolutionFamily.of(type) != ResolutionFamily.ACCUMULATED) return bucket
         val content = whole[type]?.takeIf { it.coverage.covers(bucket.start, bucket.end) } ?: return bucket
         val resolution = resolutions[type] ?: return bucket
         val inWindow = content.samples.filter { !it.time.isBefore(bucket.start) && it.time.isBefore(bucket.end) }
@@ -184,7 +186,7 @@ class ResolutionApplier(
             resolutions: Map<HealthDataType, SeriesResolution>,
             carried: Map<HealthDataType, List<CarriedSample>> = emptyMap()
         ): Map<HealthDataType, WholeWindowRequest> =
-            resolutions.filter { (type, resolution) -> resolution != SeriesResolution.RAW && ResolutionFamily.of(type) != null }
+            resolutions.filter { (type, resolution) -> resolution != SeriesResolution.RAW && ResolutionFamily.of(type) == ResolutionFamily.ACCUMULATED }
                 .mapValues { (type, resolution) -> WholeWindowRequest(resolution, carried[type]?.minOfOrNull { it.time }) }
 
         /** What [data]'s read kept whole, per type, as samples. Empty when it kept nothing. */
@@ -219,11 +221,13 @@ class ResolutionApplier(
         }
 
         /**
-         * Buckets a backfill chunk: every window of a bucketed type built whole from what the
-         * read kept ([HealthData.whole], over the type's bucket-aligned range), all of them
-         * complete. Only on a window's first chunk ([emit]); a later chunk reads the types still
-         * draining, whose windows were built whole from the first chunk's read already, and
-         * sends their series empty so the raw records stay out.
+         * Buckets a backfill chunk. An accumulated series goes out whole from what the read kept
+         * ([HealthData.whole], over the type's bucket-aligned range), every window complete,
+         * on a window's first chunk ([emit]); a later chunk reads the types still draining,
+         * whose windows went out whole already, and sends their series empty so the raw records
+         * stay out. A measured series buckets each chunk's own samples and holds nothing back:
+         * chunks follow modification time, not measurement time, so there is no bound to hold
+         * to, and their buckets combine on the receiver.
          */
         fun forBackfill(
             data: HealthData,
@@ -232,7 +236,10 @@ class ResolutionApplier(
         ): ResolutionApplier = ResolutionApplier(resolutions).apply {
             val content = wholeContent(data)
             SERIES.forEach { s ->
-                bucketWhole(s.type, s.key, content[s.type].takeIf { emit }, s.family, s.samplesOf(data).size)
+                when (s.family) {
+                    ResolutionFamily.ACCUMULATED -> bucketWhole(s.type, s.key, content[s.type].takeIf { emit }, s.family, s.samplesOf(data).size)
+                    ResolutionFamily.SAMPLED -> bucketSeries(s.type, s.key, s.samplesOf(data), Instant.MAX, s.family)
+                }
             }
         }
     }

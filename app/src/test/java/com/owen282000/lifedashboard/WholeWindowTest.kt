@@ -105,7 +105,9 @@ class WholeWindowTest {
     }
 
     @Test
-    fun `a measured series is rebuilt whole too`() {
+    fun `a measured series goes out as before, never marked complete`() {
+        // Combining a sample read again leaves the average, minimum and maximum as they were,
+        // so a measured series keeps the old behaviour even when something was held whole.
         val beats = List(5) { CarriedSample(at("2026-09-14T08:0$it:00Z"), 60.0 + it * 10, "com.watch") }
         val a = ResolutionApplier(
             mapOf(HealthDataType.HEART_RATE to SeriesResolution.HOURLY),
@@ -113,21 +115,19 @@ class WholeWindowTest {
         )
         a.bucketSeries(HealthDataType.HEART_RATE, "heart_rate", beats.take(1), at("2026-09-14T12:00:00Z"), ResolutionFamily.SAMPLED)
         val bucket = a.series.getValue("heart_rate").single() as JsonObject
-        assertEquals(5, bucket.count())
-        assertEquals(80.0, bucket.getValue("avg").jsonPrimitive.content.toDouble(), 0.0)
-        assertEquals(60.0, bucket.getValue("min").jsonPrimitive.content.toDouble(), 0.0)
-        assertEquals(100.0, bucket.getValue("max").jsonPrimitive.content.toDouble(), 0.0)
-        assertTrue(bucket.complete())
+        assertEquals(1, bucket.count())
+        assertFalse(bucket.complete())
     }
 
     // ==================== What a read keeps ====================
 
     @Test
-    fun `a read keeps whole windows of bucketed types only, from the earliest held sample`() {
+    fun `a read keeps whole windows of bucketed accumulated types only, from the earliest held sample`() {
         val requests = ResolutionApplier.wholeRequests(
             mapOf(
                 HealthDataType.STEPS to SeriesResolution.HOURLY,
-                HealthDataType.HEART_RATE to SeriesResolution.RAW,
+                HealthDataType.HEART_RATE to SeriesResolution.HOURLY,
+                HealthDataType.DISTANCE to SeriesResolution.RAW,
                 HealthDataType.WEIGHT to SeriesResolution.HOURLY
             ),
             carried = mapOf(HealthDataType.STEPS to listOf(steps("2026-09-14T08:40:00Z", 1.0), steps("2026-09-14T08:20:00Z", 1.0)))
@@ -184,6 +184,21 @@ class WholeWindowTest {
         val a = ResolutionApplier.forBackfill(backfillData(emptyList(), null, read = listOf(minute("2026-09-14T08:05:00Z", 10))), hourly, emit = true)
         assertTrue(a.series.getValue("steps").isEmpty())
         assertNull(ResolutionApplier.wholeContent(HealthData())[HealthDataType.STEPS])
+    }
+
+    @Test
+    fun `a backfill chunk buckets a measured series from its own samples and holds nothing back`() {
+        // Capped: the newest measurement would have been the bound, and everything after it held
+        // and then dropped, since a backfill keeps no carry between chunks.
+        val beats = List(3) { HeartRateData(60L + it, at("2026-09-14T%02d:10:00Z".format(8 + it)), "com.watch") }
+        val a = ResolutionApplier.forBackfill(
+            HealthData(heartRate = beats, cappedTypes = setOf(HealthDataType.HEART_RATE)),
+            mapOf(HealthDataType.HEART_RATE to SeriesResolution.HOURLY), emit = false
+        )
+        val buckets = a.series.getValue("heart_rate").map { it as JsonObject }
+        assertEquals(3, buckets.size)
+        assertTrue(buckets.none { it.complete() })
+        assertTrue(a.carriedOut.isEmpty())
     }
 
     @Test

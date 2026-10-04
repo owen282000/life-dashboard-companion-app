@@ -400,7 +400,7 @@ class HealthConnectManager(
             // What this app wrote itself (Receive) came from Home Assistant and does not go
             // back to it; see ownRecordsPartition for the watermark rule.
             val (own, filtered) = ownRecordsPartition(fresh)
-            keepWhole(type, paged, filtered, startTime, endTime, bucketTimeOf, bucketTimeOf)
+            keepWhole(type, paged, filtered, startTime, endTime, bucketTimeOf)
             val limited = ResilientReadLogic.capOldestFirst(
                 filtered,
                 type.maxRecordsPerSync,
@@ -470,9 +470,8 @@ class HealthConnectManager(
     /**
      * Keeps the records of [type] that the read was asked to keep whole windows of (see
      * [WholeWindowRequest]), from the window of the earliest [changed] record or the request's
-     * keepFrom onwards. [firstTimeOf] is the earliest moment a record contributes a sample at,
-     * [lastTimeOf] the latest. A read that skipped part of its range keeps nothing: it cannot
-     * say what a window holds.
+     * keepFrom onwards; [bucketTimeOf] is the moment a bucket counts a record in. A read that
+     * skipped part of its range keeps nothing: it cannot say what a window holds.
      */
     private fun <T : Record> keepWhole(
         type: HealthDataType,
@@ -480,14 +479,13 @@ class HealthConnectManager(
         changed: List<T>,
         startTime: Instant,
         endTime: Instant,
-        firstTimeOf: (T) -> Instant,
-        lastTimeOf: (T) -> Instant
+        bucketTimeOf: (T) -> Instant
     ) {
         val request = wholeRequests[type] ?: return
         if (paged.skippedWindows > 0) return
-        val earliest = (changed.map(firstTimeOf) + listOfNotNull(request.keepFrom)).minOrNull() ?: return
+        val earliest = (changed.map(bucketTimeOf) + listOfNotNull(request.keepFrom)).minOrNull() ?: return
         val from = maxOf(SeriesBucketing.alignDown(earliest, request.resolution), startTime)
-        wholeRecords[type] = ownRecordsPartition(paged.records).second.filter { !lastTimeOf(it).isBefore(from) }
+        wholeRecords[type] = ownRecordsPartition(paged.records).second.filter { !bucketTimeOf(it).isBefore(from) }
         wholeCoverage[type] = ReadCoverage(from, endTime)
     }
 
@@ -513,23 +511,6 @@ class HealthConnectManager(
             },
             totalCalories = of(HealthDataType.TOTAL_CALORIES, TotalCaloriesData::startTime) { r: TotalCaloriesBurnedRecord ->
                 listOf(TotalCaloriesData(r.energy.inKilocalories, r.startTime, r.endTime, r.metadata.dataOrigin.packageName))
-            },
-            oxygenSaturation = of(HealthDataType.OXYGEN_SATURATION, OxygenSaturationData::time) { r: OxygenSaturationRecord ->
-                listOf(OxygenSaturationData(r.percentage.value, r.time, r.metadata.dataOrigin.packageName))
-            },
-            respiratoryRate = of(HealthDataType.RESPIRATORY_RATE, RespiratoryRateData::time) { r: RespiratoryRateRecord ->
-                listOf(RespiratoryRateData(r.rate, r.time, r.metadata.dataOrigin.packageName))
-            },
-            hrv = of(HealthDataType.HEART_RATE_VARIABILITY, HrvData::time) { r: HeartRateVariabilityRmssdRecord ->
-                listOf(HrvData(r.heartRateVariabilityMillis, r.time, r.metadata.dataOrigin.packageName))
-            },
-            // Per sample, without the per-sample uuid the delivered records carry: a bucket
-            // never names one, and a week of one-second heart rate is a lot of strings.
-            heartRate = of(HealthDataType.HEART_RATE, HeartRateData::time) { r: HeartRateRecord ->
-                r.samples.map { HeartRateData(it.beatsPerMinute, it.time, r.metadata.dataOrigin.packageName) }
-            },
-            skinTemperature = of(HealthDataType.SKIN_TEMPERATURE, SkinTemperatureData::time) { r: SkinTemperatureRecord ->
-                r.deltas.map { SkinTemperatureData(it.delta.inCelsius, r.baseline?.inCelsius, it.time, r.metadata.dataOrigin.packageName) }
             }
         )
     }
@@ -674,7 +655,6 @@ class HealthConnectManager(
             val (own, newRecords) = ownRecordsPartition(
                 paged.records.filter { lastSync == null || lastSync.admits(it.metadata.lastModifiedTime, it.metadata.id) }
             )
-            keepWhole(HealthDataType.HEART_RATE, paged, newRecords, startTime, endTime, { it.startTime }, { it.endTime })
             val includedRecords = ResilientReadLogic.capRecordsBySamples(
                 newRecords,
                 HealthDataType.HEART_RATE.maxRecordsPerSync,
@@ -751,7 +731,7 @@ class HealthConnectManager(
     }
 
     private suspend fun readOxygenSaturationData(startTime: Instant, endTime: Instant, lastSync: Watermark?): List<OxygenSaturationData> {
-        return readFiltered(HealthDataType.OXYGEN_SATURATION, OxygenSaturationRecord::class, startTime, endTime, lastSync, { it.time }) { it.time }
+        return readFiltered(HealthDataType.OXYGEN_SATURATION, OxygenSaturationRecord::class, startTime, endTime, lastSync) { it.time }
             .map { OxygenSaturationData(it.percentage.value, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
@@ -761,7 +741,7 @@ class HealthConnectManager(
     }
 
     private suspend fun readRespiratoryRateData(startTime: Instant, endTime: Instant, lastSync: Watermark?): List<RespiratoryRateData> {
-        return readFiltered(HealthDataType.RESPIRATORY_RATE, RespiratoryRateRecord::class, startTime, endTime, lastSync, { it.time }) { it.time }
+        return readFiltered(HealthDataType.RESPIRATORY_RATE, RespiratoryRateRecord::class, startTime, endTime, lastSync) { it.time }
             .map { RespiratoryRateData(it.rate, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
     }
 
@@ -825,7 +805,7 @@ class HealthConnectManager(
 
     private suspend fun readHrvData(startTime: Instant, endTime: Instant, lastSync: Watermark?): List<HrvData> {
         return try {
-            readFiltered(HealthDataType.HEART_RATE_VARIABILITY, HeartRateVariabilityRmssdRecord::class, startTime, endTime, lastSync, { it.time }) { it.time }
+            readFiltered(HealthDataType.HEART_RATE_VARIABILITY, HeartRateVariabilityRmssdRecord::class, startTime, endTime, lastSync) { it.time }
                 .map { HrvData(it.heartRateVariabilityMillis, it.time, it.metadata.dataOrigin.packageName, it.metadata.id) }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
@@ -1168,7 +1148,6 @@ class HealthConnectManager(
             val (own, newRecords) = ownRecordsPartition(
                 paged.records.filter { lastSync == null || lastSync.admits(it.metadata.lastModifiedTime, it.metadata.id) }
             )
-            keepWhole(HealthDataType.SKIN_TEMPERATURE, paged, newRecords, startTime, endTime, { it.startTime }, { it.endTime })
             val includedRecords = ResilientReadLogic.capRecordsBySamples(
                 newRecords,
                 HealthDataType.SKIN_TEMPERATURE.maxRecordsPerSync,

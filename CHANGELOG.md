@@ -6,19 +6,22 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Fixed
 
-- A bucketed window that went out again held only the records that had changed, and the docs
-  told receivers to add it to the window they held. A source that writes its last hour again on
-  every export, under the same record ids, made every sync add that hour once more, and an
-  edited record was added on top of its old value. A window that goes out again is now built
-  from everything Health Connect holds in it, which the sync already reads, so it costs no extra
-  call of the read quota, and it carries `"complete": true` so a receiver replaces the window
-  instead of adding to it. A window the sync could not read whole goes out as before, without
-  the field, for a receiver to combine. See Data resolution in docs/webhook.md.
+- A bucketed window of steps, distance or calories that went out again held only the records
+  that had changed, and the docs told receivers to add it to the window they held. A source that
+  writes its last hour again on every export, under the same record ids, made every sync add
+  that hour once more, and an edited record was added on top of its old value. Such a window is
+  now built from everything Health Connect holds in it, which the sync already reads, so it
+  costs no extra call of the read quota, and it carries `"complete": true` so a receiver
+  replaces the window instead of adding to it. A window the sync could not read whole goes out
+  as before, without the field, for a receiver to combine, and so do measured series such as
+  heart rate, where a record read again leaves the average, minimum and maximum alone. See Data
+  resolution in docs/webhook.md.
 - A backfill with a bucketed type read it over its chunks of three days, which end at the
   moment the backfill started, so a bound fell inside a window: that window went out from the
   second chunk with only its records after the bound, and the first chunk's records of it were
-  dropped. A bucketed type is now read from window bound to window bound, and every window of a
-  backfill goes out once, complete.
+  dropped. Steps, distance and calories are now read from window bound to window bound, and
+  every window of a backfill goes out once, complete. A measured series with a backlog lost the
+  samples of the window its chunk ended in; each chunk now sends all its samples.
 
 ## [1.22.0] - 2026-10-03
 

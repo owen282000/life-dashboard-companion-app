@@ -231,11 +231,13 @@ object SeriesBucketing {
 }
 
 /**
- * What a read keeps of a bucketed type besides the records that changed (P2-16).
+ * What a read keeps of an accumulated bucketed type (steps, distance, calories) besides the
+ * records that changed (P2-16).
  *
  * A window that goes out again because one of its records was written again, edited or
  * arrived late would otherwise carry only that record, and a receiver adding it to the window
- * it holds counts a rewritten record twice. The read already fetches everything in its range
+ * it holds counts a rewritten record twice. A measured series needs none of this: combining
+ * a sample read again leaves its window's average, minimum and maximum as they were. The read already fetches everything in its range
  * before it filters on modification time, so keeping the rest of the affected windows costs no
  * extra call of Health Connect's quota. Kept from the window of the earliest changed record, or
  * of [keepFrom] when that is earlier (the samples a sync is still holding for an open window).

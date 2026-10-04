@@ -241,7 +241,7 @@
               "complete": {
                 "type": "boolean",
                 "const": true,
-                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
               }
             },
             "required": [
@@ -374,7 +374,7 @@
               "complete": {
                 "type": "boolean",
                 "const": true,
-                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
               }
             },
             "required": [
@@ -453,7 +453,7 @@
               "complete": {
                 "type": "boolean",
                 "const": true,
-                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
               }
             },
             "required": [
@@ -530,7 +530,7 @@
               "complete": {
                 "type": "boolean",
                 "const": true,
-                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
               }
             },
             "required": [
@@ -607,7 +607,7 @@
               "complete": {
                 "type": "boolean",
                 "const": true,
-                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
               }
             },
             "required": [
@@ -801,7 +801,7 @@
               "complete": {
                 "type": "boolean",
                 "const": true,
-                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
               }
             },
             "required": [
@@ -909,7 +909,7 @@
               "complete": {
                 "type": "boolean",
                 "const": true,
-                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
               }
             },
             "required": [
@@ -1481,7 +1481,7 @@
               "complete": {
                 "type": "boolean",
                 "const": true,
-                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
               }
             },
             "required": [
@@ -1682,7 +1682,7 @@
               "complete": {
                 "type": "boolean",
                 "const": true,
-                "description": "Present when the bucket holds every sample the window had when it was built: replace a stored window with it. Absent: combine it with the stored window."
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
               }
             },
             "required": [
