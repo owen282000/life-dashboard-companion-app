@@ -74,6 +74,12 @@
         "keep_full_payloads": true,
         "screen_time_day_boundary_hour": 5,
         "screen_time_use_day_boundary": false,
+        "screen_time_app_filter": {
+            "mode": "BLOCKLIST",
+            "packages": [
+                "com.example.left.out"
+            ]
+        },
         "failure_notification_threshold": 4,
         "series_resolutions": {
             "HEART_RATE": "FIVE_MINUTES"
