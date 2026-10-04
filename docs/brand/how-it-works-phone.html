@@ -48,13 +48,14 @@
   .box h3 { font-size: 44px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; }
   .box p { margin-top: 10px; font-size: 34px; line-height: 1.3; color: #AEB8BC; }
   .app {
-    display: flex; align-items: center; gap: 30px; padding: 30px 40px;
+    flex: none; display: flex; align-items: center; gap: 30px; padding: 30px 40px;
     border: 3px solid rgba(48,183,126,0.75); background: rgba(48,183,126,0.08);
     box-shadow: 0 0 60px rgba(48,183,126,0.18);
   }
   .app img { width: 120px; height: 120px; border-radius: 28px; display: block; }
   .dest { display: flex; flex-direction: column; gap: 18px; position: relative; }
-  .dest .box { display: flex; align-items: baseline; gap: 22px; padding: 26px 34px; }
+  .dest .box { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 22px; padding: 26px 34px; }
+  .dest .box h3 { white-space: nowrap; }
   .dest .box p { margin-top: 0; }
   .ha { border-color: rgba(48,183,126,0.6) !important; }
   .back {
