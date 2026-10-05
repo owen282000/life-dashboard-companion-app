@@ -73,10 +73,10 @@
   .inset .crop { background-repeat: no-repeat; }
   .tag {
     position: absolute; font-size: 26px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
-    color: var(--accent); background: rgba(10,16,14,0.88); border: 2px solid rgba(255,255,255,0.12);
+    color: var(--accent); background: #0A100E; border: 2px solid rgba(255,255,255,0.12);
     padding: 12px 22px; border-radius: 40px; white-space: nowrap;
   }
-  body.purple .tag { background: rgba(17,14,28,0.9); }
+  body.purple .tag { background: #110E1C; }
 
   .code {
     position: absolute; padding: 30px 34px; border-radius: 30px; background: #0A0F0D;
@@ -134,12 +134,13 @@ const SRC = "store-src/";
 const slots = {
   1: { h: "Your health data in<br><em>Home Assistant</em>", s: "Steps, sleep, heart rate and 30 more<br>types, on a schedule",
        html: phone(SRC + "H1-dashboard.png", "#111111") +
-             inset(crop(SRC + "A1-health.png", [40, 505, 1000, 370], 600), "left:40px; top:1640px;") +
-             tag("The app on your phone", "left:68px; top:1573px;") },
+             inset(crop(SRC + "A1-health.png", [40, 505, 1000, 370], 555), "left:40px; top:1673px;") +
+             tag("The app on your phone", "left:68px; top:1606px;") },
   2: { h: "Pair with<br><em>one QR code</em>", s: "No YAML, no broker.<br>No account, no cloud in between.",
        html: phone(SRC + "A2-pair.png") +
-             inset(crop(SRC + "H2-qr.png", [40, 160, 1110, 640], 600, 1160), "left:40px; top:1520px;") +
-             tag("Home Assistant", "left:68px; top:1453px;") },
+             inset(`<div style="width:364px;height:262px;background:#1C1C1C;display:flex;align-items:center;justify-content:center">` +
+               crop(SRC + "H2-qr.png", [52, 180, 608, 602], 232, 1160) + `</div>`, "right:36px; top:694px;") +
+             tag("Home Assistant", "right:64px; top:627px;") },
   3: { h: "Data from your<br><em>watch, ring and scale</em>", s: "Anything that writes to Health Connect",
        html: `<div class="flow">
          <div class="title">Your apps and devices</div>
@@ -162,7 +163,7 @@ const slots = {
              tag("The app", "right:64px; top:1433px;") },
   5: { h: "Screen time <em>per app</em>", s: "A sensor per app, with a day boundary you choose", cls: "purple",
        html: phone(SRC + "A4-screen-time.png") +
-             inset(crop(SRC + "H4-apps.png", [16, 460, 1050, 700], 620, 1082), "right:36px; top:1520px;") +
+             inset(crop(SRC + "H4-apps.png", [16, 460, 1050, 700], 560, 1082), "right:36px; top:1520px;") +
              tag("Home Assistant", "right:64px; top:1453px;") },
   6: { h: "Scale readings back<br>into <em>Health Connect</em>", s: "Weight, body fat and blood pressure<br>from Home Assistant",
        html: phone(SRC + "A5-receive.png") },
