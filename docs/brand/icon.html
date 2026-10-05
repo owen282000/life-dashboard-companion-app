@@ -5,11 +5,18 @@
   Rendered with headless Chrome, the same way docs/social-preview.png was made:
 
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-      --headless=new --screenshot=icon.png --window-size=512,512 \
-      --hide-scrollbars --force-device-scale-factor=1 docs/brand/icon.html
+      --headless=new --screenshot=fastlane/metadata/android/en-US/images/icon.png \
+      --window-size=512,512 --hide-scrollbars --force-device-scale-factor=1 \
+      --default-background-color=00000000 "file://$PWD/docs/brand/icon.html"
 
-  Colours are sampled from the banner so everything stays one identity:
-  background #14181C -> #101C1C, heartbeat green #30B77E.
+  Play lists the icon as a 32-bit PNG with alpha. Chrome writes RGB when every pixel is opaque,
+  so the body leaves the outermost corner pixel transparent (clip-path below); that pixel is
+  far outside the rounded mask Play applies, and the file comes out as RGBA.
+
+  Colors follow the banner, heartbeat green #30B77E, with the tile lifted toward green
+  (#143528 -> #0B1D18) so it keeps an edge on Play's dark background. The mark is scaled up
+  about 8% around the center and the arcs are a little heavier, so the endpoint dot and the
+  outer arc survive at 48 px.
 -->
 <html>
 <head>
@@ -17,24 +24,17 @@
 <style>
   * { margin: 0; padding: 0; }
   html, body { width: 512px; height: 512px; overflow: hidden; }
+  /* A background of its own on html keeps the body's from covering the whole canvas. */
+  html { background-image: linear-gradient(transparent, transparent); }
   body {
-    background: radial-gradient(120% 120% at 30% 25%, #171D21 0%, #14181C 45%, #101C1C 100%);
+    background: radial-gradient(120% 120% at 30% 25%, #143528 0%, #0F271F 45%, #0B1D18 100%);
     position: relative;
-  }
-  /* Subtle dashboard grid, bottom-right, like the banner */
-  .grid {
-    position: absolute; right: 0; bottom: 0; width: 60%; height: 55%;
-    background-image:
-      linear-gradient(to right, rgba(48,183,126,0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(48,183,126,0.07) 1px, transparent 1px);
-    background-size: 42px 42px;
-    -webkit-mask-image: radial-gradient(100% 100% at 100% 100%, black 30%, transparent 75%);
+    clip-path: polygon(1px 0, 100% 0, 100% 100%, 0 100%, 0 1px);
   }
   svg { position: absolute; inset: 0; }
 </style>
 </head>
 <body>
-  <div class="grid"></div>
   <svg width="512" height="512" viewBox="0 0 512 512">
     <defs>
       <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
@@ -48,15 +48,15 @@
     <!-- Heartbeat broadcast: pulse, endpoint dot, and two arcs radiating the signal.
          The chosen mark (variant 1 of the 2026-09-14 explorations): the pulse is
          measured AND published, which is exactly what the app does. -->
-    <g filter="url(#glow)">
+    <g filter="url(#glow)" transform="translate(256 256) scale(1.08) translate(-250 -256)">
       <path d="M64 256 L158 256 L186 176 L232 340 L264 232 L290 256 L330 256"
             fill="none" stroke="#30B77E" stroke-width="26"
             stroke-linecap="round" stroke-linejoin="round"/>
       <circle cx="330" cy="256" r="20" fill="#30B77E"/>
       <path d="M376 216 A 60 60 0 0 1 376 296" fill="none" stroke="#30B77E"
-            stroke-width="20" stroke-linecap="round" opacity="0.85"/>
+            stroke-width="24" stroke-linecap="round" opacity="0.85"/>
       <path d="M410 186 A 105 105 0 0 1 410 326" fill="none" stroke="#30B77E"
-            stroke-width="20" stroke-linecap="round" opacity="0.5"/>
+            stroke-width="24" stroke-linecap="round" opacity="0.55"/>
     </g>
   </svg>
 </body>
