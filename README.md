@@ -31,8 +31,8 @@
 
 <p align="center">
   <picture>
-    <source media="(max-width: 600px)" srcset="docs/readme-hero-phone.png">
-    <img src="docs/readme-hero.png" alt="The integration's example dashboard in Home Assistant: today's steps, distance, calories, screen time, heart rate and sleep, with charts of screen time and history" width="900">
+    <source media="(max-width: 600px)" srcset="docs/readme-screens-phone.png">
+    <img src="docs/readme-screens.png" alt="Four app screens: the Health Connect tab with 33 data types selected, the Screen Time tab with minutes per app, the sync schedule set to fixed times on chosen days, and per-type data resolution" width="900">
   </picture>
 </p>
 
@@ -51,10 +51,12 @@ Your watch, ring or scale already writes to Health Connect. This app reads that 
 
 Recipes to start from: a [bedtime reminder from your next alarm](docs/recipes/alarm-and-sleep.md), [screen time limits](docs/recipes/screen-time-limits.md), a [Bluetooth scale into Samsung Health](docs/recipes/scale-to-health-connect.md), and [asking a local LLM about your own history](docs/recipes/ask-your-own-llm.md).
 
+On the other end, this is the Life Dashboard integration's example dashboard in Home Assistant:
+
 <p align="center">
   <picture>
-    <source media="(max-width: 600px)" srcset="docs/readme-screens-phone.png">
-    <img src="docs/readme-screens.png" alt="Four app screens: the Health Connect tab with 33 data types selected, the Screen Time tab with minutes per app, the sync schedule set to fixed times on chosen days, and per-type data resolution" width="900">
+    <source media="(max-width: 600px)" srcset="docs/readme-hero-phone.png">
+    <img src="docs/readme-hero.png" alt="The integration's example dashboard in Home Assistant: today's steps, distance, calories, screen time, heart rate and sleep, with charts of screen time and history" width="900">
   </picture>
 </p>
 
