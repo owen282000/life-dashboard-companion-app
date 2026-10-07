@@ -25,7 +25,7 @@ Garmin also writes floors, speed, elevation gained, cycling cadence and swimming
 
 ## What stays with Garmin
 
-Not in Garmin's list (as of October 2026): Body Battery, stress, HRV status, training load, Pulse Ox, respiration and resting heart rate. Health Connect has no type for Body Battery, stress or training load at all. Garmin can change the list with any Garmin Connect update. If you want those in Home Assistant, the [Garmin Connect integration](https://github.com/cyberjunky/home-assistant-garmin_connect) reads them from Garmin's cloud; it can run side by side with this app.
+Not in Garmin's list (as of October 2026): Body Battery, stress, heart rate variability, training load, Pulse Ox, respiration and resting heart rate. Garmin Connect writes no HRV to Health Connect at all, neither HRV status nor single readings. Health Connect has no type for Body Battery, stress or training load at all. Garmin can change the list with any Garmin Connect update. If you want those in Home Assistant, the [Garmin Connect integration](https://github.com/cyberjunky/home-assistant-garmin_connect) reads them from Garmin's cloud; it can run side by side with this app.
 
 ## Setup
 

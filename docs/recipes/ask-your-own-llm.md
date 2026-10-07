@@ -221,5 +221,5 @@ Hosted assistants that offer health features of their own decide for themselves 
 
 - It reads. With a read-only role, or ha-mcp's **Read Only Mode**, it can't change a setting, delete a record or switch a device.
 - It's only as good as the data. Types you didn't turn on in the app, or days the phone didn't sync, aren't there to read.
-- It can't read what your watch's app keeps to itself, and that decides which questions it can answer. Samsung Health doesn't share HRV, resting heart rate or respiratory rate with Health Connect, and Garmin Connect doesn't share HRV status or resting heart rate. The [brand guides](../brands/README.md) list what each app shares.
+- It can't read what your watch's app keeps to itself, and that decides which questions it can answer. Samsung Health doesn't share HRV, resting heart rate or respiratory rate with Health Connect, and Garmin Connect writes no HRV and no resting heart rate to Health Connect at all. The [brand guides](../brands/README.md) list what each app shares.
 - It isn't a doctor. A model that sums your steps correctly can still draw a wrong conclusion from them.
