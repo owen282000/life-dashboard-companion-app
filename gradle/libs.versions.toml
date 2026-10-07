@@ -1,7 +1,7 @@
 [versions]
 agp = "9.4.1"
 ktlint = "14.2.0"
-kover = "0.9.10"
+kover = "0.9.11"
 kotlin = "2.4.20"
 coreKtx = "1.19.1"
 junit = "4.13.2"
