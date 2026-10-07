@@ -155,14 +155,59 @@ The stack's Grafana (`admin` / `lifedash`, on all interfaces), its database (`li
 If n8n or a receiver of your own already stores the payloads in a Postgres you run, the same pattern works there. Three things in how you store them decide whether a model's answers hold up:
 
 - Records keyed on `uuid`, in a `text` column. Heart rate and skin temperature samples carry `#<epoch milliseconds>` after the record's ID, so it isn't a Postgres `uuid`. A record sent again then replaces itself instead of counting twice.
-- `daily_totals` as one row per date, replaced by each newer figure. These are the totals to ask about for steps, distance and calories.
+- `daily_totals` as one row per date, replaced only by a payload with a higher `sequence`. These are the totals to ask about for steps, distance and calories.
 - The deletions in `deleted_records` applied, by `type` and `uuid`, and for heart rate and skin temperature every sample whose `uuid` starts with that `uuid` and `#`. Otherwise a record you deleted on the phone is still there to read.
 
-[webhook.md](../webhook.md#deduplication-and-ordering) has the rules, including `sequence` for payloads that arrive late. Then:
+[webhook.md](../webhook.md#deduplication-and-ordering) has the rules, including how `sequence` settles deletions and daily totals when a payload arrives late. Then:
 
-1. Create a role with `SELECT` on those tables only, with `default_transaction_read_only = on` and a `statement_timeout`, as Route 2's `grafana_ro` has.
-2. Point DBHub at it, with the Compose service and `dbhub.toml` from Route 2: DBHub works against any Postgres. Change the DSN to your database and role, and write the ready-made tools against your own tables.
-3. Connect the client as in Route 2.
+**1. A read-only role.** Run this as the owner of your tables, with your own table names in place of `records` and `daily_totals` and your database's name in place of `health`. Keep the password to letters and digits, since it goes into a connection URL.
+
+```sql
+CREATE ROLE llm_ro LOGIN PASSWORD 'change-me';
+ALTER ROLE llm_ro SET default_transaction_read_only = on;
+ALTER ROLE llm_ro SET statement_timeout = '30s';
+GRANT CONNECT ON DATABASE health TO llm_ro;
+GRANT USAGE ON SCHEMA public TO llm_ro;
+GRANT SELECT ON records, daily_totals TO llm_ro;
+```
+
+Grant `SELECT` on every view you add later as well, and `USAGE` on its schema if that isn't `public`. Leave out anything that holds raw payloads or secrets.
+
+**2. An MCP server.** Route 2's Compose service waits for the stack's receiver and needs the stack's `.env`, so it doesn't start on its own. Use this `docker-compose.yml` in a folder of its own instead, with `LLM_RO_PASSWORD=` and the role's password in a `.env` beside it:
+
+```yaml
+services:
+  dbhub:
+    image: bytebase/dbhub:1.4.0
+    init: true
+    command: ["--transport", "http", "--port", "8080", "--config", "/config/dbhub.toml"]
+    env_file: .env
+    volumes:
+      - ./dbhub.toml:/config/dbhub.toml:ro
+    ports:
+      - "127.0.0.1:8081:8080"
+```
+
+And `dbhub.toml`, with the host name of your database as the container sees it. `localhost` is the container itself: on Docker Desktop use `host.docker.internal`, on Linux the server's address on your network or a Docker network the two share.
+
+```toml
+[[sources]]
+id = "health"
+dsn = "postgres://llm_ro:${LLM_RO_PASSWORD}@db.example.lan:5432/health?sslmode=disable"
+query_timeout = 15
+
+[[tools]]
+name = "execute_sql"
+source = "health"
+readonly = true
+max_rows = 500
+```
+
+Start it with `docker compose up -d`, and add ready-made tools against your own tables in the same form as Route 2's.
+
+**3. Views for days and nights.** A model does far better with a view that has one row per night than with sleep sessions and stages as JSON. The stack's [views.sql](https://github.com/owen282000/life-dashboard-stack/blob/main/receiver/views.sql) is a template: `dash.sleep_nights` turns sleep sessions into nights on the date you woke up, `dash.activity_days` reads `daily_totals`, and `dash.workouts` counts a workout once when watch and phone both recorded it. It reads the stack's `records` table, so adapt the table and column names to yours and keep the helper functions at the top that the views call. Replace `__TZ__` with your time zone in quotes, such as `'Europe/Amsterdam'`, and leave out the `DROP SCHEMA dash CASCADE` line, which would also drop anything else you keep in `dash`.
+
+**4. Connect the client** as in Route 2.
 
 life-dashboard-stack's README doesn't cover running only its receiver against a Postgres you already run. The receiver does take its database from `DATABASE_URL`, and at every start it runs its migrations, rebuilds the `dash` schema and sets up the `grafana_ro` role, so if you try that, give it a database of its own and a user that may create roles.
 
@@ -170,7 +215,7 @@ life-dashboard-stack's README doesn't cover running only its receiver against a 
 
 Nothing above stops you from pointing a hosted model at the same server. Know what goes where: your questions, every query result the model asks for (up to 500 rows a call, as often as it likes) and its answers go to the provider and are kept under its retention and training settings, which you should check. The server itself stays at home. A connector in a web app also needs it reachable from the internet, so the provider's servers can call it: on the stack that means a token and TLS, on ha-mcp an administrator URL on the internet. A desktop client that reaches the server on your own network avoids that exposure, not the upload.
 
-The large assistants have health features of their own: Claude's health connectors are a US-only beta, and ChatGPT Health isn't offered in the EU, the UK or Switzerland. This route works anywhere and covers the history you backfilled.
+Hosted assistants that offer health features of their own decide for themselves which countries and data sources they support. This route works anywhere and covers the history you backfilled.
 
 ## What a model can and cannot do here
 
