@@ -25,7 +25,7 @@
     },
     "sequence": {
       "type": "integer",
-      "description": "Increases with every payload this install sends, health_connect and screen_time alike (one counter, so per source it can skip). A receiver that keeps the highest sequence it has applied per source can ignore an older health_connect payload that arrives late after a retry. For screen_time compare per date instead: each payload re-sends a sliding week, so a late one can still hold the oldest date that no newer payload covers; keep the sequence that last wrote each date and apply a day only from a payload with a higher one. Optional: absent on test pings and Receive heartbeats, on screen_time payloads from 1.20.0 and older, and healthkit_ios may omit it, so treat a missing field as unknown rather than zero."
+      "description": "Increases with every payload this install sends, health_connect and screen_time alike (one counter, so per source it can skip). A payload that arrives late after a newer one (refused with 400, 413 or 422 and offered again, or held in the outbox) still holds records that no later payload repeats, so apply its records, deduplicated on uuid, and use sequence only to settle conflicts: a record from a payload with a lower sequence than the one that named it in deleted_records stays deleted, and daily_totals for a date come from the payload with the highest sequence that carried that date. For screen_time the same holds per date: each payload re-sends a sliding week, so a late one can still hold the oldest date that no newer payload covers; keep the sequence that last wrote each date and apply a day only from a payload with a higher one. Optional: absent on test pings and Receive heartbeats, on screen_time payloads from 1.20.0 and older, and healthkit_ios may omit it, so treat a missing field as unknown rather than zero."
     },
     "deleted_records": {
       "type": "array",
@@ -2132,7 +2132,7 @@
     },
     "daily_totals": {
       "type": "array",
-      "description": "Per local day, totals from Health Connect's aggregate API, which deduplicates overlapping sources (phone plus watch). Ordinary syncs carry today and the two days before, today's entry being a running total; a backfill carries every day its window touches. Absent when switched off in the app.",
+      "description": "Per local day, totals from Health Connect's aggregate API, which deduplicates overlapping sources (phone plus watch). Ordinary syncs carry today and the two days before, today's entry being a running total; a backfill carries every day its window touches. Store per date and let the payload with the highest sequence that carried that date win. Absent when switched off in the app.",
       "items": {
         "type": "object",
         "properties": {
