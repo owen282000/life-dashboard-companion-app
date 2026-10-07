@@ -1,14 +1,14 @@
 # Ask your own LLM about your health data
 
-"How did my sleep change since I started running?" is a question a language model can answer, if it can read your history. This page shows two ways to let a model on your own hardware read that history, through a read-only connection to the place this app already sends your data.
+"How did my sleep change since I started running?" is a question a language model can answer, if it can read your history. This page shows three ways to let a model on your own hardware read that history, through a read-only connection to the place this app already sends your data.
 
 The app itself never talks to a model. It does what it always does: push your Health Connect data to a receiver you run. The receiver side offers a read-only [MCP](https://modelcontextprotocol.io) server, the standard way for a model to call tools, and the model asks that server questions.
 
 ```
-phone  ->  Home Assistant or life-dashboard-stack  ->  read-only MCP server  ->  your model
+phone  ->  Home Assistant, life-dashboard-stack or your own Postgres  ->  read-only MCP server  ->  your model
 ```
 
-If you send to the Life Dashboard integration, use [Route 1](#route-1-home-assistant); if you run life-dashboard-stack, use [Route 2](#route-2-life-dashboard-stack). None of this is needed to use the app. Checked on October 2, 2026; these tools move fast, so check their own docs for the current version.
+If you send to the Life Dashboard integration, use [Route 1](#route-1-home-assistant); if you run life-dashboard-stack, use [Route 2](#route-2-life-dashboard-stack); if n8n or a receiver of your own already writes to a Postgres you run, use [Route 3](#route-3-your-own-postgres). None of this is needed to use the app. Route 1 was checked on October 2, 2026. Route 2 was checked on October 7, 2026 against life-dashboard-stack as of October 5, with DBHub 1.4.0 and its tools called over MCP, without a model in the loop. These tools move fast, so check their own docs for the current version.
 
 ## Before you start
 
@@ -46,28 +46,15 @@ Without a start time the tool looks back 30 days.
 
 ## Route 2: life-dashboard-stack
 
-[life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) stores the raw records the app sends in Postgres, in one table: `records`, with the record type (`steps`, `heart_rate`, `sleep`, `weight`, `daily_totals` and so on), its time, and the record itself as JSON in `data`. Bucketed series aren't stored, so leave **Data Resolution** at every record for the types you want to ask about. Deletions aren't applied either. A read-only database role and a read-only MCP server on top are enough.
+[life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) stores the records the app sends in Postgres, in one table, `records`, with the record type (`steps`, `heart_rate`, `sleep`, `weight`, `daily_totals` and so on), its time, and the record itself as JSON in `data`. It applies the deletions the app reports, and a late payload can't overwrite a newer one. On top of that, its `dash` schema has views that turn records into days, nights, hours and workouts in your time zone: `dash.activity_days`, `dash.sleep_nights`, `dash.workouts`, `dash.measurement_days` and more, all listed in its [views.md](https://github.com/owen282000/life-dashboard-stack/blob/main/docs/views.md). With those, a model doesn't have to write SQL against nested JSON, which small models often get wrong.
 
-**1. A role that can only read.** Save this as `readonly.sql`, replace `change-me` with a password of your own (letters and digits: it goes into a connection URL below), and set your time zone:
+The stack keeps series sent per time window in a separate `buckets` table, but only its heart rate views read them so far. Leave **Data Resolution** on the **Health** tab at **Every record**, the default, for the types you want to ask about.
 
-```sql
-CREATE ROLE llm_reader LOGIN PASSWORD 'change-me' CONNECTION LIMIT 10;
-GRANT CONNECT ON DATABASE lifedash TO llm_reader;
-GRANT USAGE ON SCHEMA public TO llm_reader;
-GRANT SELECT ON TABLE records TO llm_reader;
-REVOKE TEMP ON DATABASE lifedash FROM PUBLIC;
-ALTER ROLE llm_reader SET default_transaction_read_only = on;
-ALTER ROLE llm_reader SET statement_timeout = '15s';
-ALTER ROLE llm_reader SET timezone = 'Europe/Amsterdam';
-```
+**1. The read-only role.** The stack already has one: `grafana_ro`, the user Grafana connects with. It can read `records`, `buckets` and the `dash` views and nothing else, not the payload ledger. It's read-only by default and its queries stop after 30 seconds. The receiver drops and rebuilds `dash` at every start and grants `grafana_ro` access again right after, so a role of your own would lose its grants on the views; this one keeps them. Its password is `GRAFANA_DB_PASSWORD` in `.env`. Set it to letters and digits, since it goes into a connection URL below, and run `docker compose up -d` after you change it, so the receiver and Grafana pick it up.
 
-```sh
-docker compose exec -T db psql -U lifedash -d lifedash < readonly.sql
-```
+Even with the read-only default switched off by a client, a write fails on permissions. The role can still see the catalog (table names, role names, settings), which holds no health data.
 
-The role has SELECT on `records` and on no other table, so a write fails on permissions even if a client switches the read-only default off. It can still see the catalog (table names, role names, settings), which holds no health data. The timeout catches runaway queries, not a client that raises it again.
-
-**2. An MCP server.** [DBHub](https://github.com/bytebase/dbhub) is maintained, enforces read-only per tool, and serves streamable HTTP. Add it next to the stack in `docker-compose.override.yml`, so the stack's own file stays as it is, and put `LLM_READER_PASSWORD=` with the same password in `.env`:
+**2. An MCP server.** [DBHub](https://github.com/bytebase/dbhub) is maintained, enforces read-only per tool, and serves streamable HTTP. Add it next to the stack in `docker-compose.override.yml`, so the stack's own file stays as it is:
 
 ```yaml
 services:
@@ -76,22 +63,22 @@ services:
     init: true
     command: ["--transport", "http", "--port", "8080", "--config", "/config/dbhub.toml"]
     environment:
-      LLM_READER_PASSWORD: ${LLM_READER_PASSWORD:?set it in .env}
+      GRAFANA_DB_PASSWORD: ${GRAFANA_DB_PASSWORD:?set it in .env}
     volumes:
       - ./dbhub.toml:/config/dbhub.toml:ro
     ports:
       - "127.0.0.1:8081:8080"
     depends_on:
-      db:
+      receiver:
         condition: service_healthy
 ```
 
-And `dbhub.toml` beside it. Next to a general read-only query tool it defines one ready-made question, the daily totals, which small models get right far more often than SQL they write themselves. It reads the `daily_totals` the app computes with Health Connect, which count a walk once even when both your phone and your watch recorded it. Adding up the raw `steps` records would count it twice.
+It waits for the receiver, because the receiver sets up `grafana_ro` and the views when it starts. And `dbhub.toml` beside it. Next to a general read-only query tool it defines three ready-made questions, which small models get right far more often than SQL they write themselves. `activity_days` reads the `daily_totals` the app computes with Health Connect, which count a walk once even when both your phone and your watch recorded it; adding up the raw `steps` records would count it twice. `workouts` lists a workout once when the watch and a phone app both recorded it.
 
 ```toml
 [[sources]]
 id = "lifedash"
-dsn = "postgres://llm_reader:${LLM_READER_PASSWORD}@db:5432/lifedash?sslmode=disable"
+dsn = "postgres://grafana_ro:${GRAFANA_DB_PASSWORD}@db:5432/lifedash?sslmode=disable"
 query_timeout = 15
 
 [[tools]]
@@ -101,16 +88,45 @@ readonly = true
 max_rows = 500
 
 [[tools]]
-name = "day_totals"
-description = "One value per day from the phone's deduplicated daily totals. field: steps, distance_meters, active_calories or total_calories. Dates YYYY-MM-DD, end exclusive."
+name = "activity_days"
+description = "Steps, distance (meters) and calories (kcal) per day, counted once even when phone and watch both recorded them. One row per phone (install) and day. Dates YYYY-MM-DD, end exclusive. complete is false for today, a running total."
 source = "lifedash"
 readonly = true
-statement = "SELECT DISTINCT ON (data->>'date') (data->>'date')::date AS day, (data->>$1)::numeric AS total FROM records WHERE type = 'daily_totals' AND data->>'date' >= $2 AND data->>'date' < $3 ORDER BY data->>'date', received_at DESC"
+statement = "SELECT day, install, steps, distance_m, active_kcal, total_kcal, complete FROM dash.activity_days WHERE day >= $1::date AND day < $2::date ORDER BY install, day"
 
 [[tools.parameters]]
-name = "field"
+name = "start"
 type = "string"
-description = "steps, distance_meters, active_calories or total_calories"
+description = "First day, YYYY-MM-DD"
+
+[[tools.parameters]]
+name = "end"
+type = "string"
+description = "The day after the last day, YYYY-MM-DD"
+
+[[tools]]
+name = "sleep_nights"
+description = "One night of sleep per phone (install), on the date you woke up. Hours asleep, in bed, deep, light, REM and awake (NULL without stages), bedtime and wake time, and the overnight low heart rate. Dates YYYY-MM-DD, end exclusive."
+source = "lifedash"
+readonly = true
+statement = "SELECT day, install, start_time, end_time, asleep_h, in_bed_h, deep_h, light_h, rem_h, awake_h, hr_low FROM dash.sleep_nights WHERE day >= $1::date AND day < $2::date ORDER BY install, day"
+
+[[tools.parameters]]
+name = "start"
+type = "string"
+description = "First wake date, YYYY-MM-DD"
+
+[[tools.parameters]]
+name = "end"
+type = "string"
+description = "The day after the last wake date, YYYY-MM-DD"
+
+[[tools]]
+name = "workouts"
+description = "Every workout with its activity (such as running or walking) and minutes, counted once when watch and phone both recorded it. Dates YYYY-MM-DD, end exclusive."
+source = "lifedash"
+readonly = true
+statement = "SELECT day, install, time AS start_time, activity, minutes FROM dash.workouts WHERE day >= $1::date AND day < $2::date ORDER BY time"
 
 [[tools.parameters]]
 name = "start"
@@ -123,16 +139,32 @@ type = "string"
 description = "The day after the last day, YYYY-MM-DD"
 ```
 
-Start it with `docker compose up -d dbhub`.
+Start it with `docker compose up -d dbhub`. Days in these views are local days in the stack's `TZ`; times come back in UTC, marked `+00`.
 
 **3. Connect the client.** Add `http://127.0.0.1:8081/mcp` in Open WebUI or LM Studio on the same machine. The port is bound to the machine itself, and DBHub only responds to the host names it knows:
 
 - **Open WebUI in Docker:** `127.0.0.1` is its own container there. On Docker Desktop, use `http://host.docker.internal:8081/mcp` and add `--allowed-hosts host.docker.internal` to DBHub's command; clients on the machine itself keep working. On Linux, put Open WebUI on the stack's network instead, use `http://dbhub:8080/mcp` and add `--allowed-hosts dbhub`.
 - **A client on another machine:** bind the port to the machine's LAN address, add that host name with `--allowed-hosts`, set `DBHUB_AUTH_TOKEN` and give the client that token. Over plain HTTP the token and every record cross your network readable, so put TLS in front for anything beyond your own network.
 
-Then ask: "Using `day_totals`, what was my average daily step count per month this year?" [webhook.md](../webhook.md) lists what every record type holds, for questions about a field by name.
+Then ask: "Using `sleep_nights` and `workouts`, how did my deep sleep compare in weeks with three or more runs against weeks with fewer?" The stack's [views.md](https://github.com/owen282000/life-dashboard-stack/blob/main/docs/views.md) lists every view and column, and [webhook.md](../webhook.md) what every record type holds, for questions about a field by name.
 
-The stack's Grafana (`admin` / `lifedash`, on all interfaces) and database (`lifedash` / `lifedash`) start with default passwords and read the same data, so change both before you add another way in. Change Grafana's password in its own settings, since `GRAFANA_PASSWORD` only counts on its first start, and the database password together with the receiver's `DATABASE_URL`.
+The stack's Grafana (`admin` / `lifedash`, on all interfaces), its database (`lifedash` / `lifedash`) and `grafana_ro` (`lifedash-ro`) start with default passwords and read the same data, so change them before you add another way in. Change Grafana's password in its own settings, since `GRAFANA_PASSWORD` only counts on its first start, and the database password together with the receiver's `DATABASE_URL`.
+
+## Route 3: your own Postgres
+
+If n8n or a receiver of your own already stores the payloads in a Postgres you run, the same pattern works there. Three things in how you store them decide whether a model's answers hold up:
+
+- Records keyed on `uuid`, in a `text` column. Heart rate and skin temperature samples carry `#<epoch milliseconds>` after the record's ID, so it isn't a Postgres `uuid`. A record sent again then replaces itself instead of counting twice.
+- `daily_totals` as one row per date, replaced by each newer figure. These are the totals to ask about for steps, distance and calories.
+- The deletions in `deleted_records` applied, by `type` and `uuid`, and for heart rate and skin temperature every sample whose `uuid` starts with that `uuid` and `#`. Otherwise a record you deleted on the phone is still there to read.
+
+[webhook.md](../webhook.md#deduplication-and-ordering) has the rules, including `sequence` for payloads that arrive late. Then:
+
+1. Create a role with `SELECT` on those tables only, with `default_transaction_read_only = on` and a `statement_timeout`, as Route 2's `grafana_ro` has.
+2. Point DBHub at it, with the Compose service and `dbhub.toml` from Route 2: DBHub works against any Postgres. Change the DSN to your database and role, and write the ready-made tools against your own tables.
+3. Connect the client as in Route 2.
+
+life-dashboard-stack's README doesn't cover running only its receiver against a Postgres you already run. The receiver does take its database from `DATABASE_URL`, and at every start it runs its migrations, rebuilds the `dash` schema and sets up the `grafana_ro` role, so if you try that, give it a database of its own and a user that may create roles.
 
 ## With a cloud model
 
@@ -142,6 +174,7 @@ The large assistants have health features of their own: Claude's health connecto
 
 ## What a model can and cannot do here
 
-- It reads. With the read-only role, or ha-mcp's **Read Only Mode**, it can't change a setting, delete a record or switch a device.
+- It reads. With a read-only role, or ha-mcp's **Read Only Mode**, it can't change a setting, delete a record or switch a device.
 - It's only as good as the data. Types you didn't turn on in the app, or days the phone didn't sync, aren't there to read.
+- It can't read what your watch's app keeps to itself, and that decides which questions it can answer. Samsung Health doesn't share HRV, resting heart rate or respiratory rate with Health Connect, and Garmin Connect doesn't share HRV status or resting heart rate. The [brand guides](../brands/README.md) list what each app shares.
 - It isn't a doctor. A model that sums your steps correctly can still draw a wrong conclusion from them.
