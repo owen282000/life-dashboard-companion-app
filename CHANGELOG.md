@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Fixed
+
+- A webhook URL needs a host: a bare `http://`, or text without `http://` or `https://`, is no
+  longer saved on the Health and Screen Time tabs. The check is the one used to send payloads,
+  so an address it accepts can also be delivered to.
+- The setup no longer goes past the destination step with Webhook chosen and no valid URL, or
+  MQTT chosen and no broker host, and a URL it cannot use is pointed out under the field.
+  **I will set this up later** still goes on without a destination. Test ping waits for a valid URL as well.
+- In landscape, the tabs no longer slide under the navigation bar on the side of the screen.
+
 ## [1.23.0] - 2026-10-04
 
 ### Highlights

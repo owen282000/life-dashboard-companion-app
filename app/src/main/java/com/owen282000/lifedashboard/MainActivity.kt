@@ -321,7 +321,8 @@ class MainActivity : ComponentActivity() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = padding.calculateTopPadding(), bottom = padding.calculateBottomPadding())
+                    // All four sides: in landscape the navigation bar sits on the right.
+                    .padding(padding)
             ) {
                 AnimatedContent(
                     targetState = selectedTab,

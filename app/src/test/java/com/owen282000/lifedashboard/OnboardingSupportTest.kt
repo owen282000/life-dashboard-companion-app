@@ -91,6 +91,27 @@ class OnboardingSupportTest {
         assertFalse(OnboardingSupport.writesWebhook(true, "", "", null))
     }
 
+    @Test
+    fun `an address without a host is not written`() {
+        assertFalse(OnboardingSupport.writesWebhook(true, "http://", "", null))
+        assertFalse(OnboardingSupport.writesWebhook(true, "example.org/hook", "", null))
+    }
+
+    @Test
+    fun `the destination step waits for what a chosen destination needs`() {
+        assertFalse(OnboardingSupport.destinationReady(true, "", false, ""))
+        assertFalse(OnboardingSupport.destinationReady(true, "http://", false, ""))
+        assertFalse(OnboardingSupport.destinationReady(false, "", true, " "))
+        assertFalse(OnboardingSupport.destinationReady(true, "https://example.org/hook", true, ""))
+        assertTrue(OnboardingSupport.destinationReady(true, "https://example.org/hook", false, ""))
+        assertTrue(OnboardingSupport.destinationReady(false, "", true, "192.168.1.10"))
+    }
+
+    @Test
+    fun `the destination step goes on with nothing chosen`() {
+        assertTrue(OnboardingSupport.destinationReady(false, "", false, ""))
+    }
+
     private val pairedHealthOnly = OnboardingSupport.WizardPairing(paired, setOf(PairingSource.HEALTH), seq = 1)
 
     @Test

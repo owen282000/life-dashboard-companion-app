@@ -10,6 +10,7 @@ import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.SyncMode
 import com.owen282000.lifedashboard.SyncSchedule
 import com.owen282000.lifedashboard.WriteBackType
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.time.DayOfWeek
 import java.time.LocalTime
 
@@ -185,7 +186,11 @@ object SettingsRules {
 
     fun dayBoundaryHourOrNull(text: String): Int? = text.toIntOrNull()?.takeIf { it in 0..23 }
 
-    fun isValidUrl(url: String): Boolean = url.isNotBlank() && url.startsWith("http")
+    /**
+     * An http or https URL with a host, parsed by OkHttp, which sends the payloads. A bare
+     * "http://" or a typo like "htp:/host" used to be saved and then failed on every sync.
+     */
+    fun isValidUrl(url: String): Boolean = url.trim().toHttpUrlOrNull() != null
 
     /**
      * What is wrong with a schedule, or null when it can be saved. The interval floor only

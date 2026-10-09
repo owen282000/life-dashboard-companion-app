@@ -1,5 +1,7 @@
 package com.owen282000.lifedashboard
 
+import com.owen282000.lifedashboard.viewmodel.SettingsRules
+
 /**
  * Pure definitions for the first-run wizard, kept free of Android types so the presets can be
  * unit tested on the JVM.
@@ -51,9 +53,17 @@ object OnboardingSupport {
      * in its dialog, and writing it again here would add the ones left out there.
      */
     fun writesWebhook(useWebhook: Boolean, url: String, secret: String, paired: PairingLink?): Boolean {
-        if (!useWebhook || url.isBlank()) return false
+        if (!useWebhook || !SettingsRules.isValidUrl(url)) return false
         return paired == null || !isPaired(url, secret, paired)
     }
+
+    /**
+     * Whether the destination step can go on. A chosen destination needs what it sends to:
+     * a valid webhook URL, a broker host. Choosing none is what "I will set this up later" is for, so
+     * Next with nothing chosen goes on too.
+     */
+    fun destinationReady(useWebhook: Boolean, url: String, useMqtt: Boolean, mqttHost: String): Boolean =
+        (!useWebhook || SettingsRules.isValidUrl(url)) && (!useMqtt || mqttHost.isNotBlank())
 
     /**
      * A code paired while the wizard is open, with the sections its dialog wrote. [seq] makes
