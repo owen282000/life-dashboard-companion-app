@@ -23,7 +23,6 @@ hivemqMqtt = "1.4.0"
 okhttp = "5.5.0"
 kotlinxSerialization = "1.11.0"
 splashScreen = "1.2.0"
-securityCrypto = "1.1.0"
 glance = "1.1.1"
 camerax = "1.6.2"
 zxing = "3.5.4"
@@ -59,7 +58,6 @@ androidx-material-icons-extended = { group = "androidx.compose.material", name =
 androidx-health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
-androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 androidx-glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 # The QR scanner: CameraX for the preview and frames, zxing core for the decoding.
 # Both Apache-2.0 and free of Play Services, unlike ML Kit, which even in its bundled

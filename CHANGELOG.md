@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Removed
+
+- The deprecated security-crypto library, and the Tink library it brought along. 1.23.0 moved
+  the saved secrets out of its file into the app's own Keystore store; the library stayed only
+  so that file could still be read by anyone who skipped 1.23.0. The APK is 96 KB smaller.
+  Anyone who updates from 1.22.0 or older straight to this version, skipping 1.23.0, is asked to
+  enter auth headers, signing secrets and MQTT passwords again: the old file can no longer be
+  read, so it is deleted and the banner asks for them. From 1.23.0 nothing changes.
+
 ### Fixed
 
 - A webhook URL needs a host: a bare `http://`, or text without `http://` or `https://`, is no

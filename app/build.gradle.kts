@@ -217,7 +217,6 @@ dependencies {
     implementation(libs.androidx.health.connect)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
-    implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.okhttp)
     implementation(libs.okhttp.coroutines)
