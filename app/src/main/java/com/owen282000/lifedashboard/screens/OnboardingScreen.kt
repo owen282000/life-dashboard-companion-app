@@ -88,6 +88,7 @@ import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
 import com.owen282000.lifedashboard.ui.theme.ink
 import com.owen282000.lifedashboard.ui.theme.onAccent
+import com.owen282000.lifedashboard.viewmodel.SettingsRules
 import com.owen282000.lifedashboard.viewmodel.UiMessage
 import kotlinx.coroutines.launch
 
@@ -292,6 +293,14 @@ fun OnboardingScreen(
                                     onValueChange = { webhookUrl = it; pingResult = null },
                                     label = stringResource(R.string.webhook_add_a_url)
                                 )
+                                if (webhookUrl.isNotBlank() && !SettingsRules.isValidUrl(webhookUrl)) {
+                                    Text(
+                                        stringResource(R.string.webhook_enter_valid_url),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.announced()
+                                    )
+                                }
                                 val sections = OnboardingSupport.webhookSections(
                                     healthConnect,
                                     screenTime,
@@ -347,7 +356,7 @@ fun OnboardingScreen(
                                         shape = CircleShape,
                                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Accent.ink()),
                                         border = BorderStroke(1.dp, Accent.copy(alpha = 0.4f)),
-                                        enabled = webhookUrl.isNotBlank() && !pinging,
+                                        enabled = SettingsRules.isValidUrl(webhookUrl) && !pinging,
                                         onClick = {
                                             scope.launch {
                                                 pinging = true
@@ -526,7 +535,11 @@ fun OnboardingScreen(
                             AccentTextButton(stringResource(R.string.common_back)) { stepIndex -= 1 }
                             PrimaryButton(
                                 stringResource(R.string.onboarding_next),
-                                enabled = step != Step.FEATURES || healthConnect || screenTime
+                                enabled = when (step) {
+                                    Step.FEATURES -> healthConnect || screenTime
+                                    Step.DESTINATION -> OnboardingSupport.destinationReady(useWebhook, webhookUrl, useMqtt, mqttHost)
+                                    else -> true
+                                }
                             ) { stepIndex += 1 }
                         }
                     }
