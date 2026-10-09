@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<!--
+  Source for the eight Google Play phone screenshots
+  (fastlane/metadata/android/en-US/images/phoneScreenshots/1.png to 8.png), 1080x1920 each.
+  One template; the slot comes from the query string: store-shot.html?n=1 to ?n=8.
+  docs/brand/render-store.sh renders all eight.
+
+  The screens inside the frames are real captures in docs/brand/store-src/: the app on an
+  emulator with a year of generated Health Connect data and generated per-app usage (an
+  emulator has no believable usage history), and a throwaway Home Assistant with the Life
+  Dashboard integration paired to it. Nothing in them is anyone's real data. A webhook ID
+  and a signing secret are blurred in the captures themselves. Slot 3 is the only one drawn
+  here.
+
+  Same identity as the other brand files: heartbeat green #30B77E, the dark green-tinted
+  gradient and the faint grid, "Helvetica Neue". Keep every caption free of prices, rankings
+  and calls to action (Play metadata policy) and under 20% of the image.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; }
+  body {
+    --accent: #30B77E; --glow: rgba(48,183,126,0.14);
+    background: radial-gradient(130% 130% at 25% 20%, #173229 0%, #11231E 45%, #0C1815 100%);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #fff; position: relative;
+  }
+  body.purple {
+    --accent: #B79BFF; --glow: rgba(155,120,255,0.16);
+    background: radial-gradient(130% 130% at 25% 20%, #241D38 0%, #19162A 45%, #110F1C 100%);
+  }
+  .grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(48,183,126,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(48,183,126,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
+  }
+  body.purple .grid {
+    background-image:
+      linear-gradient(rgba(155,120,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(155,120,255,0.05) 1px, transparent 1px);
+  }
+  .glow { position: absolute; left: 50%; top: 900px; width: 1000px; height: 1000px; transform: translateX(-50%);
+    background: radial-gradient(closest-side, var(--glow), transparent); pointer-events: none; }
+
+  .caption { position: absolute; left: 70px; right: 70px; top: 112px; text-align: center; }
+  h1 { font-size: 92px; font-weight: 800; letter-spacing: -1.5px; line-height: 1.04; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .sub { margin-top: 26px; font-size: 40px; line-height: 1.3; color: #AEB8BC; font-weight: 400; }
+
+  /* A generic phone: no camera bump or outline of any real model. */
+  .phone {
+    position: absolute; left: 110px; top: 520px; width: 860px; height: 1560px;
+    border-radius: 72px; border: 14px solid #0B0E0D; background: #0B0E0D; overflow: hidden;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.10), 0 40px 90px rgba(0,0,0,0.55), 0 0 140px var(--glow);
+  }
+  .phone .screen { position: absolute; inset: 0; border-radius: 58px; overflow: hidden; display: flex; flex-direction: column; }
+  .phone .screen img { width: 100%; display: block; flex: none; }
+  .sbar { flex: none; height: 98px; display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 52px 0 58px; font-family: Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 33px; color: #E6E6E6; }
+  .sbar svg { display: block; }
+  .sbar .icons { display: flex; gap: 14px; align-items: center; }
+
+  .inset {
+    position: absolute; border-radius: 30px; overflow: hidden; background: #111;
+    border: 2px solid rgba(255,255,255,0.14);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.6), 0 0 0 10px rgba(0,0,0,0.12);
+  }
+  .inset .crop { background-repeat: no-repeat; }
+  .tag {
+    position: absolute; font-size: 26px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--accent); background: #0A100E; border: 2px solid rgba(255,255,255,0.12);
+    padding: 12px 22px; border-radius: 40px; white-space: nowrap;
+  }
+  body.purple .tag { background: #110E1C; }
+
+  .code {
+    position: absolute; padding: 30px 34px; border-radius: 30px; background: #0A0F0D;
+    border: 2px solid rgba(255,255,255,0.14); box-shadow: 0 30px 70px rgba(0,0,0,0.6);
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 25px; line-height: 1.5; color: #C9D3D6; white-space: pre;
+  }
+  .code .k { color: #7FD1AE; } .code .s { color: #E7C98B; } .code .n { color: #9FB7FF; } .code .h { color: #7E8B91; }
+
+  /* Slot 3: where the data comes from, drawn rather than captured. */
+  .flow { position: absolute; left: 70px; right: 70px; top: 500px; }
+  .flow .title { font-size: 30px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #7E8B91; margin-bottom: 24px; text-align: center; }
+  .chips { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+  .chip { padding: 20px 30px; border-radius: 22px; font-size: 38px; font-weight: 600; background: rgba(255,255,255,0.045); border: 2px solid rgba(255,255,255,0.10); }
+  .chip.more { color: #9AA6AB; font-weight: 400; font-style: italic; border-style: dashed; }
+  .arrow { height: 96px; display: flex; justify-content: center; }
+  .arrow svg { height: 96px; width: 60px; }
+  .box { border-radius: 30px; padding: 32px 40px; background: rgba(255,255,255,0.045); border: 2px solid rgba(255,255,255,0.11); text-align: center; }
+  .box h3 { font-size: 50px; font-weight: 800; letter-spacing: -0.5px; }
+  .box p { margin-top: 10px; font-size: 34px; color: #AEB8BC; }
+  .app { display: flex; align-items: center; justify-content: center; gap: 34px; border: 3px solid rgba(48,183,126,0.75); background: rgba(48,183,126,0.08); box-shadow: 0 0 70px rgba(48,183,126,0.2); }
+  .app img { width: 140px; height: 140px; border-radius: 34px; display: block; }
+  .dests { display: flex; gap: 22px; justify-content: center; }
+  .dests .box { flex: 1; padding: 30px 10px; }
+  .dests .box h3 { font-size: 40px; }
+  .dests .ha { border-color: rgba(48,183,126,0.65); }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="glow"></div>
+<div class="caption"><h1 id="h"></h1><div class="sub" id="s"></div></div>
+<div id="stage"></div>
+
+<script>
+// Status bar for Home Assistant captures, which come from a browser without one. The time
+// matches the demo clock of the app captures.
+const CLOCK = "3:05";
+const SBAR = (bg) => `<div class="sbar" style="background:${bg}"><span>${CLOCK}</span><span class="icons">
+  <svg width="40" height="32" viewBox="0 0 24 19"><path d="M12 18.5 0.5 5.6A16.6 16.6 0 0 1 12 1a16.6 16.6 0 0 1 11.5 4.6Z" fill="#E6E6E6"/></svg>
+  <svg width="26" height="40" viewBox="0 0 13 20"><rect x="4" y="0" width="5" height="2" rx="1" fill="#E6E6E6"/><rect x="0.5" y="2" width="12" height="17.5" rx="2.5" fill="#E6E6E6"/></svg>
+</span></div>`;
+
+// Crop a real capture into an inset: rect is [x, y, w, h] in capture pixels, shown w wide.
+function crop(src, rect, width, srcW = 1080) {
+  const [x, y, w, h] = rect, k = width / w;
+  return `<div class="crop" style="width:${width}px;height:${Math.round(h * k)}px;background-image:url(${src});` +
+    `background-size:${Math.round(srcW * k)}px auto;background-position:${-Math.round(x * k)}px ${-Math.round(y * k)}px"></div>`;
+}
+const phone = (src, sbar) => `<div class="phone"><div class="screen">${sbar ? SBAR(sbar) : ""}<img src="${src}" alt=""></div></div>`;
+const inset = (html, css) => `<div class="inset" style="${css}">${html}</div>`;
+const tag = (text, css) => `<div class="tag" style="${css}">${text}</div>`;
+const arrow = (c) => `<div class="arrow"><svg viewBox="0 0 60 96"><path d="M30 6 V78" stroke="${c}" stroke-width="6" fill="none"/><path d="M13 64 L30 86 L47 64" stroke="${c}" stroke-width="6" fill="none" stroke-linejoin="round"/></svg></div>`;
+
+const SRC = "store-src/";
+const slots = {
+  1: { h: "Your health data in<br><em>Home Assistant</em>", s: "Steps, sleep, heart rate and 30 more<br>types, on a schedule",
+       html: phone(SRC + "H1-dashboard.png", "#111111") +
+             inset(crop(SRC + "A1-health.png", [40, 505, 1000, 370], 555), "left:40px; top:1673px;") +
+             tag("The app on your phone", "left:68px; top:1606px;") },
+  2: { h: "Pair with<br><em>one QR code</em>", s: "No YAML, no broker.<br>No account, no cloud in between.",
+       html: phone(SRC + "A2-pair.png") +
+             inset(`<div style="width:364px;height:262px;background:#1C1C1C;display:flex;align-items:center;justify-content:center">` +
+               crop(SRC + "H2-qr.png", [52, 180, 608, 602], 232, 1160) + `</div>`, "right:36px; top:694px;") +
+             tag("Home Assistant", "right:64px; top:627px;") },
+  3: { h: "Data from your<br><em>watch, ring and scale</em>", s: "Anything that writes to Health Connect",
+       html: `<div class="flow">
+         <div class="title">Your apps and devices</div>
+         <div class="chips">
+           <div class="chip">Samsung Health</div><div class="chip">Garmin Connect</div>
+           <div class="chip">Google Health (Fitbit, Pixel Watch)</div>
+           <div class="chip">Oura</div><div class="chip">Withings</div><div class="chip">Gadgetbridge</div><div class="chip">Zepp</div>
+           <div class="chip more">any app that writes to Health Connect</div>
+         </div>
+         ${arrow("#5C6A70")}
+         <div class="box"><h3>Health Connect</h3><p>Steps, sleep, heart rate, weight and 29 more types</p></div>
+         ${arrow("#30B77E")}
+         <div class="box app"><img src="../../fastlane/metadata/android/en-US/images/icon.png" alt=""><h3>Life Dashboard</h3></div>
+         ${arrow("#30B77E")}
+         <div class="dests"><div class="box ha"><h3>Home Assistant</h3></div><div class="box"><h3>MQTT</h3></div><div class="box"><h3>Webhook</h3></div></div>
+       </div>` },
+  4: { h: "Up to a year of<br><em>history</em>, backfilled", s: "Each day lands on its own date<br>in long-term statistics",
+       html: phone(SRC + "H3-history.png", "#111111") +
+             inset(crop(SRC + "A3-backfill.png", [118, 815, 844, 770], 500), "right:36px; top:1500px;") +
+             tag("The app", "right:64px; top:1433px;") },
+  5: { h: "Screen time <em>per app</em>", s: "A sensor per app, with a day boundary you choose", cls: "purple",
+       html: phone(SRC + "A4-screen-time.png") +
+             inset(crop(SRC + "H4-apps.png", [16, 460, 1050, 700], 560, 1082), "right:36px; top:1520px;") +
+             tag("Home Assistant", "right:64px; top:1453px;") },
+  6: { h: "Scale readings back<br>into <em>Health Connect</em>", s: "Weight, body fat and blood pressure<br>from Home Assistant",
+       html: phone(SRC + "A5-receive.png") },
+  7: { h: "Or use <em>MQTT</em> or<br>your own webhook", s: "Signed JSON for n8n, Node-RED or your own code",
+       html: phone(SRC + "A6-webhook.png") +
+             `<div class="code" style="right:34px; top:1330px;"><span class="h">POST /webhook/life-dashboard
+X-Signature: sha256=9f2c41…</span>
+{
+  <span class="k">"app_version"</span>: <span class="s">"1.23.0"</span>,
+  <span class="k">"source"</span>: <span class="s">"health_connect"</span>,
+  <span class="k">"steps"</span>: [{
+    <span class="k">"count"</span>: <span class="n">412</span>,
+    <span class="k">"start_time"</span>: <span class="s">"2026-10-04T06:00:00Z"</span>,
+    <span class="k">"source"</span>: <span class="s">"com.fitbit.FitbitMobile"</span>
+  }]
+}</div>` },
+  8: { h: "Only <em>your server</em><br>sees your data", s: "No account, no analytics, no ads. Open source.",
+       html: phone(SRC + "A7-logs.png") },
+};
+
+const n = +(new URLSearchParams(location.search).get("n") || 1);
+const slot = slots[n];
+document.getElementById("h").innerHTML = slot.h;
+document.getElementById("s").innerHTML = slot.s;
+if (slot.cls) document.body.classList.add(slot.cls);
+document.getElementById("stage").innerHTML = slot.html;
+</script>
+</body>
+</html>
