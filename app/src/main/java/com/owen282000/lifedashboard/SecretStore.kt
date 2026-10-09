@@ -271,8 +271,7 @@ class EncryptedStore(private val backing: SharedPreferences, private val cipher:
             sealed.forEach { (key, value) -> if (value == null) editor.remove(key) else editor.putString(key, value) }
             // A real secret written means they are being entered again, so the note goes.
             if (entered) editor.remove(NEEDS_REENTRY)
-            // Whatever the user set or removed is theirs now: an old store still waiting to be read
-            // must not put back a secret they removed on purpose.
+            // A flag 1.23.0 may have left (see LEGACY_PENDING); nothing acts on it any more.
             if (entered || removed || clearing) editor.remove(LEGACY_PENDING)
             sealed.forEach { (key, value) ->
                 if (value == null) {
@@ -298,7 +297,10 @@ class EncryptedStore(private val backing: SharedPreferences, private val cipher:
         const val INTERNAL_PREFIX = "__"
         const val NEEDS_REENTRY = "__needs_reentry"
 
-        /** An old store that could not be read at the migration and may still fill in; see SecretVaultLogic. */
+        /**
+         * Left by 1.23.0 for an old store it could not read in full, to try again later. That
+         * store can no longer be read, so the flag is only ever removed; see SecretVaultLogic.
+         */
         const val LEGACY_PENDING = "__legacy_pending"
         private const val PREFIX = "v1:"
         private val ENCODER = Base64.getEncoder()

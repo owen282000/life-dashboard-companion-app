@@ -15,8 +15,9 @@ class PreferencesManager(context: Context) {
     /**
      * Keystore-backed storage for secrets (webhook headers with auth tokens, HMAC secrets,
      * MQTT credentials): AES-256-GCM with a key the Android Keystore holds, one store for the
-     * whole process ([SecretVault]), which moved the secrets out of security-crypto's file the
-     * first time it opened.
+     * whole process ([SecretVault]). 1.23.0 moved the secrets out of security-crypto's file the
+     * first time it opened; this version can no longer read that file, so secrets still in it
+     * are asked for again.
      *
      * When the Keystore cannot be used it is [InMemoryPrefs]: reads return nothing and writes
      * are dropped, so a sync then fails loudly (missing auth) rather than quietly downgrading
@@ -32,8 +33,8 @@ class PreferencesManager(context: Context) {
     val secretsUnavailable: Boolean get() = vault.state == SecretState.UNAVAILABLE
 
     /**
-     * True when saved secrets were lost (the Keystore key is gone, or the old store stayed
-     * unreadable) and have to be entered again. Saving a secret, or dismissing the banner, clears it.
+     * True when saved secrets were lost (the Keystore key is gone, or they were still in the
+     * old store of 1.22 and older, which can no longer be read) and have to be entered again. Saving a secret, or dismissing the banner, clears it.
      */
     val secretsNeedReentry: Boolean get() = vault.needsReentry
 
@@ -145,10 +146,6 @@ class PreferencesManager(context: Context) {
         /** The secrets versions before 1.6.0 kept in the plain settings, moved into the store on migration. */
         val LEGACY_PLAIN_SECRET_KEYS: List<String>
             get() = listOf(KEY_HEALTH_WEBHOOK_HEADERS, KEY_SCREENTIME_WEBHOOK_HEADERS, KEY_HEALTH_WEBHOOK_SECRET, KEY_SCREENTIME_WEBHOOK_SECRET)
-
-        /** Every key the secret store holds: the webhook headers and secrets, and the MQTT credentials per broker. */
-        val SECRET_KEYS: List<String>
-            get() = LEGACY_PLAIN_SECRET_KEYS + listOf("mqtt_", "health_mqtt_", "screentime_mqtt_").flatMap { listOf(it + "username", it + "password") }
 
         private const val WRITEBACK_PREFS_NAME = "life_dashboard_writeback"
 

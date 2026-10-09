@@ -19,7 +19,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /**
- * The secret store that replaces security-crypto, and the migration into it, with a software
+ * The secret store that replaced security-crypto, and the migration into it, with a software
  * AES-GCM key standing in for the Keystore. What matters most: no secret is lost on the way,
  * none is ever kept in plain text, and a failure that may pass never wipes anything or makes a
  * new key, however often it happens.
@@ -121,10 +121,10 @@ class SecretVaultTest {
     private var keyExists = false
     private var keystoreError: Exception? = null
     private var keyResets = 0
-    private var legacy: SharedPreferences? = null
-    private var legacyFails = false
+
+    /** The security-crypto file of 1.22 and older is on the phone. */
+    private var legacyPresent = false
     private var legacyHolds = true
-    private var legacyReads = 0
     private var legacyDeleted = false
     private var boot: Int? = 1
     private val countedThisProcess = mutableSetOf<String>()
@@ -143,16 +143,10 @@ class SecretVaultTest {
             cipher
         },
         resetKey = { keyResets++; keyExists = false; keystoreError = null; cipher = SoftwareCipher() },
-        legacyExists = { !legacyDeleted && (legacy != null || legacyFails) },
+        legacyExists = { legacyPresent && !legacyDeleted },
         legacyHasValues = { legacyHolds },
-        openLegacy = {
-            legacyReads++
-            if (legacyFails) throw java.security.GeneralSecurityException("keyset")
-            legacy!!
-        },
         deleteLegacy = { legacyDeleted = true },
         legacyPlainKeys = listOf("health_webhook_headers", "health_webhook_secret"),
-        knownKeys = listOf("health_webhook_headers", "health_webhook_secret", "mqtt_username", "mqtt_password"),
         bootCount = { boot },
         countedThisProcess = countedThisProcess,
         writeFailed = writeFailed,
@@ -164,10 +158,6 @@ class SecretVaultTest {
         countedThisProcess.clear()
         writeFailed.set(false)
         target.restart()
-    }
-
-    private fun oldStore(vararg values: Pair<String, String>) = InMemoryPrefs().apply {
-        edit().apply { values.forEach { (k, v) -> putString(k, v) } }.commit()
     }
 
     private fun secret(opened: SecretVault.Opened, key: String = "health_webhook_secret") = opened.store.getString(key, null)
@@ -231,40 +221,71 @@ class SecretVaultTest {
     }
 
     @Test
-    fun `every secret of the old store comes over, and then the old file goes`() {
-        legacy = oldStore("health_webhook_secret" to "hmac", "health_webhook_headers" to "{\"X-Api-Key\":\"k\"}", "health_mqtt_password" to "pw", "screentime_mqtt_username" to "")
+    fun `an old file with secrets can no longer be read, so they are asked for again and the file goes`() {
+        legacyPresent = true
         val opened = logic().open()
-        assertEquals(SecretState.READY, opened.state)
-        assertEquals("hmac", secret(opened))
-        assertEquals("{\"X-Api-Key\":\"k\"}", secret(opened, "health_webhook_headers"))
-        assertEquals("pw", secret(opened, "health_mqtt_password"))
-        assertEquals("an empty username stays empty", "", secret(opened, "screentime_mqtt_username"))
-        assertTrue("so a secret rotated later cannot come back from it", legacyDeleted)
+        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
+        assertTrue(target.getBoolean(SecretVaultLogic.MARKER, false))
+        assertTrue(target.contains(SecretVaultLogic.PROBE))
+        assertFalse("nothing is left to wait for", target.contains(SecretVaultLogic.LEGACY_PENDING))
+        assertTrue(legacyDeleted)
+        assertNull(secret(opened))
     }
 
     @Test
-    fun `secrets from before 1-6-0 come over too, the encrypted ones win, and the plain copies go`() {
+    fun `an old file with secrets is given up at once, not counted over boots`() {
+        legacyPresent = true
+        assertEquals(SecretState.NEEDS_REENTRY, logic().open().state)
+        assertFalse("no failure counted", target.all.keys.any { it.startsWith("__fail") })
+        newProcess()
+        assertEquals("the request stays until a secret is entered", SecretState.NEEDS_REENTRY, logic().open().state)
+    }
+
+    @Test
+    fun `an old file with no secret in it is just deleted, and nothing is asked for`() {
+        legacyPresent = true
+        legacyHolds = false
+        assertEquals(SecretState.READY, logic().open().state)
+        assertTrue(legacyDeleted)
+    }
+
+    @Test
+    fun `secrets from before 1-6-0 still come over, and the plain copies go`() {
         plain.edit().putString("health_webhook_secret", "old-plain").putString("health_webhook_headers", "{}").commit()
-        legacy = oldStore("health_webhook_secret" to "encrypted")
         val opened = logic().open()
-        assertEquals("encrypted", secret(opened))
+        assertEquals(SecretState.READY, opened.state)
+        assertEquals("old-plain", secret(opened))
         assertEquals("{}", secret(opened, "health_webhook_headers"))
         assertNull(plain.getString("health_webhook_secret", null))
         assertNull(plain.getString("health_webhook_headers", null))
     }
 
     @Test
-    fun `the migration runs once`() {
-        legacy = oldStore("health_webhook_secret" to "hmac")
-        logic().open()
-        logic().open().store.edit().putString("health_webhook_secret", "changed later").commit()
-        assertEquals(1, legacyReads)
-        assertEquals("changed later", secret(logic().open()))
+    fun `plain secrets from before 1-6-0 come over next to an old file that is lost`() {
+        plain.edit().putString("health_webhook_secret", "old-plain").commit()
+        legacyPresent = true
+        val opened = logic().open()
+        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
+        assertEquals("what could be saved is saved", "old-plain", secret(opened))
+        assertNull(plain.getString("health_webhook_secret", null))
+        assertTrue(legacyDeleted)
     }
 
     @Test
-    fun `a failed write leaves nothing done and the old store in place, and the next start migrates`() {
-        legacy = oldStore("health_webhook_secret" to "hmac")
+    fun `the migration runs once`() {
+        legacyPresent = true
+        logic().open().store.edit().putString("health_webhook_secret", "entered").commit()
+        // The old file back, as from a stop before its deletion: it is not migrated again.
+        legacyDeleted = false
+        val later = logic().open()
+        assertEquals(SecretState.READY, later.state)
+        assertEquals("entered", secret(later))
+        assertTrue(legacyDeleted)
+    }
+
+    @Test
+    fun `a failed write leaves nothing done and the old file in place, and the next start migrates`() {
+        legacyPresent = true
         plain.edit().putString("health_webhook_headers", "{}").commit()
         target.failCommits = true
         assertEquals(SecretState.UNAVAILABLE, logic().open().state)
@@ -274,108 +295,75 @@ class SecretVaultTest {
         target.failCommits = false
         newProcess()
         val opened = logic().open()
-        assertEquals("hmac", secret(opened))
+        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
         assertEquals("{}", secret(opened, "health_webhook_headers"))
+        assertTrue(legacyDeleted)
     }
 
     @Test
     fun `a Keystore that cannot encrypt during the migration is unavailable, not a crash`() {
-        legacy = oldStore("health_webhook_secret" to "hmac")
+        plain.edit().putString("health_webhook_secret", "hmac").commit()
+        legacyPresent = true
         cipher.encryptFails = true
         assertEquals(SecretState.UNAVAILABLE, logic().open().state)
         assertFalse(legacyDeleted)
         cipher.encryptFails = false
         assertEquals("hmac", secret(logic().open()))
-    }
-
-    private fun loseLegacyOnThreeBoots(): SecretVault.Opened {
-        legacyFails = true
-        for (b in 1..3) {
-            boot = b
-            newProcess()
-            logic().open()
-        }
-        return logic().open()
-    }
-
-    @Test
-    fun `an old store that cannot be read is given up only on the third boot`() {
-        legacyFails = true
-        plain.edit().putString("health_webhook_secret", "plain").commit()
-        repeat(20) { assertEquals("many tries in one boot count once", SecretState.UNAVAILABLE, logic().open().state) }
-        boot = 2
-        newProcess()
-        assertEquals(SecretState.UNAVAILABLE, logic().open().state)
-        boot = 3
-        newProcess()
-        val opened = logic().open()
-        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
-        assertEquals("what could be saved is saved", "plain", secret(opened))
-        assertFalse("kept, to try again", legacyDeleted)
-    }
-
-    @Test
-    fun `an old store readable after all fills everything while nothing was entered, and ends the request`() {
-        loseLegacyOnThreeBoots()
-        legacyFails = false
-        legacy = oldStore("health_webhook_secret" to "old", "mqtt_password" to "from-old")
-        val later = logic().open()
-        assertEquals("old", secret(later))
-        assertEquals("from-old", secret(later, "mqtt_password"))
-        assertEquals(SecretState.READY, logic().open().state)
         assertTrue(legacyDeleted)
-    }
-
-    @Test
-    fun `once the user entered a secret, an old store readable after all brings nothing back`() {
-        loseLegacyOnThreeBoots().store.edit().putString("health_webhook_secret", "entered").commit()
-        legacyFails = false
-        legacy = oldStore("health_webhook_secret" to "old", "mqtt_password" to "left-empty-on-purpose")
-        val later = logic().open()
-        assertEquals("entered", secret(later))
-        assertNull("a key left empty may be empty on purpose", secret(later, "mqtt_password"))
-        assertTrue(legacyDeleted)
-    }
-
-    @Test
-    fun `a wiped store keeps waiting for an old store that is still to be read`() {
-        loseLegacyOnThreeBoots()
-        cipher = SoftwareCipher()
-        logic().open()
-        assertTrue(target.getBoolean(SecretVaultLogic.LEGACY_PENDING, false))
-    }
-
-    @Test
-    fun `an old store of which no value can be read counts as unreadable, not as empty`() {
-        legacy = object : SharedPreferences by oldStore("health_webhook_secret" to "x") {
-            override fun getAll(): MutableMap<String, *> = throw SecurityException("keyset")
-            override fun getString(key: String?, defValue: String?): String? = throw SecurityException("keyset")
-        }
-        assertEquals(SecretState.UNAVAILABLE, logic().open().state)
-        assertFalse(legacyDeleted)
-    }
-
-    @Test
-    fun `an old store that loses one value gives the rest, asks for the secrets and is kept`() {
-        val inner = oldStore("health_webhook_secret" to "hmac", "mqtt_password" to "pw")
-        legacy = object : SharedPreferences by inner {
-            override fun getAll(): MutableMap<String, *> = throw SecurityException("one bad entry")
-            override fun getString(key: String?, defValue: String?): String? =
-                if (key == "mqtt_password") throw SecurityException("bad entry") else inner.getString(key, defValue)
-        }
-        val opened = logic().open()
-        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
-        assertEquals("hmac", secret(opened))
-        assertFalse(legacyDeleted)
     }
 
     @Test
     fun `an old file still there after a stop between migration and deletion goes on the next start`() {
-        legacy = oldStore("health_webhook_secret" to "hmac")
+        legacyPresent = true
         logic().open()
         legacyDeleted = false
         logic().open()
         assertTrue(legacyDeleted)
+    }
+
+    /** The state 1.23.0 leaves when it could not read all of the old file: migrated, and waiting for it. */
+    private fun pendingFrom1230(needsReentry: Boolean = true) {
+        logic().open().store.edit().putString("health_webhook_secret", "read-by-1.23.0").commit()
+        target.edit()
+            .putBoolean(SecretVaultLogic.LEGACY_PENDING, true)
+            .apply { if (needsReentry) putBoolean(EncryptedStore.NEEDS_REENTRY, true) }
+            .commit()
+        legacyPresent = true
+        newProcess()
+    }
+
+    @Test
+    fun `an old file 1-23-0 kept waiting is given up and deleted, and the request stays`() {
+        pendingFrom1230()
+        val opened = logic().open()
+        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
+        assertEquals("read-by-1.23.0", secret(opened))
+        assertFalse(target.contains(SecretVaultLogic.LEGACY_PENDING))
+        assertTrue(legacyDeleted)
+    }
+
+    @Test
+    fun `an old file 1-23-0 kept waiting after the request was dismissed is deleted, and nothing is asked for`() {
+        pendingFrom1230(needsReentry = false)
+        assertEquals(SecretState.READY, logic().open().state)
+        assertFalse(target.contains(SecretVaultLogic.LEGACY_PENDING))
+        assertTrue(legacyDeleted)
+    }
+
+    @Test
+    fun `the waiting flag of 1-23-0 goes too when the old file is already gone`() {
+        pendingFrom1230()
+        legacyPresent = false
+        assertEquals(SecretState.NEEDS_REENTRY, logic().open().state)
+        assertFalse(target.contains(SecretVaultLogic.LEGACY_PENDING))
+    }
+
+    @Test
+    fun `a wipe does not keep the waiting flag of 1-23-0`() {
+        pendingFrom1230()
+        cipher = SoftwareCipher()
+        assertEquals(SecretState.NEEDS_REENTRY, logic().open().state)
+        assertFalse(target.contains(SecretVaultLogic.LEGACY_PENDING))
     }
 
     @Test
@@ -432,8 +420,8 @@ class SecretVaultTest {
     }
 
     @Test
-    fun `a key replaced before the migration still migrates the old store`() {
-        legacy = oldStore("health_webhook_secret" to "hmac")
+    fun `a key replaced before the migration still migrates the plain secrets`() {
+        plain.edit().putString("health_webhook_secret", "hmac").commit()
         keystoreError = java.security.UnrecoverableKeyException("unusable")
         repeat(2) { b ->
             boot = b + 1
@@ -460,13 +448,15 @@ class SecretVaultTest {
     @Test
     fun `without a boot counter, failures count once per process`() {
         boot = null
-        legacyFails = true
+        keystoreError = java.security.UnrecoverableKeyException("unusable")
         repeat(SecretVaultLogic.PERSISTENT_PROCESSES - 1) {
             newProcess()
             repeat(3) { assertEquals(SecretState.UNAVAILABLE, logic().open().state) }
         }
+        assertEquals(0, keyResets)
         newProcess()
-        assertEquals(SecretState.NEEDS_REENTRY, logic().open().state)
+        assertEquals(SecretState.READY, logic().open().state)
+        assertEquals(1, keyResets)
     }
 
     @Test
@@ -493,12 +483,7 @@ class SecretVaultTest {
 
     @Test
     fun `saving unrelated settings does not count as entering the secrets again`() {
-        legacyFails = true
-        for (b in 1..3) {
-            boot = b
-            newProcess()
-            logic().open()
-        }
+        legacyPresent = true
         val opened = logic().open()
         assertTrue(opened.needsReentry)
         opened.store.edit().putString("mqtt_username", "").putString("mqtt_password", "").putString("health_webhook_headers", null).commit()
@@ -565,7 +550,8 @@ class SecretVaultTest {
 
     @Test
     fun `a full disk during the migration loses nothing, even when the same process tries again later`() {
-        legacy = oldStore("health_webhook_secret" to "hmac")
+        plain.edit().putString("health_webhook_secret", "hmac").commit()
+        legacyPresent = true
         target.diskFull = true
         assertEquals(SecretState.UNAVAILABLE, logic().open().state)
         assertTrue("the memory holds the marker the disk does not", target.getBoolean(SecretVaultLogic.MARKER, false))
@@ -577,28 +563,10 @@ class SecretVaultTest {
         assertTrue(legacyDeleted)
     }
 
-    private fun partialLegacy(vararg values: Pair<String, String>, failing: String): SharedPreferences {
-        val inner = oldStore(*values)
-        return object : SharedPreferences by inner {
-            override fun getAll(): MutableMap<String, *> = throw SecurityException("one bad entry")
-            override fun getString(key: String?, defValue: String?): String? =
-                if (key == failing) throw SecurityException("bad entry") else inner.getString(key, defValue)
-        }
-    }
-
     @Test
-    fun `a secret the user removed does not come back from an old store read later`() {
-        legacy = partialLegacy("health_webhook_secret" to "old-hmac", "mqtt_password" to "pw", failing = "mqtt_password")
-        val opened = logic().open()
-        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
-        opened.store.edit().putString("health_webhook_secret", "").commit()
-        legacy = oldStore("health_webhook_secret" to "old-hmac", "mqtt_password" to "pw")
-        assertNull(secret(logic().open()))
-    }
-
-    @Test
-    fun `the request to enter secrets again can be dismissed, and the old store still fills in later`() {
-        legacy = partialLegacy("health_webhook_secret" to "hmac", "mqtt_password" to "pw", failing = "mqtt_password")
+    fun `the request to enter secrets again can be dismissed`() {
+        plain.edit().putString("health_webhook_secret", "hmac").commit()
+        legacyPresent = true
         val opened = logic().open()
         assertTrue(opened.needsReentry)
         opened.store.edit().putString("health_webhook_secret", "hmac").commit()
@@ -606,28 +574,6 @@ class SecretVaultTest {
         opened.dismissReentry()
         assertFalse(opened.needsReentry)
         assertEquals(SecretState.READY, logic().open().state)
-        assertFalse("a tap on the banner gives the old store up", legacyDeleted)
-        legacy = oldStore("health_webhook_secret" to "hmac", "mqtt_password" to "pw")
-        assertEquals("pw", secret(logic().open(), "mqtt_password"))
-        assertTrue(legacyDeleted)
-    }
-
-    @Test
-    fun `saving the empty values an earlier version stored does not count as removing a secret`() {
-        legacy = partialLegacy(
-            "health_webhook_headers" to "{}",
-            "mqtt_username" to "",
-            "health_webhook_secret" to "hmac",
-            "mqtt_password" to "pw",
-            failing = "mqtt_password"
-        )
-        val opened = logic().open()
-        assertEquals(SecretState.NEEDS_REENTRY, opened.state)
-        // The settings screen saves no headers and an empty username as it always does.
-        opened.store.edit().putString("health_webhook_headers", null).putString("mqtt_username", "").commit()
-        assertTrue(target.getBoolean(SecretVaultLogic.LEGACY_PENDING, false))
-        legacy = oldStore("health_webhook_secret" to "hmac", "mqtt_password" to "pw")
-        assertEquals("pw", secret(logic().open(), "mqtt_password"))
     }
 
     @Test
@@ -638,22 +584,13 @@ class SecretVaultTest {
     }
 
     @Test
-    fun `an old file with no secret in it is not read, and gone, whatever its keys do`() {
-        legacyFails = true
-        legacyHolds = false
-        assertEquals(SecretState.READY, logic().open().state)
-        assertEquals(0, legacyReads)
-        assertTrue(legacyDeleted)
-    }
-
-    @Test
     fun `a key that is there but cannot encrypt before the migration is replaced after three boots, and the migration done`() {
-        legacy = oldStore("health_webhook_secret" to "hmac")
+        plain.edit().putString("health_webhook_secret", "hmac").commit()
         logic().open().let { assertEquals(SecretState.READY, it.state) }
         // Undo: as if that first start had stopped after making the key, before migrating.
         target.edit().clear().commit()
         newProcess()
-        legacyDeleted = false
+        plain.edit().putString("health_webhook_secret", "hmac").commit()
         cipher.encryptError = InvalidKeyException("invalid key blob")
         for (b in 2..3) {
             boot = b

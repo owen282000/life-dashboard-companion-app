@@ -4,8 +4,8 @@ import android.content.SharedPreferences
 
 /**
  * A [SharedPreferences] that never persists anything, used as the fallback when the Android
- * keystore cannot be opened and [PreferencesManager] therefore cannot use
- * EncryptedSharedPreferences.
+ * Keystore cannot be opened and [PreferencesManager] therefore cannot use the encrypted
+ * secret store ([SecretVault]).
  *
  * The point is what it does NOT do: writes are accepted and dropped instead of landing in a
  * plain, backup-eligible file. Secrets (webhook auth headers, HMAC signing secrets, MQTT
