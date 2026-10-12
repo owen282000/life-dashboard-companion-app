@@ -1,0 +1,6 @@
+Fixed
+- Setup no longer finishes without a destination when you picked Webhook or MQTT.
+- A webhook URL without a host, like a bare http://, is no longer saved.
+- In landscape, nothing hides under the navigation bar any more.
+Improved
+- A deprecated encryption library is gone, so the app is a little smaller.
