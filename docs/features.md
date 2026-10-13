@@ -143,6 +143,7 @@ The other nine types (exercise, nutrition, mindfulness and the six cycle trackin
 - States and discovery configs are retained, so values survive a Home Assistant restart. Every publish carries every sensor the app has mapped so far, so a new broker or a fresh Home Assistant sees the whole device after one sync.
 - TLS and a username and password are optional. The credentials are stored encrypted. When the broker isn't on a private network and TLS is off, the settings warn you.
 - Health Connect and Screen Time each have their own switch and **Base topic**. They share one broker connection by default. Switch off **Use the shared broker** in a tab's **MQTT** row to give that section a broker of its own.
+- The broker host is a host name or an IP address, and the port 1 to 65535; the app refuses anything else before it saves. **Show password** reveals the password you typed. When the broker can't be reached, the **MQTT** row and the sync line say in plain words what failed (host not found, connection refused, no answer, TLS, login refused) and what to check; the **Logs** tab keeps the technical error.
 - **Topics.** The **Base topic** is `lifedashboard` unless you change it. Each sensor has a state topic `<base>/<key>/state` and a JSON attributes topic `<base>/<key>/attributes`, and its discovery config is at `homeassistant/sensor/life_dashboard_companion_<key>/config`.
 - **Two phones on one broker:** give each a name under **Advanced > Phone name**. A named phone publishes under its own device, such as `Life Dashboard Companion (Pixel 8)`, with its name as a slug in its topics (`<base>/<slug>/<key>/state`, `<base>/<slug>/<key>/attributes`) and in its discovery topic (`homeassistant/sensor/life_dashboard_companion_<slug>_<key>/config`). A phone without a name keeps the plain topics.
 
@@ -155,7 +156,7 @@ The step-by-step setup for both is in [usage.md](usage.md#phone-to-home-assistan
 Any server that accepts a JSON POST can receive the data: your own backend, Node-RED, n8n, or the example [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack).
 
 - **Several URLs per section**, and separate URLs, headers and signing secrets for Health Connect and Screen Time.
-- **Custom headers** for auth tokens or API keys. They go to the URLs you typed in, never to one that QR pairing added.
+- **Custom headers** for auth tokens or API keys. They go to the URLs you typed in, never to one that QR pairing added. A header that HTTP cannot carry (a space in the name, a line break in the value) is refused when you add it.
 - **HMAC signing.** With a signing secret set, every request carries an `X-Signature` header (HMAC-SHA256 of the body), so your server can check the sender. **Generate** creates a secret of 32 random bytes as hex.
 - **Test ping** sends a small payload marked `test: true`, signed when a secret is set, so you can check an address and a secret before any data goes there.
 - **Retries.** A request that fails for a temporary reason is tried three times with a growing wait in between; a permanent error fails at once.
@@ -244,7 +245,7 @@ The protocol is in [webhook.md](webhook.md#inbound-what-the-integration-may-send
 
 - **TalkBack.** Every switch row is one control that TalkBack reads with its name and state, such as "Allow plain HTTP webhooks, off, switch", and a tap anywhere on the row flips it. Selected tabs, filters and schedule days are announced, as is the result of a sync or a test ping. Status that was only a color is spoken too: the widget reads "Last sync succeeded" or "Last sync failed".
 - **Contrast.** Text in the accent and status colors reads at 4.5:1 or more, in both the light and dark themes.
-- **Material 3** with a dark theme that follows the system.
+- **Material 3** with a light and a dark theme. **About > Appearance** follows the system, or keeps the app light or dark whatever the phone does; the widget always follows the system.
 - **Languages:** English, Dutch and German, following the system language.
 
 <a id="automation"></a>
@@ -267,7 +268,7 @@ The top of the **Health** tab shows how many records went out **Today** and over
 
 ## Preview, export and logs
 
-- **Preview:** **View** on the **Health** and **Screen Time** tabs shows the JSON payload the next sync would send, without sending it. A long payload is truncated on screen; **Export** has all of it.
+- **Preview:** **View** on the **Health** and **Screen Time** tabs shows the JSON payload the next sync would send, without sending it. A long payload is truncated on screen; **Copy JSON** (up to 100,000 characters, marked as sensitive on the clipboard), **Share** and **Export** have all of it.
 - **Export:** **Export** on the **Health** and **Screen Time** tabs shares the current data as JSON through the Android share sheet.
 - **Logs:** the **Logs** tab lists up to the last 100 webhook deliveries, MQTT publishes, backfill runs and readings received from Home Assistant, with status, error and payload. Tap a row to see its details. The switch at the top, **Keep full payloads**, stores whole payloads; otherwise they're shortened to save space. Below it, a summary shows the success rate, the number of deliveries and of records delivered, each section's successes, and the time of the last success. **All**, **Health** and **Screen Time** filter the list. **Export logs** shares the logs shown as CSV or JSON, and **Clear logs** deletes the logs shown from the phone, after asking.
 

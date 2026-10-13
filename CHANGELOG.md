@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- The data preview on the Health and Screen Time tabs has **Copy JSON** and **Share**. Copy JSON puts the
+  full payload on the clipboard, marked as sensitive so the clipboard preview hides it, up to 100,000
+  characters; Share sends it as a JSON file, as Export does. Above that size the dialog points to Share.
+- An appearance choice under About: System, Light or Dark. It applies at once to every screen and to the
+  status and navigation bar icons; the widget keeps following the phone. The settings backup carries it as
+  `options.theme`, the same key as the iOS app, and a backup without it leaves the phone's choice as it is.
+- The MQTT password fields, in the settings and in the setup, have a button to show or hide the password.
+
+### Fixed
+
+- A webhook header that HTTP cannot carry, with a space or another character a header name does not allow,
+  or a line break in its value, is refused when it is added. One saved earlier no longer reads as "Server
+  unreachable": the sync line, the notification and Logs name the header, and the payload stays queued
+  until it is fixed. Importing settings leaves such headers out, and the import preview says so.
+- MQTT settings and the setup refuse a broker host with spaces, a scheme or a port in it, and a port outside
+  1 to 65535, with the reason under the field, instead of saving a broker that can never connect.
+- When the MQTT broker can't be reached, the MQTT section, the sync line and the failure notification say in
+  plain words what failed and what to check (host not found, connection refused, no answer, TLS, login
+  refused), in English, Dutch and German, instead of a Java exception. The Logs tab keeps the technical
+  error for bug reports. A webhook delivery that fails and can't be queued gets the same plain sentence.
+- A webhook secret you copy is marked as sensitive on the clipboard on Android 12 and older too.
+
 ## [1.24.0] - 2026-10-12
 
 ### Highlights

@@ -77,7 +77,7 @@ Under **Send from**, pick which sections to fill: **Health**, **Screen Time** or
 
 Pairing from the **Webhook** card or with the camera reloads both tabs from the saved settings, so tap **Save Changes** first if you have unsaved changes (see [Changing settings later](#changing-settings-later)).
 
-An address added by pairing gets none of the custom headers you set for that section. Those headers were meant for addresses you entered yourself, and a code can come from anyone, so an API key is never sent to a scanned address. The **Webhook** card says so under the address while the section has headers. To send the headers there anyway, type the address in by hand.
+A header name can only use the characters HTTP allows in one (letters, digits and ``!#$%&'*+-.^_`|~``, no spaces), and a value only printable ASCII without line breaks; the app refuses anything else when you add it. An address added by pairing gets none of the custom headers you set for that section. Those headers were meant for addresses you entered yourself, and a code can come from anyone, so an API key is never sent to a scanned address. The **Webhook** card says so under the address while the section has headers. To send the headers there anyway, type the address in by hand.
 
 Without the app installed, the code opens a web page that explains where to get it. The secret sits in the part of the link after the `#`, which a browser never sends to any server.
 
@@ -222,7 +222,7 @@ If your server requires a client certificate (mTLS), install it in Android's set
 
 ## Sync
 
-**View** on either tab shows what the next sync would send, without sending it. On screen it stops after 12,000 characters; **Export** gives the full payload. Neither includes the `sequence` number, which is assigned only when **Sync Now** (or a scheduled sync) actually sends the payload.
+**View** on either tab shows what the next sync would send, without sending it. On screen it stops after 12,000 characters. **Copy JSON** puts the full payload on the clipboard, marked as sensitive so the clipboard preview hides it, up to 100,000 characters; **Share** and **Export** send the full payload as a file at any size. Neither includes the `sequence` number, which is assigned only when **Sync Now** (or a scheduled sync) actually sends the payload.
 
 The first Health Connect sync reads the last 7 days. After that, each sync sends only what's new or changed since the one before, so **Sync Now** right after a sync says **No new data**. Records that a watch app writes late, up to a week after the fact, are still picked up. For anything older than those first 7 days, use [Backfill](#backfill-older-history).
 
