@@ -371,6 +371,33 @@ object MqttSupport {
     }
 
     /**
+     * The last publish of a section, read back from what MqttPublisher stores: "OK: 12 sensors
+     * published at <instant>" or "Error: <reason>". The stored text keeps that English frame, as
+     * it always had; the MQTT row says it in the user's language from these parts.
+     */
+    sealed interface PublishStatus {
+        data class Published(val sensors: Int, val at: Instant) : PublishStatus
+
+        /** [reason] is already in the user's language (see MqttPublishException). */
+        data class Failed(val reason: String) : PublishStatus
+    }
+
+    private val PUBLISHED_STATUS = Regex("""^OK: (\d+) sensors published at (\S+)$""")
+
+    fun publishStatus(stored: String): PublishStatus {
+        PUBLISHED_STATUS.find(stored.trim())?.let { match ->
+            val sensors = match.groupValues[1].toIntOrNull()
+            val at = try {
+                Instant.parse(match.groupValues[2])
+            } catch (e: java.time.format.DateTimeParseException) {
+                null
+            }
+            if (sensors != null && at != null) return PublishStatus.Published(sensors, at)
+        }
+        return PublishStatus.Failed(stored.trim().removePrefix("Error:").trim())
+    }
+
+    /**
      * The set to publish: everything published before, with fresh values on top. A sync only
      * carries the types that had new records, but the broker should hold every sensor the app
      * knows, so a new broker or a fresh Home Assistant sees the whole device at once.

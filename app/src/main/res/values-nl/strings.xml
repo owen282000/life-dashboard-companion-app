@@ -290,6 +290,10 @@
     <string name="mqtt_enabled_own_broker">Ingeschakeld: %1$s (eigen broker)</string>
     <string name="mqtt_enabled_shared_broker">Ingeschakeld: %1$s (gedeelde broker)</string>
     <string name="mqtt_password">Wachtwoord (optioneel)</string>
+    <plurals name="mqtt_status_published">
+        <item quantity="one">%1$d sensor gepubliceerd op %2$s</item>
+        <item quantity="other">%1$d sensoren gepubliceerd op %2$s</item>
+    </plurals>
     <string name="mqtt_port">Poort</string>
     <string name="mqtt_host_missing">Vul de hostnaam of het IP-adres van de broker in</string>
     <string name="mqtt_host_invalid">Vul alleen een hostnaam of IP-adres in, zonder spaties, mqtt:// of poort</string>

@@ -293,6 +293,10 @@
     <string name="mqtt_enabled_own_broker">Enabled: %1$s (own broker)</string>
     <string name="mqtt_enabled_shared_broker">Enabled: %1$s (shared broker)</string>
     <string name="mqtt_password">Password (optional)</string>
+    <plurals name="mqtt_status_published">
+        <item quantity="one">%1$d sensor published at %2$s</item>
+        <item quantity="other">%1$d sensors published at %2$s</item>
+    </plurals>
     <string name="mqtt_port">Port</string>
     <string name="mqtt_host_missing">Enter the host name or IP address of the broker</string>
     <string name="mqtt_host_invalid">Enter only a host name or IP address, without spaces, mqtt:// or a port</string>

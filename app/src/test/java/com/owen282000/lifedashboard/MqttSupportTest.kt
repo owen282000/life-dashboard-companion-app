@@ -360,4 +360,19 @@ class MqttSupportTest {
         assertEquals(65535, MqttSupport.portOrNull("65535"))
         listOf("", "0", "65536", "-1", "18 83", "abc").forEach { assertNull(it, MqttSupport.portOrNull(it)) }
     }
+
+    @Test
+    fun publishStatusReadsBackWhatThePublisherStores() {
+        assertEquals(
+            MqttSupport.PublishStatus.Published(12, Instant.parse("2026-10-13T08:15:30.123Z")),
+            MqttSupport.publishStatus("OK: 12 sensors published at 2026-10-13T08:15:30.123Z")
+        )
+        // The reason is already in the user's language; only the English frame goes.
+        assertEquals(
+            MqttSupport.PublishStatus.Failed("Host niet gevonden. Controleer de hostnaam."),
+            MqttSupport.publishStatus("Error: Host niet gevonden. Controleer de hostnaam.")
+        )
+        // Anything else is shown as it was stored, as a failure.
+        assertEquals(MqttSupport.PublishStatus.Failed("OK: soon"), MqttSupport.publishStatus("OK: soon"))
+    }
 }

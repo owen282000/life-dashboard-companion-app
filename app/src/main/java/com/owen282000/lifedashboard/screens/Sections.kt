@@ -90,6 +90,10 @@ import com.owen282000.lifedashboard.viewmodel.SettingsRules
 import com.owen282000.lifedashboard.viewmodel.UiMessage
 import com.owen282000.lifedashboard.viewmodel.WebhookDraft
 import java.text.NumberFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 /*
  * The settings sections the Health Connect and Screen Time tabs share: webhook, MQTT,
@@ -504,11 +508,17 @@ fun MqttRow(
             accent = accent,
             label = stringResource(R.string.mqtt_base_topic)
         )
-        lastStatus?.let { status ->
+        lastStatus?.let { stored ->
+            // Stored with an English frame; said here in the user's language.
+            val status = remember(stored) { MqttSupport.publishStatus(stored) }
             Text(
-                status,
+                when (status) {
+                    is MqttSupport.PublishStatus.Published ->
+                        pluralStringResource(R.plurals.mqtt_status_published, status.sensors, status.sensors, formatPublishTime(status.at))
+                    is MqttSupport.PublishStatus.Failed -> status.reason
+                },
                 style = MaterialTheme.typography.bodySmall,
-                color = if (status.startsWith("OK")) accent.ink() else MaterialTheme.colorScheme.error
+                color = if (status is MqttSupport.PublishStatus.Published) accent.ink() else MaterialTheme.colorScheme.error
             )
         }
     }
@@ -670,6 +680,10 @@ fun SaveBar(visible: Boolean, onSave: () -> Unit) {
         }
     }
 }
+
+/** When the last MQTT publish went out, as the phone writes a short date and time. */
+private fun formatPublishTime(at: Instant): String =
+    DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault()).format(at)
 
 /** [count] with the phone's digit grouping: 12,000 in English, 12.000 in Dutch and German. */
 internal fun formatCount(count: Int): String = NumberFormat.getIntegerInstance().format(count)
