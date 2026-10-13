@@ -142,6 +142,8 @@ Each section's schedule is in five keys next to `sync_interval_minutes`. `sync_m
 
 Headers are imported only when they can be sent: a name made of the characters HTTP allows in a header name, a value of printable ASCII without line breaks. Others are left out, and the import preview says so.
 
+A broker is imported only when the MQTT settings would take it: a host that is a host name, an IPv4 address or an IPv6 address (no spaces, no `mqtt://`, no port after it), or empty for no broker, and a `port` from 1 to 65535. A broker that fails either check does not refuse the file: the rest is imported, the phone keeps the broker it has (host, port, TLS and credentials, which belong to that broker), and the import preview says whether the host or the port was the problem. This applies to `shared`, `health_own_broker` and `screen_time_own_broker` each on its own.
+
 A key that is absent leaves its setting as it is on import, and so does a whole section: a file without `screen_time` keeps the Screen Time webhooks, and one without `mqtt` keeps every broker. Unknown keys are ignored on import, so a file from a newer version still restores what the installed build understands. Data types are stored by name, and names this build does not know are skipped rather than failing the import.
 
 Encrypted exports wrap the same JSON in an envelope that records the parameters needed to decrypt it:

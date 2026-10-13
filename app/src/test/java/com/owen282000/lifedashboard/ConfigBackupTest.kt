@@ -529,4 +529,42 @@ class ConfigBackupTest {
         assertFalse(ImportNote.UNSENDABLE_HEADERS_SKIPPED in file.importNotes())
         assertEquals(file.health.headers, file.forThisPhone().health.headers)
     }
+
+    @Test
+    fun aBrokerTheSettingsWouldRefuseIsLeftOutAndThePreviewSaysWhy() {
+        val full = fullBackup()
+        val file = full.copy(
+            mqtt = full.mqtt.copy(
+                shared = BrokerConfig("mqtt://broker.local", 1883, false, "user", "pass"),
+                screenTimeOwnBroker = BrokerConfig("other.local", 0, false, "u2", "p2")
+            )
+        )
+        val notes = file.importNotes()
+        assertTrue(ImportNote.BROKER_HOST_UNUSABLE in notes)
+        assertTrue(ImportNote.BROKER_PORT_UNUSABLE in notes)
+
+        val applied = file.forThisPhone()
+        // Absent, so the phone keeps the brokers it has, credentials and all.
+        assertNull(applied.mqtt.shared)
+        assertNull(applied.mqtt.screenTimeOwnBroker)
+        // The rest of the file still applies: its usable broker, switches, topics and webhooks.
+        assertEquals(full.mqtt.healthOwnBroker, applied.mqtt.healthOwnBroker)
+        assertEquals(full.mqtt.healthEnabled, applied.mqtt.healthEnabled)
+        assertEquals(full.health.webhookUrls, applied.health.webhookUrls)
+        assertEquals(full.summarise(emptySet()).brokers - 2, file.summarise(emptySet()).brokers)
+    }
+
+    @Test
+    fun usableBrokersAreTakenOverAsTheyAre() {
+        val file = fullBackup().copy(
+            mqtt = MqttConfig(
+                shared = BrokerConfig("[fd00::1]", 65535, false, null, null),
+                healthOwnBroker = BrokerConfig("core_mosquitto", 1, false, null, null),
+                screenTimeOwnBroker = BrokerConfig("", 1883, false, null, null)
+            )
+        )
+        assertFalse(ImportNote.BROKER_HOST_UNUSABLE in file.importNotes())
+        assertFalse(ImportNote.BROKER_PORT_UNUSABLE in file.importNotes())
+        assertEquals(file.mqtt, file.forThisPhone().mqtt)
+    }
 }

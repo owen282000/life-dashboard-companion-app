@@ -510,6 +510,8 @@
     <string name="backup_note_iphone_topic_kept">Het MQTT-topic van de iPhone, lifedashboard-ios, wordt niet overgenomen. Deze telefoon houdt zijn eigen topic, zodat de twee telefoons geen sensoren delen.</string>
     <string name="backup_note_iphone_name_kept">De telefoonnaam van de iPhone wordt niet overgenomen. Deze telefoon houdt zijn eigen naam.</string>
     <string name="backup_note_unsendable_headers_skipped">Headers die niet verstuurd kunnen worden, zoals een met een spatie in de naam, worden overgeslagen. Voeg ze opnieuw toe onder Webhook.</string>
+    <string name="backup_note_broker_host_unusable">De MQTT-broker in dit bestand is niet bruikbaar: de host is geen hostnaam of IP-adres, bijvoorbeeld omdat er een spatie, mqtt:// of een poort in staat. Deze telefoon houdt zijn eigen broker.</string>
+    <string name="backup_note_broker_port_unusable">De MQTT-broker in dit bestand is niet bruikbaar: de poort is geen getal van 1 tot en met 65535. Deze telefoon houdt zijn eigen broker.</string>
     <string name="backup_keeps_credentials">Dit bestand bevat geen inloggegevens, dus die op dit toestel blijven behouden.</string>
     <string name="backup_history_unaffected">Synchronisatiegeschiedenis en logs blijven zoals ze zijn.</string>
     <string name="backup_imported">Instellingen geïmporteerd, open de app opnieuw om ze te zien</string>

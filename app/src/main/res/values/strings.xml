@@ -513,6 +513,8 @@
     <string name="backup_note_iphone_topic_kept">The iPhone\'s MQTT topic lifedashboard-ios is not taken over. This phone keeps its own, so the two phones do not share sensors.</string>
     <string name="backup_note_iphone_name_kept">The iPhone\'s phone name is not taken over. This phone keeps its own.</string>
     <string name="backup_note_unsendable_headers_skipped">Headers that cannot be sent, such as one with a space in its name, are left out. Add them again under Webhook.</string>
+    <string name="backup_note_broker_host_unusable">The MQTT broker in this file cannot be used: its host is not a host name or IP address, for example because it has a space, mqtt:// or a port in it. This phone keeps its own broker.</string>
+    <string name="backup_note_broker_port_unusable">The MQTT broker in this file cannot be used: its port is not a number from 1 to 65535. This phone keeps its own broker.</string>
     <string name="backup_keeps_credentials">This file has no credentials, so the ones already on this device are kept.</string>
     <string name="backup_history_unaffected">Sync history and logs are not affected.</string>
     <string name="backup_imported">Settings imported, reopen the app to see them</string>

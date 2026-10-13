@@ -391,4 +391,6 @@ private fun noteText(note: ImportNote): Int = when (note) {
     ImportNote.IPHONE_BASE_TOPIC_KEPT -> R.string.backup_note_iphone_topic_kept
     ImportNote.IPHONE_PHONE_NAME_KEPT -> R.string.backup_note_iphone_name_kept
     ImportNote.UNSENDABLE_HEADERS_SKIPPED -> R.string.backup_note_unsendable_headers_skipped
+    ImportNote.BROKER_HOST_UNUSABLE -> R.string.backup_note_broker_host_unusable
+    ImportNote.BROKER_PORT_UNUSABLE -> R.string.backup_note_broker_port_unusable
 }
