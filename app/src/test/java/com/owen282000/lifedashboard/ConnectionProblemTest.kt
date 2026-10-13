@@ -66,6 +66,13 @@ class ConnectionProblemTest {
             ConnectionProblem.UNREACHABLE,
             ConnectionProblem.of(ConnectException("Failed to connect to /10.0.0.5:8123").apply { initCause(SocketException("connect failed: ENETUNREACH (Network is unreachable)")) })
         )
+        // A LAN broker that is switched off, as Android's NIO connect under Netty reports it.
+        assertEquals(
+            ConnectionProblem.UNREACHABLE,
+            ConnectionProblem.of(
+                ConnectionFailedException(ConnectException("failed to connect to /192.168.1.10 (port 1883) after 10000ms: isConnected failed: EHOSTUNREACH (No route to host)"))
+            )
+        )
     }
 
     @Test

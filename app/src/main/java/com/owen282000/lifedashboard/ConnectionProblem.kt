@@ -70,6 +70,10 @@ enum class ConnectionProblem(@StringRes val messageRes: Int) {
             return links
         }
 
+        /** ENETUNREACH and EHOSTUNREACH, in the words Android and Netty put them. */
+        private fun isUnreachable(message: String): Boolean =
+            "unreach" in message || "no route to host" in message
+
         /** What one link of the chain says on its own, or null when it says nothing a user can act on. */
         private fun kindOf(e: Throwable): ConnectionProblem? {
             val message = e.message.orEmpty().lowercase()
@@ -89,12 +93,15 @@ enum class ConnectionProblem(@StringRes val messageRes: Int) {
                 is NoRouteToHostException -> UNREACHABLE
                 // Netty's ConnectTimeoutException is a ConnectException, and so is a connect the
                 // network could not route; only what is left is a port nobody listens on.
+                // Android's NIO connect (Netty, so HiveMQ) reports a LAN host that is switched
+                // off as a ConnectException with "EHOSTUNREACH (No route to host)" rather than as
+                // a NoRouteToHostException, which is no refusal either.
                 is ConnectException -> when {
                     e.javaClass.simpleName == "ConnectTimeoutException" || "timed out" in message || "etimedout" in message -> NO_ANSWER
-                    "unreachable" in message -> UNREACHABLE
+                    isUnreachable(message) -> UNREACHABLE
                     else -> REFUSED
                 }
-                is SocketException -> if ("unreachable" in message) UNREACHABLE else CONNECTION_LOST
+                is SocketException -> if (isUnreachable(message)) UNREACHABLE else CONNECTION_LOST
                 is EOFException -> CONNECTION_LOST
                 // HiveMQ ends a connect that never got its CONNACK, and a connection whose pings
                 // went unanswered, with "Timeout while waiting for ...".
