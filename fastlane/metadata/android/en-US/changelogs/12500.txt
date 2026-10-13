@@ -1,0 +1,8 @@
+New
+- Copy JSON and Share in the data preview and in Logs.
+- Appearance in About: System, Light or Dark.
+- Show or hide the MQTT password.
+Fixed
+- A webhook header that cannot be sent is refused when you add it.
+- MQTT refuses a broker host or port that can never connect.
+- MQTT errors say in plain words what went wrong and what to check.

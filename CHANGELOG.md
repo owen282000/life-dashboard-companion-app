@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.25.0] - 2026-10-14
+
+### Highlights
+
+- Copy JSON and Share give the whole payload, in the data preview and in Logs.
+- An appearance choice under About: System, Light or Dark.
+- Headers and MQTT brokers that can never work are refused where you type them, and MQTT errors read in plain words.
+
 ### Added
 
 - The data preview on the Health and Screen Time tabs has **Copy JSON** and **Share**. Copy JSON puts the
@@ -888,7 +896,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.24.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.25.0...HEAD
+[1.25.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.24.0...1.25.0
 [1.24.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.23.0...1.24.0
 [1.23.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.22.0...1.23.0
 [1.22.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.21.2...1.22.0
