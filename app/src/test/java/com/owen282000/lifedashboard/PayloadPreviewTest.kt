@@ -96,4 +96,10 @@ class PayloadPreviewTest {
         val cut = """{"a":""" + WebhookLogStore.TRUNCATION_MARKER
         assertEquals(cut, PayloadPreview.pretty(cut))
     }
+
+    @Test
+    fun aStoredPayloadIsHandedOverWithoutTheStoresMarker() {
+        assertEquals("{\"a\":1}", PayloadPreview.stored("{\"a\":1}"))
+        assertEquals("{\"a\":", PayloadPreview.stored("{\"a\":" + WebhookLogStore.TRUNCATION_MARKER))
+    }
 }

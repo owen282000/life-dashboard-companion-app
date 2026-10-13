@@ -345,7 +345,6 @@
     <string name="logs_last_success">Letzter Erfolg: %1$s</string>
     <string name="logs_ok">OK</string>
     <string name="logs_payload">Payload</string>
-    <string name="logs_payload_full_in_export">Exportiere die Logs als JSON für den vollständigen Payload.</string>
     <string name="logs_payload_stored_part">Von diesem Payload wurde nur ein Teil gespeichert. Schalte Vollständige Payloads behalten ein, um ab der nächsten Synchronisierung ganze Payloads zu speichern.</string>
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
     <string name="payload_preview_a11y">Payload, %1$s Zeichen</string>

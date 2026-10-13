@@ -9,6 +9,7 @@ import android.os.PersistableBundle
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -695,10 +696,8 @@ internal fun formatCount(count: Int): String = NumberFormat.getIntegerInstance()
  */
 @Composable
 fun PreviewDialog(accent: Color, data: String, onDismiss: () -> Unit, onShare: () -> Unit) {
-    val context = LocalContext.current
     // Set when Copy JSON was refused; the note stays until the dialog closes.
     var copyRefused by remember(data) { mutableStateOf(false) }
-    val copied = stringResource(R.string.payload_copied)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.sync_data_preview_title)) },
@@ -735,45 +734,20 @@ fun PreviewDialog(accent: Color, data: String, onDismiss: () -> Unit, onShare: (
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         stringResource(R.string.payload_preview_shown_part, formatCount(PayloadPreview.MAX_CHARS), formatCount(shown.totalLength)) +
-                            " " + stringResource(
-                                if (PayloadPreview.fitsClipboard(data)) R.string.sync_preview_full_in_copy_share
-                                else R.string.sync_preview_full_in_share
-                            ),
+                            " " + stringResource(fullPayloadHint(data)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Box(modifier = Modifier.announced()) {
-                    if (copyRefused) {
-                        Text(
-                            stringResource(R.string.payload_too_large_to_copy),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .announced()
-                        )
-                    }
-                }
+                CopyRefusedNote(copyRefused)
             }
         },
         // Close stays the confirm button; Copy JSON and Share sit before it, and the dialog puts
         // Close on a line of its own when a language makes the three too wide.
         dismissButton = {
             Row {
-                val copyLabel = stringResource(R.string.payload_copy_json_a11y)
-                TextButton(
-                    onClick = {
-                        copyRefused = !PayloadPreview.fitsClipboard(data) ||
-                            !copySensitive(context, "payload", data, copied)
-                    },
-                    modifier = Modifier.semantics { contentDescription = copyLabel }
-                ) { Text(stringResource(R.string.payload_copy_json), color = accent.ink()) }
-                val shareLabel = stringResource(R.string.payload_share_a11y)
-                TextButton(
-                    onClick = onShare,
-                    modifier = Modifier.semantics { contentDescription = shareLabel }
-                ) { Text(stringResource(R.string.payload_share), color = accent.ink()) }
+                CopyJsonButton(accent, data) { copyRefused = it }
+                SharePayloadButton(accent, onShare)
             }
         },
         confirmButton = {
@@ -781,6 +755,54 @@ fun PreviewDialog(accent: Color, data: String, onDismiss: () -> Unit, onShare: (
         }
     )
 }
+
+/**
+ * Copy JSON for a whole payload (S-01), in the data preview and in an opened log row: [data]
+ * goes on the clipboard flagged sensitive when it fits ([PayloadPreview.fitsClipboard]).
+ * [onResult] gets true when the copy was refused, for [CopyRefusedNote].
+ */
+@Composable
+internal fun CopyJsonButton(accent: Color, data: String, onResult: (refused: Boolean) -> Unit) {
+    val context = LocalContext.current
+    val copied = stringResource(R.string.payload_copied)
+    val label = stringResource(R.string.payload_copy_json_a11y)
+    TextButton(
+        onClick = { onResult(!PayloadPreview.fitsClipboard(data) || !copySensitive(context, "payload", data, copied)) },
+        modifier = Modifier.semantics { contentDescription = label }
+    ) { Text(stringResource(R.string.payload_copy_json), color = accent.ink()) }
+}
+
+/** Share for a whole payload: [onShare] hands it to the share sheet as a file, through the export path. */
+@Composable
+internal fun SharePayloadButton(accent: Color, onShare: () -> Unit) {
+    val label = stringResource(R.string.payload_share_a11y)
+    TextButton(
+        onClick = onShare,
+        modifier = Modifier.semantics { contentDescription = label }
+    ) { Text(stringResource(R.string.payload_share), color = accent.ink()) }
+}
+
+/** Says that Copy JSON was refused and Share is the way; read out by TalkBack when it appears. */
+@Composable
+internal fun CopyRefusedNote(visible: Boolean) {
+    Box(modifier = Modifier.announced()) {
+        if (visible) {
+            Text(
+                stringResource(R.string.payload_too_large_to_copy),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .announced()
+            )
+        }
+    }
+}
+
+/** Where the full payload is, under a preview cut for display: Copy JSON when it fits, Share always. */
+@StringRes
+internal fun fullPayloadHint(payload: String): Int =
+    if (PayloadPreview.fitsClipboard(payload)) R.string.sync_preview_full_in_copy_share else R.string.sync_preview_full_in_share
 
 @Composable
 fun ExportFormatDialog(accent: Color, description: String, onJson: () -> Unit, onCsv: () -> Unit, onDismiss: () -> Unit) {

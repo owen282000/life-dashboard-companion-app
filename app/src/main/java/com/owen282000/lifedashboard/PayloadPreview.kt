@@ -53,6 +53,9 @@ data class PayloadPreview(
             return PayloadPreview(body.substring(0, end), body.length, true, cutInStorage)
         }
 
+        /** [payload] as a log row stored it, without the marker the store puts on one it cut short. */
+        fun stored(payload: String): String = payload.removeSuffix(WebhookLogStore.TRUNCATION_MARKER)
+
         /** Whether [payload] can go on the clipboard whole; otherwise Share is the way to get it. */
         fun fitsClipboard(payload: String): Boolean = payload.length <= MAX_COPY_CHARS
 

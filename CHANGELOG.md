@@ -8,7 +8,8 @@ All notable changes to this project are documented in this file. The format is b
 
 - The data preview on the Health and Screen Time tabs has **Copy JSON** and **Share**. Copy JSON puts the
   full payload on the clipboard, marked as sensitive so the clipboard preview hides it, up to 100,000
-  characters; Share sends it as a JSON file, as Export does. Above that size the dialog points to Share.
+  characters; Share sends it as a JSON file, as Export does. Above that size the dialog points to Share. An
+  opened delivery in the Logs tab has the same Copy JSON and Share for the payload it stored.
 - An appearance choice under About: System, Light or Dark. It applies at once to every screen and to the
   status and navigation bar icons; the widget keeps following the phone. The settings backup carries it as
   `options.theme`, the same key as the iOS app, and a backup without it leaves the phone's choice as it is.

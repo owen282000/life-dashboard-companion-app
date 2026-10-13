@@ -250,6 +250,7 @@ private fun StatColumn(label: String, value: String, color: androidx.compose.ui.
 
 @Composable
 private fun LogRow(log: WebhookLog, accent: androidx.compose.ui.graphics.Color) {
+    val context = LocalContext.current
     var expanded by remember(log.id) { mutableStateOf(false) }
     val isMqtt = log.destination == LogDestination.MQTT.name
     val isIncoming = log.direction == LogDirection.IN.name
@@ -360,15 +361,18 @@ private fun LogRow(log: WebhookLog, accent: androidx.compose.ui.graphics.Color) 
                                 )
                             }
                         }
+                        // What Copy JSON and Share hand over: the payload as it was stored,
+                        // without the marker the store puts on one it cut short.
+                        val stored = remember(log.id) { PayloadPreview.stored(log.rawPayload) }
                         val notes = buildList {
                             if (shown.cutForDisplay) {
                                 add(stringResource(R.string.payload_preview_shown_part, formatCount(PayloadPreview.MAX_CHARS), formatCount(shown.totalLength)))
                             }
-                            // A payload the store cut short is not in the JSON export either.
+                            // A payload the store cut short is not whole anywhere, so nothing promises it.
                             if (shown.cutInStorage) {
                                 add(stringResource(R.string.logs_payload_stored_part))
                             } else if (shown.cutForDisplay) {
-                                add(stringResource(R.string.logs_payload_full_in_export))
+                                add(stringResource(fullPayloadHint(stored)))
                             }
                         }
                         if (notes.isNotEmpty()) {
@@ -378,6 +382,21 @@ private fun LogRow(log: WebhookLog, accent: androidx.compose.ui.graphics.Color) 
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                        // The same Copy JSON and Share as the data preview (S-01). A payload the
+                        // store cut short is no JSON any more, so it is shared as plain text.
+                        var copyRefused by remember(log.id) { mutableStateOf(false) }
+                        Row {
+                            CopyJsonButton(accent, stored) { copyRefused = it }
+                            SharePayloadButton(accent) {
+                                val extension = if (shown.cutInStorage) "txt" else "json"
+                                ExportManager(context).shareFile(
+                                    stored,
+                                    exportFileName("payload", extension),
+                                    if (shown.cutInStorage) "text/plain" else "application/json"
+                                )
+                            }
+                        }
+                        CopyRefusedNote(copyRefused)
                     }
                 }
             }
