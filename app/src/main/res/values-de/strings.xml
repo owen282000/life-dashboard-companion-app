@@ -15,6 +15,8 @@
     <string name="common_none_configured">Nichts konfiguriert</string>
     <string name="common_permissions_required">Berechtigungen erforderlich</string>
     <string name="common_remove">Entfernen</string>
+    <string name="common_show_password">Passwort anzeigen</string>
+    <string name="common_hide_password">Passwort verbergen</string>
     <string name="common_saved">Gespeichert!</string>
 
     <!-- Gemeinsame Webhook- und Synchronisierungseinstellungen, genutzt von Health Connect und Bildschirmzeit -->
@@ -30,6 +32,10 @@
     <string name="webhook_enter_valid_url">Gib eine gültige URL ein</string>
     <string name="webhook_header_name">Header-Name</string>
     <string name="webhook_header_value">Header-Wert</string>
+    <string name="webhook_header_name_invalid">Ein Header-Name darf nur Buchstaben, Ziffern und Zeichen wie - und _ enthalten, keine Leerzeichen</string>
+    <string name="webhook_header_value_invalid">Ein Header-Wert darf nur einfache ASCII-Zeichen enthalten, keine Zeilenumbrüche oder Buchstaben wie é</string>
+    <string name="webhook_header_name_blocks_delivery">Nichts wurde gesendet: Der Name von Header %1$s kann nicht gesendet werden. Entferne ihn unter Webhook und füge ihn mit einem Namen ohne Leerzeichen neu hinzu.</string>
+    <string name="webhook_header_value_blocks_delivery">Nichts wurde gesendet: Der Wert von Header %1$s enthält einen Zeilenumbruch oder ein Zeichen, das ein Header nicht tragen kann. Entferne ihn unter Webhook und füge ihn neu hinzu.</string>
     <string name="webhook_headers_title">Webhook-Header</string>
     <string name="webhook_hmac_secret_description">Wenn gesetzt, bekommt jeder POST einen X-Signature-Header (sha256=&lt;hex&gt;), berechnet als HMAC-SHA256 über den Body, damit dein Server den Absender prüfen kann.</string>
     <string name="webhook_hmac_secret_title">HMAC-Signaturschlüssel (optional)</string>
@@ -285,6 +291,9 @@
     <string name="mqtt_enabled_shared_broker">Aktiviert: %1$s (gemeinsamer Broker)</string>
     <string name="mqtt_password">Passwort (optional)</string>
     <string name="mqtt_port">Port</string>
+    <string name="mqtt_host_missing">Gib den Hostnamen oder die IP-Adresse des Brokers ein</string>
+    <string name="mqtt_host_invalid">Gib nur einen Hostnamen oder eine IP-Adresse ein, ohne Leerzeichen, mqtt:// oder Port</string>
+    <string name="mqtt_port_invalid">Gib einen Port von 1 bis 65535 ein</string>
     <string name="mqtt_title">MQTT</string>
     <string name="mqtt_tls">TLS</string>
     <string name="mqtt_plaintext_public_host">Ohne TLS gehen deine Daten und das Broker-Passwort unverschlüsselt durchs Internet. Schalte TLS ein, meist auf Port 8883.</string>
@@ -472,6 +481,7 @@
     <string name="backup_note_iphone_types_kept">Die iPhone-App hat keine Knochenmasse, kein Körperwasser, keinen Grundumsatz und keine Hauttemperatur, daher bleiben diese auf diesem Telefon an oder aus wie bisher.</string>
     <string name="backup_note_iphone_topic_kept">Das MQTT-Topic des iPhones, lifedashboard-ios, wird nicht übernommen. Dieses Telefon behält sein eigenes, damit die beiden Telefone keine Sensoren teilen.</string>
     <string name="backup_note_iphone_name_kept">Der Telefonname des iPhones wird nicht übernommen. Dieses Telefon behält seinen eigenen.</string>
+    <string name="backup_note_unsendable_headers_skipped">Header, die nicht gesendet werden können, etwa einer mit einem Leerzeichen im Namen, werden ausgelassen. Füge sie unter Webhook neu hinzu.</string>
     <string name="backup_keeps_credentials">Diese Datei enthält keine Zugangsdaten, daher bleiben die auf diesem Gerät erhalten.</string>
     <string name="backup_history_unaffected">Synchronisierungsverlauf und Logs bleiben unverändert.</string>
     <string name="backup_imported">Einstellungen importiert, öffne die App neu, um sie zu sehen</string>

@@ -84,6 +84,51 @@ object WebhookSupport {
     fun headersFor(url: String, headers: Map<String, String>, urlsWithoutHeaders: Set<String>): Map<String, String> =
         if (url in urlsWithoutHeaders) emptyMap() else headers
 
+    /** The characters an HTTP token may hold besides letters and digits (tchar, RFC 9110 section 5.6.2). */
+    private const val TOKEN_SYMBOLS = "!#$%&'*+-.^_`|~"
+
+    /**
+     * Whether [name] can go out as a header name: a non-empty HTTP token, so no spaces, colons
+     * or anything outside ASCII. OkHttp refuses a name with a space or a control character when
+     * the request is built, which made every delivery fail; a token is a subset of what it takes.
+     */
+    fun isValidHeaderName(name: String): Boolean =
+        name.isNotEmpty() && name.all { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it in TOKEN_SYMBOLS }
+
+    /**
+     * Whether [value] can go out as a header value: what OkHttp accepts, printable ASCII and
+     * tabs. A line break could start a header of its own, and OkHttp refuses it, a control
+     * character or a letter like é outright.
+     */
+    fun isValidHeaderValue(value: String): Boolean = value.all { it == '\t' || it in ' '..'~' }
+
+    /**
+     * A custom header that cannot be sent: its [name], and whether it is the value that is
+     * wrong. The value itself is never part of it, since a custom header usually carries a key.
+     */
+    data class HeaderProblem(val name: String, val inValue: Boolean) {
+        /** The log line and failure reason; FailureReason keeps the part before the full stop. */
+        val message: String
+            get() {
+                val shown = name.map { if (it.isISOControl()) '?' else it }.joinToString("")
+                val what = if (inValue) "Invalid value in header \"$shown\"" else "Invalid header name \"$shown\""
+                return "$what, so nothing was sent. Remove the header in the webhook settings and add it again"
+            }
+    }
+
+    /** The first header in [headers] that cannot be sent, or null when all of them can. */
+    fun headerProblem(headers: Map<String, String>): HeaderProblem? = headers.entries.firstNotNullOfOrNull { (name, value) ->
+        when {
+            !isValidHeaderName(name) -> HeaderProblem(name, inValue = false)
+            !isValidHeaderValue(value) -> HeaderProblem(name, inValue = true)
+            else -> null
+        }
+    }
+
+    /** [headers] without the ones that cannot be sent, see [headerProblem]. */
+    fun sendableHeaders(headers: Map<String, String>): Map<String, String> =
+        headers.filter { (name, value) -> isValidHeaderName(name) && isValidHeaderValue(value) }
+
     /** Redirects one delivery follows at most, all on the same host. */
     const val MAX_REDIRECTS = 5
 

@@ -335,4 +335,29 @@ class MqttSupportTest {
             MqttSupport.topicsToClearOnRename("lifedashboard", "homeassistant", listOf("heart_rate"), "old", "new")
         )
     }
+
+    @Test
+    fun `a broker host is a host name or an IP address`() {
+        listOf(
+            "192.168.1.10", "broker.local", "core-mosquitto", "my_server.lan", "mqtt.example.com.", " broker.local ",
+            "localhost", "::1", "[fd00::1]", "fe80::1%wlan0", "2001:db8:0:0:0:0:0:1", "::ffff:192.168.1.10"
+        ).forEach { assertTrue(it, MqttSupport.isValidHost(it)) }
+    }
+
+    @Test
+    fun `a broker host with a space, a scheme, a port or a broken address is refused`() {
+        listOf(
+            "", " ", "bad host", "mqtt://broker.local", "broker.local:1883", "broker..local", "-broker.local",
+            "broker-.local", "256.1.1.1", "1.2.3", "1.2.3.4.5", "fd00:::1", "1::2::3", "[fd00::1", "12345::1",
+            "1:2:3:4:5:6:7:8:9", "brokér.local", "broker/path", "a".repeat(64) + ".local"
+        ).forEach { assertFalse(it, MqttSupport.isValidHost(it)) }
+    }
+
+    @Test
+    fun `a port is a whole number from 1 to 65535`() {
+        assertEquals(1, MqttSupport.portOrNull("1"))
+        assertEquals(1883, MqttSupport.portOrNull(" 1883 "))
+        assertEquals(65535, MqttSupport.portOrNull("65535"))
+        listOf("", "0", "65536", "-1", "18 83", "abc").forEach { assertNull(it, MqttSupport.portOrNull(it)) }
+    }
 }

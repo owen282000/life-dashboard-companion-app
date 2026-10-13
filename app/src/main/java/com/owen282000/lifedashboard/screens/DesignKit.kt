@@ -31,11 +31,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -47,7 +50,10 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -370,7 +376,11 @@ fun RowSwitch(
  */
 fun Modifier.announced(): Modifier = semantics { liveRegion = LiveRegionMode.Polite }
 
-/** The filled text field used everywhere: quiet at rest, an accent ring when focused. */
+/**
+ * The filled text field used everywhere: quiet at rest, an accent ring when focused. A
+ * [password] field is masked and has an eye to show what was typed, since a password that
+ * cannot be checked is retyped blind. [error] goes under the field, which turns red.
+ */
 @Composable
 fun FilledField(
     value: String,
@@ -383,34 +393,67 @@ fun FilledField(
     password: Boolean = false,
     singleLine: Boolean = true,
     /** Sits at the end of the field, for an action that fills it rather than clears it. */
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
+    error: String? = null
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
+    var revealed by rememberSaveable { mutableStateOf(false) }
     TextField(
         value = value,
         onValueChange = onValueChange,
         label = label?.let { { Text(it) } },
         placeholder = placeholder?.let { { Text(it) } },
-        trailingIcon = trailingIcon,
+        trailingIcon = if (password) {
+            { PasswordToggle(revealed) { revealed = !revealed } }
+        } else {
+            trailingIcon
+        },
+        supportingText = error?.let { { Text(it) } },
+        isError = error != null,
         singleLine = singleLine,
         interactionSource = interaction,
         shape = FieldShape,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        visualTransformation = if (password) PasswordVisualTransformation() else VisualTransformation.None,
+        // A password keyboard does not learn or suggest what is typed.
+        keyboardOptions = KeyboardOptions(
+            keyboardType = if (password && keyboardType == KeyboardType.Text) KeyboardType.Password else keyboardType
+        ),
+        visualTransformation = if (password && !revealed) PasswordVisualTransformation() else VisualTransformation.None,
         colors = TextFieldDefaults.colors(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent,
             focusedContainerColor = MaterialTheme.colorScheme.surface,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             cursorColor = accent,
             focusedLabelColor = accent
         ),
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, if (focused) accent else Color.Transparent, FieldShape)
+            .border(
+                1.dp,
+                when {
+                    error != null -> MaterialTheme.colorScheme.error
+                    focused -> accent
+                    else -> Color.Transparent
+                },
+                FieldShape
+            )
     )
+}
+
+/** The eye at the end of a password field; named for what a tap does, so TalkBack says it. */
+@Composable
+private fun PasswordToggle(revealed: Boolean, onToggle: () -> Unit) {
+    IconButton(onClick = onToggle) {
+        Icon(
+            if (revealed) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+            contentDescription = stringResource(if (revealed) R.string.common_hide_password else R.string.common_show_password),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }
 
 /** The one big button of a tab, with a spinner while busy. */

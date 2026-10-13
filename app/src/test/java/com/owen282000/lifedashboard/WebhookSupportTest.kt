@@ -113,4 +113,59 @@ class WebhookSupportTest {
         assertNull(WebhookSupport.followableRedirect("https://ha.example/hook", null, allowHttp = false))
         assertNull(WebhookSupport.followableRedirect("https://ha.example/hook", "ftp://ha.example/hook", allowHttp = false))
     }
+
+    @Test
+    fun aHeaderNameIsAnHttpToken() {
+        listOf("X-Api-Key", "Authorization", "x_custom.v2", "A1!#$%&'*+-.^_`|~").forEach {
+            assertTrue(it, WebhookSupport.isValidHeaderName(it))
+        }
+        listOf("", "Bad Header", " X-Key", "X-Key:", "X(Key)", "X\"Key", "Schl\u00fcssel", "X\tKey", "X\nKey").forEach {
+            assertFalse(it, WebhookSupport.isValidHeaderName(it))
+        }
+    }
+
+    @Test
+    fun aHeaderValueIsPrintableAsciiOrTabs() {
+        listOf("", "Bearer abc.def", "a b\tc", "{\"json\": [1, 2]}").forEach {
+            assertTrue(it, WebhookSupport.isValidHeaderValue(it))
+        }
+        listOf("line\nbreak", "carriage\rreturn", "nul\u0000", "caf\u00e9", "del\u007f").forEach {
+            assertFalse(it, WebhookSupport.isValidHeaderValue(it))
+        }
+    }
+
+    @Test
+    fun whatTheRulesAcceptOkHttpSendsAndWhatOkHttpRefusesTheyRefuse() {
+        val names = listOf("X-Api-Key", "Bad Header", "X-Key:", "Schl\u00fcssel", "X\nKey", "A1!#$%&'*+-.^_`|~", "", "X(Key)")
+        val values = listOf("Bearer abc", "line\nbreak", "caf\u00e9", "tab\there", "nul\u0000", "")
+        for (name in names) {
+            for (value in values) {
+                val okHttpTakesIt = runCatching { okhttp3.Headers.headersOf(name, value) }.isSuccess
+                val accepted = WebhookSupport.isValidHeaderName(name) && WebhookSupport.isValidHeaderValue(value)
+                if (accepted) assertTrue("$name: $value", okHttpTakesIt)
+                if (!okHttpTakesIt) assertFalse("$name: $value", accepted)
+            }
+        }
+    }
+
+    @Test
+    fun theHeaderProblemNamesTheHeaderButNeverItsValue() {
+        assertNull(WebhookSupport.headerProblem(mapOf("X-Api-Key" to "k")))
+        assertEquals(
+            WebhookSupport.HeaderProblem("Bad Header", inValue = false),
+            WebhookSupport.headerProblem(mapOf("X-Api-Key" to "k", "Bad Header" to "secret"))
+        )
+        val inValue = WebhookSupport.headerProblem(mapOf("X-Api-Key" to "sec\nret"))
+        assertEquals(WebhookSupport.HeaderProblem("X-Api-Key", inValue = true), inValue)
+        assertFalse(inValue!!.message, inValue.message.contains("sec"))
+        assertTrue(inValue.message, inValue.message.contains("X-Api-Key"))
+    }
+
+    @Test
+    fun onlySendableHeadersAreKept() {
+        assertEquals(
+            mapOf("X-Api-Key" to "k"),
+            WebhookSupport.sendableHeaders(mapOf("X-Api-Key" to "k", "Bad Header" to "v", "X-Other" to "a\nb"))
+        )
+    }
 }

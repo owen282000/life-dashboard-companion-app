@@ -49,6 +49,13 @@ data class WebhookOutcome(
  */
 class PayloadRefusedException(val statusCode: Int, message: String) : IOException(message)
 
+/**
+ * A custom header that cannot be sent, found before the request was built (see
+ * [WebhookSupport.headerProblem]). Not retried: it fails the same way until the header is
+ * fixed, and it is a setting to correct, not a server that is unreachable.
+ */
+class InvalidHeaderException(val problem: WebhookSupport.HeaderProblem) : IllegalArgumentException(problem.message)
+
 class WebhookManager(
     private val webhookUrls: List<String>,
     private val context: Context? = null,
@@ -164,9 +171,17 @@ class WebhookManager(
             return Result.failure(IOException(reason))
         }
 
+        // A header saved before names were checked, or one from elsewhere, would make OkHttp
+        // throw while building the request. Said here, in words, for this URL alone: one that
+        // gets no headers still goes out.
+        val headers = WebhookSupport.headersFor(url, customHeaders, urlsWithoutHeaders)
+        WebhookSupport.headerProblem(headers)?.let { problem ->
+            logWebhookCall(url, timestamp, null, false, problem.message, jsonPayload)
+            return Result.failure(InvalidHeaderException(problem))
+        }
+
         return try {
             val requestBody = jsonPayload.toRequestBody(jsonMediaType)
-            val headers = WebhookSupport.headersFor(url, customHeaders, urlsWithoutHeaders)
             val requestSignature = if (!signingSecret.isNullOrBlank()) WebhookSupport.signature(jsonPayload, signingSecret) else null
 
             // The same POST for the configured URL and for a redirect on its host: OkHttp would

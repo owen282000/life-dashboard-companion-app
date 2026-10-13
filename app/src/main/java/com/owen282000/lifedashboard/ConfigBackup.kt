@@ -90,14 +90,21 @@ data class ConfigBackup(
     )
 
     /**
-     * This file as it applies to this phone. A file from the iPhone app names the iPhone: its
-     * phone name, and its default base topic, would put this phone's sensors on the iPhone's
-     * in Home Assistant, so both are dropped and this phone keeps its own. The iPhone app does
-     * the same with a file from here; a topic the user chose is taken as it is, as there.
+     * This file as it applies to this phone. A header that cannot be sent (WebhookSupport.headerProblem)
+     * is left out: taken over, it would fail every delivery of its section. A file from the
+     * iPhone app names the iPhone: its phone name, and its default base topic, would put this
+     * phone's sensors on the iPhone's in Home Assistant, so both are dropped and this phone
+     * keeps its own. The iPhone app does the same with a file from here; a topic the user chose
+     * is taken as it is, as there.
      */
     fun forThisPhone(): ConfigBackup {
-        if (!isFromIPhone) return this
-        return copy(
+        val sendable = if (hasUnsendableHeaders()) {
+            copy(health = health.withSendableHeaders(), screenTime = screenTime.withSendableHeaders())
+        } else {
+            this
+        }
+        if (!isFromIPhone) return sendable
+        return sendable.copy(
             mqtt = if (hasIPhoneBaseTopic()) mqtt.copy(healthBaseTopic = null) else mqtt,
             options = options.copy(phoneName = null)
         )
@@ -109,9 +116,13 @@ data class ConfigBackup(
         if (isFromIPhone && options.enabledDataTypes != null) add(ImportNote.IPHONE_ANDROID_TYPES_KEPT)
         if (isFromIPhone && hasIPhoneBaseTopic()) add(ImportNote.IPHONE_BASE_TOPIC_KEPT)
         if (isFromIPhone && !options.phoneName.isNullOrBlank()) add(ImportNote.IPHONE_PHONE_NAME_KEPT)
+        if (hasUnsendableHeaders()) add(ImportNote.UNSENDABLE_HEADERS_SKIPPED)
     }
 
     private fun hasIPhoneBaseTopic() = mqtt.healthBaseTopic?.trim() == IOS_DEFAULT_BASE_TOPIC
+
+    private fun hasUnsendableHeaders() =
+        WebhookSupport.headerProblem(health.headers) != null || WebhookSupport.headerProblem(screenTime.headers) != null
 }
 
 /** The counts the import preview lists. Null where the file has none and the device keeps its own. */
@@ -135,7 +146,10 @@ enum class ImportNote {
     IPHONE_BASE_TOPIC_KEPT,
 
     /** The iPhone's name names the iPhone, so this phone keeps its own. */
-    IPHONE_PHONE_NAME_KEPT
+    IPHONE_PHONE_NAME_KEPT,
+
+    /** A header that cannot be sent, such as a name with a space, is left out. */
+    UNSENDABLE_HEADERS_SKIPPED
 }
 
 /** Webhook configuration of one section (Health Connect or Screen Time). */
@@ -165,6 +179,9 @@ data class SectionConfig(
     fun containsSecrets(): Boolean = !signingSecret.isNullOrBlank() || headers.isNotEmpty()
 
     fun withoutSecrets(): SectionConfig = copy(headers = emptyMap(), signingSecret = null)
+
+    /** Without the headers that cannot be sent; with none left, the device keeps its own, as for a file without headers. */
+    fun withSendableHeaders(): SectionConfig = copy(headers = WebhookSupport.sendableHeaders(headers))
 
     /**
      * Which of this backup's URLs get no custom headers once it is imported. Headers in the

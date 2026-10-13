@@ -496,4 +496,26 @@ class ConfigBackupTest {
         assertEquals(deviceHealth, empty.mqtt.sectionOnImport(MqttSection.HEALTH, deviceHealth, false))
         assertEquals(deviceScreenTime, empty.mqtt.sectionOnImport(MqttSection.SCREEN_TIME, deviceScreenTime, false))
     }
+
+    @Test
+    fun aHeaderThatCannotBeSentIsLeftOutOnImportAndThePreviewSaysSo() {
+        val file = fullBackup().copy(
+            health = fullBackup().health.copy(headers = mapOf("X-Api-Key" to "abc", "Bad Header" to "x")),
+            screenTime = fullBackup().screenTime.copy(headers = mapOf("Authorization" to "Bearer a\nb"))
+        )
+        assertTrue(ImportNote.UNSENDABLE_HEADERS_SKIPPED in file.importNotes())
+
+        val applied = file.forThisPhone()
+        assertEquals(mapOf("X-Api-Key" to "abc"), applied.health.headers)
+        // None left: like a file without headers, which keeps the ones on the device.
+        assertTrue(applied.screenTime.headers.isEmpty())
+        assertEquals(file.health.webhookUrls, applied.health.webhookUrls)
+    }
+
+    @Test
+    fun sendableHeadersAreTakenOverAsTheyAre() {
+        val file = fullBackup()
+        assertFalse(ImportNote.UNSENDABLE_HEADERS_SKIPPED in file.importNotes())
+        assertEquals(file.health.headers, file.forThisPhone().health.headers)
+    }
 }

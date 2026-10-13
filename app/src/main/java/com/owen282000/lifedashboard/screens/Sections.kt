@@ -107,6 +107,15 @@ fun UiMessage.text(res: Resources): String = when (this) {
     UiMessage.InvalidDayBoundaryHour -> res.getString(R.string.screentime_day_boundary_hour_invalid)
     UiMessage.InvalidUrl -> res.getString(R.string.webhook_enter_valid_url)
     UiMessage.HeaderNeedsNameAndValue -> res.getString(R.string.webhook_enter_header_name_and_value)
+    UiMessage.InvalidHeaderName -> res.getString(R.string.webhook_header_name_invalid)
+    UiMessage.InvalidHeaderValue -> res.getString(R.string.webhook_header_value_invalid)
+    is UiMessage.HeaderBlocksDelivery -> res.getString(
+        if (inValue) R.string.webhook_header_value_blocks_delivery else R.string.webhook_header_name_blocks_delivery,
+        name
+    )
+    UiMessage.MqttHostMissing -> res.getString(R.string.mqtt_host_missing)
+    UiMessage.MqttHostInvalid -> res.getString(R.string.mqtt_host_invalid)
+    UiMessage.MqttPortInvalid -> res.getString(R.string.mqtt_port_invalid)
     UiMessage.NoNewData -> res.getString(R.string.sync_no_new_data)
     is UiMessage.SyncedRecords -> res.getQuantityString(R.plurals.health_synced_records, count, count)
     is UiMessage.QueuedRecords -> res.getQuantityString(R.plurals.health_queued_records, count, count)
@@ -251,7 +260,7 @@ fun WebhookRow(
             Spacer(modifier = Modifier.width(8.dp))
             AddButton(accent) {
                 onAddHeader(newHeaderKey, newHeaderValue)
-                if (newHeaderKey.isNotBlank() && newHeaderValue.isNotBlank()) {
+                if (SettingsRules.headerProblem(newHeaderKey, newHeaderValue) == null) {
                     newHeaderKey = ""
                     newHeaderValue = ""
                 }
@@ -442,7 +451,9 @@ fun MqttRow(
             onValueChange = { onChange(mqtt.withActiveBroker(broker.copy(host = it))) },
             accent = accent,
             label = if (section.useSharedBroker) stringResource(R.string.mqtt_broker_host_shared) else stringResource(R.string.mqtt_broker_host),
-            placeholder = stringResource(R.string.mqtt_broker_host_placeholder)
+            placeholder = stringResource(R.string.mqtt_broker_host_placeholder),
+            // Live, so the reason Save refuses is at the field it is about.
+            error = SettingsRules.mqttHostProblem(mqtt)?.text(LocalResources.current)
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             FilledField(
@@ -451,7 +462,8 @@ fun MqttRow(
                 accent = accent,
                 label = stringResource(R.string.mqtt_port),
                 keyboardType = KeyboardType.Number,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                error = SettingsRules.mqttPortProblem(mqtt)?.text(LocalResources.current)
             )
             Spacer(modifier = Modifier.width(12.dp))
             val tlsInteraction = remember { MutableInteractionSource() }

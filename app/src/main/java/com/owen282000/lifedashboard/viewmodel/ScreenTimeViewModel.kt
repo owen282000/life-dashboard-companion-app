@@ -181,8 +181,8 @@ class ScreenTimeViewModel(
     override fun removeUrl(index: Int) = editWebhook { it.withoutUrlAt(index) }
 
     override fun addHeader(key: String, value: String) {
-        if (key.isBlank() || value.isBlank()) {
-            _toasts.tryEmit(UiMessage.HeaderNeedsNameAndValue)
+        SettingsRules.headerProblem(key, value)?.let {
+            _toasts.tryEmit(it)
             return
         }
         editWebhook { it.copy(headers = it.headers + (key.trim() to value.trim())) }
@@ -222,6 +222,7 @@ class ScreenTimeViewModel(
     private fun persist(): UiMessage {
         val draft = _state.value.draft
         SettingsRules.scheduleProblem(draft.schedule)?.let { return it }
+        SettingsRules.mqttProblem(draft.mqtt)?.let { return it }
         // In times mode the interval field is hidden and may hold half-typed text; keep what
         // was saved rather than silently resetting it to the default.
         val interval = SettingsRules.intervalOrNull(draft.schedule.intervalText)
@@ -278,7 +279,7 @@ class ScreenTimeViewModel(
                             is ScreenTimeSyncResult.Queued -> UiMessage.QueuedApps(result.appCount)
                         }
                     },
-                    onFailure = { UiMessage.SyncFailed(it.message ?: "") }
+                    onFailure = { UiMessage.headerProblem(it) ?: UiMessage.SyncFailed(it.message ?: "") }
                 )
                 _state.update {
                     // The broker may have failed while the webhook took the payload.
@@ -324,7 +325,7 @@ class ScreenTimeViewModel(
             _toasts.tryEmit(
                 result.fold(
                     onSuccess = { UiMessage.PingDelivered },
-                    onFailure = { UiMessage.PingFailedWith(FailureReason.of(it).orEmpty()) }
+                    onFailure = { UiMessage.headerProblem(it) ?: UiMessage.PingFailedWith(FailureReason.of(it).orEmpty()) }
                 )
             )
         }

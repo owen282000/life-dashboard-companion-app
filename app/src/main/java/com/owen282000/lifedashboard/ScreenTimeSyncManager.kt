@@ -166,6 +166,9 @@ class ScreenTimeSyncManager(private val context: Context) {
                 return Result.failure(postResult.exceptionOrNull() ?: Exception("Failed to deliver screen time data"))
             }
             if (postResult.isFailure) {
+                // Queued either way; a header that cannot be sent is named rather than reported
+                // as an unreachable server, as in HealthSyncManager.
+                (postResult.exceptionOrNull() as? InvalidHeaderException)?.let { return Result.failure(it) }
                 return Result.success(ScreenTimeSyncResult.Queued(totalApps))
             }
 

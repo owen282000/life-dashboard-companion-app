@@ -99,17 +99,33 @@ class OnboardingSupportTest {
 
     @Test
     fun `the destination step waits for what a chosen destination needs`() {
-        assertFalse(OnboardingSupport.destinationReady(true, "", false, ""))
-        assertFalse(OnboardingSupport.destinationReady(true, "http://", false, ""))
-        assertFalse(OnboardingSupport.destinationReady(false, "", true, " "))
-        assertFalse(OnboardingSupport.destinationReady(true, "https://example.org/hook", true, ""))
-        assertTrue(OnboardingSupport.destinationReady(true, "https://example.org/hook", false, ""))
-        assertTrue(OnboardingSupport.destinationReady(false, "", true, "192.168.1.10"))
+        assertFalse(OnboardingSupport.destinationReady(true, "", false, "", "1883"))
+        assertFalse(OnboardingSupport.destinationReady(true, "http://", false, "", "1883"))
+        assertFalse(OnboardingSupport.destinationReady(false, "", true, " ", "1883"))
+        assertFalse(OnboardingSupport.destinationReady(true, "https://example.org/hook", true, "", "1883"))
+        assertTrue(OnboardingSupport.destinationReady(true, "https://example.org/hook", false, "", "1883"))
+        assertTrue(OnboardingSupport.destinationReady(false, "", true, "192.168.1.10", "1883"))
     }
 
     @Test
     fun `the destination step goes on with nothing chosen`() {
-        assertTrue(OnboardingSupport.destinationReady(false, "", false, ""))
+        assertTrue(OnboardingSupport.destinationReady(false, "", false, "", ""))
+    }
+
+    @Test
+    fun `a broker needs a host that can be connected to and a port from 1 to 65535`() {
+        assertFalse(OnboardingSupport.destinationReady(false, "", true, "bad host", "1883"))
+        assertFalse(OnboardingSupport.destinationReady(false, "", true, "mqtt://broker.local", "1883"))
+        assertFalse(OnboardingSupport.destinationReady(false, "", true, "broker.local", "0"))
+        assertFalse(OnboardingSupport.destinationReady(false, "", true, "broker.local", "65536"))
+        assertFalse(OnboardingSupport.destinationReady(false, "", true, "broker.local", ""))
+        assertTrue(OnboardingSupport.destinationReady(false, "", true, " broker.local ", "8883"))
+        assertTrue(OnboardingSupport.destinationReady(false, "", true, "fd00::1", "1883"))
+    }
+
+    @Test
+    fun `the broker port does not matter without MQTT`() {
+        assertTrue(OnboardingSupport.destinationReady(true, "https://example.org/hook", false, "bad host", "0"))
     }
 
     private val pairedHealthOnly = OnboardingSupport.WizardPairing(paired, setOf(PairingSource.HEALTH), seq = 1)

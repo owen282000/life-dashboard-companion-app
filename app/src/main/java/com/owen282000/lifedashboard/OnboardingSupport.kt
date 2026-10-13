@@ -59,11 +59,13 @@ object OnboardingSupport {
 
     /**
      * Whether the destination step can go on. A chosen destination needs what it sends to:
-     * a valid webhook URL, a broker host. Choosing none is what "I will set this up later" is for, so
-     * Next with nothing chosen goes on too.
+     * a valid webhook URL, a broker host and port that can be connected to, as the MQTT card
+     * checks them (SettingsRules.brokerHostProblem). Choosing none is what "I will set this up
+     * later" is for, so Next with nothing chosen goes on too.
      */
-    fun destinationReady(useWebhook: Boolean, url: String, useMqtt: Boolean, mqttHost: String): Boolean =
-        (!useWebhook || SettingsRules.isValidUrl(url)) && (!useMqtt || mqttHost.isNotBlank())
+    fun destinationReady(useWebhook: Boolean, url: String, useMqtt: Boolean, mqttHost: String, mqttPort: String): Boolean =
+        (!useWebhook || SettingsRules.isValidUrl(url)) &&
+            (!useMqtt || (MqttSupport.isValidHost(mqttHost) && MqttSupport.portOrNull(mqttPort) != null))
 
     /**
      * A code paired while the wizard is open, with the sections its dialog wrote. [seq] makes

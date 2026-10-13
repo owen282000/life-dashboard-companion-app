@@ -155,6 +155,8 @@ class HealthSyncManager(
             var webhookCount = 0
             var lastDelivered: HealthData? = null
             var queuedRecords: Int? = null
+            // Why the payload counted in queuedRecords did not go out.
+            var queuedBy: Throwable? = null
             // Records an MQTT-only setup read this sync, reported once the publish has run.
             var mqttOnlyRecords = 0
             // A failed post that could not be queued either, see PendingSyncStore.writeAhead.
@@ -384,6 +386,7 @@ class HealthSyncManager(
                 if (postResult.isFailure) {
                     // In the outbox since the post returned, so a later drain delivers it.
                     queuedRecords = totalRecords
+                    queuedBy = postResult.exceptionOrNull()
                     break
                 }
 
@@ -530,6 +533,10 @@ class HealthSyncManager(
 
             notQueued?.let { return Result.failure(it) }
             queuedRecords?.let {
+                // A header that cannot be sent fails every delivery until it is fixed, which is
+                // no outage: the sync says what is wrong instead of "Server unreachable". The
+                // payload waits in the outbox all the same and goes out once it is fixed.
+                (queuedBy as? InvalidHeaderException)?.let { e -> return Result.failure(e) }
                 return Result.success(HealthSyncResult.Queued(it))
             }
             return Result.success(HealthSyncResult.Success(syncCounts, writeBack.writtenTotal, missedUrls, webhookCount))

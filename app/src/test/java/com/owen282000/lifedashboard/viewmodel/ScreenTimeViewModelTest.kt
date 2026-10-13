@@ -2,7 +2,9 @@ package com.owen282000.lifedashboard.viewmodel
 
 import com.owen282000.lifedashboard.AppChoice
 import com.owen282000.lifedashboard.AppFilterMode
+import com.owen282000.lifedashboard.InvalidHeaderException
 import com.owen282000.lifedashboard.ScreenTimeAppFilter
+import com.owen282000.lifedashboard.WebhookSupport
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,6 +54,34 @@ class ScreenTimeViewModelTest {
         assertEquals("5", settings.screenTime.dayBoundaryHour)
         assertFalse(vm.state.value.hasChanges)
         job.cancel()
+    }
+
+    @Test
+    fun `a header with a space in its name is refused, and so is a broken broker`() = runTest {
+        val settings = FakeAppSettings()
+        val vm = vm(settings)
+        val toasts = mutableListOf<UiMessage>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+        vm.addUrl("https://example.org/hook")
+        vm.addHeader("Bad Header", "value")
+        assertEquals(UiMessage.InvalidHeaderName, toasts.last())
+        assertTrue(vm.state.value.draft.webhook.headers.isEmpty())
+
+        val mqtt = vm.state.value.draft.mqtt
+        vm.setMqtt(mqtt.withActiveBroker(mqtt.activeBroker.copy(host = "bad host")))
+        vm.save()
+        assertEquals(UiMessage.MqttHostInvalid, toasts.last())
+        assertEquals(0, settings.savedScreenTime)
+        job.cancel()
+    }
+
+    @Test
+    fun `a sync stopped by a header names the header instead of an unreachable server`() = runTest {
+        val problem = WebhookSupport.HeaderProblem("Bad Header", inValue = false)
+        val vm = vm(ops = FakeScreenTimeOps(syncResult = Result.failure(InvalidHeaderException(problem))))
+        vm.syncNow()
+        assertEquals(UiMessage.HeaderBlocksDelivery("Bad Header", inValue = false), vm.state.value.syncMessage)
+        assertTrue(vm.state.value.syncMessage!!.isFailure)
     }
 
     @Test

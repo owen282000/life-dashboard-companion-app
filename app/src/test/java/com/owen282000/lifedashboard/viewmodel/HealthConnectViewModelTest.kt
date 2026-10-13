@@ -81,10 +81,50 @@ class HealthConnectViewModelTest {
     fun `MQTT alone is a valid destination`() = runTest {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        vm.setMqtt(vm.state.value.draft.mqtt.let { it.copy(section = it.section.copy(enabled = true)) })
+        vm.setMqtt(vm.state.value.draft.mqtt.let { it.withActiveBroker(it.activeBroker.copy(host = "192.168.1.10")).copy(section = it.section.copy(enabled = true)) })
         vm.save()
         assertEquals(1, settings.savedHealth)
         assertFalse(vm.state.value.hasChanges)
+    }
+
+    @Test
+    fun `a broker host with a space or port 0 is not saved, and the message says which field`() = runTest {
+        val settings = FakeAppSettings()
+        val vm = vm(settings)
+        val toasts = mutableListOf<UiMessage>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+        val enabled = vm.state.value.draft.mqtt.let { it.copy(section = it.section.copy(enabled = true)) }
+
+        vm.setMqtt(enabled.withActiveBroker(enabled.activeBroker.copy(host = "bad host")))
+        vm.save()
+        assertEquals(UiMessage.MqttHostInvalid, toasts.last())
+
+        vm.setMqtt(enabled.withActiveBroker(enabled.activeBroker.copy(host = "broker.local")).copy(portText = "0"))
+        vm.save()
+        assertEquals(UiMessage.MqttPortInvalid, toasts.last())
+
+        vm.setMqtt(enabled)
+        vm.save()
+        assertEquals(UiMessage.MqttHostMissing, toasts.last())
+        assertEquals(0, settings.savedHealth)
+        assertTrue(vm.state.value.hasChanges)
+        job.cancel()
+    }
+
+    @Test
+    fun `a header name with a space is refused when it is added`() = runTest {
+        val vm = vm()
+        val toasts = mutableListOf<UiMessage>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+        vm.addHeader("Bad Header", "value")
+        assertEquals(UiMessage.InvalidHeaderName, toasts.last())
+        vm.addHeader("X-Api-Key", "line\nbreak")
+        assertEquals(UiMessage.InvalidHeaderValue, toasts.last())
+        assertTrue(vm.state.value.draft.webhook.headers.isEmpty())
+
+        vm.addHeader(" X-Api-Key ", " k ")
+        assertEquals(mapOf("X-Api-Key" to "k"), vm.state.value.draft.webhook.headers)
+        job.cancel()
     }
 
     @Test

@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -166,11 +167,11 @@ fun OnboardingScreen(
                     if (secret.isNotBlank()) preferencesManager.setScreenTimeWebhookSecret(secret)
                 }
             }
-            if (useMqtt && mqttHost.isNotBlank()) {
+            if (useMqtt && MqttSupport.isValidHost(mqttHost)) {
                 preferencesManager.setSharedMqttBroker(
                     MqttBroker(
                         host = mqttHost.trim(),
-                        port = mqttPort.toIntOrNull() ?: 1883,
+                        port = MqttSupport.portOrNull(mqttPort) ?: 1883,
                         useTls = mqttTls,
                         username = mqttUser.trim().ifBlank { null },
                         password = mqttPass.ifBlank { null }
@@ -412,16 +413,19 @@ fun OnboardingScreen(
                                     accent = Accent,
                                     value = mqttHost,
                                     onValueChange = { mqttHost = it },
-                                    label = stringResource(R.string.mqtt_broker_host)
+                                    label = stringResource(R.string.mqtt_broker_host),
+                                    // Why Next stays off, at the field it is about.
+                                    error = SettingsRules.brokerHostProblem(mqttHost, required = true)?.text(LocalResources.current)
                                 )
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     FilledField(
                                         accent = Accent,
                                         value = mqttPort,
-                                        onValueChange = { mqttPort = it },
+                                        onValueChange = { text -> mqttPort = text.filter { it.isDigit() }.take(5) },
                                         label = stringResource(R.string.mqtt_port),
                                         keyboardType = KeyboardType.Number,
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1f),
+                                        error = SettingsRules.brokerPortProblem(mqttPort)?.text(LocalResources.current)
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     val tlsInteraction = remember { MutableInteractionSource() }
@@ -537,7 +541,7 @@ fun OnboardingScreen(
                                 stringResource(R.string.onboarding_next),
                                 enabled = when (step) {
                                     Step.FEATURES -> healthConnect || screenTime
-                                    Step.DESTINATION -> OnboardingSupport.destinationReady(useWebhook, webhookUrl, useMqtt, mqttHost)
+                                    Step.DESTINATION -> OnboardingSupport.destinationReady(useWebhook, webhookUrl, useMqtt, mqttHost, mqttPort)
                                     else -> true
                                 }
                             ) { stepIndex += 1 }

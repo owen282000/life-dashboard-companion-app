@@ -116,6 +116,35 @@ class WebhookRedirectTest {
     }
 
     @Test
+    fun aHeaderThatCannotBeSentFailsItsUrlWithTheHeaderNamedAndSendsNothingThere() = runTest {
+        val typed = receiver.url("/typed").toString()
+        val paired = elsewhere.url("/paired").toString()
+        elsewhere.enqueue(MockResponse.Builder().code(200).build())
+        val manager = WebhookManager(
+            webhookUrls = listOf(typed, paired),
+            customHeaders = mapOf("Bad Header" to "secret-key"),
+            urlsWithoutHeaders = setOf(paired),
+            allowHttpOverride = true
+        )
+
+        // The paired URL gets no headers, so it still takes the payload.
+        val outcome = manager.postData("{}")
+        assertTrue(outcome.isSuccess)
+        assertEquals(listOf(typed), outcome.getOrNull()?.missedUrls)
+        assertEquals(0, receiver.requestCount)
+        assertEquals(1, elsewhere.requestCount)
+
+        val failure = WebhookManager(
+            webhookUrls = listOf(typed),
+            customHeaders = mapOf("Bad Header" to "secret-key"),
+            allowHttpOverride = true
+        ).postData("{}").exceptionOrNull()
+        assertTrue(failure is InvalidHeaderException)
+        assertEquals("Invalid header name \"Bad Header\", so nothing was sent", FailureReason.of(failure))
+        assertEquals(0, receiver.requestCount)
+    }
+
+    @Test
     fun postDataFailsOnARedirectWithoutFollowingOrRetryingIt() = runTest {
         receiver.enqueue(
             MockResponse.Builder().code(307).addHeader("Location", elsewhere.url("/stolen").toString()).build()

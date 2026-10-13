@@ -302,8 +302,8 @@ class HealthConnectViewModel(
     override fun removeUrl(index: Int) = editWebhook { it.withoutUrlAt(index) }
 
     override fun addHeader(key: String, value: String) {
-        if (key.isBlank() || value.isBlank()) {
-            _toasts.tryEmit(UiMessage.HeaderNeedsNameAndValue)
+        SettingsRules.headerProblem(key, value)?.let {
+            _toasts.tryEmit(it)
             return
         }
         editWebhook { it.copy(headers = it.headers + (key.trim() to value.trim())) }
@@ -367,6 +367,7 @@ class HealthConnectViewModel(
     private fun persist(): UiMessage {
         val draft = _state.value.draft
         SettingsRules.scheduleProblem(draft.schedule)?.let { return it }
+        SettingsRules.mqttProblem(draft.mqtt)?.let { return it }
         // In times mode the interval field is hidden and may hold half-typed text; keep what
         // was saved rather than silently resetting it to the default.
         val interval = SettingsRules.intervalOrNull(draft.schedule.intervalText)
@@ -437,7 +438,7 @@ class HealthConnectViewModel(
                             is HealthSyncResult.Queued -> UiMessage.QueuedRecords(result.recordCount)
                         }
                     },
-                    onFailure = { UiMessage.SyncFailed(it.message ?: "") }
+                    onFailure = { UiMessage.headerProblem(it) ?: UiMessage.SyncFailed(it.message ?: "") }
                 )
                 // The sync may have learned which types the integration offers, or written some.
                 _state.update {
@@ -490,7 +491,7 @@ class HealthConnectViewModel(
             _toasts.tryEmit(
                 result.fold(
                     onSuccess = { UiMessage.PingDelivered },
-                    onFailure = { UiMessage.PingFailedWith(FailureReason.of(it).orEmpty()) }
+                    onFailure = { UiMessage.headerProblem(it) ?: UiMessage.PingFailedWith(FailureReason.of(it).orEmpty()) }
                 )
             )
         }
