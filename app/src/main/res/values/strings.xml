@@ -528,6 +528,8 @@
     <string name="about_f_no_sharing">No third-party data sharing</string>
     <string name="about_f_on_device">Data stays on your device</string>
     <string name="about_f_control">Full control over sync settings</string>
+    <string name="about_website">Website</string>
+    <string name="about_website_sub">Setup guides and the other Life Dashboard parts</string>
     <string name="about_docs">Documentation</string>
     <string name="about_docs_sub">Setup, webhook schema, MQTT, data sources</string>
     <string name="about_whats_new">What\'s new</string>

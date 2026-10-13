@@ -48,6 +48,7 @@ import androidx.compose.material.icons.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LocalCafe
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.MonitorHeart
@@ -109,6 +110,7 @@ import com.owen282000.lifedashboard.ui.theme.chosenThemeMode
 import kotlinx.coroutines.delay
 
 private const val REPO_URL = "https://github.com/owen282000/life-dashboard-companion-app"
+private const val SITE_URL = "https://owen282000.com/life-dashboard/"
 
 class AboutActivity : ComponentActivity() {
 
@@ -298,6 +300,7 @@ class AboutActivity : ComponentActivity() {
                         ConfigBackupSection()
                     }
 
+                    LinkCard(Icons.Outlined.Language, stringResource(R.string.about_website), stringResource(R.string.about_website_sub), SITE_URL)
                     LinkCard(Icons.Outlined.Article, stringResource(R.string.about_docs), stringResource(R.string.about_docs_sub), "$REPO_URL/blob/main/docs/usage.md")
                     LinkCard(Icons.Outlined.AutoAwesome, stringResource(R.string.about_whats_new), stringResource(R.string.about_whats_new_sub, versionName), "$REPO_URL/releases/tag/$versionName")
                     LinkCard(Icons.Outlined.BugReport, stringResource(R.string.about_report), stringResource(R.string.about_report_sub), "$REPO_URL/issues/new")

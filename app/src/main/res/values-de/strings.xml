@@ -525,6 +525,8 @@
     <string name="about_f_no_sharing">Keine Weitergabe an Dritte</string>
     <string name="about_f_on_device">Daten bleiben auf deinem Gerät</string>
     <string name="about_f_control">Volle Kontrolle über Sync-Einstellungen</string>
+    <string name="about_website">Website</string>
+    <string name="about_website_sub">Einrichtungsanleitungen und die anderen Teile von Life Dashboard</string>
     <string name="about_docs">Dokumentation</string>
     <string name="about_docs_sub">Einrichtung, Webhook-Schema, MQTT, Datenquellen</string>
     <string name="about_whats_new">Was ist neu</string>

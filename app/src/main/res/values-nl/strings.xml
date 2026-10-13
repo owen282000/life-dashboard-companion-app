@@ -525,6 +525,8 @@
     <string name="about_f_no_sharing">Geen data naar derden</string>
     <string name="about_f_on_device">Data blijft op je toestel</string>
     <string name="about_f_control">Volledige controle over sync-instellingen</string>
+    <string name="about_website">Website</string>
+    <string name="about_website_sub">Installatiegidsen en de andere onderdelen van Life Dashboard</string>
     <string name="about_docs">Documentatie</string>
     <string name="about_docs_sub">Setup, webhook-schema, MQTT, databronnen</string>
     <string name="about_whats_new">Wat is nieuw</string>

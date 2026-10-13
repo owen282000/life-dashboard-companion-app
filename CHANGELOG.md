@@ -14,6 +14,7 @@ All notable changes to this project are documented in this file. The format is b
   status and navigation bar icons; the widget keeps following the phone. The settings backup carries it as
   `options.theme`, the same key as the iOS app, and a backup without it leaves the phone's choice as it is.
 - The MQTT password fields, in the settings and in the setup, have a button to show or hide the password.
+- About links to the project's website, owen282000.com, with the setup guides and the other Life Dashboard parts.
 
 ### Fixed
 
