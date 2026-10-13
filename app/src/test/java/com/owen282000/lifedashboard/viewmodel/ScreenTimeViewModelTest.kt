@@ -57,7 +57,7 @@ class ScreenTimeViewModelTest {
     }
 
     @Test
-    fun `a header with a space in its name is refused, and so is a broken broker`() = runTest {
+    fun `a header with a space in its name is refused, and a broken broker only stops a save while MQTT is on`() = runTest {
         val settings = FakeAppSettings()
         val vm = vm(settings)
         val toasts = mutableListOf<UiMessage>()
@@ -68,10 +68,17 @@ class ScreenTimeViewModelTest {
         assertTrue(vm.state.value.draft.webhook.headers.isEmpty())
 
         val mqtt = vm.state.value.draft.mqtt
-        vm.setMqtt(mqtt.withActiveBroker(mqtt.activeBroker.copy(host = "bad host")))
+        val enabled = mqtt.copy(section = mqtt.section.copy(enabled = true))
+        vm.setMqtt(enabled.withActiveBroker(enabled.activeBroker.copy(host = "bad host")))
         vm.save()
         assertEquals(UiMessage.MqttHostInvalid, toasts.last())
         assertEquals(0, settings.savedScreenTime)
+
+        // With MQTT off the host field keeps its error, and the webhook is saved all the same.
+        vm.setMqtt(mqtt.withActiveBroker(mqtt.activeBroker.copy(host = "bad host")))
+        vm.save()
+        assertEquals(UiMessage.Saved, toasts.last())
+        assertEquals(1, settings.savedScreenTime)
         job.cancel()
     }
 

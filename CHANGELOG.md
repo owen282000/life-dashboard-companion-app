@@ -21,7 +21,8 @@ All notable changes to this project are documented in this file. The format is b
   unreachable": the sync line, the notification and Logs name the header, and the payload stays queued
   until it is fixed. Importing settings leaves such headers out, and the import preview says so.
 - MQTT settings and the setup refuse a broker host with spaces, a scheme or a port in it, and a port outside
-  1 to 65535, with the reason under the field, instead of saving a broker that can never connect.
+  1 to 65535, with the reason under the field, instead of saving a broker that can never connect. With MQTT
+  publishing off in a tab, the field still shows the problem, but saving and Sync Now go ahead.
 - When the MQTT broker can't be reached, the MQTT section, the sync line and the failure notification say in
   plain words what failed and what to check (host not found, connection refused, no answer, TLS, login
   refused), in English, Dutch and German, instead of a Java exception. The Logs tab keeps the technical

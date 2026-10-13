@@ -211,9 +211,9 @@ object SettingsRules {
     }
 
     /**
-     * What is wrong with the broker host of [mqtt], or null when it can be saved. A host is
-     * needed once publishing is on; one that is typed must be usable even while it is off, as
-     * the shared broker may be in use by the other tab.
+     * What is wrong with the broker host of [mqtt], as the field shows it. A host is needed once
+     * publishing is on; one that is typed is checked even while it is off, as the shared broker
+     * may be in use by the other tab, but only [mqttProblem] decides whether a save goes ahead.
      */
     fun mqttHostProblem(mqtt: MqttDraft): UiMessage? = brokerHostProblem(mqtt.activeBroker.host, required = mqtt.section.enabled)
 
@@ -221,8 +221,13 @@ object SettingsRules {
     fun mqttPortProblem(mqtt: MqttDraft): UiMessage? =
         if (mqtt.section.enabled || mqtt.activeBroker.host.isNotBlank()) brokerPortProblem(mqtt.portText) else null
 
-    /** The first problem of [mqtt] that stops a save, host before port. */
-    fun mqttProblem(mqtt: MqttDraft): UiMessage? = mqttHostProblem(mqtt) ?: mqttPortProblem(mqtt)
+    /**
+     * The first problem of [mqtt] that stops a save, host before port. Only while this section
+     * publishes: with MQTT off nothing connects, so a host or port that cannot work keeps its
+     * error under the field but does not hold back the rest of the tab, Sync Now included.
+     */
+    fun mqttProblem(mqtt: MqttDraft): UiMessage? =
+        if (mqtt.section.enabled) mqttHostProblem(mqtt) ?: mqttPortProblem(mqtt) else null
 
     /** A broker host as the settings and the setup wizard check it; blank only counts when [required]. */
     fun brokerHostProblem(host: String, required: Boolean): UiMessage? = when {

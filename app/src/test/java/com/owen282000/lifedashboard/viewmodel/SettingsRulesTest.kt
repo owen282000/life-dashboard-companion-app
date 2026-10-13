@@ -74,10 +74,14 @@ class SettingsRulesTest {
     }
 
     @Test
-    fun `a switched off broker is only checked once a host is typed`() {
+    fun `a switched off broker shows its errors but never stops a save`() {
         assertNull(SettingsRules.mqttProblem(mqtt(false, "", "")))
-        assertEquals(UiMessage.MqttHostInvalid, SettingsRules.mqttProblem(mqtt(false, "bad host", "1883")))
-        assertEquals(UiMessage.MqttPortInvalid, SettingsRules.mqttProblem(mqtt(false, "broker.local", "0")))
+        assertNull(SettingsRules.mqttProblem(mqtt(false, "bad host", "1883")))
+        assertNull(SettingsRules.mqttProblem(mqtt(false, "broker.local", "0")))
+        // The fields still say what is wrong once a host is typed.
+        assertNull(SettingsRules.mqttHostProblem(mqtt(false, "", "")))
+        assertEquals(UiMessage.MqttHostInvalid, SettingsRules.mqttHostProblem(mqtt(false, "bad host", "1883")))
+        assertEquals(UiMessage.MqttPortInvalid, SettingsRules.mqttPortProblem(mqtt(false, "broker.local", "0")))
     }
 
     @Test
