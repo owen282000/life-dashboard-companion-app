@@ -28,6 +28,14 @@ data class PayloadPreview(
         /** Characters shown at most, the same on iOS. */
         const val MAX_CHARS = 12_000
 
+        /**
+         * Characters the data preview puts on the clipboard at most (S-01). A clip crosses the
+         * binder as UTF-16, two bytes a character, and the binder buffer is 1 MB for every call
+         * the app has in flight, so a few hundred KB of health data can fail to copy at all.
+         * 100,000 characters is about 200 KB, and Share takes anything larger as a file.
+         */
+        const val MAX_COPY_CHARS = 100_000
+
         /** How far before the limit a line end may be, to end the preview on a whole line. */
         private const val LINE_SLACK = 500
 
@@ -44,6 +52,9 @@ data class PayloadPreview(
             if (end > 0 && Character.isHighSurrogate(body[end - 1])) end--
             return PayloadPreview(body.substring(0, end), body.length, true, cutInStorage)
         }
+
+        /** Whether [payload] can go on the clipboard whole; otherwise Share is the way to get it. */
+        fun fitsClipboard(payload: String): Boolean = payload.length <= MAX_COPY_CHARS
 
         /**
          * [payload] pretty printed when it is JSON, as is otherwise (a payload the store cut

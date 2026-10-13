@@ -148,7 +148,8 @@
     <string name="sync_preview_failed">Vorschau fehlgeschlagen</string>
     <string name="sync_preview_failed_with_reason">Vorschau fehlgeschlagen: %1$s</string>
     <string name="sync_preview_payload_description">Das ist der JSON-Payload, der gesendet wird:</string>
-    <string name="sync_preview_full_in_export">Export liefert den vollständigen Payload.</string>
+    <string name="sync_preview_full_in_copy_share">JSON kopieren oder Teilen liefert den vollständigen Payload.</string>
+    <string name="sync_preview_full_in_share">Teilen liefert den vollständigen Payload.</string>
     <string name="sync_save_changes">Änderungen speichern</string>
     <string name="sync_syncing">Wird synchronisiert...</string>
 
@@ -345,6 +346,13 @@
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
     <string name="payload_preview_a11y">Payload, %1$s Zeichen</string>
     <string name="payload_preview_shown_part">Die ersten %1$s von %2$s Zeichen werden angezeigt.</string>
+    <!-- JSON kopieren und Teilen im Vorschaudialog (S-01) -->
+    <string name="payload_copy_json">JSON kopieren</string>
+    <string name="payload_copy_json_a11y">JSON kopieren, der vollständige Payload</string>
+    <string name="payload_share">Teilen</string>
+    <string name="payload_share_a11y">Teilen, der vollständige Payload als Datei</string>
+    <string name="payload_copied">Vollständiger Payload kopiert</string>
+    <string name="payload_too_large_to_copy">Dieser Payload ist zu groß für die Zwischenablage. Mit Teilen bekommst du ihn vollständig als Datei.</string>
     <string name="logs_record_count">%1$s: %2$d</string>
     <string name="logs_recent_failures">Letzte Fehler:</string>
     <string name="logs_stat_records">Datensätze</string>

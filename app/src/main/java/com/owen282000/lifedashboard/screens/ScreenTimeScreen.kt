@@ -303,7 +303,9 @@ fun ScreenTimeContent(
         Spacer(modifier = Modifier.height(72.dp))
     }
 
-    state.previewData?.let { PreviewDialog(accent, it, actions::dismissPreview) }
+    state.previewData?.let { data ->
+        PreviewDialog(accent, data, actions::dismissPreview, onShare = { onShareExport(data, "json", "application/json") })
+    }
 
     state.exportJson?.let { json ->
         ExportFormatDialog(

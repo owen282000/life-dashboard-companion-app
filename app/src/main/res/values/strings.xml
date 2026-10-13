@@ -150,7 +150,8 @@
     <string name="sync_preview_failed">Preview failed</string>
     <string name="sync_preview_failed_with_reason">Preview failed: %1$s</string>
     <string name="sync_preview_payload_description">This is the JSON payload that will be sent:</string>
-    <string name="sync_preview_full_in_export">Export gives the full payload.</string>
+    <string name="sync_preview_full_in_copy_share">Copy JSON or Share gives the full payload.</string>
+    <string name="sync_preview_full_in_share">Share gives the full payload.</string>
     <string name="sync_save_changes">Save Changes</string>
     <string name="sync_syncing">Syncing...</string>
 
@@ -348,6 +349,13 @@
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
     <string name="payload_preview_a11y">Payload, %1$s characters</string>
     <string name="payload_preview_shown_part">Showing the first %1$s of %2$s characters.</string>
+    <!-- Copy JSON and Share in the data preview dialog (S-01) -->
+    <string name="payload_copy_json">Copy JSON</string>
+    <string name="payload_copy_json_a11y">Copy JSON of the full payload</string>
+    <string name="payload_share">Share</string>
+    <string name="payload_share_a11y">Share the full payload as a file</string>
+    <string name="payload_copied">Full payload copied</string>
+    <string name="payload_too_large_to_copy">This payload is too large for the clipboard. Share gives you all of it as a file.</string>
     <string name="logs_record_count">%1$s: %2$d</string>
     <string name="logs_recent_failures">Recent failures:</string>
     <string name="logs_stat_records">Records</string>
