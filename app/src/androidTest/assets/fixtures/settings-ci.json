@@ -92,6 +92,7 @@
             "blood_pressure"
         ],
         "receive_older_measurements": true,
-        "receive_source_url": "http://127.0.0.1:8765/api/webhook/ci-health"
+        "receive_source_url": "http://127.0.0.1:8765/api/webhook/ci-health",
+        "theme": "dark"
     }
 }

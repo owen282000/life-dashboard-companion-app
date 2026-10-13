@@ -341,5 +341,13 @@ data class OptionsConfig(
     @SerialName("receive_types") val receiveTypes: List<String>? = null,
     @SerialName("receive_older_measurements") val receiveOlderMeasurements: Boolean? = null,
     /** An export writes an empty string when no source is chosen; absent means an older backup. */
-    @SerialName("receive_source_url") val receiveSourceUrl: String? = null
-)
+    @SerialName("receive_source_url") val receiveSourceUrl: String? = null,
+    /**
+     * Light, dark or the phone's choice for the whole app (S-02): a [ThemeMode] key. Absent in
+     * an older backup and in the iPhone's, and then left alone on import, like the phone name.
+     */
+    @SerialName("theme") val theme: String? = null
+) {
+    /** The theme an import sets; null leaves the phone's own, also for a key this build does not know. */
+    fun themeOnImport(): ThemeMode? = ThemeMode.fromKey(theme)
+}

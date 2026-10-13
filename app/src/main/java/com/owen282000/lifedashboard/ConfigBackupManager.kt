@@ -71,7 +71,8 @@ class ConfigBackupManager(private val context: Context) {
                 receiveEnabled = receive.enabled,
                 receiveTypes = WriteBackType.entries.filter { it in receive.types }.map { it.key },
                 receiveOlderMeasurements = receive.olderMeasurements,
-                receiveSourceUrl = receive.sourceUrl.orEmpty()
+                receiveSourceUrl = receive.sourceUrl.orEmpty(),
+                theme = prefs.getThemeMode().key
             )
         )
     }
@@ -152,6 +153,8 @@ class ConfigBackupManager(private val context: Context) {
             receiveOlderMeasurements?.let { prefs.setReceiveOlderMeasurements(it) }
             // Only a URL the health section actually has; the URLs were written above.
             receiveSourceUrl?.let { url -> prefs.setReceiveSourceUrl(url.takeIf { it in prefs.getHealthWebhookUrls() }) }
+            // A backup from before the choice existed has no theme, and the phone keeps its own.
+            themeOnImport()?.let { prefs.setThemeMode(it) }
             // Null means a backup from before resolutions existed: leave the setting alone.
             seriesResolutions?.let { stored ->
                 prefs.setSeriesResolutions(

@@ -1,6 +1,9 @@
 package com.owen282000.lifedashboard.ui.theme
 
 import android.app.Activity
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -10,12 +13,18 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
+import com.owen282000.lifedashboard.ThemeMode
+import com.owen282000.lifedashboard.appPreferences
 
 private val DarkColorScheme = darkColorScheme(
     primary = BrandGreen,
@@ -74,9 +83,31 @@ private val AppShapes = Shapes(
     extraLarge = RoundedCornerShape(32.dp)
 )
 
+// The scrims enableEdgeToEdge puts behind a three-button navigation bar before Android 10,
+// which draws no contrast scrim of its own; the same values as the library's defaults.
+private val LightNavigationScrim = android.graphics.Color.argb(0xE6, 0xFF, 0xFF, 0xFF)
+private val DarkNavigationScrim = android.graphics.Color.argb(0x80, 0x1B, 0x1B, 0x1B)
+
+/**
+ * The theme chosen in About, kept current wherever it changes: About itself, or an imported
+ * backup. A screen in the back stack picks it up too, so going back needs no restart.
+ */
+@Composable
+fun chosenThemeMode(): ThemeMode {
+    if (LocalInspectionMode.current) return ThemeMode.SYSTEM
+    val context = LocalContext.current
+    val prefs = remember(context) { context.appPreferences() }
+    val mode by remember(prefs) { prefs.themeModeChanges() }.collectAsState(initial = prefs.getThemeMode())
+    return mode
+}
+
+/** Whether the app draws dark: the choice in About, or the phone's dark mode under System. */
+@Composable
+fun appInDarkTheme(): Boolean = chosenThemeMode().isDark(isSystemInDarkTheme())
+
 @Composable
 fun LifeDashboardTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = appInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
@@ -84,9 +115,19 @@ fun LifeDashboardTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            val activity = view.context as Activity
+            // The bar icons follow the app's theme, not the phone's: Light on a dark phone
+            // needs dark icons. enableEdgeToEdge decides that from the phone's dark mode
+            // unless it is told, so each activity's call in onCreate is redone here with the
+            // app's answer, the navigation bar included.
+            (activity as? ComponentActivity)?.enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.auto(
+                    android.graphics.Color.TRANSPARENT,
+                    android.graphics.Color.TRANSPARENT
+                ) { darkTheme },
+                navigationBarStyle = SystemBarStyle.auto(LightNavigationScrim, DarkNavigationScrim) { darkTheme }
+            )
+            activity.window.statusBarColor = colorScheme.background.toArgb()
         }
     }
 

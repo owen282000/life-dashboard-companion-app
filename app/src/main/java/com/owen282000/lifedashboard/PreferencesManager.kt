@@ -3,6 +3,10 @@ package com.owen282000.lifedashboard
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.LocalTime
@@ -228,6 +232,7 @@ class PreferencesManager(context: Context) {
         // Shared keys
         private const val KEY_KEEP_FULL_PAYLOADS = "keep_full_payloads"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_THEME_MODE = "theme_mode"
 
         // Defaults
         private const val DEFAULT_SYNC_INTERVAL_MINUTES = 60
@@ -779,6 +784,25 @@ class PreferencesManager(context: Context) {
     fun setKeepFullPayloads(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_KEEP_FULL_PAYLOADS, enabled).apply()
     }
+
+    /** Light, dark or the phone's choice for the whole app; a stored key this build does not know reads as [ThemeMode.SYSTEM]. */
+    fun getThemeMode(): ThemeMode = ThemeMode.fromKey(prefs.getString(KEY_THEME_MODE, null)) ?: ThemeMode.SYSTEM
+
+    fun setThemeMode(mode: ThemeMode) = prefs.edit { putString(KEY_THEME_MODE, mode.key) }
+
+    /**
+     * The theme choice now and on every change, so every open screen redraws at once. It
+     * listens on the settings file rather than on this instance, because an import writes
+     * through a PreferencesManager of its own and Android shares one file object per name.
+     */
+    fun themeModeChanges(): Flow<ThemeMode> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == KEY_THEME_MODE) trySend(getThemeMode())
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        trySend(getThemeMode())
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.conflate()
 
     // QR pairing writes across both webhook sections at once, which no single ViewModel
     // owns, so it goes through here. PairingStore is narrower than this class on purpose,

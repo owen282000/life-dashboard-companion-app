@@ -9,6 +9,7 @@ import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.SyncFailureNotifier
 import com.owen282000.lifedashboard.SyncMode
+import com.owen282000.lifedashboard.ThemeMode
 import com.owen282000.lifedashboard.WriteBackLedger
 import com.owen282000.lifedashboard.WriteBackReport
 import com.owen282000.lifedashboard.appPreferences
@@ -62,6 +63,7 @@ class BackupImportTest {
         assertEquals(SyncMode.TIMES, prefs.getSyncSchedule(LogType.HEALTH_CONNECT).mode)
         assertEquals(4, SyncFailureNotifier.getThreshold(context))
         assertEquals("CI Phone", prefs.getPhoneName())
+        assertEquals(ThemeMode.DARK, prefs.getThemeMode())
         assertEquals(fixture.health.webhookUrls.orEmpty().first(), prefs.getReceiveSettings().sourceUrl)
         assertEquals(comparable(fixture), comparable(ConfigBackupManager(context).export()))
     }
@@ -152,5 +154,6 @@ class BackupImportTest {
         assertEquals(useBoundary, prefs.useScreenTimeDayBoundary())
         assertEquals(healthTopic, prefs.getMqttSection(MqttSection.HEALTH).baseTopic)
         assertEquals("CI Phone", prefs.getPhoneName())
+        assertEquals("the file has no theme", ThemeMode.DARK, prefs.getThemeMode())
     }
 }

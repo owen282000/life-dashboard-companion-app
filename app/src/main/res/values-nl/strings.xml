@@ -466,6 +466,11 @@
     <string name="about_description">Stuurt je Health Connect- en schermtijddata naar Home Assistant via de Life Dashboard-integratie, naar je eigen webhook-backend of naar een MQTT-broker, en kan metingen uit je eigen Home Assistant terug in Health Connect zetten. Geen cloud ertussen.</string>
     <string name="about_privacy_title">Privacy en beveiliging</string>
     <string name="about_backup_title">Back-up en herstel</string>
+    <string name="about_appearance_title">Weergave</string>
+    <string name="about_appearance_description">Volg het donkere thema van je telefoon of houd deze app altijd licht of donker.</string>
+    <string name="about_theme_system">Systeem</string>
+    <string name="about_theme_light">Licht</string>
+    <string name="about_theme_dark">Donker</string>
     <string name="backup_intro">Instellingen gaan niet mee in de cloudback-up van Android, omdat de geheimen erin dit toestel nooit verlaten. Exporteer ze hier om naar een nieuwe telefoon over te stappen.</string>
     <string name="backup_export">Exporteren</string>
     <string name="backup_import">Importeren</string>

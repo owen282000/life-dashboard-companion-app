@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Gavel
@@ -94,6 +96,7 @@ import androidx.compose.ui.unit.sp
 import com.owen282000.lifedashboard.screens.ConfigBackupSection
 import com.owen282000.lifedashboard.screens.IconTile
 import com.owen282000.lifedashboard.screens.PremiumCard
+import com.owen282000.lifedashboard.screens.SegmentedFilter
 import com.owen282000.lifedashboard.ui.theme.BrandGreen
 import com.owen282000.lifedashboard.ui.theme.BrandGround
 import com.owen282000.lifedashboard.ui.theme.BrandGroundDeep
@@ -102,6 +105,7 @@ import com.owen282000.lifedashboard.ui.theme.HealthPrimary
 import com.owen282000.lifedashboard.ui.theme.LifeDashboardTheme
 import com.owen282000.lifedashboard.ui.theme.ScreenTimePrimary
 import com.owen282000.lifedashboard.ui.theme.Success
+import com.owen282000.lifedashboard.ui.theme.chosenThemeMode
 import kotlinx.coroutines.delay
 
 private const val REPO_URL = "https://github.com/owen282000/life-dashboard-companion-app"
@@ -287,6 +291,9 @@ class AboutActivity : ComponentActivity() {
                         FeatureItem(Icons.Outlined.Storage, stringResource(R.string.about_f_on_device))
                         FeatureItem(Icons.Outlined.Tune, stringResource(R.string.about_f_control))
                     }
+                    FeatureCard(Icons.Outlined.DarkMode, HealthPrimary, stringResource(R.string.about_appearance_title)) {
+                        ThemeChoice()
+                    }
                     FeatureCard(Icons.Outlined.SettingsBackupRestore, HealthPrimary, stringResource(R.string.about_backup_title)) {
                         ConfigBackupSection()
                     }
@@ -310,6 +317,38 @@ class AboutActivity : ComponentActivity() {
         }
     }
 }
+
+/**
+ * System, Light or Dark for the whole app. It applies as it is tapped, here and on the screens
+ * behind this one, which all read the same setting (see chosenThemeMode).
+ */
+@Composable
+private fun ThemeChoice() {
+    val context = LocalContext.current
+    val prefs = remember { context.appPreferences() }
+    val mode = chosenThemeMode()
+    val modes = ThemeMode.entries
+
+    Text(
+        stringResource(R.string.about_appearance_description),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Spacer(modifier = Modifier.height(12.dp))
+    SegmentedFilter(
+        options = modes.map { stringResource(it.label) },
+        selectedIndex = modes.indexOf(mode),
+        onSelect = { prefs.setThemeMode(modes[it]) }
+    )
+}
+
+@get:StringRes
+private val ThemeMode.label: Int
+    get() = when (this) {
+        ThemeMode.SYSTEM -> R.string.about_theme_system
+        ThemeMode.LIGHT -> R.string.about_theme_light
+        ThemeMode.DARK -> R.string.about_theme_dark
+    }
 
 /** A tappable card that opens [url] in the browser. */
 @Composable

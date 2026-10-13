@@ -56,7 +56,8 @@ class ConfigBackupTest {
             receiveEnabled = true,
             receiveTypes = listOf("weight", "blood_pressure"),
             receiveOlderMeasurements = true,
-            receiveSourceUrl = "https://example.com/health"
+            receiveSourceUrl = "https://example.com/health",
+            theme = "dark"
         )
     )
 
@@ -78,7 +79,8 @@ class ConfigBackupTest {
         listOf(
             "webhook_urls", "signing_secret", "sync_interval_minutes",
             "screen_time", "use_tls", "enabled_data_types", "include_daily_totals",
-            "allow_http_webhooks", "health_base_topic", "phone_name", "receive_types", "receive_source_url"
+            "allow_http_webhooks", "health_base_topic", "phone_name", "receive_types", "receive_source_url",
+            "theme"
         ).forEach {
             assertTrue("expected key \"$it\" in export", json.contains("\"$it\""))
         }
@@ -234,6 +236,15 @@ class ConfigBackupTest {
         assertNull(restored.options.receiveTypes)
         assertNull(restored.options.receiveOlderMeasurements)
         assertNull(restored.options.receiveSourceUrl)
+        assertNull("the phone keeps its own theme", restored.options.themeOnImport())
+    }
+
+    @Test
+    fun theThemeComesBackAndAnUnknownOneIsLeftAlone() {
+        assertEquals(ThemeMode.DARK, ConfigBackup.decode(fullBackup().encode()).options.themeOnImport())
+        ThemeMode.entries.forEach { assertEquals(it, OptionsConfig(theme = it.key).themeOnImport()) }
+        // A newer build's choice this one does not have keeps the phone's, rather than resetting it.
+        assertNull(OptionsConfig(theme = "sepia").themeOnImport())
     }
 
     @Test
