@@ -108,7 +108,9 @@ class ScreenTimeSyncManager(private val context: Context) {
             // MQTT-only setup: nothing to post, nothing to queue. The publish was the delivery,
             // so its outcome is the sync's (MqttSupport.syncFailure).
             if (webhookUrls.isEmpty()) {
-                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult) { context.getString(R.string.mqtt_sync_failed, it) }
+                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult, explain = { context.getString(it.messageRes) }) {
+                    context.getString(R.string.mqtt_sync_failed, it)
+                }
                 SyncFailureNotifier.recordResult(context, LogType.SCREEN_TIME, failure == null, FailureReason.of(failure))
                 SyncStatusStore.record(context, failure == null, if (failure == null) totalApps else 0, LogType.SCREEN_TIME)
                 // Every sync sends the whole week again, so a failed one loses nothing.
@@ -163,7 +165,10 @@ class ScreenTimeSyncManager(private val context: Context) {
             SyncStatusStore.record(context, postResult.isSuccess, if (postResult.isSuccess) totalApps else 0, LogType.SCREEN_TIME)
 
             if (postResult.isFailure && !committed) {
-                return Result.failure(postResult.exceptionOrNull() ?: Exception("Failed to deliver screen time data"))
+                val failure = postResult.exceptionOrNull() ?: Exception("Failed to deliver screen time data")
+                return Result.failure(
+                    ConnectionProblem.plain(failure) { context.getString(R.string.webhook_sync_failed, context.getString(it.messageRes)) }
+                )
             }
             if (postResult.isFailure) {
                 // Queued either way; a header that cannot be sent is named rather than reported

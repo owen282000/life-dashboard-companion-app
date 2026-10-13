@@ -279,7 +279,6 @@
 
     <!-- MQTT-Einstellungskarte -->
     <string name="mqtt_base_topic">Basis-Topic</string>
-    <string name="mqtt_no_answer_within">Keine Antwort innerhalb von %1$d s</string>
     <string name="mqtt_sync_failed">MQTT-Broker: %1$s</string>
     <string name="mqtt_broker_host">Broker-Host</string>
     <string name="mqtt_broker_host_placeholder">Broker-Host, z. B. 192.168.1.10</string>
@@ -301,6 +300,18 @@
     <string name="mqtt_use_shared_broker_off">Dieser Bereich verbindet sich mit einem eigenen Broker; %1$s behält den gemeinsamen</string>
     <string name="mqtt_use_shared_broker_on">Eine Verbindung für Health Connect und Bildschirmzeit; die Felder unten ändern sie für beide</string>
     <string name="mqtt_username">Benutzername (optional)</string>
+
+    <!-- Why a connection failed, for the MQTT status line and the sync line (ConnectionProblem) -->
+    <string name="connection_problem_host_not_found">Host nicht gefunden. Prüfe den Hostnamen und die Internetverbindung des Telefons.</string>
+    <string name="connection_problem_unreachable">Host aus diesem Netzwerk nicht erreichbar. Prüfe die Adresse und ob das Telefon dafür WLAN oder ein VPN braucht.</string>
+    <string name="connection_problem_refused">Verbindung abgelehnt. Prüfe den Port und ob der Server läuft.</string>
+    <string name="connection_problem_no_answer">Keine rechtzeitige Antwort. Prüfe Host, Port und Netzwerk.</string>
+    <string name="connection_problem_tls">Sichere Verbindung fehlgeschlagen. Prüfe die TLS-Einstellung, den Port und das Zertifikat des Servers.</string>
+    <string name="connection_problem_login_refused">Anmeldung abgelehnt. Prüfe Benutzername und Passwort.</string>
+    <string name="connection_problem_turned_down">Der Server hat die Verbindung zurückgewiesen. Sein Log nennt den Grund.</string>
+    <string name="connection_problem_lost">Verbindung vorzeitig getrennt. Prüfe den Port, die TLS-Einstellung und das Netzwerk.</string>
+    <string name="connection_problem_other">Senden fehlgeschlagen. Details stehen im Tab Logs.</string>
+    <string name="webhook_sync_failed">Webhook: %1$s</string>
 
     <!-- Log-Bildschirm -->
     <string name="logs_clear_logs">Logs leeren</string>

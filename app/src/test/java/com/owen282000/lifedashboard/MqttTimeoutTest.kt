@@ -12,6 +12,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
+import java.net.ConnectException
+import java.net.UnknownHostException
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -150,30 +152,45 @@ class MqttTimeoutTest {
         assertEquals(1, broker.disconnects)
     }
 
+    private val explain: (ConnectionProblem) -> String = { it.name }
+
     @Test
     fun mqttOnlyAFailedPublishIsAFailedSync() {
-        val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = Result.failure(IOException("Connection refused")), describe = describe)
+        val publish = Result.failure<Int>(MqttPublishException("Connection refused. Check the port.", ConnectException("Connection refused")))
+        val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = publish, explain = explain, describe = describe)
         assertNotNull(failure)
-        assertEquals("MQTT broker: Connection refused", failure?.message)
+        assertEquals("MQTT broker: Connection refused. Check the port.", failure?.message)
     }
 
     @Test
     fun withAWebhookTheWebhookDecides() {
-        assertNull(MqttSupport.syncFailure(hasWebhooks = true, publish = Result.failure(IOException("Connection refused")), describe = describe))
+        assertNull(MqttSupport.syncFailure(hasWebhooks = true, publish = Result.failure(IOException("Connection refused")), explain = explain, describe = describe))
     }
 
     @Test
     fun aPublishThatWentOutOrHadNothingToSendIsNoFailure() {
-        assertNull(MqttSupport.syncFailure(hasWebhooks = false, publish = Result.success(12), describe = describe))
-        assertNull(MqttSupport.syncFailure(hasWebhooks = false, publish = Result.success(0), describe = describe))
-        assertNull(MqttSupport.syncFailure(hasWebhooks = false, publish = null, describe = describe))
+        assertNull(MqttSupport.syncFailure(hasWebhooks = false, publish = Result.success(12), explain = explain, describe = describe))
+        assertNull(MqttSupport.syncFailure(hasWebhooks = false, publish = Result.success(0), explain = explain, describe = describe))
+        assertNull(MqttSupport.syncFailure(hasWebhooks = false, publish = null, explain = explain, describe = describe))
     }
 
     @Test
-    fun aFailureWithoutAMessageIsNamedByItsType() {
+    fun anyOtherFailureIsPutInPlainWordsAndNeverNamedByItsType() {
+        val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = Result.failure(IllegalStateException()), explain = explain, describe = describe)
+        assertEquals("MQTT broker: OTHER", failure?.message)
+        val unresolved = UnknownHostException("Unable to resolve host \"no-such-host.invalid\": No address associated with hostname")
         assertEquals(
-            "MQTT broker: IllegalStateException",
-            MqttSupport.syncFailure(hasWebhooks = false, publish = Result.failure(IllegalStateException()), describe = describe)?.message
+            "MQTT broker: HOST_NOT_FOUND",
+            MqttSupport.syncFailure(hasWebhooks = false, publish = Result.failure(unresolved), explain = explain, describe = describe)?.message
+        )
+    }
+
+    @Test
+    fun theLogRowKeepsTheExceptionBehindTheReason() {
+        val cause = MqttTimeoutException(MqttTimeouts.PUBLISH_DEADLINE_MILLIS)
+        assertEquals(
+            "No answer in time. (com.owen282000.lifedashboard.MqttTimeoutException: No answer within 120 s)",
+            MqttPublishException("No answer in time.", cause).logMessage
         )
     }
 }

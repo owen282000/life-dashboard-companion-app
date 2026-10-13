@@ -74,4 +74,20 @@ class TranslatedNamesTest {
         assertEquals("Schermtijd", strings("values-nl")["main_title_screen_time"])
         assertEquals("Bildschirmzeit", strings("values-de")["main_title_screen_time"])
     }
+
+    @Test
+    fun everyConnectionProblemIsAPlainSentenceInEveryLocale() {
+        val english = strings("values")
+        for (problem in ConnectionProblem.entries) {
+            val name = english.keys.filter { it.startsWith("connection_problem_") }.single { R.string::class.java.getField(it).getInt(null) == problem.messageRes }
+            for (folder in locales) {
+                val text = strings(folder)[name]
+                assertTrue("$problem has no sentence in $folder", !text.isNullOrBlank())
+                // What failed, then what to check: never an exception's name.
+                assertTrue("$problem names an exception in $folder: $text", "Exception" !in text!! && "java." !in text)
+            }
+        }
+        assertEquals("Host niet gevonden", strings("values-nl")["connection_problem_host_not_found"]?.substringBefore('.'))
+        assertEquals("Host nicht gefunden", strings("values-de")["connection_problem_host_not_found"]?.substringBefore('.'))
+    }
 }

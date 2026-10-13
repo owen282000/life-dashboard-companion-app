@@ -75,13 +75,19 @@ object MqttTimeouts {
 }
 
 /**
- * The broker did not answer within [millis]. The text the user sees is made from [millis] where
- * there are resources (R.string.mqtt_no_answer_within); this message is for stack traces.
+ * The broker did not answer within [millis]. The user sees ConnectionProblem.NO_ANSWER; this
+ * message, with its limit, is for the Logs tab and stack traces.
  */
 class MqttTimeoutException(val millis: Long) : IOException("No answer within ${millis / 1000} s")
 
-/** A failed publish, with [reason] already in the user's language. */
-class MqttPublishException(reason: String, cause: Throwable) : IOException(reason, cause)
+/**
+ * A failed publish, with [reason] already in the user's language and free of exception names
+ * (see [ConnectionProblem]). The [cause] keeps the technical detail for the Logs tab.
+ */
+class MqttPublishException(reason: String, cause: Throwable) : IOException(reason, cause) {
+    /** The row for the Logs tab: the user's reason, then the exception a bug report needs. */
+    val logMessage: String get() = "$message (${ConnectionProblem.detail(cause ?: this)})"
+}
 
 /**
  * Awaits a HiveMQ future for at most [millis]; running out of time throws
@@ -203,7 +209,7 @@ class MqttPublisher(private val context: Context) {
                     url = "mqtt://${settings.host}:${settings.port}/${settings.baseTopic}",
                     statusCode = null,
                     success = result.isSuccess,
-                    errorMessage = result.exceptionOrNull()?.let { it.message ?: it.javaClass.simpleName },
+                    errorMessage = result.exceptionOrNull()?.let { (it as? MqttPublishException)?.logMessage ?: ConnectionProblem.detail(it) },
                     dataType = "mqtt",
                     recordCount = sensors.size,
                     rawPayload = null,
@@ -291,8 +297,9 @@ class MqttPublisher(private val context: Context) {
         }
     }
 
-    /** Why a publish failed, as the status line, the Logs tab and the sync line show it. */
-    private fun reason(e: Exception): String =
-        if (e is MqttTimeoutException) context.getString(R.string.mqtt_no_answer_within, (e.millis / 1000).toInt())
-        else e.message ?: e.javaClass.simpleName
+    /**
+     * Why a publish failed, as the status line and the sync line show it: what failed and what
+     * to check, never a raw exception. The Logs tab adds the exception itself.
+     */
+    private fun reason(e: Exception): String = context.getString(ConnectionProblem.of(e).messageRes)
 }

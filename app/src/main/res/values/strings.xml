@@ -282,7 +282,6 @@
 
     <!-- MQTT settings card -->
     <string name="mqtt_base_topic">Base topic</string>
-    <string name="mqtt_no_answer_within">No answer within %1$d s</string>
     <string name="mqtt_sync_failed">MQTT broker: %1$s</string>
     <string name="mqtt_broker_host">Broker host</string>
     <string name="mqtt_broker_host_placeholder">Broker host, e.g. 192.168.1.10</string>
@@ -304,6 +303,18 @@
     <string name="mqtt_use_shared_broker_off">This section connects to its own broker; %1$s keeps the shared one</string>
     <string name="mqtt_use_shared_broker_on">One connection for Health Connect and Screen Time; the fields below edit it for both</string>
     <string name="mqtt_username">Username (optional)</string>
+
+    <!-- Why a connection failed, for the MQTT status line and the sync line (ConnectionProblem) -->
+    <string name="connection_problem_host_not_found">Host not found. Check the host name and the phone\'s internet connection.</string>
+    <string name="connection_problem_unreachable">Host not reachable from this network. Check the address, and whether the phone needs Wi-Fi or a VPN to reach it.</string>
+    <string name="connection_problem_refused">Connection refused. Check the port and that the server is running.</string>
+    <string name="connection_problem_no_answer">No answer in time. Check the host, the port and the network.</string>
+    <string name="connection_problem_tls">Secure connection failed. Check the TLS setting, the port and the server\'s certificate.</string>
+    <string name="connection_problem_login_refused">Login refused. Check the user name and password.</string>
+    <string name="connection_problem_turned_down">The server turned the connection down. Its log says why.</string>
+    <string name="connection_problem_lost">Connection closed early. Check the port, the TLS setting and the network.</string>
+    <string name="connection_problem_other">Sending failed. The Logs tab has the details.</string>
+    <string name="webhook_sync_failed">Webhook: %1$s</string>
 
     <!-- Logs screen -->
     <string name="logs_clear_logs">Clear logs</string>

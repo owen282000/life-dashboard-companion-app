@@ -279,7 +279,6 @@
 
     <!-- MQTT-instellingenkaart -->
     <string name="mqtt_base_topic">Basistopic</string>
-    <string name="mqtt_no_answer_within">Geen antwoord binnen %1$d s</string>
     <string name="mqtt_sync_failed">MQTT-broker: %1$s</string>
     <string name="mqtt_broker_host">Brokerhost</string>
     <string name="mqtt_broker_host_placeholder">Brokerhost, bijv. 192.168.1.10</string>
@@ -301,6 +300,18 @@
     <string name="mqtt_use_shared_broker_off">Deze sectie verbindt met een eigen broker; %1$s houdt de gedeelde</string>
     <string name="mqtt_use_shared_broker_on">Eén verbinding voor Health Connect en Schermtijd; de velden hieronder passen hem voor beide aan</string>
     <string name="mqtt_username">Gebruikersnaam (optioneel)</string>
+
+    <!-- Why a connection failed, for the MQTT status line and the sync line (ConnectionProblem) -->
+    <string name="connection_problem_host_not_found">Host niet gevonden. Controleer de hostnaam en de internetverbinding van de telefoon.</string>
+    <string name="connection_problem_unreachable">Host niet bereikbaar vanaf dit netwerk. Controleer het adres, en of de telefoon er wifi of een VPN voor nodig heeft.</string>
+    <string name="connection_problem_refused">Verbinding geweigerd. Controleer de poort en of de server draait.</string>
+    <string name="connection_problem_no_answer">Geen antwoord op tijd. Controleer de host, de poort en het netwerk.</string>
+    <string name="connection_problem_tls">Beveiligde verbinding mislukt. Controleer de TLS-instelling, de poort en het certificaat van de server.</string>
+    <string name="connection_problem_login_refused">Inloggen geweigerd. Controleer de gebruikersnaam en het wachtwoord.</string>
+    <string name="connection_problem_turned_down">De server heeft de verbinding afgewezen. In het log van de server staat waarom.</string>
+    <string name="connection_problem_lost">Verbinding voortijdig verbroken. Controleer de poort, de TLS-instelling en het netwerk.</string>
+    <string name="connection_problem_other">Versturen mislukt. Details staan op het tabblad Logs.</string>
+    <string name="webhook_sync_failed">Webhook: %1$s</string>
 
     <!-- Logsscherm -->
     <string name="logs_clear_logs">Logs wissen</string>

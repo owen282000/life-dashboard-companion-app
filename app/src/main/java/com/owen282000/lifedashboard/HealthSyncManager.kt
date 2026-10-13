@@ -522,7 +522,9 @@ class HealthSyncManager(
                 MqttPublisher(context).publishHealthData(data, totalsForMqtt)
             }
             if (webhookUrls.isEmpty()) {
-                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult) { context.getString(R.string.mqtt_sync_failed, it) }
+                val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult, explain = { context.getString(it.messageRes) }) {
+                    context.getString(R.string.mqtt_sync_failed, it)
+                }
                 SyncFailureNotifier.recordResult(context, LogType.HEALTH_CONNECT, failure == null, FailureReason.of(failure))
                 SyncStatusStore.record(context, failure == null, if (failure == null) mqttOnlyRecords else 0, LogType.HEALTH_CONNECT)
                 // The records stay read: the sensor values are cached, and the next publish
@@ -531,7 +533,7 @@ class HealthSyncManager(
                 LifetimeStats.recordDelivery(context, mqttOnlyRecords, 0, LogType.HEALTH_CONNECT)
             }
 
-            notQueued?.let { return Result.failure(it) }
+            notQueued?.let { return Result.failure(ConnectionProblem.plain(it, ::webhookFailure)) }
             queuedRecords?.let {
                 // A header that cannot be sent fails every delivery until it is fixed, which is
                 // no outage: the sync says what is wrong instead of "Server unreachable". The
@@ -562,6 +564,10 @@ class HealthSyncManager(
             round = writeBack.handle(sourceOnlyManager(post, "heartbeat").postData(post.payload), post)
         }
     }
+
+    /** A webhook that could not be reached, as the sync line says it; the Logs tab has the exception. */
+    private fun webhookFailure(problem: ConnectionProblem): String =
+        context.getString(R.string.webhook_sync_failed, context.getString(problem.messageRes))
 
     /** The heartbeat body (protocol section 3.2): timestamp, version and source, nothing else; the block is added per URL. */
     private fun heartbeatPayload(): String = buildJsonPayload(EMPTY_HEALTH_DATA)
