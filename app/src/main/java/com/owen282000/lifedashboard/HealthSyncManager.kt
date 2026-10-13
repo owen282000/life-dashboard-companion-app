@@ -473,7 +473,7 @@ class HealthSyncManager(
                 if (post != null) {
                     val heartbeat = sourceOnlyManager(post, "heartbeat").postData(post.payload)
                     SyncFailureNotifier.recordResult(
-                        context, LogType.HEALTH_CONNECT, heartbeat.isSuccess, FailureReason.of(heartbeat.exceptionOrNull())
+                        context, LogType.HEALTH_CONNECT, heartbeat.isSuccess, SyncFailureNotifier.reasonFor(context, heartbeat.exceptionOrNull())
                     )
                     receive(writeBack, post, heartbeat)
                 }

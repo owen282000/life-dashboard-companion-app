@@ -308,7 +308,7 @@ sealed interface UiMessage {
 
         /** [error] as the header it names when a header kept the request from being built, else null. */
         fun headerProblem(error: Throwable?): UiMessage? =
-            (error as? InvalidHeaderException)?.problem?.let { HeaderBlocksDelivery(it.name, it.inValue) }
+            (error as? InvalidHeaderException)?.problem?.let { HeaderBlocksDelivery(it.shownName, it.inValue) }
     }
     data class OtherSourceWrites(val source: String, val type: WriteBackType) : UiMessage
 

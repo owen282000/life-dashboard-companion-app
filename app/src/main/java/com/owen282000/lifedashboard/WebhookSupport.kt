@@ -107,11 +107,14 @@ object WebhookSupport {
      * wrong. The value itself is never part of it, since a custom header usually carries a key.
      */
     data class HeaderProblem(val name: String, val inValue: Boolean) {
+        /** [name] as it can be shown on one line: a control character, such as a line break, as a question mark. */
+        val shownName: String
+            get() = name.map { if (it.isISOControl()) '?' else it }.joinToString("")
+
         /** The log line and failure reason; FailureReason keeps the part before the full stop. */
         val message: String
             get() {
-                val shown = name.map { if (it.isISOControl()) '?' else it }.joinToString("")
-                val what = if (inValue) "Invalid value in header \"$shown\"" else "Invalid header name \"$shown\""
+                val what = if (inValue) "Invalid value in header \"$shownName\"" else "Invalid header name \"$shownName\""
                 return "$what, so nothing was sent. Remove the header in the webhook settings and add it again"
             }
     }

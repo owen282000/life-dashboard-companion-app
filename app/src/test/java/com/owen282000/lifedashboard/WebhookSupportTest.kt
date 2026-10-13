@@ -162,6 +162,20 @@ class WebhookSupportTest {
     }
 
     @Test
+    fun aHeaderNameIsShownOnOneLine() {
+        val problem = WebhookSupport.HeaderProblem("X-Api\nKey", inValue = false)
+        assertEquals("X-Api?Key", problem.shownName)
+        assertFalse(problem.message, problem.message.contains("\n"))
+        // What the failure notification keeps of the sentence the sync line shows.
+        assertEquals(
+            "Nothing was sent: header X-Api?Key has a name that cannot be sent",
+            FailureReason.shorten(
+                "Nothing was sent: header ${problem.shownName} has a name that cannot be sent. Remove it under Webhook and add it again with a name without spaces."
+            )
+        )
+    }
+
+    @Test
     fun onlySendableHeadersAreKept() {
         assertEquals(
             mapOf("X-Api-Key" to "k"),

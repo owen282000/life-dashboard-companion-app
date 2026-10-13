@@ -85,6 +85,21 @@ object SyncFailureNotifier {
 
     private fun notificationId(logType: LogType) = NOTIFICATION_ID + logType.ordinal
 
+    /**
+     * The reason a failed delivery's notification ends with. A header that cannot be sent is
+     * named in the user's language, as the sync line names it; anything else is shortened by
+     * [FailureReason].
+     */
+    fun reasonFor(context: Context, error: Throwable?): String? =
+        (error as? InvalidHeaderException)?.problem?.let { problem ->
+            FailureReason.shorten(
+                context.getString(
+                    if (problem.inValue) R.string.webhook_header_value_blocks_delivery else R.string.webhook_header_name_blocks_delivery,
+                    problem.shownName
+                )
+            )
+        } ?: FailureReason.of(error)
+
     private const val KEY_PARTIAL_PREFIX = "sync_partial_streak_"
 
     private fun partialNotificationId(logType: LogType) = NOTIFICATION_ID + 30 + logType.ordinal
@@ -97,7 +112,7 @@ object SyncFailureNotifier {
      * webhook clears it.
      */
     fun recordDelivery(context: Context, logType: LogType, result: Result<WebhookOutcome>) {
-        recordResult(context, logType, result.isSuccess, FailureReason.of(result.exceptionOrNull()))
+        recordResult(context, logType, result.isSuccess, reasonFor(context, result.exceptionOrNull()))
         val prefs = prefs(context)
         val key = KEY_PARTIAL_PREFIX + logType.name
         val missed = result.getOrNull()?.missedUrls.orEmpty()
