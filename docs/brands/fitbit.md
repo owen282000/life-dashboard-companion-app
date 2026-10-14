@@ -33,7 +33,7 @@ Not in Google's list (as of October 2026): oxygen saturation (SpO2) and active c
 
 In the Google Health app ([Google's instructions](https://support.google.com/googlehealth/answer/14506680)):
 
-1. At the top left, tap **Connections > Partner apps**.
+1. At the top left, tap **Connections**, then **Partner apps**.
 2. Under **Add connections**, tap **Sync your favorite health apps > Set up**.
 3. Accept, choose the data types and tap **Allow**.
 
@@ -63,9 +63,9 @@ The [Google Health integration](https://www.home-assistant.io/integrations/googl
 |---|---|---|
 | Setup | Google Cloud project, OAuth client, account link | Install, scan a QR code |
 | Where the data comes from | Google's cloud, polled every 15 minutes or hourly | Your phone, pushed by the app |
-| History | Current values | Every day in long-term statistics, backfill up to a year |
+| History | Current values, no backfill | Every day in long-term statistics, backfill up to a year |
 | HRV, respiratory rate, skin temperature | No sensor | Yes |
-| Other brands | Fitbit and Pixel Watch only | Any app that writes to Health Connect |
+| Other apps and devices | What reaches your Google Health account | Any app that writes to Health Connect |
 
 Both can run side by side.
 

@@ -32,7 +32,7 @@ What Life Dashboard Companion does, section by section. For setup and day-to-day
 
 ## Health data
 
-The app reads 33 Health Connect data types. Each has its own switch and its own permission, so you share only what you choose. Every enabled type goes to your webhooks as individual records; 24 of them also become a sensor in Home Assistant, through the integration or MQTT. The integration adds minutes per day for workouts and mindfulness sessions.
+The app reads 33 Health Connect data types. Each has its own switch and its own permission, so you share only what you choose. Every enabled type goes to your webhooks as individual records; 25 of them also become a sensor in Home Assistant through the integration, 24 over MQTT. The integration adds a last workout sensor and the workout minutes of today and yesterday (0.10.0 and newer), and minutes per day for mindfulness sessions.
 
 | Category | Type | Sensor in Home Assistant |
 |---|---|---|
@@ -40,7 +40,7 @@ The app reads 33 Health Connect data types. Each has its own switch and its own 
 | Activity | Distance | Today's total |
 | Activity | Active calories | Today's total |
 | Activity | Total calories | Today's total |
-| Activity | Exercise sessions | No; minutes per day in the integration's statistics |
+| Activity | Exercise sessions | Last workout, exercise today and yesterday (integration 0.10.0 and newer); minutes per day in the statistics |
 | Body | Weight | Latest value |
 | Body | Height | Latest value |
 | Body | Body temperature | Latest value |
@@ -282,7 +282,7 @@ The [Home Assistant companion app](https://companion.home-assistant.io/docs/core
 
 | | HA companion app | Life Dashboard Companion |
 |---|---|---|
-| Health Connect coverage | 25 sensors | 33 data types |
+| Health Connect coverage | 26 sensors from 25 types | 33 data types |
 | Exercise sessions, nutrition, sleep stages, cycle tracking, mindfulness, skin temperature | Missing ([open issue](https://github.com/home-assistant/android/issues/4804)) | Supported |
 | Detail | Latest value or daily aggregate per sensor | Every record, with the source app and a stable ID, plus deduplicated daily totals |
 | History | "Only the last 30 days of data is used" | Unlimited, with backfill of up to a year |

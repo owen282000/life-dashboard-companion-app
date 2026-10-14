@@ -14,9 +14,9 @@ From Gadgetbridge's list of what it writes to Health Connect, these are the type
 
 | Area | Types |
 |---|---|
-| Activity | Steps, distance, exercise sessions with active and total calories, VO2 max |
+| Activity | Steps, distance, VO2 max, and exercise sessions with their active and total calories |
 | Sleep | Sleep sessions |
-| Heart and breathing | Heart rate, resting heart rate, heart rate variability, oxygen saturation, respiratory rate |
+| Heart and breathing | Heart rate, resting heart rate, heart rate variability, oxygen saturation, respiratory rate, blood pressure |
 | Body | Weight, body temperature, skin temperature, blood glucose |
 
 What your watch actually records depends on the model and on what Gadgetbridge supports for it. Gadgetbridge also writes cadence, elevation gained, exercise routes, power and speed, which aren't among this app's types.
