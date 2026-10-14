@@ -121,7 +121,7 @@ Most settings on a tab are a draft until you save them. As soon as you change on
 - On the **Health** tab: **Data Types**, **Data Resolution**, **Sync Schedule**, **Webhook** (including **Webhook Headers** and the signing secret) and **MQTT**.
 - On the **Screen Time** tab: **Sync Schedule**, **Webhook**, **MQTT**, **Day Boundary** and **Apps to send**.
 
-An unsaved change survives a look at the other tab, but it is lost when you close the app or Android ends it in the background. Scheduled syncs and **Backfill** always use the saved settings. One exception: **View** and **Export** on the **Health** tab store the **Data Types** shown on screen right away. **Sync Now** saves your changes first, on both tabs, and does not sync when they can't be saved. **Test ping** uses the address and secret on screen, saved or not.
+An unsaved change survives a look at the other tab, but it is lost when you close the app or Android ends it in the background. Scheduled syncs and **Backfill** always use the saved settings. **View** and **Export** on the **Health** tab use the **Data Types** and **Data Resolution** shown on screen, without saving them. **Sync Now** saves your changes first, on both tabs, and does not sync when they can't be saved. **Test ping** uses the address and secret on screen, saved or not.
 
 The rest takes effect the moment you change it: everything under **Advanced** and **Notifications**, and **Receive** on the **Health** tab.
 

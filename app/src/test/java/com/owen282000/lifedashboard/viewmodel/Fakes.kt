@@ -12,6 +12,7 @@ import com.owen282000.lifedashboard.MqttSectionSettings
 import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
+import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.WriteBackType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -111,7 +112,13 @@ internal class FakeHealthOps(
     override suspend fun availability() = availability
     override suspend fun grantedPermissions() = granted
     override suspend fun sync(): Result<HealthSyncResult> { syncs++; return syncResult }
-    override suspend fun preview() = previewResult
+    val previewTypes = mutableListOf<Set<HealthDataType>>()
+    val previewResolutions = mutableListOf<Map<HealthDataType, SeriesResolution>>()
+    override suspend fun preview(types: Set<HealthDataType>, resolutions: Map<HealthDataType, SeriesResolution>): Result<String> {
+        previewTypes += types
+        previewResolutions += resolutions
+        return previewResult
+    }
     override fun backfillStatus(): Flow<BackfillStatus> = backfillReports
     override suspend fun startBackfill(days: Int): BackfillStart {
         if (backfill is BackfillStatus.Running && !cancelled) return BackfillStart.ALREADY_RUNNING

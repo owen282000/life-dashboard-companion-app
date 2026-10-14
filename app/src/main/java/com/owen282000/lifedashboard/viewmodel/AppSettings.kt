@@ -22,7 +22,7 @@ interface AppSettings {
     fun loadScreenTime(): ScreenTimeDraft
     fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int)
 
-    /** Written straight through before a preview or export, so the sync manager sees the current toggles. */
+    /** Written straight through when a fresh install pre-selects the types it already has permission for. */
     fun setHealthEnabledTypes(types: Set<HealthDataType>)
 
     fun includeDailyTotals(): Boolean

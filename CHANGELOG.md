@@ -20,6 +20,10 @@ All notable changes to this project are documented in this file. The format is b
 - **Sync Now** on the Screen Time tab saves the tab's changes first, as it does on the Health tab, so a
   sync no longer goes out with the settings saved before. A change that can't be saved is named and
   stops the sync.
+- **View** and **Export** on the Health tab no longer save the Data Types on screen behind **Save
+  Changes**. They show and export what those types would send at the Data Resolution on screen, which
+  they used to take from the saved settings, and a scheduled sync keeps the saved settings until you
+  save.
 
 ## [1.25.0] - 2026-10-14
 

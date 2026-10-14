@@ -10,6 +10,7 @@ import com.owen282000.lifedashboard.BackfillStart
 import com.owen282000.lifedashboard.BackfillStatus
 import com.owen282000.lifedashboard.BackfillWork
 import com.owen282000.lifedashboard.HealthConnectManager
+import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncManager
 import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.LogType
@@ -17,6 +18,7 @@ import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.ScreenTimeManager
 import com.owen282000.lifedashboard.ScreenTimeSyncManager
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
+import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.WriteBackType
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +34,12 @@ interface HealthOps {
     suspend fun availability(): HcAvailability
     suspend fun grantedPermissions(): Set<String>
     suspend fun sync(): Result<HealthSyncResult>
-    suspend fun preview(): Result<String>
+
+    /**
+     * The payload the next sync would send for [types] at [resolutions], the Data Types and Data
+     * Resolution on screen; nothing is stored.
+     */
+    suspend fun preview(types: Set<HealthDataType>, resolutions: Map<HealthDataType, SeriesResolution>): Result<String>
 
     /** The backfill as its WorkManager job reports it; it runs on when the screen is left (P2-14). */
     fun backfillStatus(): Flow<BackfillStatus>
@@ -115,7 +122,8 @@ class RealHealthOps(private val context: Context) : HealthOps {
     }
 
     override suspend fun sync() = HealthSyncManager(context).performSync()
-    override suspend fun preview() = HealthSyncManager(context).previewData()
+    override suspend fun preview(types: Set<HealthDataType>, resolutions: Map<HealthDataType, SeriesResolution>) =
+        HealthSyncManager(context).previewData(types, resolutions)
     override suspend fun otherSourcesWriting(type: WriteBackType) = HealthConnectManager(context).otherSourcesWriting(type)
     override fun backfillStatus() = BackfillWork.status(context)
     override suspend fun startBackfill(days: Int) = BackfillWork.start(context, days)

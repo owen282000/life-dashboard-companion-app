@@ -7,6 +7,7 @@ import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.ReceiveStatus
+import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.WriteBackType
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -453,6 +454,33 @@ class HealthConnectViewModelTest {
         assertEquals("{\"a\":1}", vm.state.value.previewData)
         vm.dismissPreview()
         assertNull(vm.state.value.previewData)
+    }
+
+    @Test
+    fun `view and export use the data types and resolution on screen without saving them`() = runTest {
+        val savedResolutions = mapOf(HealthDataType.STEPS to SeriesResolution.HOURLY)
+        val settings = FakeAppSettings(
+            health = HealthDraft(WebhookDraft(), setOf(HealthDataType.STEPS), emptyMqtt(), resolutions = savedResolutions)
+        )
+        val ops = FakeHealthOps(granted = setOf("android.permission.health.READ_STEPS", "android.permission.health.READ_WEIGHT"))
+        val vm = vm(settings, ops)
+        vm.refreshPermissions()
+        vm.toggleType(HealthDataType.WEIGHT, true)
+        vm.setResolution(HealthDataType.STEPS, SeriesResolution.FIFTEEN_MINUTES)
+        val onScreen = setOf(HealthDataType.STEPS, HealthDataType.WEIGHT)
+        val resolutionsOnScreen = mapOf(HealthDataType.STEPS to SeriesResolution.FIFTEEN_MINUTES)
+        assertEquals(onScreen, vm.state.value.draft.enabledTypes)
+        assertEquals(resolutionsOnScreen, vm.state.value.draft.resolutions)
+
+        vm.preview()
+        vm.export()
+
+        assertEquals(listOf(onScreen, onScreen), ops.previewTypes)
+        assertEquals(listOf(resolutionsOnScreen, resolutionsOnScreen), ops.previewResolutions)
+        assertEquals(setOf(HealthDataType.STEPS), settings.health.enabledTypes)
+        assertEquals(savedResolutions, settings.health.resolutions)
+        assertEquals(0, settings.savedHealth)
+        assertTrue(vm.state.value.hasChanges)
     }
 
     @Test

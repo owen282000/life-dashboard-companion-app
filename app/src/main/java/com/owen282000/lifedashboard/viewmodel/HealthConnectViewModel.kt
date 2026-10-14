@@ -465,8 +465,7 @@ class HealthConnectViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isPreviewing = true) }
             try {
-                settings.setHealthEnabledTypes(_state.value.draft.enabledTypes)
-                ops.preview().fold(
+                ops.preview(_state.value.draft.enabledTypes, _state.value.draft.resolutions).fold(
                     onSuccess = { data -> _state.update { it.copy(previewData = data) } },
                     onFailure = { _toasts.tryEmit(UiMessage.PreviewFailed(it.message)) }
                 )
@@ -502,8 +501,7 @@ class HealthConnectViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isExporting = true) }
             try {
-                settings.setHealthEnabledTypes(_state.value.draft.enabledTypes)
-                ops.preview().fold(
+                ops.preview(_state.value.draft.enabledTypes, _state.value.draft.resolutions).fold(
                     onSuccess = { data -> _state.update { it.copy(exportJson = data) } },
                     onFailure = { _toasts.tryEmit(UiMessage.ExportFailed(it.message)) }
                 )

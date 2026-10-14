@@ -53,9 +53,16 @@ class HealthSyncManager(
 
     private val preferencesManager = PreferencesManager(context)
 
-    suspend fun previewData(): Result<String> = withContext(Dispatchers.IO) {
+    /**
+     * What the next sync would send for [enabledTypes] at [resolutions], without sending or
+     * storing anything. The Health tab passes the Data Types and Data Resolution on screen, which
+     * View and Export use before they are saved.
+     */
+    suspend fun previewData(
+        enabledTypes: Set<HealthDataType> = preferencesManager.getHealthEnabledDataTypes(),
+        resolutions: Map<HealthDataType, SeriesResolution> = preferencesManager.getSeriesResolutions()
+    ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val enabledTypes = preferencesManager.getHealthEnabledDataTypes()
             if (enabledTypes.isEmpty()) {
                 return@withContext Result.failure(Exception("No data types enabled"))
             }
@@ -66,7 +73,7 @@ class HealthSyncManager(
                 enabledTypes,
                 lastSyncTimestamps,
                 coveredUntil = enabledTypes.associateWith { preferencesManager.getHealthCoveredUntil(it) },
-                wholeWindows = ResolutionApplier.wholeRequests(preferencesManager.getSeriesResolutions(), preferencesManager.getBucketCarry()),
+                wholeWindows = ResolutionApplier.wholeRequests(resolutions, preferencesManager.getBucketCarry()),
                 includeMetadata = preferencesManager.includeRecordMetadata()
             )
             if (healthDataResult.isFailure) {
@@ -89,7 +96,7 @@ class HealthSyncManager(
                 dailyTotals = dailyTotals,
                 resolved = ResolutionApplier.from(
                     healthData,
-                    preferencesManager.getSeriesResolutions(),
+                    resolutions,
                     carriedIn = preferencesManager.getBucketCarry()
                 )
             )
