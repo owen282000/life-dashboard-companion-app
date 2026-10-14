@@ -1411,8 +1411,7 @@
             "description": "Stable record id for server-side deduplication"
           },
           "metadata": {
-            "$ref": "#/definitions/recordMetadata",
-            "description": "Not sent: nutrition records carry no metadata, even with Record metadata on"
+            "$ref": "#/definitions/recordMetadata"
           }
         },
         "required": [
@@ -2183,7 +2182,7 @@
   "definitions": {
     "recordMetadata": {
       "type": "object",
-      "description": "Health Connect's metadata of the record, when Record metadata is on in the app (off by default). Fields Health Connect did not have are absent. Nutrition records and buckets carry none.",
+      "description": "Health Connect's metadata of the record, when Record metadata is on in the app (off by default). Fields Health Connect did not have are absent. Buckets carry none.",
       "properties": {
         "last_modified": {
           "type": "string",

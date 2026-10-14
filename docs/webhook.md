@@ -414,7 +414,7 @@ The session started at `session_end_time` minus `duration_seconds`, here 22:30 U
 ]
 ```
 
-Every nutrient Health Connect's `NutritionRecord` holds is sent: energy from fat, fiber, sugars, the fat subtypes, cholesterol, 14 minerals and trace elements, 14 vitamins and related nutrients, and caffeine. The unit is in the key's suffix (`_g`, `_mg`, `_mcg`, `_kcal`); the fiber key is spelled `dietary_fibre_g`. A field the source app did not write is left out, while a real zero (`"trans_fat_g": 0.0`) is kept. `meal_type` is one of `breakfast`, `lunch`, `dinner`, `snack`, `unknown`. The full key list is in [webhook-schema.json](webhook-schema.json). Nutrition records carry no `metadata`, even with **Record metadata in payload** on.
+Every nutrient Health Connect's `NutritionRecord` holds is sent: energy from fat, fiber, sugars, the fat subtypes, cholesterol, 14 minerals and trace elements, 14 vitamins and related nutrients, and caffeine. The unit is in the key's suffix (`_g`, `_mg`, `_mcg`, `_kcal`); the fiber key is spelled `dietary_fibre_g`. A field the source app did not write is left out, while a real zero (`"trans_fat_g": 0.0`) is kept. `meal_type` is one of `breakfast`, `lunch`, `dinner`, `snack`, `unknown`. The full key list is in [webhook-schema.json](webhook-schema.json).
 
 ### Mindfulness
 
@@ -694,7 +694,7 @@ With **Record metadata in payload** on (**Health** tab, **Advanced**; off by def
 - `device` is the device the source says it recorded on; `type` is one of `watch`, `phone`, `scale`, `ring`, `head_mounted`, `fitness_band`, `chest_strap`, `smart_display` or `unknown`.
 - `zone_offset` belongs to a record at one moment (a weight, a heart rate variability reading), `start_zone_offset` and `end_zone_offset` to a record over a period (steps, a night, a workout, and the heart rate and skin temperature records whose samples are sent). They are the offsets the source wrote, such as `+02:00`, with `Z` for UTC. With them a receiver puts a record on the local day it happened on, even after traveling.
 
-Anything Health Connect does not have is left out, so `metadata` holds at least `last_modified` and `recording_method`. Heart rate and skin temperature samples carry the metadata of the record they belong to. Nutrition records carry none, and neither do buckets: a window has no single record. Records the app wrote itself through Receive never go out, with or without metadata. Metadata makes payloads larger, by roughly 150 to 250 bytes per record, which matters most for dense heart rate; [Data resolution](#data-resolution) is the way to keep those small.
+Anything Health Connect does not have is left out, so `metadata` holds at least `last_modified` and `recording_method`. Heart rate and skin temperature samples carry the metadata of the record they belong to. Buckets carry none: a window has no single record. Records the app wrote itself through Receive never go out, with or without metadata. Metadata makes payloads larger, by roughly 150 to 250 bytes per record, which matters most for dense heart rate; [Data resolution](#data-resolution) is the way to keep those small.
 
 ### Diagnostics
 
@@ -903,6 +903,7 @@ A receiver that only talks to the current app can skip this section. Payloads th
 | Before 1.20.0 | No `writeback` and no `own_records_skipped` |
 | Before 1.21.0 | No `records_outside_window`, `read_from` or `lookback_gap_from`; Screen Time payloads carry no `sequence` |
 | Before 1.22.0 | Test pings carry no `app_version` |
+| 1.23.0 through 1.25.0 | Nutrition records carry no `metadata`, also with **Record metadata in payload** on |
 | Before 1.23.0 | No `metadata`, `app_filter` or `filtered_screen_time_minutes`, and no bucket carries `complete`. A window they sent again holds only the late records, so combine it with the stored window as described under [Data resolution](#data-resolution); a record they read again because its source wrote it again is counted twice by that rule, and nothing in the payload tells that case apart. In a backfill, the window that straddled each 3-day chunk bound went out with only its part after the bound, and a measured series with a backlog could lose the samples of the window its chunk ended in. |
 
 <a id="home-assistant-webhook"></a>

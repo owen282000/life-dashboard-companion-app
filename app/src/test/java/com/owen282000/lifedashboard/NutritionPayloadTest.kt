@@ -125,6 +125,31 @@ class NutritionPayloadTest {
     }
 
     @Test
+    fun recordMetadataGoesUnderMetadataAfterTheUuid() {
+        val record = NutritionRecord(
+            startTime = start,
+            startZoneOffset = ZoneOffset.ofHours(2),
+            endTime = end,
+            endZoneOffset = ZoneOffset.ofHours(2),
+            metadata = Metadata.manualEntry(clientRecordId = "meal-7", clientRecordVersion = 3),
+            energy = Energy.kilocalories(141.0)
+        )
+        val data = record.toNutritionData().copy(uuid = "uuid-1", source = "com.cronometer")
+        val obj = buildJsonObject { putNutrition(data, RecordMeta.of(record).toJson()) }
+        val metadata = obj.getValue("metadata").jsonObject
+        assertEquals("manual", metadata.getValue("recording_method").jsonPrimitive.content)
+        assertEquals("meal-7", metadata.getValue("client_record_id").jsonPrimitive.content)
+        assertEquals("+02:00", metadata.getValue("start_zone_offset").jsonPrimitive.content)
+        assertEquals(listOf("uuid", "metadata", "source"), obj.keys.filter { it in setOf("uuid", "metadata", "source") })
+    }
+
+    @Test
+    fun withoutRecordMetadataThereIsNoMetadataKey() {
+        val record = NutritionData(141.0, 11.8, 1.85, 10.01, start, end, "com.cronometer", "uuid-1")
+        assertFalse("metadata" in json(record))
+    }
+
+    @Test
     fun everyNutritionKeyIsDeclaredInThePublishedSchema() {
         val schema = Json.parseToJsonElement(File("../docs/webhook-schema.json").readText()).jsonObject
         val declared = schema.getValue("properties").jsonObject

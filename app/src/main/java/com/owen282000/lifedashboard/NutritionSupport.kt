@@ -2,6 +2,7 @@ package com.owen282000.lifedashboard
 
 import androidx.health.connect.client.records.MealType
 import androidx.health.connect.client.records.NutritionRecord
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.put
 
@@ -81,9 +82,10 @@ object NutritionSupport {
     /**
      * Writes one nutrition record. The four original keys keep their names for backward
      * compatibility; every other field is optional and omitted when null, while a real zero
-     * is written as a value.
+     * is written as a value. [metadata] is the record's `metadata` object with Record metadata
+     * on, placed after `uuid` as on every other type.
      */
-    fun JsonObjectBuilder.putNutrition(record: NutritionData) {
+    fun JsonObjectBuilder.putNutrition(record: NutritionData, metadata: JsonObject? = null) {
         record.calories?.let { put("calories", it) }
         record.protein?.let { put("protein_grams", it) }
         record.carbs?.let { put("carbs_grams", it) }
@@ -94,6 +96,7 @@ object NutritionSupport {
         put("start_time", record.startTime.toString())
         put("end_time", record.endTime.toString())
         record.uuid?.let { put("uuid", it) }
+        metadata?.let { put("metadata", it) }
         record.source?.let { put("source", it) }
     }
 }

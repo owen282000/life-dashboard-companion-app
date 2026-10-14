@@ -1374,7 +1374,9 @@ class HealthSyncManager(
 
             if (healthData.nutrition.isNotEmpty()) {
                 putJsonArray("nutrition") {
-                    healthData.nutrition.forEach { add(buildJsonObject { putNutrition(it) }) }
+                    healthData.nutrition.forEach { meal ->
+                        add(buildJsonObject { putNutrition(meal, meal.uuid?.let { healthData.recordMeta[it] }?.toJson()) })
+                    }
                 }
             }
 

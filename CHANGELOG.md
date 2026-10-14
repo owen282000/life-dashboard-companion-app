@@ -24,6 +24,8 @@ All notable changes to this project are documented in this file. The format is b
   Changes**. They show and export what those types would send at the Data Resolution on screen, which
   they used to take from the saved settings, and a scheduled sync keeps the saved settings until you
   save.
+- With **Record metadata in payload** on, nutrition records carry their `metadata` too, like every other
+  record type. They went out without it.
 
 ## [1.25.0] - 2026-10-14
 
