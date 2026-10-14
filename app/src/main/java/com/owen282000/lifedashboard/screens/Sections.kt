@@ -804,17 +804,6 @@ internal fun CopyRefusedNote(visible: Boolean) {
 internal fun fullPayloadHint(payload: String): Int =
     if (PayloadPreview.fitsClipboard(payload)) R.string.sync_preview_full_in_copy_share else R.string.sync_preview_full_in_share
 
-@Composable
-fun ExportFormatDialog(accent: Color, description: String, onJson: () -> Unit, onCsv: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.sync_export_data)) },
-        text = { Text(description, style = MaterialTheme.typography.bodyMedium) },
-        confirmButton = { TextButton(onClick = onJson) { Text(stringResource(R.string.common_json), color = accent.ink()) } },
-        dismissButton = { TextButton(onClick = onCsv) { Text(stringResource(R.string.common_csv), color = accent.ink()) } }
-    )
-}
-
 /** File name for an export share: `prefix_20260914_120000.ext`. */
 fun exportFileName(prefix: String, extension: String): String {
     val timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))

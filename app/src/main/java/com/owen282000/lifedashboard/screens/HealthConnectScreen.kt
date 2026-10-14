@@ -125,8 +125,8 @@ fun HealthConnectScreen(
         onInstallHealthConnect = {
             context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(HEALTH_CONNECT_STORE_URL)))
         },
-        onShareExport = { json, extension, mime ->
-            ExportManager(context).shareFile(json, exportFileName("health_data", extension), mime)
+        onShareExport = { json ->
+            ExportManager(context).shareFile(json, exportFileName("health_data", "json"), "application/json")
         },
         onScanRequested = onScanRequested
     )
@@ -138,7 +138,7 @@ fun HealthConnectContent(
     actions: HealthActions,
     onOpenHealthConnect: () -> Unit,
     onInstallHealthConnect: () -> Unit,
-    onShareExport: (json: String, extension: String, mime: String) -> Unit,
+    onShareExport: (json: String) -> Unit,
     onScanRequested: () -> Unit = {}
 ) {
     val accent = HealthPrimary
@@ -369,17 +369,15 @@ fun HealthConnectContent(
     }
 
     state.previewData?.let { data ->
-        PreviewDialog(accent, data, actions::dismissPreview, onShare = { onShareExport(data, "json", "application/json") })
+        PreviewDialog(accent, data, actions::dismissPreview, onShare = { onShareExport(data) })
     }
 
+    // Export has one format, so the payload goes to the share sheet as soon as it is read.
     state.exportJson?.let { json ->
-        ExportFormatDialog(
-            accent = accent,
-            description = stringResource(R.string.health_export_dialog_description),
-            onJson = { actions.dismissExport(); onShareExport(json, "json", "application/json") },
-            onCsv = { actions.dismissExport(); onShareExport(json, "csv", "text/csv") },
-            onDismiss = actions::dismissExport
-        )
+        LaunchedEffect(json) {
+            actions.dismissExport()
+            onShareExport(json)
+        }
     }
 
     state.permissionPrompt?.let { type ->

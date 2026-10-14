@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Removed
+
+- The CSV choice in **Export** on the Health and Screen Time tabs. It shared the same JSON under a `.csv`
+  name; Export now goes straight to the share sheet with the JSON file. **Export logs** in the Logs tab
+  still writes real CSV.
+
 ## [1.25.0] - 2026-10-14
 
 ### Highlights

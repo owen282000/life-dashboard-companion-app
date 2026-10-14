@@ -269,7 +269,7 @@ The top of the **Health** tab shows how many records went out **Today** and over
 ## Preview, export and logs
 
 - **Preview:** **View** on the **Health** and **Screen Time** tabs shows the JSON payload the next sync would send, without sending it. A long payload is truncated on screen; **Copy JSON** (up to 100,000 characters, marked as sensitive on the clipboard), **Share** and **Export** have all of it.
-- **Export:** **Export** on the **Health** and **Screen Time** tabs shares the current data as JSON through the Android share sheet.
+- **Export:** **Export** on the **Health** and **Screen Time** tabs shares the current data as a JSON file through the Android share sheet, without asking for a format. CSV is only for the logs, below.
 - **Logs:** the **Logs** tab lists up to the last 100 webhook deliveries, MQTT publishes, backfill runs and readings received from Home Assistant, with status, error and payload. Tap a row to see its details; a delivery's payload has **Copy JSON** (up to 100,000 characters, marked as sensitive on the clipboard) and **Share**, as in the preview. The switch at the top, **Keep full payloads**, stores whole payloads; otherwise they're shortened to save space. Below it, a summary shows the success rate, the number of deliveries and of records delivered, each section's successes, and the time of the last success. **All**, **Health** and **Screen Time** filter the list. **Export logs** shares the logs shown as CSV or JSON, and **Clear logs** deletes the logs shown from the phone, after asking.
 
 ## Settings backup

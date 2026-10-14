@@ -132,7 +132,6 @@
     <string name="outbox_replaced_log">In der Warteschlange durch einen neueren Snapshot ersetzt, der die ältesten nicht zugestellten Tage nicht mehr enthält, daher sind diese verloren</string>
     <string name="sync_advanced_title">Erweitert</string>
     <string name="sync_data_preview_title">Datenvorschau</string>
-    <string name="sync_export_data">Daten exportieren</string>
     <string name="sync_export_failed">Export fehlgeschlagen</string>
     <string name="sync_export_failed_with_reason">Export fehlgeschlagen: %1$s</string>
     <string name="sync_failed_with_reason">Fehlgeschlagen: %1$s</string>
@@ -234,7 +233,6 @@
     <string name="health_daily_totals_description">Entdoppelte Tagessummen (Schritte, Distanz, Kalorien) über die Aggregat-API; führt Handy- und Uhrdaten zusammen</string>
     <string name="health_daily_totals_title">Tagessummen im Payload</string>
     <string name="health_error_with_reason">Fehler: %1$s</string>
-    <string name="health_export_dialog_description">Aktuelle Gesundheitsdaten als JSON oder CSV exportieren.</string>
     <string name="health_install">Installieren</string>
     <string name="health_no_daily_totals">Keine Tagessummen</string>
     <string name="health_notifications_after_failures">Nach aufeinanderfolgenden Fehlern</string>
@@ -391,7 +389,6 @@
     <string name="screentime_day_boundary_enabled">Aktiviert · %1$s</string>
     <string name="screentime_day_boundary_hour_invalid">Die Stunde muss zwischen 0 und 23 liegen</string>
     <string name="screentime_day_boundary_title">Tagesgrenze</string>
-    <string name="screentime_export_dialog_description">Aktuelle Bildschirmzeit-Daten als JSON oder CSV exportieren.</string>
     <string name="screentime_header">Verfolge deine App-Nutzung</string>
     <string name="screentime_mqtt_description">Veröffentlicht die Bildschirmzeit von heute und gestern sowie die heute meistgenutzte App über Home Assistant Discovery auf deinem MQTT-Broker, unter demselben Gerät wie Health Connect.</string>
     <string name="screentime_permission_not_granted">Berechtigung nicht erteilt</string>
