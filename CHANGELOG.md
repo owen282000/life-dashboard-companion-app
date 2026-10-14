@@ -17,6 +17,9 @@ All notable changes to this project are documented in this file. The format is b
   Health Connect still asks for the update. On Android 8, and in a work profile on Android 14 and
   newer, the card says Health Connect is not available, without an Install button that could not help
   there.
+- **Sync Now** on the Screen Time tab saves the tab's changes first, as it does on the Health tab, so a
+  sync no longer goes out with the settings saved before. A change that can't be saved is named and
+  stops the sync.
 
 ## [1.25.0] - 2026-10-14
 

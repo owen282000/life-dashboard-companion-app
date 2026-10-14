@@ -86,6 +86,7 @@ class ScreenTimeViewModelTest {
     fun `a sync stopped by a header names the header instead of an unreachable server`() = runTest {
         val problem = WebhookSupport.HeaderProblem("Bad Header", inValue = false)
         val vm = vm(ops = FakeScreenTimeOps(syncResult = Result.failure(InvalidHeaderException(problem))))
+        vm.addUrl("https://example.org/hook")
         vm.syncNow()
         assertEquals(UiMessage.HeaderBlocksDelivery("Bad Header", inValue = false), vm.state.value.syncMessage)
         assertTrue(vm.state.value.syncMessage!!.isFailure)
@@ -157,6 +158,38 @@ class ScreenTimeViewModelTest {
         assertEquals(1, ops.syncs)
         assertEquals(UiMessage.SyncedApps(5), vm.state.value.syncMessage)
         assertEquals(before + 1, vm.state.value.refreshKey)
+    }
+
+    @Test
+    fun `sync now saves the draft first, as on the Health tab`() = runTest {
+        val settings = FakeAppSettings()
+        val ops = FakeScreenTimeOps()
+        val vm = vm(settings, ops)
+        vm.addUrl("https://example.org/hook")
+        vm.setDayBoundaryHour("5")
+        vm.syncNow()
+        assertEquals(1, settings.savedScreenTime)
+        assertEquals("5", settings.screenTime.dayBoundaryHour)
+        assertEquals(listOf("https://example.org/hook"), settings.screenTime.webhook.urls)
+        assertFalse(vm.state.value.hasChanges)
+        assertEquals(1, ops.syncs)
+    }
+
+    @Test
+    fun `sync now with a draft that cannot be saved says why and does not sync`() = runTest {
+        val settings = FakeAppSettings()
+        val ops = FakeScreenTimeOps()
+        val vm = vm(settings, ops)
+        val toasts = mutableListOf<UiMessage>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+        vm.addUrl("https://example.org/hook")
+        vm.setDayBoundaryHour("24")
+        vm.syncNow()
+        assertEquals(UiMessage.InvalidDayBoundaryHour, toasts.last())
+        assertEquals(0, settings.savedScreenTime)
+        assertEquals(0, ops.syncs)
+        assertFalse(vm.state.value.isSyncing)
+        job.cancel()
     }
 
     @Test

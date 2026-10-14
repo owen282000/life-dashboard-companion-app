@@ -267,6 +267,12 @@ class ScreenTimeViewModel(
                     _openUsageAccess.tryEmit(Unit)
                     return@launch
                 }
+                // Save first so the sync manager runs with what is on screen.
+                val saved = persist()
+                if (saved != UiMessage.Saved) {
+                    _toasts.tryEmit(saved)
+                    return@launch
+                }
                 val message = ops.sync().fold(
                     onSuccess = { result ->
                         when (result) {
