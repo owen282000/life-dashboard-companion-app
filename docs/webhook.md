@@ -846,11 +846,11 @@ A rejected response is one row in the **Logs** tab. A response without the proto
 | type fields | yes | the field names of the outbound payload, in the units Health Connect wants |
 | `time` | yes | the measurement time in UTC with `Z`, never the sync time |
 | `zone_offset` | no | `"+02:00"`; absent means the phone's zone |
-| `recording_method` | no | `auto` (default), `active` or `manual` |
+| `recording_method` | no | `auto` (default; `automatic` means the same), `active` or `manual` |
 | `device` | no | `{"type", "manufacturer", "model"}`; `type` is one of `unknown`, `watch`, `phone`, `scale`, `ring`, `head_mounted`, `fitness_band`, `chest_strap`, `smart_display`, anything else counts as `unknown` |
 | `time_source` | no | `"state"` when the integration used the entity's last change for lack of a timestamp entity; informational, it goes to the app's log |
 
-`recording_method` is spelled differently in each direction: inbound it is `auto`, while the outbound [record metadata](#record-metadata) says `automatic` for the same thing. Any value the app does not know, `automatic` included, is read as `auto`, so the mismatch changes nothing for a reading, but do not copy an outbound value into an inbound reading and expect it to be checked.
+`recording_method` is spelled differently in each direction: the integration sends `auto`, while the outbound [record metadata](#record-metadata) says `automatic` for the same thing. The app reads both as a reading recorded in the background, so an outbound value can be copied into an inbound reading. Any other value it does not know is read as `auto` too.
 
 | `type` | Fields | Health Connect record |
 |---|---|---|

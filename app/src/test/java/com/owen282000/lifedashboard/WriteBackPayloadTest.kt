@@ -344,6 +344,22 @@ class WriteBackPayloadTest {
     }
 
     @Test
+    fun `automatic, the word the app's own metadata uses, is read as auto like the integration's auto`() {
+        val reading = ready(
+            validate(
+                """{"id": "s@1", "version": 1, "type": "weight", "kilograms": 81.35, "time": "2026-09-27T06:30:00Z",
+                    "recording_method": "automatic"}"""
+            )
+        )
+        assertEquals(RecordingMethod.AUTO, reading.recordingMethod)
+        assertEquals(RecordingMethod.AUTO, RecordingMethod.fromKey("auto"))
+        assertEquals(RecordingMethod.AUTO, RecordingMethod.fromKey("automatic"))
+        assertEquals(RecordingMethod.ACTIVE, RecordingMethod.fromKey("active"))
+        assertEquals(RecordingMethod.MANUAL, RecordingMethod.fromKey("manual"))
+        assertEquals(RecordingMethod.AUTO, RecordingMethod.fromKey(null))
+    }
+
+    @Test
     fun `a refusal carries what the log needs and unknown enum strings fall back to unknown`() {
         val refused = validate("""{"id": "s@1", "version": 1, "type": "weight", "kilograms": 0, "time": "2026-09-27T06:30:00Z"}""") as ReadingOutcome.Refused
         assertEquals("s@1", refused.id)

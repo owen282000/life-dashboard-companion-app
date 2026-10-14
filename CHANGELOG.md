@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Changed
+
+- A reading from Home Assistant may say `recording_method: automatic`, the word the app's own record
+  metadata uses, as well as `auto`; both mean recorded in the background. Before, `automatic` only got
+  there as an unknown value. What the app sends is unchanged.
+
 ### Removed
 
 - The CSV choice in **Export** on the Health and Screen Time tabs. It shared the same JSON under a `.csv`

@@ -43,14 +43,20 @@ enum class WriteBackType(val key: String, val dataType: HealthDataType) {
     }
 }
 
-/** How the reading was taken; decides which Metadata factory the record gets. */
-enum class RecordingMethod(val key: String) {
-    AUTO("auto"),
+/**
+ * How the reading was taken; decides which Metadata factory the record gets.
+ *
+ * The integration says `auto`, while the app's own record metadata says `automatic` for the
+ * same thing (webhook.md), so both are read as [AUTO]. Any other value falls back to [AUTO].
+ */
+enum class RecordingMethod(val key: String, private val alias: String? = null) {
+    AUTO("auto", alias = "automatic"),
     ACTIVE("active"),
     MANUAL("manual");
 
     companion object {
-        fun fromKey(key: String?): RecordingMethod = entries.firstOrNull { it.key == key } ?: AUTO
+        fun fromKey(key: String?): RecordingMethod =
+            entries.firstOrNull { key != null && (it.key == key || it.alias == key) } ?: AUTO
     }
 }
 
