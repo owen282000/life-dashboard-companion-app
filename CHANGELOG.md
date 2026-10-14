@@ -10,6 +10,14 @@ All notable changes to this project are documented in this file. The format is b
   name; Export now goes straight to the share sheet with the JSON file. **Export logs** in the Logs tab
   still writes real CSV.
 
+### Fixed
+
+- On Android 9 to 13, a phone without Health Connect now reads **Health Connect is not installed** with
+  an **Install** button, instead of **Health Connect needs to be updated** with **Update**; an old
+  Health Connect still asks for the update. On Android 8, and in a work profile on Android 14 and
+  newer, the card says Health Connect is not available, without an Install button that could not help
+  there.
+
 ## [1.25.0] - 2026-10-14
 
 ### Highlights

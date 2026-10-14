@@ -252,7 +252,7 @@ object SettingsRules {
     }
 }
 
-/** Health Connect availability on this device, as the SDK reports it. */
+/** Health Connect availability on this device, as [hcAvailability] reads the SDK's status. */
 enum class HcAvailability { AVAILABLE, NOT_INSTALLED, NEEDS_UPDATE, UNAVAILABLE }
 
 /**

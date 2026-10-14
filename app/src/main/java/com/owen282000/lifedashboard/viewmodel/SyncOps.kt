@@ -1,6 +1,8 @@
 package com.owen282000.lifedashboard.viewmodel
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.health.connect.client.HealthConnectClient
 import com.owen282000.lifedashboard.AppChoice
 import com.owen282000.lifedashboard.BackfillJob
@@ -63,18 +65,45 @@ interface ScreenTimeOps {
     suspend fun appChoices(listed: Set<String>): List<AppChoice>
 }
 
+/** The Health Connect app on Android 9 to 13; from Android 14 it is part of the system. */
+private const val HEALTH_CONNECT_PROVIDER = "com.google.android.apps.healthdata"
+
+/**
+ * What the Health tab's card says for an SDK status from HealthConnectClient.getSdkStatus.
+ *
+ * On Android 9 to 13 the SDK answers SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED both when the
+ * Health Connect app is missing and when it is too old, so [providerInstalled] tells the two
+ * apart: Install for the one, Update for the other. SDK_UNAVAILABLE is a phone that cannot
+ * have Health Connect at all (Android 8, or a work profile on Android 14 and newer), where
+ * neither would help.
+ */
+internal fun hcAvailability(sdkStatus: Int, providerInstalled: () -> Boolean): HcAvailability = when (sdkStatus) {
+    HealthConnectClient.SDK_AVAILABLE -> HcAvailability.AVAILABLE
+    HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED ->
+        if (providerInstalled()) HcAvailability.NEEDS_UPDATE else HcAvailability.NOT_INSTALLED
+    else -> HcAvailability.UNAVAILABLE
+}
+
 class RealHealthOps(private val context: Context) : HealthOps {
     override suspend fun availability(): HcAvailability = try {
-        when (HealthConnectClient.getSdkStatus(context)) {
-            HealthConnectClient.SDK_AVAILABLE -> HcAvailability.AVAILABLE
-            HealthConnectClient.SDK_UNAVAILABLE -> HcAvailability.NOT_INSTALLED
-            HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> HcAvailability.NEEDS_UPDATE
-            else -> HcAvailability.UNAVAILABLE
-        }
+        hcAvailability(HealthConnectClient.getSdkStatus(context), ::providerInstalled)
     } catch (e: kotlinx.coroutines.CancellationException) {
         throw e
     } catch (e: Exception) {
         HcAvailability.UNAVAILABLE
+    }
+
+    /** Installed at all, old or disabled included; the manifest's queries make it visible. */
+    private fun providerInstalled(): Boolean = try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.packageManager.getPackageInfo(HEALTH_CONNECT_PROVIDER, PackageManager.PackageInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(HEALTH_CONNECT_PROVIDER, 0)
+        }
+        true
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
     }
 
     override suspend fun grantedPermissions(): Set<String> = try {
