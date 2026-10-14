@@ -32,6 +32,8 @@ All notable changes to this project are documented in this file. The format is b
   save.
 - With **Record metadata in payload** on, nutrition records carry their `metadata` too, like every other
   record type. They went out without it.
+- The privacy summary under About names everything a payload carries, as PRIVACY.md does: each record's
+  `uuid` and `source`, and the optional record metadata, besides the app version and the phone model.
 
 ## [1.25.0] - 2026-10-14
 
