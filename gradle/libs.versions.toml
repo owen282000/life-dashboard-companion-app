@@ -13,7 +13,7 @@ jsonSchemaValidator = "0.5.5"
 # What the app already resolves to, through Compose and Activity. Dependabot never proposes a
 # lifecycle bump: Google Maven publishes no release dates, its cooldown filter drops every stable
 # version for that, and the newest version is always an alpha. Bump it by hand.
-lifecycleRuntimeKtx = "2.10.0"
+lifecycleRuntimeKtx = "2.11.0"
 coroutines = "1.11.0"
 activityCompose = "1.13.0"
 composeBom = "2026.09.00"
