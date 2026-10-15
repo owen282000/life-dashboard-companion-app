@@ -31,9 +31,10 @@ All notable changes to this project are documented in this file. The format is b
   Health Connect still asks for the update. On Android 8, and in a work profile on Android 14 and
   newer, the card says Health Connect is not available, without an Install button that could not help
   there.
-- **Sync Now** on the Screen Time tab saves the tab's changes first, as it does on the Health tab, so a
-  sync no longer goes out with the settings saved before. A change that can't be saved is named and
-  stops the sync.
+- **Sync Now** on the Screen Time tab saves the tab's unsaved changes first, as it does on the Health
+  tab, so a sync no longer goes out with the settings saved before. A change that can't be saved is
+  named and stops the sync. Without unsaved changes, **Sync Now** on either tab saves nothing, so it
+  can't put back a shared MQTT broker changed on the other tab or settings a backup import brought in.
 - **View** and **Export** on the Health tab no longer save the Data Types on screen behind **Save
   Changes**. They show and export what those types would send at the Data Resolution on screen, which
   they used to take from the saved settings, and a scheduled sync keeps the saved settings until you
