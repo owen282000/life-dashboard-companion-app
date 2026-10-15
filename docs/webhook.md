@@ -913,9 +913,9 @@ A receiver that only talks to the current app can skip this section. Payloads th
 | Before 1.20.0 | No `writeback` and no `own_records_skipped` |
 | Before 1.21.0 | No `records_outside_window`, `read_from` or `lookback_gap_from`; Screen Time payloads carry no `sequence` |
 | Before 1.22.0 | Test pings carry no `app_version` |
+| Before 1.23.0 | No `metadata`, `app_filter` or `filtered_screen_time_minutes`, and no bucket carries `complete`. A window they sent again holds only the late records, so combine it with the stored window as described under [Data resolution](#data-resolution); a record they read again because its source wrote it again is counted twice by that rule, and nothing in the payload tells that case apart. In a backfill, the window that straddled each 3-day chunk bound went out with only its part after the bound, and a measured series with a backlog could lose the samples of the window its chunk ended in. |
 | 1.23.0 through 1.25.0 | Nutrition records carry no `metadata`, also with **Record metadata in payload** on |
 | Before 1.26.0 | Exercise sessions carry no `segments` or `laps`, also when the recording app wrote them |
-| Before 1.23.0 | No `metadata`, `app_filter` or `filtered_screen_time_minutes`, and no bucket carries `complete`. A window they sent again holds only the late records, so combine it with the stored window as described under [Data resolution](#data-resolution); a record they read again because its source wrote it again is counted twice by that rule, and nothing in the payload tells that case apart. In a backfill, the window that straddled each 3-day chunk bound went out with only its part after the bound, and a measured series with a backlog could lose the samples of the window its chunk ended in. |
 
 <a id="home-assistant-webhook"></a>
 

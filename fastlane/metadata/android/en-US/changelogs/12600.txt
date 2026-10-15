@@ -1,0 +1,7 @@
+New
+- Workouts carry the sets and laps the recording app wrote, such as a strength app's sets and repetitions.
+Fixed
+- A phone without Health Connect is told to install it, not to update it.
+- Sync Now on the Screen Time tab saves your changes first.
+- View and Export on the Health tab use what is on screen without saving it.
+- Export no longer offers a CSV that was really JSON.
