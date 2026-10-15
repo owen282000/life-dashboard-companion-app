@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.26.0] - 2026-10-15
+
+### Highlights
+
+- Workouts carry the sets and laps the recording app wrote inside them, such as a strength app's sets with their repetitions or a swim's laps. Contributed by @PeterUstinox in #134, a first contribution to the project.
+- A phone without Health Connect is told to install it, not to update it, and **Install** no longer crashes on a phone with nothing that can open the store link.
+- **Sync Now** on the Screen Time tab saves your unsaved changes first, and **View** and **Export** on the Health tab show what is on screen without saving it.
+
 ### Added
 
 - Exercise sessions carry what the app that recorded them wrote inside them: `segments`, one per
@@ -30,7 +38,7 @@ All notable changes to this project are documented in this file. The format is b
   an **Install** button, instead of **Health Connect needs to be updated** with **Update**; an old
   Health Connect still asks for the update. On Android 8, and in a work profile on Android 14 and
   newer, the card says Health Connect is not available, without an Install button that could not help
-  there.
+  there. **Install** no longer crashes on a phone with nothing that can open the store link.
 - **Sync Now** on the Screen Time tab saves the tab's unsaved changes first, as it does on the Health
   tab, so a sync no longer goes out with the settings saved before. A change that can't be saved is
   named and stops the sync. Without unsaved changes, **Sync Now** on either tab saves nothing, so it
@@ -936,7 +944,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.25.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.26.0...HEAD
+[1.26.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.25.0...1.26.0
 [1.25.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.24.0...1.25.0
 [1.24.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.23.0...1.24.0
 [1.23.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.22.0...1.23.0
