@@ -176,6 +176,19 @@ class ScreenTimeViewModelTest {
     }
 
     @Test
+    fun `sync now without changes writes nothing, so it cannot put back older settings`() = runTest {
+        val settings = FakeAppSettings()
+        val ops = FakeScreenTimeOps()
+        val vm = vm(settings, ops)
+        vm.addUrl("https://example.org/hook")
+        vm.save()
+        assertEquals(1, settings.savedScreenTime)
+        vm.syncNow()
+        assertEquals(1, settings.savedScreenTime)
+        assertEquals(1, ops.syncs)
+    }
+
+    @Test
     fun `sync now with a draft that cannot be saved says why and does not sync`() = runTest {
         val settings = FakeAppSettings()
         val ops = FakeScreenTimeOps()

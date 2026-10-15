@@ -417,11 +417,16 @@ class HealthConnectViewModel(
                     _permissionRequests.tryEmit(accessPermissions())
                     return@launch
                 }
-                // Save first so the sync manager runs with what is on screen.
-                val saved = persist()
-                if (saved != UiMessage.Saved) {
-                    _toasts.tryEmit(saved)
-                    return@launch
+                // Save first when the tab has unsaved changes, so the sync manager runs with what is
+                // on screen. Without changes nothing is written: the draft was loaded when the tab
+                // was created, and writing it whole would put back a shared broker changed on the
+                // other tab or settings a backup import brought in since.
+                if (_state.value.hasChanges) {
+                    val saved = persist()
+                    if (saved != UiMessage.Saved) {
+                        _toasts.tryEmit(saved)
+                        return@launch
+                    }
                 }
                 val message = ops.sync().fold(
                     onSuccess = { result ->

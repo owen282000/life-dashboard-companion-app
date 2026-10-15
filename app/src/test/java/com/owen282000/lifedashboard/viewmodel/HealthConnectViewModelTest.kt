@@ -230,6 +230,20 @@ class HealthConnectViewModelTest {
     }
 
     @Test
+    fun `sync now without changes writes nothing, so it cannot put back older settings`() = runTest {
+        val settings = FakeAppSettings()
+        val ops = FakeHealthOps()
+        val vm = vm(settings, ops)
+        vm.refreshPermissions()
+        vm.addUrl("https://example.org/hook")
+        vm.save()
+        assertEquals(1, settings.savedHealth)
+        vm.syncNow()
+        assertEquals(1, settings.savedHealth)
+        assertEquals(1, ops.syncs)
+    }
+
+    @Test
     fun `a manual sync reloads the dashboard card`() = runTest {
         val vm = vm()
         vm.refreshPermissions()
