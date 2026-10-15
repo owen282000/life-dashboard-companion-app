@@ -305,7 +305,7 @@ One table per group. Interval types carry `start_time` and `end_time`; instant t
 | `distance` | `meters` number | interval | sum |
 | `active_calories` | `calories` number, kcal | interval | sum |
 | `total_calories` | `calories` number, kcal | interval | sum |
-| `exercise` | `type` string, `duration_seconds` integer | interval | no |
+| `exercise` | `type` string, `duration_seconds` integer, optional `segments` and `laps` arrays | interval | no |
 
 ```json
 "steps": [ { "count": 1234, "start_time": "2026-10-04T08:00:00Z", "end_time": "2026-10-04T09:00:00Z" } ],
@@ -316,6 +316,16 @@ One table per group. Interval types carry `start_time` and `end_time`; instant t
 ```
 
 `exercise.type` is Health Connect's exercise type constant as a string of digits: `"56"` is running, `"79"` walking. The full list is in [`ExerciseSessionRecord`](https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/ExerciseSessionRecord). The iOS app sends a name instead, such as `"running"`.
+
+A session carries what the app that recorded it wrote inside it, when it wrote anything: `segments`, one object per exercise or set with its `type`, `start_time`, `end_time` and `repetitions`, and `laps`, one per lap with its `start_time`, `end_time` and `meters`. Without them the session reads as before. A segment's `type` is Health Connect's [`ExerciseSegment`](https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/ExerciseSegment) constant as a string of digits: `"51"` is a squat, `"5"` a bench press, `"44"` a rest. `repetitions` is left out when the app wrote none, and `meters` when a lap has no length. Few apps write segments; a strength app that does tells a receiver which sets were done and how many repetitions each had. The iOS app sends neither array.
+
+```json
+"exercise": [ { "type": "70", "start_time": "2026-10-14T18:00:00Z", "end_time": "2026-10-14T18:40:00Z", "duration_seconds": 2400,
+  "segments": [
+    { "type": "51", "start_time": "2026-10-14T18:00:00Z", "end_time": "2026-10-14T18:01:00Z", "repetitions": 5 },
+    { "type": "44", "start_time": "2026-10-14T18:01:00Z", "end_time": "2026-10-14T18:04:00Z" }
+  ] } ]
+```
 
 ### Body
 

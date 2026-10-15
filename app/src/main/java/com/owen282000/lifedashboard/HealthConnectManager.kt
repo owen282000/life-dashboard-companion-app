@@ -16,6 +16,7 @@ import androidx.health.connect.client.units.Length
 import androidx.health.connect.client.units.Mass
 import androidx.health.connect.client.units.Percentage
 import androidx.health.connect.client.units.Pressure
+import com.owen282000.lifedashboard.ExerciseSupport.toExerciseData
 import com.owen282000.lifedashboard.NutritionSupport.toNutritionData
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Duration
@@ -766,7 +767,7 @@ class HealthConnectManager(
 
     private suspend fun readExerciseData(startTime: Instant, endTime: Instant, lastSync: Watermark?): List<ExerciseData> {
         return readFiltered(HealthDataType.EXERCISE, ExerciseSessionRecord::class, startTime, endTime, lastSync) { it.endTime }
-            .map { ExerciseData(it.exerciseType.toString(), it.startTime, it.endTime, Duration.between(it.startTime, it.endTime), it.metadata.dataOrigin.packageName, it.metadata.id) }
+            .map { it.toExerciseData() }
     }
 
     private suspend fun readHydrationData(startTime: Instant, endTime: Instant, lastSync: Watermark?): List<HydrationData> {

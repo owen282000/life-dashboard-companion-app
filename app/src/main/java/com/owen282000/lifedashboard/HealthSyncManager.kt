@@ -2,6 +2,7 @@ package com.owen282000.lifedashboard
 
 import android.content.Context
 import android.os.Build
+import com.owen282000.lifedashboard.ExerciseSupport.putExercise
 import com.owen282000.lifedashboard.NutritionSupport.putNutrition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -1349,14 +1350,9 @@ class HealthSyncManager(
 
             if (healthData.exercise.isNotEmpty()) {
                 putJsonArray("exercise") {
-                    healthData.exercise.forEach { add(buildJsonObject {
-                        put("type", it.type)
-                        put("start_time", it.startTime.toString())
-                        put("end_time", it.endTime.toString())
-                        put("duration_seconds", it.duration.seconds)
-                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
-                        it.source?.let { s -> put("source", s) }
-                    }) }
+                    healthData.exercise.forEach { session ->
+                        add(buildJsonObject { putExercise(session, session.uuid?.let { healthData.recordMeta[it.substringBefore('#')] }?.toJson()) })
+                    }
                 }
             }
 

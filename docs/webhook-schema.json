@@ -1127,6 +1127,64 @@
           },
           "metadata": {
             "$ref": "#/definitions/recordMetadata"
+          },
+          "segments": {
+            "type": "array",
+            "description": "What the recording app wrote inside the session, one object per exercise or set. Left out when it wrote none. Android only.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Health Connect's ExerciseSegment segment type constant as a decimal string, such as \"51\" (squat) or \"44\" (rest)."
+                },
+                "start_time": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "end_time": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "repetitions": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Left out when the app wrote none."
+                }
+              },
+              "required": [
+                "type",
+                "start_time",
+                "end_time"
+              ],
+              "additionalProperties": true
+            }
+          },
+          "laps": {
+            "type": "array",
+            "description": "The session's laps as the recording app wrote them. Left out when it wrote none. Android only.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "start_time": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "end_time": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "meters": {
+                  "type": "number",
+                  "description": "The lap's length; left out when the app wrote none."
+                }
+              },
+              "required": [
+                "start_time",
+                "end_time"
+              ],
+              "additionalProperties": true
+            }
           }
         },
         "required": [

@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Exercise sessions carry what the app that recorded them wrote inside them: `segments`, one per
+  exercise or set with its repetitions (five squats, then a rest), and `laps`, with their length in
+  meters. A strength app that writes its sets to Health Connect now gets them to your webhook. Both
+  arrays are left out when the app wrote none, so other sessions read as before; see
+  [docs/webhook.md](docs/webhook.md#activity).
+
 ### Changed
 
 - A reading from Home Assistant may say `recording_method: automatic`, the word the app's own record

@@ -347,7 +347,27 @@ data class ExerciseData(
     val endTime: Instant,
     val duration: Duration,
     val source: String? = null,
-    val uuid: String? = null
+    val uuid: String? = null,
+    /** The exercises inside the session as the source app wrote them, such as one set of squats. */
+    val segments: List<ExerciseSegmentData> = emptyList(),
+    val laps: List<ExerciseLapData> = emptyList()
+)
+
+/**
+ * One segment of an exercise session. [type] is Health Connect's ExerciseSegment constant (51 is
+ * a squat, 44 a rest); [repetitions] is 0 when the source app wrote none.
+ */
+data class ExerciseSegmentData(
+    val type: Int,
+    val startTime: Instant,
+    val endTime: Instant,
+    val repetitions: Int = 0
+)
+
+data class ExerciseLapData(
+    val startTime: Instant,
+    val endTime: Instant,
+    val meters: Double? = null
 )
 
 data class HydrationData(
