@@ -8,22 +8,22 @@ Your data goes only to the addresses you enter: your Home Assistant, your MQTT b
 
 Home Assistant:
 - The Life Dashboard integration, installed through HACS. Scan the QR code it shows and you're paired, with no broker and no YAML. Every synced day lands in Home Assistant's long-term statistics on its own date, so a backfill becomes a year of history.
-- Receive, with the integration: a scale or blood pressure monitor connected to Home Assistant sends its readings to the app, which writes them into Health Connect (weight, height, body composition, blood pressure). Samsung Health and Google Health pick up the weight and body fat from there. You switch it on per type.
-- MQTT Discovery, for a setup that already runs a broker and only needs the latest values. 24 of the 33 data types plus screen time appear as sensors under one device. TLS and a username and password are optional.
+- Receive, with the integration: a scale or blood pressure monitor connected to Home Assistant sends its readings to the app, which writes them into Health Connect (weight, height, body composition, blood pressure). Samsung Health and Google Health can show the weight and body fat from there. You switch it on per type.
+- MQTT Discovery, for a setup that already runs a broker: 24 of the 33 types plus screen time as sensors under one device, with optional TLS and login.
 
 Health Connect:
 - 33 types: steps, sleep with stages, heart rate, HRV, blood pressure, blood glucose, VO2 max, skin temperature, cycle tracking and more.
-- Every raw record carries its source app and a stable ID, so your server can drop a record that arrives twice. Daily totals come from Health Connect itself, so a walk recorded by both phone and watch counts once.
-- Each sync sends only what changed since the last one, per data type.
-- Optional data resolution: send heart rate and other dense series as one summary per 1, 5 or 15 minutes, or per hour, instead of every sample.
+- Every record carries its source app and a stable ID, so a duplicate is easy to drop. Daily totals come from Health Connect itself, so a walk recorded by both phone and watch counts once.
+- Each sync sends only what changed since the last one, per data type, edits and deletions included. When a change can't be sent, the payload says so.
+- Optional data resolution: send dense series such as heart rate as one summary per 1, 5, 15 or 60 minutes.
 - Backfill of up to a year runs in the background and picks up where it left off.
 
 Screen time:
-- Time per app, with a day boundary you choose (handy if you stay up past midnight).
+- Time per app, with a day boundary you choose.
 - Send every app, every app except the ones you select, or only the ones you select. An app left out never leaves the phone, though the day's total still counts its time.
 
 Webhooks:
-- A webhook of your own gets every record in full, including single meals, cycle tracking entries and workout details. Neither MQTT nor the integration turns those into sensors, because they're events rather than values.
+- A webhook of your own gets every record in full, including single meals, cycle tracking entries and workout details, which are events rather than sensor values.
 - Several URLs, custom headers, optional HMAC-SHA256 signing so your server can verify the sender, and client certificates (mTLS) for a server behind a reverse proxy.
 - Automatic retries, plus an outbox that keeps undelivered syncs (a week of them at the 15-minute interval) until your server is back.
 - A delivery log in the app, with the payload of each sync.
@@ -31,13 +31,15 @@ Webhooks:
 Automation:
 - Syncs on its own at an interval of 15 minutes or longer, or at fixed times, on the days you pick, with quiet hours.
 - Home screen widget and Quick Settings tile.
-- A broadcast intent that Tasker and MacroDroid can use to start a sync.
+- An intent that Tasker and MacroDroid can use to start a sync.
 - A notification when syncs fail several times in a row (you pick 3, 5 or 10).
 
-Also: settings backup and restore (password-encrypted when secrets are included), and an English, Dutch and German interface.
+Also: settings backup and restore (encrypted when secrets are included), in English, Dutch and German.
 
-Releases are built by public CI, signed, and carry verifiable build provenance. The project holds the OpenSSF Best Practices badge.
+GitHub releases are built by public CI and carry verifiable build provenance, and the build is reproducible, so F-Droid ships the same signed APK.
+
+Optionally, the separate self-hosted Life Dashboard Stack stores your data in Postgres with Grafana dashboards, and its MCP server lets an AI model that you run yourself read your history. The app itself contains no AI.
 
 Health data needs Android 9 or newer with Health Connect, which is built into Android 14 and later and is a free app from Google Play on Android 9 through 13. Screen time works on Android 8.0 and newer.
 
-For households with iPhones too, an iOS app sends the same payload and pairs with the same Home Assistant integration.
+Life Dashboard Companion is not a medical device and does not diagnose, treat, cure or prevent any medical condition. Ask a healthcare professional for medical advice, diagnosis or treatment.
