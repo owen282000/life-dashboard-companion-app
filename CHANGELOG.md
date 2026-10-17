@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Fixed
+
+- The pairing scanner and the setup wizard no longer assume the code comes from Home Assistant. The
+  scanner asks for the pairing code your receiver shows, and the wizard's choice reads **Scan a
+  pairing code**, so a Life Dashboard Stack, n8n or a webhook of your own that hands out a pairing
+  code fits too. Home Assistant stays the recommended route, with the same guidance as before.
+
 ## [1.26.0] - 2026-10-15
 
 ### Highlights

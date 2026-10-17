@@ -646,7 +646,7 @@
 
     <!-- QR scanner -->
     <string name="scan_title">Koppelcode scannen</string>
-    <string name="scan_hint">Vul het kader met de code die de Life Dashboard-integratie in Home Assistant toont. Dichterbij werkt beter.</string>
+    <string name="scan_hint">Vul het kader met de koppelcode die je ontvanger toont, zoals de Life Dashboard-integratie in Home Assistant. Dichterbij werkt beter.</string>
     <string name="scan_close">Sluiten</string>
     <string name="scan_not_a_code">Dit is geen Life Dashboard-koppelcode.</string>
     <string name="scan_permission_needed">Toegang tot de camera is nodig om een code te scannen. Je kunt het adres en het geheim ook met de hand invullen.</string>
@@ -655,8 +655,8 @@
     <string name="scan_camera_failed">De camera kon niet worden gestart.</string>
     <string name="webhook_scan_lead">Koppelcode scannen</string>
     <string name="webhook_scan_button">Scannen</string>
-    <string name="onboarding_scan_option">Code uit Home Assistant scannen</string>
-    <string name="onboarding_scan_desc">Aangeraden voor Home Assistant. Installeer de Life Dashboard-integratie via HACS en scan de QR-code die ze toont: het adres en het ondertekeningsgeheim worden voor je ingevuld, en Home Assistant bewaart de historie in zijn langetermijnstatistieken.</string>
+    <string name="onboarding_scan_option">Koppelcode scannen</string>
+    <string name="onboarding_scan_desc">Aangeraden voor Home Assistant: installeer de Life Dashboard-integratie via HACS en scan de QR-code die ze toont, en Home Assistant bewaart de historie in zijn langetermijnstatistieken. Elke andere ontvanger die een koppelcode toont, werkt net zo. Het adres en het ondertekeningsgeheim worden voor je ingevuld.</string>
     <string name="onboarding_scan_paired">Code gelezen. Het adres en het geheim zijn ingevuld.</string>
     <!-- Widget op het startscherm -->
     <plurals name="widget_records_today">

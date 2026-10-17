@@ -646,7 +646,7 @@
 
     <!-- QR scanner -->
     <string name="scan_title">Kopplungscode scannen</string>
-    <string name="scan_hint">Fülle den Rahmen mit dem Code, den die Life-Dashboard-Integration in Home Assistant zeigt. Näher ist besser.</string>
+    <string name="scan_hint">Fülle den Rahmen mit dem Kopplungscode, den dein Empfänger zeigt, etwa dem der Life-Dashboard-Integration in Home Assistant. Näher ist besser.</string>
     <string name="scan_close">Schließen</string>
     <string name="scan_not_a_code">Das ist kein Life-Dashboard-Kopplungscode.</string>
     <string name="scan_permission_needed">Für das Scannen wird Zugriff auf die Kamera benötigt. Du kannst Adresse und Geheimnis auch von Hand eintragen.</string>
@@ -655,8 +655,8 @@
     <string name="scan_camera_failed">Die Kamera konnte nicht gestartet werden.</string>
     <string name="webhook_scan_lead">Kopplungscode scannen</string>
     <string name="webhook_scan_button">Scannen</string>
-    <string name="onboarding_scan_option">Code aus Home Assistant scannen</string>
-    <string name="onboarding_scan_desc">Empfohlen für Home Assistant. Installiere die Life-Dashboard-Integration über HACS und scanne den QR-Code, den sie zeigt: Adresse und Signaturgeheimnis werden für dich eingetragen, und Home Assistant bewahrt den Verlauf in seinen Langzeitstatistiken auf.</string>
+    <string name="onboarding_scan_option">Kopplungscode scannen</string>
+    <string name="onboarding_scan_desc">Empfohlen für Home Assistant: Installiere die Life-Dashboard-Integration über HACS und scanne den QR-Code, den sie zeigt, und Home Assistant bewahrt den Verlauf in seinen Langzeitstatistiken auf. Jeder andere Empfänger, der einen Kopplungscode zeigt, funktioniert genauso. Adresse und Signaturgeheimnis werden für dich eingetragen.</string>
     <string name="onboarding_scan_paired">Code gelesen. Adresse und Geheimnis sind eingetragen.</string>
     <!-- Widget auf dem Startbildschirm -->
     <plurals name="widget_records_today">

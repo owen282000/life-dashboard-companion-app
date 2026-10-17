@@ -90,4 +90,26 @@ class TranslatedNamesTest {
         assertEquals("Host niet gevonden", strings("values-nl")["connection_problem_host_not_found"]?.substringBefore('.'))
         assertEquals("Host nicht gefunden", strings("values-de")["connection_problem_host_not_found"]?.substringBefore('.'))
     }
+
+    /**
+     * A pairing code comes from Home Assistant, but also from a Life Dashboard Stack, n8n or a
+     * webhook of one's own. The scanner and the pairing result speak to all of them; Home
+     * Assistant stays named only as the recommendation, next to the way in for the rest.
+     */
+    @Test
+    fun theScannerAndThePairingResultFitAnyReceiver() {
+        val receiver = mapOf("values" to "receiver", "values-nl" to "ontvanger", "values-de" to "Empfänger")
+        for (folder in locales) {
+            val strings = strings(folder)
+            fun text(name: String) = strings[name].also { assertTrue("$name is missing in $folder", !it.isNullOrBlank()) }!!
+
+            for (name in listOf("onboarding_scan_option", "pairing_ping_sending", "pairing_ping_delivered", "pairing_ping_failed")) {
+                assertTrue("$name in $folder is only for Home Assistant: ${text(name)}", "Home Assistant" !in text(name))
+            }
+            for (name in listOf("scan_hint", "onboarding_scan_desc")) {
+                assertTrue("$name in $folder lost its Home Assistant guidance", "Home Assistant" in text(name))
+                assertTrue("$name in $folder does not speak to other receivers", receiver.getValue(folder) in text(name))
+            }
+        }
+    }
 }
