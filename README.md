@@ -198,7 +198,7 @@ Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the checks 
 - [Health Connect](https://developer.android.com/health-and-fitness/health-connect) by Google, which this app reads from and writes to
 - [OkHttp](https://github.com/lysine-dev/okhttp) for webhook delivery and the [HiveMQ MQTT Client](https://github.com/hivemq/hivemq-mqtt-client) for MQTT
 - [Jetpack Compose, WorkManager and Glance](https://developer.android.com/jetpack) for the interface, background sync and the home screen widget
-- [HC Webhook](https://github.com/mcnaveen/health-connect-webhook) by mcnaveen, for early inspiration on Health Connect integration patterns
+- The earlier open source apps that export Health Connect to a webhook, which showed the idea works and were an early inspiration for the integration patterns here
 - Everyone who filed an issue with a payload dump or a quirk of their source app. Most of [DATA_SOURCES.md](docs/DATA_SOURCES.md) comes from those reports.
 - [Claude Code](https://claude.com/claude-code), which drafted a large part of the code. Every change is reviewed and tested before it ships, and [AI_POLICY.md](AI_POLICY.md) explains how.
 
