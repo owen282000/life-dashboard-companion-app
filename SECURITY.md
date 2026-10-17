@@ -61,7 +61,7 @@ gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion
 
 Please do not open a public issue for a security vulnerability.
 
-Report it through [GitHub's private vulnerability reporting](https://github.com/owen282000/life-dashboard-companion-app/security/advisories/new) for this repository. If you do not have a GitHub account, email owenvogelaar@hotmail.com instead, with "Security" in the subject.
+Report it through [GitHub's private vulnerability reporting](https://github.com/owen282000/life-dashboard-companion-app/security/advisories/new) for this repository. If you do not have a GitHub account, email owen282000@hotmail.com instead, with "Security" in the subject.
 
 Useful in a report: the app version, the Android version, what an attacker needs (another app on the phone, a position on the network, access to the receiving server), and the steps to reproduce it.
 
