@@ -1,6 +1,6 @@
 # Contributing
 
-Bug fixes, translations, documentation and new features are all welcome. Issues labeled [good first issue](https://github.com/owen282000/life-dashboard-companion-app/labels/good%20first%20issue) are the place to start, if there are any open; a translation or a correction to a brand page also makes a fine first pull request. For anything bigger, open an issue first to agree on the direction before you write the code.
+Bug fixes, translations, documentation and new features are all welcome. Issues labeled [good first issue](https://github.com/owen282000/life-dashboard-companion-app/labels/good%20first%20issue) are the place to start, if there are any open; a translation on [Weblate](https://hosted.weblate.org/engage/life-dashboard-companion/) or a correction to a brand page also makes a fine first contribution. For anything bigger, open an issue first to agree on the direction before you write the code.
 
 ## Getting started
 
