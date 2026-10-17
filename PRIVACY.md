@@ -132,4 +132,4 @@ The source code is public at [github.com/owen282000/life-dashboard-companion-app
 
 ## Contact
 
-Ask privacy questions in [Discussions](https://github.com/owen282000/life-dashboard-companion-app/discussions), where the answer stays findable for the next person. For anything personal, email owenvogelaar@hotmail.com instead. A security problem goes through the private channel in [SECURITY.md](SECURITY.md#reporting-a-vulnerability), not Discussions.
+Ask privacy questions in [Discussions](https://github.com/owen282000/life-dashboard-companion-app/discussions), where the answer stays findable for the next person. For anything personal, email owen282000@hotmail.com instead. A security problem goes through the private channel in [SECURITY.md](SECURITY.md#reporting-a-vulnerability), not Discussions.

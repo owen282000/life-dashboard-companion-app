@@ -33,7 +33,7 @@ That prints the same value without separators and in lowercase, which is the oth
 271406d5baf790506e914d82aca2533336ae083d01c79fbacb0015f42e4ff61f
 ```
 
-A different fingerprint means the APK was not signed by this project, whatever the file is called. The F-Droid submission, which is still in review, pins the same value as `AllowedAPKSigningKeys`.
+A different fingerprint means the APK was not signed by this project, whatever the file is called. F-Droid's metadata for the app pins the same value as `AllowedAPKSigningKeys`: F-Droid builds the app itself and ships the release APK, with this same signature, only when its own build matches it (a reproducible build).
 
 **The provenance attestation** links the APK to the workflow run and the commit that produced it. With the [GitHub CLI](https://cli.github.com/):
 
@@ -49,7 +49,7 @@ When the APK is genuine, it prints `Verification succeeded!` with the workflow a
 gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion-app --format json
 ```
 
-The output names the workflow (`.github/workflows/release.yml`), the tag the release was built from and the commit behind that tag. For 1.23.0, for example, that is `refs/tags/1.23.0` and commit `81c6b74d7fd1a619b7d08c582c3cf94a17e3586e`. Once the app is listed on F-Droid, F-Droid builds from that same tagged commit.
+The output names the workflow (`.github/workflows/release.yml`), the tag the release was built from and the commit behind that tag. For 1.23.0, for example, that is `refs/tags/1.23.0` and commit `81c6b74d7fd1a619b7d08c582c3cf94a17e3586e`. F-Droid builds from that same tagged commit and checks its build against the release APK.
 
 The `app-release.apk.sigstore.json` published next to each APK is the same attestation for checking without a network round trip:
 
@@ -61,7 +61,7 @@ gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion
 
 Please do not open a public issue for a security vulnerability.
 
-Report it through [GitHub's private vulnerability reporting](https://github.com/owen282000/life-dashboard-companion-app/security/advisories/new) for this repository. If you do not have a GitHub account, email owenvogelaar@hotmail.com instead, with "Security" in the subject.
+Report it through [GitHub's private vulnerability reporting](https://github.com/owen282000/life-dashboard-companion-app/security/advisories/new) for this repository. If you do not have a GitHub account, email owen282000@hotmail.com instead, with "Security" in the subject.
 
 Useful in a report: the app version, the Android version, what an attacker needs (another app on the phone, a position on the network, access to the receiving server), and the steps to reproduce it.
 
