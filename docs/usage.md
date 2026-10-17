@@ -47,7 +47,7 @@ Steps 1 through 4 happen in Home Assistant and end with a QR code on screen. Ste
 2. **Download** Life Dashboard in HACS.
 3. **Restart Home Assistant.** A new integration is only loaded at startup.
 4. **Add the integration.** Go to Settings > Devices & services > Add integration, search for **Life Dashboard** and give the phone a name. The address is filled in with the one your browser is using. Check that the phone can reach it: see [Which address to use](#which-address-to-use). The dialog then shows a QR code.
-5. **Install the app and scan the code.** Install the app as described under [Install the app](#install-the-app) and open it. At the setup question **Where should your data go?**, tap **Scan a code from Home Assistant**, scan the QR code and tap **Pair**. The app sends a test ping right away and shows whether it arrived. The phone's camera works too: see [Pairing by QR code](#pairing-by-qr-code).
+5. **Install the app and scan the code.** Install the app as described under [Install the app](#install-the-app) and open it. At the setup question **Where should your data go?**, tap **Scan a pairing code**, scan the QR code and tap **Pair**. The app sends a test ping right away and shows whether it arrived. The phone's camera works too: see [Pairing by QR code](#pairing-by-qr-code).
 6. **Grant the permissions:** Health Connect on the **Health** tab, usage access on the **Screen Time** tab. See [Grant permissions](#grant-permissions).
 7. **Sync.** On the **Health** tab, tap **Sync Now**. The phone appears under Settings > Devices & services > Life Dashboard, with a sensor for each type it sent that fits in a single value (24 of the 33 types do). Do the same on the **Screen Time** tab for screen time. For older history, see [Backfill](#backfill-older-history).
 
@@ -69,7 +69,7 @@ To change the address later, open the integration's **Reconfigure**, change it t
 
 The integration shows a QR code when you add it, and again under its **Reconfigure**. There are three ways to use it, and all of them end in the same confirmation dialog in the app:
 
-- **From the setup wizard**, with **Scan a code from Home Assistant** under **Where should your data go?**.
+- **From the setup wizard**, with **Scan a pairing code** under **Where should your data go?**.
 - **From the Webhook card** on the **Health** or **Screen Time** tab, with **Scan a pairing code**. Once an address is set up, this becomes a small QR icon inside the address field.
 - **With the phone's camera.** Point it at the code. The app opens straight from the camera, because the code is a link that Android checks against the app's signing certificate.
 
@@ -105,7 +105,7 @@ To build the app yourself, see [building.md](building.md).
 The first launch opens a short wizard with three questions:
 
 1. **What do you want to sync?** Health Connect, Screen Time, or both.
-2. **Where should your data go?** **Scan a code from Home Assistant** (recommended for Home Assistant), a **Webhook** URL with a test ping, an **MQTT broker**, or several of these.
+2. **Where should your data go?** **Scan a pairing code** (recommended for Home Assistant, and the way in for any receiver that shows a pairing code), a **Webhook** URL with a test ping, an **MQTT broker**, or several of these.
 3. **Which health data matters to you?** Only if you picked Health Connect: **The essentials** (steps, sleep, heart rate, resting heart rate, distance, active and total calories, and weight), **All 33 data types**, or **Decide later**.
 
 The last screen lists what's left to do: the [permissions](#grant-permissions), then **Sync Now**.
