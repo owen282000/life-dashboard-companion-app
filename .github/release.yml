@@ -1,11 +1,11 @@
 # Categories for the notes GitHub generates under the hand-written CHANGELOG section of each
 # release (the release workflow sets generate_release_notes). A pull request lands in the first
 # category whose label it carries. Dependabot labels its own pull requests (dependencies, plus
-# java or github_actions); every other label is set by hand, since no workflow applies labels
-# from commit prefixes. An unlabeled pull request goes under "Other changes".
+# java or github_actions); workflows/pr-labels.yml labels the others from their title's prefix
+# (feat, fix, docs). An unlabeled pull request goes under "Other changes".
 #
-# Label a docs-only pull request, such as the "docs: Changelog for x.y.z" one of each release,
-# with documentation to keep it out of the notes: the CHANGELOG already covers what users need.
+# A docs pull request, such as the "docs: Changelog for x.y.z" one of each release, gets
+# documentation and stays out of the notes: the CHANGELOG already covers what users need.
 changelog:
   exclude:
     labels:

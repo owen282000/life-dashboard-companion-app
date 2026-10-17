@@ -1,0 +1,35 @@
+name: pr-labels
+
+# Labels a pull request from the prefix of its title, so .github/release.yml sorts the notes
+# GitHub generates for a release: feat gets enhancement, fix gets bug, docs gets documentation.
+# Dependabot labels its own pull requests. pull_request_target runs with this repository's
+# token, so it works for pull requests from forks too; it checks out nothing and runs no code
+# from the pull request, it only reads the title.
+on:
+  pull_request_target:
+    types: [opened, edited, reopened]
+
+permissions: {}
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Label from the title's prefix
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ github.event.pull_request.title }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          case "$TITLE" in
+            feat:* | "feat("*) label=enhancement ;;
+            fix:* | "fix("*) label=bug ;;
+            docs:* | "docs("*) label=documentation ;;
+            *) exit 0 ;;
+          esac
+          gh pr edit "$PR" --repo "$REPO" --add-label "$label"
