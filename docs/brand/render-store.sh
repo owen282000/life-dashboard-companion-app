@@ -2,7 +2,7 @@
 # Renders the Google Play store graphics from docs/brand/ with headless Chrome. Run from the
 # repository root.
 #
-#   phoneScreenshots/1.png to 8.png  store-shot.html?n=1..8, 1080x1920, RGB (no alpha)
+#   phoneScreenshots/1.png to 7.png  store-shot.html?n=1..7, 1080x1920, RGB (no alpha)
 #   featureGraphic.png               feature-graphic.html, 1024x500, RGB (no alpha)
 #   icon.png                         icon.html, 512x512, RGBA (Play lists a 32-bit PNG)
 #
@@ -17,7 +17,7 @@ shot() { # out width height url [extra flag]
     --force-device-scale-factor=1 --virtual-time-budget=3000 $5 "$4" 2>/dev/null
 }
 
-for n in 1 2 3 4 5 6 7 8; do
+for n in 1 2 3 4 5 6 7; do
   shot "$IMAGES/phoneScreenshots/$n.png" 1080 1920 "file://$PWD/docs/brand/store-shot.html?n=$n"
 done
 shot "$IMAGES/featureGraphic.png" 1024 500 "file://$PWD/docs/brand/feature-graphic.html"

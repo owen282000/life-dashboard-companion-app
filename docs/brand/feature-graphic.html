@@ -1,18 +1,13 @@
 <!DOCTYPE html>
 <!--
-  Source for the store feature graphic (fastlane/metadata/android/en-US/images/featureGraphic.png).
+  Source for the store feature graphic (fastlane/metadata/android/en-US/images/featureGraphic.png),
+  1024x500, rendered by docs/brand/render-store.sh with headless Chrome.
 
-  Rendered with headless Chrome, the same way docs/social-preview.png was made:
-
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-      --headless=new --screenshot=fastlane/metadata/android/en-US/images/featureGraphic.png \
-      --window-size=1024,500 --hide-scrollbars --force-device-scale-factor=1 \
-      "file://$PWD/docs/brand/feature-graphic.html"
-
+  Generic outlines of a watch, a ring and a scale (no real product) feed a small Health Connect
+  node, which feeds the three destinations: Home Assistant, MQTT and Webhook. One line of text.
   The opaque body gives an RGB PNG without alpha, as Play asks. Same identity as the icon and
-  the store screenshots: heartbeat green #30B77E on a dark green-tinted gradient (Play advises
-  against plain dark gray), white title with the green "Companion". Everything that matters
-  stays inside the central 924x400; the destinations are text only, no logos.
+  the store screenshots: heartbeat green #30B77E on a dark green-tinted gradient. Everything
+  that matters stays inside the central 924x400; no logos.
 -->
 <html>
 <head>
@@ -30,84 +25,66 @@
       linear-gradient(to right, rgba(48,183,126,0.07) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(48,183,126,0.07) 1px, transparent 1px);
     background-size: 40px 40px;
-    -webkit-mask-image: radial-gradient(70% 90% at 82% 55%, black 20%, transparent 80%);
+    -webkit-mask-image: radial-gradient(80% 90% at 60% 60%, black 20%, transparent 80%);
   }
-  .glow { position: absolute; right: 80px; top: 40px; width: 460px; height: 420px;
-    background: radial-gradient(closest-side, rgba(48,183,126,0.16), transparent); }
+  .glow { position: absolute; left: 380px; top: 120px; width: 420px; height: 360px;
+    background: radial-gradient(closest-side, rgba(48,183,126,0.18), transparent); }
 
-  svg.mark { position: absolute; left: 50px; top: 66px; }
-  .text { position: absolute; left: 64px; top: 168px; }
-  h1 { font-size: 58px; font-weight: 800; letter-spacing: -1px; line-height: 1.03; }
-  h1 .accent { color: #30B77E; display: block; }
-  .tagline { margin-top: 20px; font-size: 26px; line-height: 1.35; color: #C9D3D6; }
+  h1 { position: absolute; left: 70px; right: 70px; top: 58px; text-align: center;
+    font-size: 50px; font-weight: 800; letter-spacing: -0.8px; }
+  h1 em { font-style: normal; color: #30B77E; }
 
-  .phone {
-    position: absolute; left: 566px; top: 86px; width: 164px; height: 328px;
-    border: 5px solid #3D4A45; border-radius: 30px; background: #0F1A17;
-    box-shadow: 0 0 60px rgba(48,183,126,0.14);
-  }
-  .phone .bar { position: absolute; left: 24px; background: #2F3B37; border-radius: 4px; height: 9px; }
-  .phone .b1 { top: 36px; width: 96px; } .phone .b2 { top: 56px; width: 62px; }
-  .phone svg { position: absolute; left: 0; top: 130px; }
-  .phone .home { position: absolute; bottom: 14px; left: 50%; width: 40px; height: 5px; border-radius: 3px;
-    background: #3D4A45; transform: translateX(-50%); }
-
-  svg.links { position: absolute; left: 0; top: 0; }
-  .pill {
-    position: absolute; left: 782px; width: 188px; height: 58px; border-radius: 29px;
+  svg.flow { position: absolute; left: 0; top: 0; }
+  .node {
+    position: absolute; left: 404px; top: 268px; width: 200px; height: 64px; border-radius: 20px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 21px; font-weight: 700; white-space: nowrap; color: #E8EDEF; letter-spacing: 0.1px;
-    background: rgba(16,30,26,0.92); border: 2px solid rgba(255,255,255,0.14);
+    font-size: 23px; font-weight: 700; color: #E8EDEF;
+    background: rgba(16,30,26,0.95); border: 2px solid rgba(48,183,126,0.75);
+    box-shadow: 0 0 34px rgba(48,183,126,0.28);
   }
-  .pill.ha { border-color: rgba(48,183,126,0.75); box-shadow: 0 0 26px rgba(48,183,126,0.25); }
+  .card {
+    position: absolute; left: 700px; width: 230px; height: 66px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 25px; font-weight: 700; color: #E8EDEF; white-space: nowrap;
+    background: rgba(16,30,26,0.92); border: 2px solid rgba(255,255,255,0.16);
+  }
+  .card.ha { border-color: rgba(48,183,126,0.75); box-shadow: 0 0 26px rgba(48,183,126,0.22); }
 </style>
 </head>
 <body>
   <div class="grid"></div>
   <div class="glow"></div>
 
-  <svg class="mark" width="190" height="84" viewBox="0 0 500 220">
-    <defs>
-      <filter id="glow" x="-30%" y="-60%" width="160%" height="220%">
-        <feGaussianBlur stdDeviation="9" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <g filter="url(#glow)">
-      <path d="M30 110 L150 110 L184 30 L236 190 L270 80 L296 110 L340 110"
-            fill="none" stroke="#30B77E" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="340" cy="110" r="19" fill="#30B77E"/>
-      <path d="M388 74 A 52 52 0 0 1 388 146" fill="none" stroke="#30B77E" stroke-width="18" stroke-linecap="round" opacity="0.85"/>
-      <path d="M422 46 A 92 92 0 0 1 422 174" fill="none" stroke="#30B77E" stroke-width="18" stroke-linecap="round" opacity="0.5"/>
+  <h1>Your health data, on <em>your own server.</em></h1>
+
+  <svg class="flow" width="1024" height="500" viewBox="0 0 1024 500">
+    <g fill="none" stroke="#C9D3D6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <!-- A generic watch -->
+      <rect x="136" y="170" width="62" height="70" rx="16"/>
+      <path d="M150 170 L154 148 L180 148 L184 170 M150 240 L154 262 L180 262 L184 240"/>
+      <path d="M167 190 L167 206 L178 214" stroke="#30B77E"/>
+      <!-- A generic ring -->
+      <ellipse cx="167" cy="320" rx="32" ry="24"/>
+      <ellipse cx="167" cy="320" rx="22" ry="15"/>
+      <!-- A generic scale -->
+      <rect x="128" y="372" width="78" height="62" rx="14"/>
+      <rect x="148" y="384" width="38" height="16" rx="4"/>
     </g>
+    <g fill="none" stroke="#30B77E" stroke-width="3.5" stroke-linecap="round" opacity="0.9">
+      <path d="M220 205 C 320 205, 320 300, 404 300"/>
+      <path d="M220 320 C 300 320, 320 300, 404 300"/>
+      <path d="M220 403 C 320 403, 320 300, 404 300"/>
+      <path d="M604 300 C 650 300, 650 215, 700 215"/>
+      <path d="M604 300 L 700 300"/>
+      <path d="M604 300 C 650 300, 650 385, 700 385"/>
+    </g>
+    <circle cx="404" cy="300" r="5" fill="#30B77E"/>
+    <circle cx="604" cy="300" r="5" fill="#30B77E"/>
   </svg>
 
-  <div class="text">
-    <h1>Life Dashboard<span class="accent">Companion</span></h1>
-    <div class="tagline">Your health data, your server.<br>No cloud.</div>
-  </div>
-
-  <div class="phone">
-    <span class="bar b1"></span><span class="bar b2"></span>
-    <svg width="154" height="70" viewBox="0 0 154 70">
-      <path d="M16 36 L56 36 L68 14 L82 56 L92 30 L100 36 L120 36"
-            fill="none" stroke="#30B77E" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="122" cy="36" r="5" fill="#30B77E"/>
-    </svg>
-    <span class="home"></span>
-  </div>
-
-  <!-- From the phone's pulse to the three destinations. -->
-  <svg class="links" width="1024" height="500" viewBox="0 0 1024 500">
-    <g fill="none" stroke="#30B77E" stroke-width="3.5" stroke-linecap="round">
-      <path d="M730 250 C 758 250, 754 155, 782 155" opacity="0.9"/>
-      <path d="M730 250 L 782 250" opacity="0.9"/>
-      <path d="M730 250 C 758 250, 754 345, 782 345" opacity="0.9"/>
-    </g>
-    <circle cx="730" cy="250" r="6" fill="#30B77E"/>
-  </svg>
-  <div class="pill ha" style="top:126px">Home Assistant</div>
-  <div class="pill" style="top:221px">MQTT</div>
-  <div class="pill" style="top:316px">Webhook</div>
+  <div class="node">Health Connect</div>
+  <div class="card ha" style="top:182px">Home Assistant</div>
+  <div class="card" style="top:267px">MQTT</div>
+  <div class="card" style="top:352px">Webhook</div>
 </body>
 </html>
