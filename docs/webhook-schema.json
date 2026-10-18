@@ -9,6 +9,10 @@
       "type": "string",
       "format": "date-time"
     },
+    "timezone": {
+      "type": "string",
+      "description": "The phone's IANA time zone when the payload was built, such as \"Europe/Amsterdam\": the zone daily_totals and screen_time cut their days in. Every time in the payload is UTC; a record's zone_offset is the offset it was written in. Android 1.27.0 and later, iOS 1.9.0 and later; treat a missing one as unknown."
+    },
     "app_version": {
       "type": "string"
     },
@@ -1105,6 +1109,14 @@
           "type": {
             "type": "string",
             "description": "Health Connect's ExerciseSessionRecord exercise type constant as a decimal string, such as \"56\" (running) or \"79\" (walking). The iOS app sends a name instead."
+          },
+          "name": {
+            "type": "string",
+            "description": "Android: Health Connect's name for the exercise type constant in lower case, such as \"running\" (56) or \"high_intensity_interval_training\" (36). Left out for a type from a newer Health Connect than the app knows."
+          },
+          "title": {
+            "type": "string",
+            "description": "Android: what the user or the recording app called the session, such as \"Leg day\". Left out when it wrote none."
           },
           "start_time": {
             "type": "string",

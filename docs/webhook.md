@@ -266,6 +266,7 @@ A record array is present only when it holds at least one record; the app never 
 | Field | Type | Present |
 |---|---|---|
 | `timestamp` | date-time | Always: when the payload was built |
+| `timezone` | string | Health Connect and Screen Time payloads, not test pings and heartbeats: the phone's IANA time zone when the payload was built, such as `"Europe/Amsterdam"`. Every time in the payload is UTC; this is the zone `daily_totals` and `screen_time` cut their days in, and with a record's `zone_offset` it tells a receiver the local day after a DST change or a trip |
 | `app_version` | string | Always, such as `"1.23.0"` |
 | `source` | string | Always: `health_connect`, `screen_time`, or `healthkit_ios` from the iOS app |
 | `sequence` | integer | Health Connect and Screen Time payloads; not on test pings and heartbeats |
@@ -312,15 +313,15 @@ One table per group. Interval types carry `start_time` and `end_time`; instant t
 "distance": [ { "meters": 1523.5, "start_time": "2026-10-04T08:00:00Z", "end_time": "2026-10-04T09:00:00Z" } ],
 "active_calories": [ { "calories": 245.3, "start_time": "2026-10-04T08:00:00Z", "end_time": "2026-10-04T09:00:00Z" } ],
 "total_calories": [ { "calories": 1850.0, "start_time": "2026-10-04T00:00:00Z", "end_time": "2026-10-04T09:00:00Z" } ],
-"exercise": [ { "type": "56", "start_time": "2026-10-04T07:00:00Z", "end_time": "2026-10-04T08:00:00Z", "duration_seconds": 3600 } ]
+"exercise": [ { "type": "56", "name": "running", "title": "Morning run", "start_time": "2026-10-04T07:00:00Z", "end_time": "2026-10-04T08:00:00Z", "duration_seconds": 3600 } ]
 ```
 
-`exercise.type` is Health Connect's exercise type constant as a string of digits: `"56"` is running, `"79"` walking. The full list is in [`ExerciseSessionRecord`](https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/ExerciseSessionRecord). The iOS app sends a name instead, such as `"running"`.
+`exercise.type` is Health Connect's exercise type constant as a string of digits: `"56"` is running, `"79"` walking. The full list is in [`ExerciseSessionRecord`](https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/ExerciseSessionRecord). Next to it, `name` is Health Connect's own name for that constant in lower case, such as `"running"`, `"strength_training"` or `"high_intensity_interval_training"`, so a receiver needs no lookup table; a type from a newer Health Connect than the app knows keeps its number and gets no `name`. `title` is what the user or the recording app called the session, such as `"Leg day"`, and is left out when it wrote none. The iOS app sends a name in `type` itself, such as `"running"`, from HealthKit's list, so the two apps' names do not always match.
 
 A session carries what the app that recorded it wrote inside it, when it wrote anything: `segments`, one object per exercise or set with its `type`, `start_time`, `end_time` and `repetitions`, and `laps`, one per lap with its `start_time`, `end_time` and `meters`. Without them the session reads as before. A segment's `type` is Health Connect's [`ExerciseSegment`](https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/ExerciseSegment) constant as a string of digits: `"51"` is a squat, `"5"` a bench press, `"44"` a rest. `repetitions` is left out when the app wrote none, and `meters` when a lap has no length. Few apps write segments; a strength app that does tells a receiver which sets were done and how many repetitions each had. The iOS app sends neither array.
 
 ```json
-"exercise": [ { "type": "70", "start_time": "2026-10-14T18:00:00Z", "end_time": "2026-10-14T18:40:00Z", "duration_seconds": 2400,
+"exercise": [ { "type": "70", "name": "strength_training", "start_time": "2026-10-14T18:00:00Z", "end_time": "2026-10-14T18:40:00Z", "duration_seconds": 2400,
   "segments": [
     { "type": "51", "start_time": "2026-10-14T18:00:00Z", "end_time": "2026-10-14T18:01:00Z", "repetitions": 5 },
     { "type": "44", "start_time": "2026-10-14T18:01:00Z", "end_time": "2026-10-14T18:04:00Z" }
@@ -922,6 +923,7 @@ A receiver that only talks to the current app can skip this section. Payloads th
 | Before 1.23.0 | No `metadata`, `app_filter` or `filtered_screen_time_minutes`, and no bucket carries `complete`. A window they sent again holds only the late records, so combine it with the stored window as described under [Data resolution](#data-resolution); a record they read again because its source wrote it again is counted twice by that rule, and nothing in the payload tells that case apart. In a backfill, the window that straddled each 3-day chunk bound went out with only its part after the bound, and a measured series with a backlog could lose the samples of the window its chunk ended in. |
 | 1.23.0 through 1.25.0 | Nutrition records carry no `metadata`, also with **Record metadata in payload** on |
 | Before 1.26.0 | Exercise sessions carry no `segments` or `laps`, also when the recording app wrote them |
+| Before 1.27.0 | No `timezone`, and exercise sessions carry no `name` or `title` |
 
 <a id="home-assistant-webhook"></a>
 

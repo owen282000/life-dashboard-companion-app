@@ -12,6 +12,11 @@ All notable changes to this project are documented in this file. The format is b
   and only that one, with a plain GET that carries no payload, signature or custom headers. The
   delivery counts as soon as the script has run, so the POST is never sent twice. A script deployed
   for signed-in users only gets a log line that says to set its access to Anyone.
+- Exercise sessions carry a readable `name` next to the type number, Health Connect's own name for it
+  such as `running` or `strength_training`, and the `title` the user or the recording app gave the
+  session, such as "Leg day", when it wrote one.
+- Health Connect and Screen Time payloads carry `timezone`, the phone's time zone such as
+  Europe/Amsterdam: the zone the days of `daily_totals` and `screen_time` are cut in.
 
 ### Fixed
 

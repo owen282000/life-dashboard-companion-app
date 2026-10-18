@@ -50,7 +50,9 @@ class WebhookSchemaTest {
             "sequence", "deleted_records", "deletions_unavailable", "records_outside_window",
             "backfill", "window_start", "window_end", "window_complete",
             // What the phone can write and what it did with the last answer (Receive, 1.20.0).
-            "writeback"
+            "writeback",
+            // The zone daily_totals and screen_time cut their days in.
+            "timezone"
         )
 
         val missing = reconciliationKeys.filter { it !in declaredKeys }
