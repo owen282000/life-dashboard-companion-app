@@ -114,6 +114,64 @@ class WebhookSupportTest {
         assertNull(WebhookSupport.followableRedirect("https://ha.example/hook", "ftp://ha.example/hook", allowHttp = false))
     }
 
+    private val exec = "https://script.google.com/macros/s/AKfycbx123/exec"
+    private val echo = "https://script.googleusercontent.com/macros/echo?user_content_key=abc&lib=xyz"
+
+    @Test
+    fun theAppsScriptAnswerIsReadFromGooglesAnswerHost() {
+        assertEquals(echo, WebhookSupport.appsScriptAnswer(exec, 302, echo))
+        // 301 and 303 become a GET as well, and the hosts are not case sensitive.
+        assertEquals(echo, WebhookSupport.appsScriptAnswer(exec, 303, echo))
+        assertEquals(echo, WebhookSupport.appsScriptAnswer(exec, 301, echo))
+        assertNotNull(WebhookSupport.appsScriptAnswer("https://SCRIPT.google.com/macros/s/x/exec", 302, echo))
+        // A Google Workspace deployment carries the domain in its path.
+        assertNotNull(WebhookSupport.appsScriptAnswer("https://script.google.com/a/macros/example.com/s/x/exec", 302, echo))
+        // With the port written out, the usual one.
+        assertNotNull(WebhookSupport.appsScriptAnswer("https://script.google.com:443/macros/s/x/exec", 302, echo))
+    }
+
+    @Test
+    fun noOtherRedirectCountsAsTheAppsScriptOne() {
+        // 307 and 308 would repeat the POST somewhere else.
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 307, echo))
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 308, echo))
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 200, echo))
+        // Google's sign-in page, another Google host, or anything that only looks like Google.
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 302, "https://accounts.google.com/ServiceLogin?continue=x"))
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 302, "https://docs.google.com/macros/echo?x=1"))
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 302, "https://script.googleusercontent.com.evil.example/macros/echo"))
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 302, "https://user@script.googleusercontent.com/macros/echo"))
+        assertNull(WebhookSupport.appsScriptAnswer("https://script.google.com.evil.example/macros/s/x/exec", 302, echo))
+        assertNull(WebhookSupport.appsScriptAnswer("https://ha.example/macros/s/x/exec", 302, echo))
+        // Plain http, another port, or a path outside /macros/ on either side.
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 302, "http://script.googleusercontent.com/macros/echo"))
+        assertNull(WebhookSupport.appsScriptAnswer("http://script.google.com/macros/s/x/exec", 302, echo))
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 302, "https://script.googleusercontent.com:8443/macros/echo"))
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 302, "https://script.googleusercontent.com/other"))
+        assertNull(WebhookSupport.appsScriptAnswer("https://script.google.com/home", 302, echo))
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 302, null))
+        assertNull(WebhookSupport.appsScriptAnswer(exec, 302, " "))
+    }
+
+    @Test
+    fun anAppsScriptThatAsksForASignInSaysHowToDeployIt() {
+        assertTrue(WebhookSupport.isAppsScriptSignIn(exec, "accounts.google.com"))
+        assertFalse(WebhookSupport.isAppsScriptSignIn(exec, "script.googleusercontent.com"))
+        assertFalse(WebhookSupport.isAppsScriptSignIn("https://ha.example/hook", "accounts.google.com"))
+        val message = WebhookSupport.appsScriptSignInMessage(302)
+        assertTrue(message, message.startsWith("HTTP 302: Google asked for a sign-in"))
+        assertTrue(message, message.contains("Anyone"))
+        assertEquals("HTTP 302", FailureReason.shorten(message))
+    }
+
+    @Test
+    fun theAppsScriptNoteSaysTheDeliveryStandsWhenTheAnswerFails() {
+        assertTrue(WebhookSupport.appsScriptNote("script.googleusercontent.com", null).startsWith("Google Apps Script took the payload"))
+        val failed = WebhookSupport.appsScriptNote("script.googleusercontent.com", "HTTP 500")
+        assertTrue(failed, failed.contains("(HTTP 500)"))
+        assertTrue(failed, failed.contains("does not undo the delivery"))
+    }
+
     @Test
     fun aHeaderNameIsAnHttpToken() {
         listOf("X-Api-Key", "Authorization", "x_custom.v2", "A1!#$%&'*+-.^_`|~").forEach {

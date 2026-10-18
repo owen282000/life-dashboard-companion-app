@@ -132,7 +132,7 @@ object WebhookSupport {
     fun sendableHeaders(headers: Map<String, String>): Map<String, String> =
         headers.filter { (name, value) -> isValidHeaderName(name) && isValidHeaderValue(value) }
 
-    /** Redirects one delivery follows at most, all on the same host. */
+    /** Redirects one delivery follows at most, all on the same host (Apps Script aside, see [appsScriptAnswer]). */
     const val MAX_REDIRECTS = 5
 
     /**
@@ -163,6 +163,67 @@ object WebhookSupport {
 
     private fun effectivePort(port: Int, scheme: String): Int =
         if (port != -1) port else if (scheme == "https") 443 else 80
+
+    /**
+     * The one redirect to another host a delivery accepts: a Google Apps Script web app. Its
+     * `/exec` URL runs doPost on the POST itself and then answers 302 with the script's output
+     * parked on [answerHost]. By then the payload has arrived, so nothing is sent again: the
+     * answer is read with a plain GET, without the body, the signature or the custom headers.
+     * [scheme] and the hosts are parameters only so a test can stand in for Google; a delivery
+     * always uses [GOOGLE].
+     */
+    data class AppsScriptRule(val scheme: String, val scriptHost: String, val answerHost: String) {
+        companion object {
+            val GOOGLE = AppsScriptRule("https", "script.google.com:443", "script.googleusercontent.com:443")
+        }
+    }
+
+    /**
+     * Where a delivery to [from] that got [statusCode] reads the Apps Script answer, or null when
+     * this is not that redirect. Only a 301, 302 or 303 (the ones that become a GET) from a
+     * `/macros/` path on the script host, to a `/macros/` path on the answer host, over
+     * [AppsScriptRule.scheme] on its usual port. A redirect to a sign-in page, to another Google
+     * host or anywhere else is not this, and fails the delivery as before.
+     */
+    fun appsScriptAnswer(from: String, statusCode: Int, location: String?, rule: AppsScriptRule = AppsScriptRule.GOOGLE): String? {
+        if (statusCode !in setOf(301, 302, 303) || location.isNullOrBlank()) return null
+        val base = runCatching { java.net.URI(from.trim()) }.getOrNull() ?: return null
+        val target = runCatching { base.resolve(location.trim()) }.getOrNull() ?: return null
+        if (!isAt(base, rule.scheme, rule.scriptHost) || !isAt(target, rule.scheme, rule.answerHost)) return null
+        if (base.rawPath?.contains("/macros/") != true) return null
+        if (target.rawPath?.startsWith("/macros/") != true) return null
+        if (target.rawUserInfo != null) return null
+        return target.toString()
+    }
+
+    private fun isAt(uri: java.net.URI, scheme: String, hostAndPort: String): Boolean {
+        val uriScheme = uri.scheme?.lowercase() ?: return false
+        val host = uri.host ?: return false
+        if (uriScheme != scheme) return false
+        return "${host.lowercase()}:${effectivePort(uri.port, uriScheme)}" == hostAndPort.lowercase()
+    }
+
+    /** The log note on a delivery Apps Script took; [answer] says how reading its answer went. */
+    fun appsScriptNote(answerHost: String, answer: String?): String =
+        if (answer == null) {
+            "Google Apps Script took the payload; its answer came from $answerHost, the one other host the app follows"
+        } else {
+            "Google Apps Script took the payload; reading its answer from $answerHost failed ($answer), which does not undo the delivery"
+        }
+
+    /**
+     * The log line for an Apps Script URL that sent the POST to Google's sign-in page: the web
+     * app is deployed for signed-in users only, which a phone cannot be.
+     */
+    fun appsScriptSignInMessage(statusCode: Int): String =
+        "HTTP $statusCode: Google asked for a sign-in, so nothing reached the script. Deploy the Apps Script web app with \"Who has access\" set to Anyone."
+
+    /** True when [from] is an Apps Script web app and [targetHost] is Google's sign-in page. */
+    fun isAppsScriptSignIn(from: String, targetHost: String?): Boolean {
+        val base = runCatching { java.net.URI(from.trim()) }.getOrNull() ?: return false
+        return base.host.equals("script.google.com", ignoreCase = true) &&
+            targetHost.equals("accounts.google.com", ignoreCase = true)
+    }
 
     /**
      * The log line for a 3xx that was not followed (see [followableRedirect]). Names the host

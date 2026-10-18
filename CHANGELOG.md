@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- A Google Apps Script web app works as a webhook URL, so a Google Sheet can take the payload without a
+  server of your own. Apps Script runs the script on the POST and then redirects to
+  script.googleusercontent.com for its answer; the app now follows that one redirect to another host,
+  and only that one, with a plain GET that carries no payload, signature or custom headers. The
+  delivery counts as soon as the script has run, so the POST is never sent twice. A script deployed
+  for signed-in users only gets a log line that says to set its access to Anyone.
+
 ### Fixed
 
 - The pairing scanner and the setup wizard no longer assume the code comes from Home Assistant. The

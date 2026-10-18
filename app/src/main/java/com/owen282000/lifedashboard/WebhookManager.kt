@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -83,7 +84,9 @@ class WebhookManager(
      * Whether a delivery counts in the lifetime statistics; like [logSuccess] unless set. A
      * backfill counts its chunks there but writes one row for the whole run (P2-14).
      */
-    private val countSuccess: Boolean = logSuccess
+    private val countSuccess: Boolean = logSuccess,
+    /** Google's Apps Script hosts; a test replaces them with local servers. */
+    private val appsScriptRule: WebhookSupport.AppsScriptRule = WebhookSupport.AppsScriptRule.GOOGLE
 ) {
 
     /**
@@ -204,6 +207,7 @@ class WebhookManager(
                 try {
                     var target = url
                     var redirects = 0
+                    var appsScriptAnswer: String? = null
                     while (true) {
                         // Suspends rather than blocks: a stopped worker cancels the call itself
                         // instead of waiting out the read timeout of up to 10 seconds.
@@ -213,6 +217,10 @@ class WebhookManager(
                                 WebhookSupport.followableRedirect(target, response.header("Location"), allowHttp)
                                     ?.let { return@use it }
                             }
+                            appsScriptAnswer = WebhookSupport.appsScriptAnswer(
+                                target, response.code, response.header("Location"), appsScriptRule
+                            )
+                            if (appsScriptAnswer != null) return@use null
                             if (response.isSuccessful) {
                                 // Only the source URL's body is read, and only up to the cap; a
                                 // body that is cut off is handed over as oversized rather than as
@@ -231,6 +239,20 @@ class WebhookManager(
                         } ?: break
                         target = next
                         redirects++
+                    }
+                    // Apps Script ran doPost on the POST and parked its output elsewhere: the
+                    // payload has arrived. Reading the answer cannot fail the delivery, and the
+                    // POST is never repeated for it, which would run the script twice.
+                    appsScriptAnswer?.let { answerUrl ->
+                        val answerHost = answerUrl.toHttpUrlOrNull()?.host ?: answerUrl
+                        val problem = readAppsScriptAnswer(client, answerUrl)
+                        val note = listOfNotNull(
+                            if (attempt > 1) "Recovered on attempt $attempt of $MAX_RETRIES" else null,
+                            WebhookSupport.appsScriptNote(answerHost, problem)
+                        ).joinToString(". ")
+                        logWebhookCall(url, timestamp, statusCode, true, null, jsonPayload, note)
+                        // Its body is the script's text, never a signed answer to read back.
+                        return Result.success(null)
                     }
                     // Client errors (401, 404, ...) will not change on retry; fail fast so the
                     // sync is not delayed by pointless backoff.
@@ -269,6 +291,19 @@ class WebhookManager(
             logWebhookCall(url, timestamp, null, false, e.message, jsonPayload)
             Result.failure(e)
         }
+    }
+
+    /**
+     * Reads the answer an Apps Script web app parked on its answer host: a plain GET, without the
+     * body, the signature or the custom headers, which stay with the URL the user entered. Null
+     * when it came back with a 2xx, otherwise what went wrong, for the log note.
+     */
+    private suspend fun readAppsScriptAnswer(client: OkHttpClient, answerUrl: String): String? = try {
+        client.newCall(Request.Builder().url(answerUrl).get().build()).executeAsync().use { response ->
+            if (response.isSuccessful) null else "HTTP ${response.code}"
+        }
+    } catch (e: IOException) {
+        e.message ?: e.javaClass.simpleName
     }
 
     private fun readSourceResponse(response: okhttp3.Response, requestSignature: String?): SourceResponse {
@@ -353,7 +388,11 @@ class WebhookManager(
         internal fun failureMessage(response: okhttp3.Response): String =
             if (response.code in 300..399) {
                 val target = response.header("Location")?.let { response.request.url.resolve(it)?.host }
-                WebhookSupport.redirectMessage(response.code, target)
+                if (WebhookSupport.isAppsScriptSignIn(response.request.url.toString(), target)) {
+                    WebhookSupport.appsScriptSignInMessage(response.code)
+                } else {
+                    WebhookSupport.redirectMessage(response.code, target)
+                }
             } else {
                 "HTTP ${response.code}: ${response.message}"
             }
