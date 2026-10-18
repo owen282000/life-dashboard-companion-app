@@ -119,6 +119,14 @@ android {
         includeInApk = false
         includeInBundle = false
     }
+    lint {
+        // Weblate commits a language while it is being translated, so a string missing from one
+        // language is normal there and Android falls back to English for it. A warning keeps a
+        // partial language from failing CI; a broken placeholder in a translation still fails it,
+        // because it crashes or shows the wrong value at run time.
+        warning += "MissingTranslation"
+        error += setOf("StringFormatInvalid", "StringFormatMatches", "StringFormatCount")
+    }
 
     buildTypes {
         release {

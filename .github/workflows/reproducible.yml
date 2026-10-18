@@ -1,0 +1,105 @@
+name: Reproducible Build
+
+# F-Droid builds every tag itself and ships it only when its build matches the signed APK on
+# GitHub byte for byte, apart from the signature. A tag that does not reproduce means F-Droid
+# users silently stop getting updates, so the release checks it the same way before it is
+# published: build the tag again in a clean job without the keystore, copy the release's
+# signature onto that build, and verify it. The signature only verifies when every other byte
+# is the same (docs/building.md, "Reproduce a release build").
+#
+# Called by release.yml with the APK it just signed. Also runs for an existing release by hand,
+# and on a pull request that changes this file, against the latest release.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Tag to rebuild'
+        required: true
+        type: string
+      artifact:
+        description: 'Name of the artifact that holds the signed app-release.apk'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Released tag to rebuild and compare with its GitHub release'
+        required: true
+        type: string
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/reproducible.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Choose the tag
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="$INPUT_TAG"
+          if [ -z "$TAG" ]; then
+            TAG=$(gh release view -R "$GITHUB_REPOSITORY" --json tagName -q .tagName)
+          fi
+          if ! echo "$TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Tag '$TAG' is not strict semver (X.Y.Z)."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ steps.tag.outputs.tag }}
+          fetch-depth: 0  # full history so Gradle derives the version name from the tag
+      - name: Set up JDK
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      # No Gradle cache and no keystore: the build starts from the tag alone, like F-Droid's.
+      - name: Build the unsigned release APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease
+      - name: Get the signed APK from the release job
+        if: inputs.artifact != ''
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ inputs.artifact }}
+          path: signed
+      - name: Get the signed APK from the GitHub release
+        if: inputs.artifact == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p app-release.apk -D signed
+      - name: Install apksigcopier
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq apksigcopier
+      - name: Copy the signature onto the rebuild and verify it
+        run: |
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          apksigcopier copy signed/app-release.apk app/build/outputs/apk/release/app-release-unsigned.apk copied.apk
+          if ! "$BUILD_TOOLS/apksigner" verify copied.apk; then
+            echo "The rebuild of ${{ steps.tag.outputs.tag }} differs from the signed APK, so F-Droid would not ship it."
+            echo "Files that differ:"
+            python3 - signed/app-release.apk app/build/outputs/apk/release/app-release-unsigned.apk <<'EOF'
+          import hashlib, sys, zipfile
+          def entries(path):
+              z = zipfile.ZipFile(path)
+              return {i.filename: hashlib.sha256(z.read(i)).hexdigest() for i in z.infolist()}
+          a, b = entries(sys.argv[1]), entries(sys.argv[2])
+          signing = ("META-INF/",)
+          for name in sorted(k for k in a.keys() | b.keys() if a.get(k) != b.get(k) and not k.startswith(signing)):
+              print(" ", name)
+          EOF
+            exit 1
+          fi
+          echo "${{ steps.tag.outputs.tag }} reproduces: the release's signature verifies on a clean rebuild."
