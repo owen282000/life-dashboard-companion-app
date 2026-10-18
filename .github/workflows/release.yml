@@ -18,7 +18,7 @@ jobs:
   build-release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       id-token: write      # sigstore signing for build provenance
       attestations: write  # store the provenance attestation
     steps:
@@ -157,12 +157,47 @@ jobs:
             cat version.properties
             exit 1
           fi
-      - name: Create GitHub Release
+      # The release itself is published by the job below, once the rebuild has matched.
+      - name: Upload the release notes and provenance bundle as artifact
         if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-notes
+          path: |
+            RELEASE_NOTES.md
+            app-release.apk.sigstore.json
+          retention-days: 90
+
+  # F-Droid ships a tag only when its own build matches this signed APK; a tag that does not
+  # reproduce is never published here either.
+  reproduce:
+    needs: build-release
+    uses: ./.github/workflows/reproducible.yml
+    with:
+      tag: ${{ github.ref_name }}
+      artifact: release-apk
+
+  publish:
+    needs: [build-release, reproduce]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-apk
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-mapping
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-notes
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: |
-            app/build/outputs/apk/release/app-release.apk
+            app-release.apk
             app-release.apk.sigstore.json
             mapping-${{ github.ref_name }}.txt
           body_path: RELEASE_NOTES.md

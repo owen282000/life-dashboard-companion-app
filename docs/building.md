@@ -48,7 +48,7 @@ This repository's own CI fails instead of falling back: there a missing tag mean
 
 ## Reproduce a release build
 
-Releases are built by the public [release workflow](../.github/workflows/release.yml) from the tag, with `./gradlew assembleRelease` on JDK 21. You can build the same APK yourself and check that the release contains nothing else:
+Releases are built by the public [release workflow](../.github/workflows/release.yml) from the tag, with `./gradlew assembleRelease` on JDK 21. Before a release is published, the [reproducible build workflow](../.github/workflows/reproducible.yml) builds the tag again in a clean job without the keystore and checks it the way described below; a tag that does not reproduce is not released. You can build the same APK yourself and check that the release contains nothing else:
 
 ```bash
 git clone https://github.com/owen282000/life-dashboard-companion-app.git
