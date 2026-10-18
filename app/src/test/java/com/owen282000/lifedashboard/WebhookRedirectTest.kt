@@ -190,6 +190,79 @@ class WebhookRedirectTest {
         assertEquals("{}", second.body?.utf8())
     }
 
+    /** The manager with the two local servers standing in for Apps Script and its answer host. */
+    private fun appsScriptManager(url: String) = WebhookManager(
+        webhookUrls = listOf(url),
+        customHeaders = mapOf("X-Api-Key" to "secret-key"),
+        signingSecret = "s3cret",
+        allowHttpOverride = true,
+        appsScriptRule = WebhookSupport.AppsScriptRule(
+            scheme = "http",
+            scriptHost = "${receiver.hostName}:${receiver.port}",
+            answerHost = "${elsewhere.hostName}:${elsewhere.port}"
+        )
+    )
+
+    @Test
+    fun anAppsScriptDeliveryReadsTheAnswerWithAPlainGet() = runTest {
+        val exec = receiver.url("/macros/s/abc/exec").toString()
+        receiver.enqueue(
+            MockResponse.Builder().code(302).addHeader("Location", elsewhere.url("/macros/echo?user_content_key=k").toString()).build()
+        )
+        elsewhere.enqueue(MockResponse.Builder().code(200).body("""{"ok":true}""").build())
+
+        val result = appsScriptManager(exec).postData("""{"a":1}""")
+
+        assertTrue(result.isSuccess)
+        val post = receiver.takeRequest()
+        assertEquals("POST", post.method)
+        assertEquals("""{"a":1}""", post.body?.utf8())
+        // Only the URL the user entered gets the payload, its signature and its headers.
+        val answer = elsewhere.takeRequest()
+        assertEquals("GET", answer.method)
+        assertEquals("/macros/echo?user_content_key=k", answer.target)
+        assertEquals(0L, answer.bodySize)
+        assertNull(answer.headers[WebhookSupport.SIGNATURE_HEADER])
+        assertNull(answer.headers["X-Api-Key"])
+        assertEquals(1, receiver.requestCount)
+    }
+
+    @Test
+    fun anAppsScriptAnswerThatFailsDoesNotRepeatThePost() = runTest {
+        val exec = receiver.url("/macros/s/abc/exec").toString()
+        receiver.enqueue(
+            MockResponse.Builder().code(302).addHeader("Location", elsewhere.url("/macros/echo?k=1").toString()).build()
+        )
+        elsewhere.enqueue(MockResponse.Builder().code(500).build())
+
+        // The script ran on the POST; running it again would write its rows twice.
+        assertTrue(appsScriptManager(exec).postData("{}").isSuccess)
+        assertEquals(1, receiver.requestCount)
+        assertEquals(1, elsewhere.requestCount)
+    }
+
+    @Test
+    fun anAppsScriptRedirectThatKeepsThePostIsNotFollowed() = runTest {
+        val exec = receiver.url("/macros/s/abc/exec").toString()
+        receiver.enqueue(
+            MockResponse.Builder().code(307).addHeader("Location", elsewhere.url("/macros/echo?k=1").toString()).build()
+        )
+
+        assertTrue(appsScriptManager(exec).postData("{}").isFailure)
+        assertEquals(0, elsewhere.requestCount)
+    }
+
+    @Test
+    fun aRedirectToTheAnswerHostFromAnotherPathIsNotFollowed() = runTest {
+        val notExec = receiver.url("/hook").toString()
+        receiver.enqueue(
+            MockResponse.Builder().code(302).addHeader("Location", elsewhere.url("/macros/echo?k=1").toString()).build()
+        )
+
+        assertTrue(appsScriptManager(notExec).postData("{}").isFailure)
+        assertEquals(0, elsewhere.requestCount)
+    }
+
     @Test
     fun postDataStopsFollowingAfterTheLimit() = runTest {
         repeat(WebhookSupport.MAX_REDIRECTS + 1) {
