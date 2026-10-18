@@ -16,6 +16,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import java.time.Instant
+import java.time.ZoneId
 
 /** Max read+deliver passes per sync run, bounding worker time while draining a backlog (#38). */
 private const val MAX_SYNC_PASSES = 8
@@ -578,7 +579,7 @@ class HealthSyncManager(
         context.getString(R.string.webhook_sync_failed, context.getString(problem.messageRes))
 
     /** The heartbeat body (protocol section 3.2): timestamp, version and source, nothing else; the block is added per URL. */
-    private fun heartbeatPayload(): String = buildJsonPayload(EMPTY_HEALTH_DATA)
+    private fun heartbeatPayload(): String = buildJsonPayload(EMPTY_HEALTH_DATA, withTimezone = false)
 
     /**
      * A manager that talks to the source URL alone, for the heartbeat and the follow-up
@@ -1139,10 +1140,17 @@ class HealthSyncManager(
          * number there would leave a gap in the sequence a receiver sees, and looking is not
          * sending.
          */
-        sequence: Long? = null
+        sequence: Long? = null,
+        /** False for the heartbeat, whose body the protocol fixes (section 3.2). */
+        withTimezone: Boolean = true
     ): String {
         val json = buildJsonObject {
             put("timestamp", Instant.now().toString())
+            // The phone's time zone when the payload was built, such as Europe/Amsterdam, the zone
+            // daily_totals cut their days in. Every time is UTC and a record's zone_offset is the
+            // offset it was written in; only the zone tells a receiver the local day after a DST
+            // change or a trip.
+            if (withTimezone) put("timezone", ZoneId.systemDefault().id)
             put("app_version", getAppVersion())
             put("source", "health_connect")
             // Strictly increasing per payload, so a retry that arrives after a newer payload is

@@ -56,4 +56,14 @@ class ScreenTimePayloadTest {
         val app = day.getValue("apps").jsonArray.single().jsonObject
         assertEquals(45L, app.getValue("minutes").jsonPrimitive.long)
     }
+
+    @Test
+    fun `the payload names the time zone its days were cut in`() {
+        val json = Json.parseToJsonElement(
+            ScreenTimeSyncManager.buildJsonPayload(week, "1.20.0", "Google Pixel 8", 7, timezone = "Europe/Amsterdam")
+        ).jsonObject
+        assertEquals("Europe/Amsterdam", json.getValue("timezone").jsonPrimitive.content)
+        // By default the phone's own zone.
+        assertEquals(java.time.ZoneId.systemDefault().id, payload(sequence = 7).getValue("timezone").jsonPrimitive.content)
+    }
 }

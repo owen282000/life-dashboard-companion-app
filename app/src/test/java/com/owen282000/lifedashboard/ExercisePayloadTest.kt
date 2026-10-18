@@ -38,12 +38,54 @@ class ExercisePayloadTest {
     private fun minutes(n: Long): Instant = start.plusSeconds(60 * n)
 
     @Test
-    fun aSessionWithoutSegmentsOrLapsEmitsExactlyTheOriginalKeys() {
+    fun aSessionWithoutSegmentsOrLapsEmitsTheOriginalKeysAndAName() {
         val session = ExerciseData("70", start, minutes(40), Duration.ofMinutes(40), "com.example.lifting", "uuid-1")
         assertEquals(
-            setOf("type", "start_time", "end_time", "duration_seconds", "uuid", "source"),
+            setOf("type", "name", "start_time", "end_time", "duration_seconds", "uuid", "source"),
             json(session).keys
         )
+    }
+
+    @Test
+    fun theNameSitsNextToTheTypeNumber() {
+        fun name(type: String) = json(ExerciseData(type, start, minutes(1), Duration.ofMinutes(1))).get("name")?.jsonPrimitive?.content
+        assertEquals("running", name("56"))
+        assertEquals("walking", name("79"))
+        assertEquals("high_intensity_interval_training", name("36"))
+        assertEquals("other_workout", name("0"))
+        // A type from a newer Health Connect keeps its number and gets no name.
+        assertEquals(null, name("999"))
+        val obj = json(ExerciseData("56", start, minutes(1), Duration.ofMinutes(1)))
+        assertEquals(listOf("type", "name"), obj.keys.take(2))
+    }
+
+    @Test
+    fun everyExerciseTypeOfHealthConnectHasItsOwnName() {
+        // Read from the library, so a constant added in a newer connect-client fails here
+        // instead of going out without a name.
+        val constants = ExerciseSessionRecord::class.java.fields
+            .filter { it.name.startsWith("EXERCISE_TYPE_") && it.type == Int::class.javaPrimitiveType }
+            .associate { it.getInt(null) to it.name.removePrefix("EXERCISE_TYPE_").lowercase() }
+        assertTrue("found no constants", constants.size > 50)
+        assertEquals(constants, ExerciseSupport.EXERCISE_TYPE_NAMES)
+    }
+
+    @Test
+    fun aSessionCarriesTheTitleItsAppWrote() {
+        fun record(title: String?) = ExerciseSessionRecord(
+            startTime = start,
+            startZoneOffset = ZoneOffset.UTC,
+            endTime = minutes(40),
+            endZoneOffset = ZoneOffset.UTC,
+            metadata = Metadata.manualEntry(phone),
+            exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
+            title = title
+        )
+        val titled = json(record("  Leg day ").toExerciseData())
+        assertEquals("Leg day", titled.getValue("title").jsonPrimitive.content)
+        assertEquals("strength_training", titled.getValue("name").jsonPrimitive.content)
+        assertFalse("no title written", "title" in json(record(null).toExerciseData()))
+        assertFalse("a blank title is none", "title" in json(record("  ").toExerciseData()))
     }
 
     @Test
@@ -127,6 +169,8 @@ class ExercisePayloadTest {
         assertTrue("schema missing segments", "segments" in exercise)
         assertTrue("schema missing laps", "laps" in exercise)
         assertEquals(ExerciseSupport.SEGMENT_KEYS.toSet(), itemKeys("segments"))
+        assertTrue("schema missing name", "name" in exercise)
+        assertTrue("schema missing title", "title" in exercise)
         assertEquals(ExerciseSupport.LAP_KEYS.toSet(), itemKeys("laps"))
     }
 }

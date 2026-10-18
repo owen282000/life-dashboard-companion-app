@@ -350,7 +350,9 @@ data class ExerciseData(
     val uuid: String? = null,
     /** The exercises inside the session as the source app wrote them, such as one set of squats. */
     val segments: List<ExerciseSegmentData> = emptyList(),
-    val laps: List<ExerciseLapData> = emptyList()
+    val laps: List<ExerciseLapData> = emptyList(),
+    /** What the user or the recording app called the session, or null when it wrote nothing. */
+    val title: String? = null
 )
 
 /**

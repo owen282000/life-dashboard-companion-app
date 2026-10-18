@@ -11,6 +11,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import java.time.Instant
+import java.time.ZoneId
 
 /** Serialises [ScreenTimeSyncManager.performSync] across every caller in the process. */
 private val SCREEN_TIME_SYNC_LOCK = Mutex()
@@ -225,10 +226,13 @@ class ScreenTimeSyncManager(private val context: Context) {
             appVersion: String,
             device: String,
             sequence: Long? = null,
-            appFilter: AppFilterMode = AppFilterMode.ALL
+            appFilter: AppFilterMode = AppFilterMode.ALL,
+            timezone: String = ZoneId.systemDefault().id
         ): String {
             val json = buildJsonObject {
                 put("timestamp", Instant.now().toString())
+                // The zone the days in screen_time were cut in, such as Europe/Amsterdam.
+                put("timezone", timezone)
                 put("app_version", appVersion)
                 put("device", device)
                 put("source", "screen_time")
