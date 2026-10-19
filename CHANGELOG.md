@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- A card on the Health and Screen Time tabs while Android's battery optimization is on for the app,
+  which can hold scheduled syncs back for hours. **Fix** asks Android to let the app run in the
+  background (the Google Play build, which may not ask, opens the app's settings instead, where
+  Battery goes to Unrestricted). On Samsung, Xiaomi and Huawei a second button opens the phone's own
+  battery list, which can put an app to sleep regardless. The card goes away once the setting is
+  changed, or for good with **Don't show again**. In English, Dutch and German.
+- The app's languages show in Android's own App languages setting (Android 13 and later), so the app
+  can be in Dutch or German on a phone in another language.
+
+### Fixed
+
+- A payload the receiver accepted stays delivered when its log row cannot be written, for example on
+  a full disk. Until now that turned it into a failure that was queued and sent again, which a
+  receiver that only inserts counted twice. The receiver's answer alone decides delivered or failed.
+- The setup wizard keeps what was typed and scanned when the phone turns. A scanned pairing code
+  stays a scanned code after the turn, so finishing still writes its address only where the pairing
+  dialog put it. The secret and the MQTT password stay out of the saved screen state.
+- The status bar no longer gets a colour of its own before Android 15. It was the one deprecated
+  window call Google Play's pre-launch report pointed at, and it now looks the same on every version:
+  the screen shows through it.
+
 ## [1.27.0] - 2026-10-19
 
 ### Highlights

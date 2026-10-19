@@ -2,4 +2,6 @@
 <resources>
     <!-- A paid listing asks for no donation: no Ko-fi row, and no "the app stays free". -->
     <bool name="show_donation">false</bool>
+    <!-- No REQUEST_IGNORE_BATTERY_OPTIMIZATIONS here (src/play/AndroidManifest.xml): the card opens app info. -->
+    <bool name="ask_battery_exemption">false</bool>
 </resources>

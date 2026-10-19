@@ -129,6 +129,7 @@ fun ScreenTimeContent(
             ScreenTimeDashboardCard(refreshKey = state.refreshKey)
             if (state.secretsUnavailable) SecretsUnavailableBanner()
             if (state.secretsNeedReentry) SecretsLostBanner(onDismiss = actions::dismissSecretsLost)
+            BatteryOptimizationCard(accent)
         }
 
         GroupCard {

@@ -723,4 +723,12 @@
     <string name="health_record_metadata_description">Adds to every record when it was last changed, the writing app\'s own id and version, how it was recorded, the device and the time zone offset, where Health Connect has them. Makes payloads larger, most for heart rate.</string>
     <!-- The secret store lost its secrets -->
     <string name="secrets_lost_banner">Saved auth headers, signing secrets and MQTT passwords could not be recovered and have to be entered again. Until then a webhook that checks them refuses the data.</string>
+    <string name="battery_hint_title">Battery optimization is on</string>
+    <string name="battery_hint_body">Android may delay scheduled syncs by hours or skip them. Let the app run in the background without restrictions.</string>
+    <string name="battery_hint_fix">Fix</string>
+    <string name="battery_hint_xiaomi">Battery saver</string>
+    <string name="battery_hint_huawei">Phone Manager</string>
+    <string name="battery_hint_device_care">Device Care</string>
+    <string name="battery_hint_help">Help for your phone</string>
+    <string name="battery_hint_dismiss">Don\'t show again</string>
 </resources>

@@ -75,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.owen282000.lifedashboard.FailureReason
 import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.MqttBroker
@@ -89,6 +90,7 @@ import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
 import com.owen282000.lifedashboard.ui.theme.ink
 import com.owen282000.lifedashboard.ui.theme.onAccent
+import com.owen282000.lifedashboard.viewmodel.OnboardingForm
 import com.owen282000.lifedashboard.viewmodel.SettingsRules
 import com.owen282000.lifedashboard.viewmodel.UiMessage
 import kotlinx.coroutines.launch
@@ -116,40 +118,44 @@ fun OnboardingScreen(
     val preferencesManager = remember { PreferencesManager(context) }
     val scope = rememberCoroutineScope()
 
-    var healthConnect by remember { mutableStateOf(true) }
-    var screenTime by remember { mutableStateOf(true) }
+    val form: OnboardingForm = viewModel()
+    form.loadOnce { preferencesManager.allowHttpWebhooks() }
 
-    var useWebhook by remember { mutableStateOf(false) }
-    var webhookUrl by remember { mutableStateOf("") }
-    // Typed in, or filled in by the pairing dialog after a scan. The wizard wrote URLs
-    // only until now, which left a scanned secret behind on a fresh install.
-    var webhookSecret by remember { mutableStateOf("") }
+    var healthConnect by form::healthConnect
+    var screenTime by form::screenTime
+
+    var useWebhook by form::useWebhook
+    var webhookUrl by form::webhookUrl
+    var webhookSecret by form::webhookSecret
     var pingResult by remember { mutableStateOf<UiMessage?>(null) }
     var pinging by remember { mutableStateOf(false) }
-    var allowHttp by remember { mutableStateOf(preferencesManager.allowHttpWebhooks()) }
+    var allowHttp by form::allowHttp
 
-    var useMqtt by remember { mutableStateOf(false) }
-    var mqttHost by remember { mutableStateOf("") }
-    var mqttPort by remember { mutableStateOf("1883") }
-    var mqttTls by remember { mutableStateOf(false) }
-    var mqttUser by remember { mutableStateOf("") }
-    var mqttPass by remember { mutableStateOf("") }
+    var useMqtt by form::useMqtt
+    var mqttHost by form::mqttHost
+    var mqttPort by form::mqttPort
+    var mqttTls by form::mqttTls
+    var mqttUser by form::mqttUser
+    var mqttPass by form::mqttPass
 
-    var preset by remember { mutableStateOf(OnboardingSupport.TypePreset.ESSENTIALS) }
+    var preset by form::preset
 
     // Pairing writes the settings itself, the same as from the tabs; the wizard only takes
     // over what it wrote, as the tabs' ViewModels reload it, so the card and the summary
-    // stop saying nothing happened.
+    // stop saying nothing happened. The form keeps the code: after a rotation `paired` is
+    // gone, the address it filled in is not.
     LaunchedEffect(paired) {
         if (paired == null) return@LaunchedEffect
+        form.paired = paired
         useWebhook = true
         webhookUrl = paired.link.url
         webhookSecret = paired.link.secret
         allowHttp = preferencesManager.allowHttpWebhooks()
         pingResult = null
     }
+    val pairing = form.paired
 
-    var stepIndex by remember { mutableStateOf(0) }
+    var stepIndex by form::stepIndex
     val steps = OnboardingSupport.stepsFor(healthConnect)
     val step = steps[stepIndex.coerceIn(0, steps.lastIndex)]
 
@@ -157,7 +163,7 @@ fun OnboardingScreen(
         if (applyChoices) {
             val url = webhookUrl.trim()
             val secret = webhookSecret.trim()
-            if (OnboardingSupport.writesWebhook(useWebhook, url, secret, paired?.link)) {
+            if (OnboardingSupport.writesWebhook(useWebhook, url, secret, pairing?.link)) {
                 if (healthConnect) {
                     preferencesManager.setHealthWebhookUrls(listOf(url))
                     if (secret.isNotBlank()) preferencesManager.setHealthWebhookSecret(secret)
@@ -307,7 +313,7 @@ fun OnboardingScreen(
                                     screenTime,
                                     webhookUrl.trim(),
                                     webhookSecret.trim(),
-                                    paired
+                                    pairing
                                 )
                                 Text(
                                     stringResource(

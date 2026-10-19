@@ -18,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalView
@@ -119,7 +118,9 @@ fun LifeDashboardTheme(
             // The bar icons follow the app's theme, not the phone's: Light on a dark phone
             // needs dark icons. enableEdgeToEdge decides that from the phone's dark mode
             // unless it is told, so each activity's call in onCreate is redone here with the
-            // app's answer, the navigation bar included.
+            // app's answer, the navigation bar included. The status bar stays transparent on
+            // every version, so before Android 15 the screen shows through it as it does from
+            // 15 on; Window.statusBarColor is deprecated there and does nothing.
             (activity as? ComponentActivity)?.enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.auto(
                     android.graphics.Color.TRANSPARENT,
@@ -127,7 +128,6 @@ fun LifeDashboardTheme(
                 ) { darkTheme },
                 navigationBarStyle = SystemBarStyle.auto(LightNavigationScrim, DarkNavigationScrim) { darkTheme }
             )
-            activity.window.statusBarColor = colorScheme.background.toArgb()
         }
     }
 

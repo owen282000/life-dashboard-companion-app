@@ -720,4 +720,12 @@
     <string name="health_record_metadata_description">Ergänzt jeden Datensatz um den Zeitpunkt der letzten Änderung, die eigene ID und Version der schreibenden App, die Art der Aufzeichnung, das Gerät und den Zeitzonen-Offset, soweit Health Connect sie hat. Macht Payloads größer, am meisten bei der Herzfrequenz.</string>
     <!-- The secret store lost its secrets -->
     <string name="secrets_lost_banner">Gespeicherte Auth-Header, Signing Secrets und MQTT-Passwörter konnten nicht wiederhergestellt werden und müssen neu eingegeben werden. Bis dahin lehnt ein Webhook, der sie prüft, die Daten ab.</string>
+    <string name="battery_hint_title">Akku-Optimierung ist an</string>
+    <string name="battery_hint_body">Android kann geplante Synchronisierungen um Stunden verzögern oder auslassen. Lass die App ohne Einschränkungen im Hintergrund laufen.</string>
+    <string name="battery_hint_fix">Beheben</string>
+    <string name="battery_hint_xiaomi">Akkusparmodus</string>
+    <string name="battery_hint_huawei">Telefonmanager</string>
+    <string name="battery_hint_device_care">Gerätewartung</string>
+    <string name="battery_hint_help">Hilfe für dein Handy</string>
+    <string name="battery_hint_dismiss">Nicht mehr anzeigen</string>
 </resources>

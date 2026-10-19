@@ -198,6 +198,7 @@ fun HealthConnectContent(
         // syncs fail with unexplained auth errors.
         if (state.secretsUnavailable) SecretsUnavailableBanner()
         if (state.secretsNeedReentry) SecretsLostBanner(onDismiss = actions::dismissSecretsLost)
+        BatteryOptimizationCard(accent)
 
         GroupCard {
             DataTypesRow(
