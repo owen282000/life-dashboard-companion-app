@@ -119,6 +119,12 @@ android {
         includeInApk = false
         includeInBundle = false
     }
+    androidResources {
+        // The app's languages in Android's own App languages setting (Android 13 and later),
+        // generated from the values-xx folders, so a language added through Weblate shows up
+        // there by itself. English is the default resources' language (res/resources.properties).
+        generateLocaleConfig = true
+    }
     lint {
         // Weblate commits a language while it is being translated, so a string missing from one
         // language is normal there and Android falls back to English for it. A warning keeps a

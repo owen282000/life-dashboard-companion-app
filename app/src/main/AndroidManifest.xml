@@ -61,6 +61,10 @@
 
     <!-- Sync failure notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- The one-tap "let the app run in the background" dialog of the battery card. Removed in
+         the Google Play build (src/play/AndroidManifest.xml), where Play allows it to few kinds
+         of apps; that build opens the app's own settings instead. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!--
         Scanning a pairing QR code. Requested at the moment of scanning, never at

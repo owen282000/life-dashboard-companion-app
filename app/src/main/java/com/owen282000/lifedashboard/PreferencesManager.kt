@@ -233,6 +233,7 @@ class PreferencesManager(context: Context) {
         // Shared keys
         private const val KEY_KEEP_FULL_PAYLOADS = "keep_full_payloads"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_BATTERY_HINT_DISMISSED = "battery_hint_dismissed"
         private const val KEY_THEME_MODE = "theme_mode"
 
         // Defaults
@@ -788,6 +789,13 @@ class PreferencesManager(context: Context) {
 
     fun setOnboardingCompleted() {
         prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, true).apply()
+    }
+
+    /** Whether the user said not to show the battery optimization card again. */
+    fun batteryHintDismissed(): Boolean = prefs.getBoolean(KEY_BATTERY_HINT_DISMISSED, false)
+
+    fun dismissBatteryHint() {
+        prefs.edit().putBoolean(KEY_BATTERY_HINT_DISMISSED, true).apply()
     }
 
     /** Whether raw payloads are kept in full; off by default, they are raw health data. */

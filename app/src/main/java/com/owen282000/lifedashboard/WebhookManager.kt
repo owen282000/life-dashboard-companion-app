@@ -92,7 +92,9 @@ class WebhookManager(
     /** Trust per webhook host (issue #160) when set; otherwise read from the settings. For tests. */
     private val serverTrustOverride: Map<String, ServerTrust>? = null,
     /** Builds the trust manager of one host; a test passes one with its own CA store. */
-    private val trustManagerFor: (ServerTrust?) -> X509TrustManager = { WebhookTrust.trustManager(it) }
+    private val trustManagerFor: (ServerTrust?) -> X509TrustManager = { WebhookTrust.trustManager(it) },
+    /** Writes a log row and the lifetime count; a test passes one that throws. */
+    private val logRecorder: ((WebhookLog, Boolean) -> Unit)? = null
 ) {
 
     /** The client and the client certificate's key managers, built once per post. */
@@ -369,27 +371,36 @@ class WebhookManager(
         rawPayload: String?,
         note: String? = null
     ) {
-        context?.let {
-            if (success && countSuccess) {
-                LifetimeStats.recordDelivery(it, recordCount ?: 0, rawPayload?.length ?: 0, logType)
-            }
-            if (success && !logSuccess) return
-            val preferencesManager = PreferencesManager(it)
-            val log = WebhookLog(
-                id = UUID.randomUUID().toString(),
-                timestamp = timestamp,
-                url = url,
-                statusCode = statusCode,
-                success = success,
-                errorMessage = errorMessage,
-                dataType = dataType,
-                recordCount = recordCount,
-                rawPayload = rawPayload,
-                logType = logType.name,
-                note = note
-            )
-            preferencesManager.addWebhookLog(log)
+        val recorder = logRecorder ?: context?.let { recordIn(it) } ?: return
+        val log = WebhookLog(
+            id = UUID.randomUUID().toString(),
+            timestamp = timestamp,
+            url = url,
+            statusCode = statusCode,
+            success = success,
+            errorMessage = errorMessage,
+            dataType = dataType,
+            recordCount = recordCount,
+            rawPayload = rawPayload,
+            logType = logType.name,
+            note = note
+        )
+        // The POST's answer alone decides delivered or failed (P2-22). A log that cannot be
+        // written (a full disk, a broken log file) would otherwise turn a payload the receiver
+        // took into a failure, queued and sent again: a duplicate in a receiver that only
+        // inserts.
+        try {
+            recorder(log, success)
+        } catch (e: Exception) {
+            // The row is lost; the delivery stands.
         }
+    }
+
+    private fun recordIn(context: Context): (WebhookLog, Boolean) -> Unit = { log, success ->
+        if (success && countSuccess) {
+            LifetimeStats.recordDelivery(context, recordCount ?: 0, log.rawPayload?.length ?: 0, logType)
+        }
+        if (!success || logSuccess) PreferencesManager(context).addWebhookLog(log)
     }
 
     companion object {

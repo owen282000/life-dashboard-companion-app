@@ -2,4 +2,6 @@
 <resources>
     <!-- The Ko-fi row in About. Off in the Google Play build (src/play), which is paid. -->
     <bool name="show_donation">true</bool>
+    <!-- The battery card asks Android's own dialog to exempt the app; off in the Play build, see the manifest. -->
+    <bool name="ask_battery_exemption">true</bool>
 </resources>
