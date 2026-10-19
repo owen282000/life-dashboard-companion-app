@@ -105,7 +105,7 @@ A section (Health Connect or Screen Time) can send to the Life Dashboard integra
 
 There are two ways into Home Assistant. Use one, not both: with both you get two devices holding the same numbers.
 
-**The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha)** is the recommended one. You install it through HACS (as a custom repository for now) and pair the phone by scanning a QR code. It receives the webhook directly, needs no broker, keeps every day in long-term statistics (a backfill and screen time included), and comes with an example dashboard. It is also the only way to [receive measurements](#receiving-from-home-assistant) on the phone.
+**The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha)** is the recommended one. You install it from HACS and pair the phone by scanning a QR code. It receives the webhook directly, needs no broker, keeps every day in long-term statistics (a backfill and screen time included), and comes with an example dashboard. It is also the only way to [receive measurements](#receiving-from-home-assistant) on the phone.
 
 **MQTT with Home Assistant Discovery** suits a setup that already has a broker and only needs current values. Point the app at the broker, and sensors for 24 of the 33 types, plus screen time, appear under one device without any configuration in Home Assistant.
 

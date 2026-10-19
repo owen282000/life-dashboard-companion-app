@@ -103,7 +103,7 @@ Screen time works on Android 8.0 and newer. The health part needs Android 9 or n
 
 ## Quick start
 
-1. In Home Assistant (2026.3 or newer, with [HACS](https://hacs.xyz/docs/use/) installed), add the [Life Dashboard integration](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration) as a custom repository, download it, restart, and add the integration. It shows a QR code. Skip this step if you use MQTT or a webhook.
+1. In Home Assistant (2026.3 or newer, with [HACS](https://hacs.xyz/docs/use/) installed), download the [Life Dashboard integration](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration) from HACS, restart, and add the integration. It shows a QR code. Skip this step if you use MQTT or a webhook.
 2. Install the app and open it. Its setup asks where your data should go: scan the code, or enter your broker or webhook URL.
 3. Grant the Health Connect permissions on the **Health** tab, and usage access on the **Screen Time** tab if you want screen time.
 4. Tap **Sync Now**. Tap **View** first if you want to preview the payload.
