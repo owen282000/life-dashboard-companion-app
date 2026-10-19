@@ -35,7 +35,7 @@
 <p align="center">
   <picture>
     <source media="(max-width: 600px)" srcset="docs/readme-screens-phone.png">
-    <img src="docs/readme-screens.png" alt="Four app screens: the Health Connect tab with 33 data types selected, the Screen Time tab with minutes per app, the sync schedule set to fixed times on chosen days, and per-type data resolution" width="900">
+    <img src="docs/readme-screens.png" alt="Four app screens: the Health Connect tab with all 33 data types selected and a week of steps, the Screen Time tab with a week of minutes per day and the top app, the sync schedule set to 9:00 AM, 11:00 AM and 2:00 PM on five days of the week, and data resolution with 4 of the 33 types bucketed" width="900">
   </picture>
 </p>
 
