@@ -68,11 +68,11 @@ class ScreenTimeSyncManager(private val context: Context) {
             // Deliver any queued payloads from earlier failed syncs first, preserving order.
             PendingDrainer.drain(context)
 
-            val webhookUrls = preferencesManager.getScreenTimeWebhookUrls()
+            val destinations = preferencesManager.getDestinations(LogType.SCREEN_TIME)
             val mqttSettings = preferencesManager.resolvedMqttSettings(MqttSection.SCREEN_TIME)
             val publishToMqtt = mqttSettings.enabled && mqttSettings.host.isNotBlank()
 
-            if (webhookUrls.isEmpty() && !publishToMqtt) {
+            if (destinations.isEmpty() && !publishToMqtt) {
                 return Result.failure(Exception("No webhook URLs configured"))
             }
 
@@ -108,7 +108,7 @@ class ScreenTimeSyncManager(private val context: Context) {
 
             // MQTT-only setup: nothing to post, nothing to queue. The publish was the delivery,
             // so its outcome is the sync's (MqttSupport.syncFailure).
-            if (webhookUrls.isEmpty()) {
+            if (destinations.isEmpty()) {
                 val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult, explain = { context.getString(it.messageRes) }) {
                     context.getString(R.string.mqtt_sync_failed, it)
                 }
@@ -122,14 +122,11 @@ class ScreenTimeSyncManager(private val context: Context) {
             }
 
             val webhookManager = WebhookManager(
-                webhookUrls = webhookUrls,
+                destinations = destinations,
                 context = context,
                 dataType = "screen_time",
                 recordCount = totalApps,
-                logType = LogType.SCREEN_TIME,
-                customHeaders = preferencesManager.getScreenTimeWebhookHeaders(),
-                urlsWithoutHeaders = preferencesManager.getScreenTimeUrlsWithoutHeaders(),
-                signingSecret = preferencesManager.getScreenTimeWebhookSecret()
+                logType = LogType.SCREEN_TIME
             )
 
             // Taken only when there is a payload to post, from the counter Health Connect

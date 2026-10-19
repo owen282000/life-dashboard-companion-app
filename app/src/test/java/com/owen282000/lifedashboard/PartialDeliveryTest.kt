@@ -36,7 +36,7 @@ class PartialDeliveryTest {
         taken.enqueue(MockResponse.Builder().code(200).build())
         down.enqueue(MockResponse.Builder().code(404).build())
 
-        val result = WebhookManager(webhookUrls = listOf(ok, missing), allowHttpOverride = true).postData("{}")
+        val result = WebhookManager(destinationsOf(listOf(ok, missing)), allowHttpOverride = true).postData("{}")
 
         assertTrue("one webhook took it, so it counts as delivered, as before", result.isSuccess)
         assertEquals(listOf(missing), result.getOrNull()?.missedUrls)
@@ -49,7 +49,7 @@ class PartialDeliveryTest {
         down.enqueue(MockResponse.Builder().code(200).build())
 
         val result = WebhookManager(
-            webhookUrls = listOf(taken.url("/a").toString(), down.url("/b").toString()),
+            destinations = destinationsOf(listOf(taken.url("/a").toString(), down.url("/b").toString())),
             allowHttpOverride = true
         ).postData("{}")
 

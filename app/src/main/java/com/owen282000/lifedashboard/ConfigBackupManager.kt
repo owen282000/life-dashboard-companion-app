@@ -26,20 +26,8 @@ class ConfigBackupManager(private val context: Context) {
             appVersion = runCatching {
                 context.packageManager.getPackageInfo(context.packageName, 0).versionName
             }.getOrNull(),
-            health = sectionConfig(
-                LogType.HEALTH_CONNECT,
-                webhookUrls = prefs.getHealthWebhookUrls(),
-                headers = prefs.getHealthWebhookHeaders(),
-                signingSecret = prefs.getHealthWebhookSecret(),
-                urlsWithoutHeaders = prefs.getHealthUrlsWithoutHeaders()
-            ),
-            screenTime = sectionConfig(
-                LogType.SCREEN_TIME,
-                webhookUrls = prefs.getScreenTimeWebhookUrls(),
-                headers = prefs.getScreenTimeWebhookHeaders(),
-                signingSecret = prefs.getScreenTimeWebhookSecret(),
-                urlsWithoutHeaders = prefs.getScreenTimeUrlsWithoutHeaders()
-            ),
+            health = sectionConfig(LogType.HEALTH_CONNECT),
+            screenTime = sectionConfig(LogType.SCREEN_TIME),
             mqtt = MqttConfig(
                 shared = BrokerConfig.from(prefs.getSharedMqttBroker()),
                 healthEnabled = healthSection.enabled,
@@ -85,45 +73,29 @@ class ConfigBackupManager(private val context: Context) {
      * Every other setting the file does not have stays as it is too, rather than going back to
      * its default: a file from the iPhone app has no Screen Time, no Screen Time MQTT and no
      * day boundary. Its phone name and default topic are the iPhone's, see [ConfigBackup.forThisPhone].
+     *
+     * Returns false, having written nothing, while the secure storage cannot keep the
+     * destinations' secrets ([PreferencesManager.canSetDestinations]); the user imports again.
      */
-    fun import(file: ConfigBackup) {
+    fun import(file: ConfigBackup): Boolean {
         val backup = file.forThisPhone()
-        with(backup.health) {
-            webhookUrls?.let { urls ->
-                // Worked out against the device before its URLs and headers are replaced.
-                prefs.setHealthUrlsWithoutHeaders(
-                    urlsWithoutHeadersOnImport(
-                        prefs.getHealthWebhookUrls(),
-                        prefs.getHealthUrlsWithoutHeaders(),
-                        prefs.getHealthWebhookHeaders().isNotEmpty()
-                    )
-                )
-                prefs.setHealthWebhookUrls(urls)
-            }
-            if (headers.isNotEmpty()) prefs.setHealthWebhookHeaders(headers)
-            if (!signingSecret.isNullOrBlank()) prefs.setHealthWebhookSecret(signingSecret)
-            syncIntervalMinutes?.let { prefs.setHealthSyncIntervalMinutes(it) }
-            restoreSchedule(LogType.HEALTH_CONNECT, this)
-        }
-
-        with(backup.screenTime) {
-            webhookUrls?.let { urls ->
-                prefs.setScreenTimeUrlsWithoutHeaders(
-                    urlsWithoutHeadersOnImport(
-                        prefs.getScreenTimeWebhookUrls(),
-                        prefs.getScreenTimeUrlsWithoutHeaders(),
-                        prefs.getScreenTimeWebhookHeaders().isNotEmpty()
-                    )
-                )
-                prefs.setScreenTimeWebhookUrls(urls)
-            }
-            if (headers.isNotEmpty()) prefs.setScreenTimeWebhookHeaders(headers)
-            if (!signingSecret.isNullOrBlank()) prefs.setScreenTimeWebhookSecret(signingSecret)
-            syncIntervalMinutes?.let { prefs.setScreenTimeSyncIntervalMinutes(it) }
-            restoreSchedule(LogType.SCREEN_TIME, this)
-        }
-
         val hasSecrets = backup.containsSecrets()
+        val sections = listOf(LogType.HEALTH_CONNECT to backup.health, LogType.SCREEN_TIME to backup.screenTime)
+        // Worked out against the device before its destinations are replaced, and checked for
+        // both sections before anything is written, so a refusal leaves the phone as it was.
+        val imported = sections.associate { (source, section) ->
+            source to section.destinationsOnImport(prefs.getDestinations(source), prefs.getSectionSecret(source), hasSecrets)
+        }
+        if (imported.any { (source, list) -> list != null && !prefs.canSetDestinations(source, list) }) return false
+        for ((source, section) in sections) {
+            imported[source]?.let { if (!prefs.setDestinations(source, it)) return false }
+            section.signingSecret?.takeIf { it.isNotBlank() }?.let { prefs.setSectionSecret(source, it) }
+            section.syncIntervalMinutes?.let {
+                if (source == LogType.HEALTH_CONNECT) prefs.setHealthSyncIntervalMinutes(it) else prefs.setScreenTimeSyncIntervalMinutes(it)
+            }
+            restoreSchedule(source, section)
+        }
+
         with(backup.mqtt) {
             shared?.let { prefs.setSharedMqttBroker(it.toBroker(prefs.getSharedMqttBroker(), hasSecrets)) }
             for (section in MqttSection.entries) {
@@ -164,6 +136,7 @@ class ConfigBackupManager(private val context: Context) {
                 )
             }
         }
+        return true
     }
 
     companion object {
@@ -217,20 +190,17 @@ class ConfigBackupManager(private val context: Context) {
             WriteBackType.fromKey(name) ?: WriteBackType.entries.firstOrNull { it.name == name }
     }
 
-    /** One section's webhook and schedule settings, as the backup stores them. */
-    private fun sectionConfig(
-        source: LogType,
-        webhookUrls: List<String>,
-        headers: Map<String, String>,
-        signingSecret: String?,
-        urlsWithoutHeaders: Set<String>
-    ): SectionConfig {
+    /** One section's destinations and schedule settings, as the backup stores them. */
+    private fun sectionConfig(source: LogType): SectionConfig {
         val schedule = prefs.getSyncSchedule(source)
+        val destinations = prefs.getDestinations(source)
+        val legacy = Destinations.legacy(destinations, prefs.getSectionSecret(source))
         return SectionConfig(
-            webhookUrls = webhookUrls,
-            headers = headers,
-            signingSecret = signingSecret,
-            urlsWithoutHeaders = webhookUrls.filter { it in urlsWithoutHeaders },
+            webhookUrls = destinations.map { it.url },
+            headers = legacy.headers,
+            signingSecret = legacy.secret,
+            urlsWithoutHeaders = legacy.urlsWithoutHeaders,
+            destinations = destinations.map { DestinationConfig.from(it) },
             syncIntervalMinutes = schedule.intervalMinutes,
             syncMode = schedule.mode.name,
             syncTimes = SyncSchedule.formatTimes(schedule.times),

@@ -57,7 +57,7 @@
     <string name="webhook_header_value_invalid">A header value can only hold plain ASCII characters, without line breaks or letters such as é</string>
     <string name="webhook_header_name_blocks_delivery">Nothing was sent: header %1$s has a name that cannot be sent. Remove it under Webhook and add it again with a name without spaces.</string>
     <string name="webhook_header_value_blocks_delivery">Nothing was sent: the value of header %1$s holds a line break or a character a header cannot carry. Remove it under Webhook and add it again.</string>
-    <string name="webhook_headers_title">Webhook Headers</string>
+    <string name="webhook_headers_title">Webhook headers (optional)</string>
     <string name="webhook_hmac_secret_description">When set, every POST gets an X-Signature header (sha256=&lt;hex&gt;) computed as HMAC-SHA256 over the body, so your server can verify the sender.</string>
     <string name="webhook_hmac_secret_title">HMAC signing secret (optional)</string>
     <plurals name="webhook_headers_count">
@@ -68,7 +68,19 @@
     <string name="webhook_shared_secret">Shared secret</string>
     <string name="webhook_url_placeholder">https://...</string>
     <string name="webhook_urls_configured">%1$d configured</string>
-    <string name="webhook_url_without_headers">Paired by QR code: custom headers are not sent here</string>
+    <string name="webhook_destinations_hint">Tap an address for its own headers and signing secret. Neither goes to any other address.</string>
+    <string name="webhook_destination_summary">%1$s, %2$s</string>
+    <string name="webhook_destination_signed">Signed</string>
+    <string name="webhook_destination_unsigned">Not signed</string>
+    <string name="webhook_destination_no_headers">no headers</string>
+    <string name="webhook_destination_url">Address</string>
+    <string name="webhook_destination_open">show headers and secret</string>
+    <string name="webhook_destination_moved">Another host than %1$s: the headers were cleared and the secret reset, so nothing set for %1$s goes here.</string>
+    <string name="webhook_copy_headers_from">Copy headers from %1$s</string>
+    <string name="webhook_use_secret_of">Use the same secret as %1$s</string>
+    <string name="webhook_url_duplicate">This address is in the list already</string>
+    <string name="webhook_url_user_info">Remove the user name or password from the address. Addresses are kept as plain text, in backups and in the logs; put the credential in a header of this address instead.</string>
+    <string name="webhook_url_credential_parameter">Remove %1$s= from the address. Addresses are kept as plain text, in backups and in the logs; put the credential in a header of this address instead.</string>
     <string name="webhook_urls_title">Webhook URLs</string>
 
     <!-- Shared sync section, used by Health Connect and Screen Time -->
@@ -654,8 +666,8 @@
     <string name="pairing_sections_label">Send from</string>
     <string name="pairing_section_health">Health</string>
     <string name="pairing_section_screen_time">Screen Time</string>
-    <string name="pairing_replaces_secret">Replaces the signing secret this section uses now.</string>
-    <string name="pairing_replaces_secret_others">Replaces the signing secret this section uses now. %1$s gets payloads signed with the new one from then on: if it checks signatures, give it the new secret too, or remove it.</string>
+    <string name="pairing_replaces_secret">Replaces the signing secret this address uses now.</string>
+    <string name="pairing_others_keep_secret">Other addresses keep their own signing secret and headers: %1$s.</string>
     <string name="pairing_already_paired">This section already sends here. Nothing changes.</string>
     <string name="pairing_types_note">Which data types are sent, and when, stays your choice on the tabs. Pairing only fills in the address and the secret.</string>
     <string name="pairing_confirm">Pair</string>
@@ -723,6 +735,7 @@
     <string name="health_record_metadata_description">Adds to every record when it was last changed, the writing app\'s own id and version, how it was recorded, the device and the time zone offset, where Health Connect has them. Makes payloads larger, most for heart rate.</string>
     <!-- The secret store lost its secrets -->
     <string name="secrets_lost_banner">Saved auth headers, signing secrets and MQTT passwords could not be recovered and have to be entered again. Until then a webhook that checks them refuses the data.</string>
+    <string name="secrets_not_ready">Nothing was saved: secure storage is not ready yet, so auth headers and signing secrets cannot be stored right now. Try again in a moment; if it keeps happening, unlock the device and reopen the app.</string>
     <string name="battery_hint_title">Battery optimization is on</string>
     <string name="battery_hint_body">Android may delay scheduled syncs by hours or skip them. Let the app run in the background without restrictions.</string>
     <string name="battery_hint_fix">Fix</string>

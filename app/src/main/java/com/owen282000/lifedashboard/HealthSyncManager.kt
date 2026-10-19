@@ -129,12 +129,12 @@ class HealthSyncManager(
             // Deliver any queued payloads from earlier failed syncs first, preserving order.
             PendingDrainer.drain(context)
 
-            val webhookUrls = preferencesManager.getHealthWebhookUrls()
+            val destinations = preferencesManager.getDestinations(LogType.HEALTH_CONNECT)
             val mqttSettings = preferencesManager.resolvedMqttSettings(MqttSection.HEALTH)
             val publishToMqtt = mqttSettings.enabled && mqttSettings.host.isNotBlank()
 
             // MQTT alone is a valid destination since 1.13.0; Screen Time already allowed it.
-            if (webhookUrls.isEmpty() && !publishToMqtt) {
+            if (destinations.isEmpty() && !publishToMqtt) {
                 return Result.failure(Exception("No webhook URLs configured"))
             }
 
@@ -255,7 +255,7 @@ class HealthSyncManager(
                     // the app's own (Receive), the read left them out but moved the watermark
                     // past them, and without storing it here they would be read and counted
                     // again on every sync for the whole lookback window.
-                    updateSyncTimestamps(healthData, mutableMapOf(), holdGapAnchors = webhookUrls.isNotEmpty())
+                    updateSyncTimestamps(healthData, mutableMapOf(), holdGapAnchors = destinations.isNotEmpty())
                     break
                 }
                 anyData = true
@@ -265,7 +265,7 @@ class HealthSyncManager(
 
                 // MQTT-only setup: nothing to post, nothing to queue. The newest batch is
                 // published after the loop, like it is when webhooks are configured too.
-                if (webhookUrls.isEmpty()) {
+                if (destinations.isEmpty()) {
                     // MQTT publishes sensor states, which hold the latest value rather than a
                     // record list, so there is nothing here for a deletion to withdraw. They
                     // stay in storage rather than being dropped: a user who adds a webhook later
@@ -330,14 +330,11 @@ class HealthSyncManager(
 
                 val sourcePost = writeBack.sourcePost(jsonPayload)
                 val webhookManager = WebhookManager(
-                    webhookUrls = webhookUrls,
+                    destinations = destinations,
                     context = context,
                     dataType = "health_connect",
                     recordCount = totalRecords,
                     logType = LogType.HEALTH_CONNECT,
-                    customHeaders = preferencesManager.getHealthWebhookHeaders(),
-                    urlsWithoutHeaders = preferencesManager.getHealthUrlsWithoutHeaders(),
-                    signingSecret = preferencesManager.getHealthWebhookSecret(),
                     source = sourcePost
                 )
                 // Write-ahead (PendingSyncStore.writeAhead): the payload is on disk, out of the
@@ -410,12 +407,12 @@ class HealthSyncManager(
             // which may be all that a watch uploaded after a long time away.
             var deletionsDelivered = false
             val deletionsNow = pendingDeletions.without(readIds)
-            if (deletionsNow.isEmpty && !pendingDeletions.isEmpty && webhookUrls.isNotEmpty()) {
+            if (deletionsNow.isEmpty && !pendingDeletions.isEmpty && destinations.isNotEmpty()) {
                 // Every stored deletion named a record Health Connect still holds: all stale.
                 preferencesManager.setPendingDeletions(DeletionSummary.EMPTY)
                 pendingDeletions = DeletionSummary.EMPTY
             }
-            if (!deletionsNow.isEmpty && webhookUrls.isNotEmpty()) {
+            if (!deletionsNow.isEmpty && destinations.isNotEmpty()) {
                 val deletionPayload = buildJsonPayload(
                     EMPTY_HEALTH_DATA,
                     deletions = deletionsNow,
@@ -425,14 +422,11 @@ class HealthSyncManager(
 
                 val sourcePost = writeBack.sourcePost(deletionPayload)
                 val webhookManager = WebhookManager(
-                    webhookUrls = webhookUrls,
+                    destinations = destinations,
                     context = context,
                     dataType = "health_connect",
                     recordCount = 0,
                     logType = LogType.HEALTH_CONNECT,
-                    customHeaders = preferencesManager.getHealthWebhookHeaders(),
-                    urlsWithoutHeaders = preferencesManager.getHealthUrlsWithoutHeaders(),
-                    signingSecret = preferencesManager.getHealthWebhookSecret(),
                     source = sourcePost
                 )
                 // Write-ahead like the payloads above: the deletions leave storage once the
@@ -530,7 +524,7 @@ class HealthSyncManager(
                 } else emptyList()
                 MqttPublisher(context).publishHealthData(data, totalsForMqtt)
             }
-            if (webhookUrls.isEmpty()) {
+            if (destinations.isEmpty()) {
                 val failure = MqttSupport.syncFailure(hasWebhooks = false, publish = mqttResult, explain = { context.getString(it.messageRes) }) {
                     context.getString(R.string.mqtt_sync_failed, it)
                 }
@@ -587,14 +581,11 @@ class HealthSyncManager(
      * mark in the statistics; what they fetched is the Receive row, and a failed one is logged.
      */
     private fun sourceOnlyManager(post: SourcePost, dataType: String) = WebhookManager(
-        webhookUrls = listOf(post.url),
+        destinations = preferencesManager.getDestinations(LogType.HEALTH_CONNECT).filter { it.url == post.url },
         context = context,
         dataType = dataType,
         recordCount = 0,
         logType = LogType.HEALTH_CONNECT,
-        customHeaders = preferencesManager.getHealthWebhookHeaders(),
-        urlsWithoutHeaders = preferencesManager.getHealthUrlsWithoutHeaders(),
-        signingSecret = preferencesManager.getHealthWebhookSecret(),
         source = post,
         logSuccess = false
     )
@@ -673,8 +664,8 @@ class HealthSyncManager(
             BackfillJobStore.saveIfCurrent(context, job)
         }
 
-        val webhookUrls = preferencesManager.getHealthWebhookUrls()
-        if (webhookUrls.isEmpty()) return failed(BackfillFailure.NoWebhook)
+        val destinations = preferencesManager.getDestinations(LogType.HEALTH_CONNECT)
+        if (destinations.isEmpty()) return failed(BackfillFailure.NoWebhook)
         val enabledTypes = preferencesManager.getHealthEnabledDataTypes()
         if (enabledTypes.isEmpty()) return failed(BackfillFailure.NoTypes)
         val totalWindows = progress.job.windowCount
@@ -806,14 +797,11 @@ class HealthSyncManager(
                     sequence = preferencesManager.nextHealthSyncSequence()
                 )
                 val webhookManager = WebhookManager(
-                    webhookUrls = webhookUrls,
+                    destinations = destinations,
                     context = context,
                     dataType = BACKFILL_DATA_TYPE,
                     recordCount = recordCount,
                     logType = LogType.HEALTH_CONNECT,
-                    customHeaders = preferencesManager.getHealthWebhookHeaders(),
-                    urlsWithoutHeaders = preferencesManager.getHealthUrlsWithoutHeaders(),
-                    signingSecret = preferencesManager.getHealthWebhookSecret(),
                     // The run's row stands for the chunks that went through; a failed one keeps its own.
                     logSuccess = false,
                     countSuccess = true

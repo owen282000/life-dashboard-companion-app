@@ -58,13 +58,16 @@ class WriteBackApplier(
     private val healthConnectManager: HealthConnectManager
 ) {
     private val settings = preferencesManager.getReceiveSettings()
-    private val secret = preferencesManager.getHealthWebhookSecret()
+    private val destinations = preferencesManager.getDestinations(LogType.HEALTH_CONNECT)
+
+    /** The secret of the source destination, which its answers are verified with. */
+    private val secret = destinations.firstOrNull { it.url == settings.sourceUrl }?.secret
     private val startedAt = System.currentTimeMillis()
 
     /** The URL whose response is read, or null when Receive is off or cannot run. */
     val sourceUrl: String? =
         settings.sourceUrl?.takeIf {
-            WriteBackPayload.isActive(settings.enabled, it, preferencesManager.getHealthWebhookUrls(), secret)
+            WriteBackPayload.isActive(settings.enabled, it, destinations.map { d -> d.url }, secret)
         }
 
     val active: Boolean get() = sourceUrl != null

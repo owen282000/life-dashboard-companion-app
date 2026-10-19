@@ -50,6 +50,7 @@ import com.owen282000.lifedashboard.ExportManager
 import com.owen282000.lifedashboard.LogDestination
 import com.owen282000.lifedashboard.LogDirection
 import com.owen282000.lifedashboard.LogType
+import com.owen282000.lifedashboard.PartialDelivery
 import com.owen282000.lifedashboard.PayloadPreview
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ReceiveLogLine
@@ -283,7 +284,8 @@ private fun LogRow(log: WebhookLog, accent: androidx.compose.ui.graphics.Color) 
                 else -> Icons.Outlined.Link
             },
             accent = accent,
-            title = source,
+            // The host as well, so two addresses that took the same payload are told apart.
+            title = if (isIncoming || isMqtt || log.url.isBlank()) source else "$source · ${PartialDelivery.hosts(listOf(log.url))}",
             subtitle = subtitle,
             onClick = { expanded = !expanded }
         ) {

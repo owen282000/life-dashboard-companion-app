@@ -1,6 +1,8 @@
 package com.owen282000.lifedashboard.viewmodel
 
 import com.owen282000.lifedashboard.BackfillFailure
+import com.owen282000.lifedashboard.Destination
+import com.owen282000.lifedashboard.Destinations
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.InvalidHeaderException
 import com.owen282000.lifedashboard.MqttBroker
@@ -24,24 +26,80 @@ import java.time.LocalTime
  */
 
 data class WebhookDraft(
-    val urls: List<String> = emptyList(),
-    val headers: Map<String, String> = emptyMap(),
-    val secret: String = "",
-    /** URLs QR pairing added, which get none of [headers], see WebhookSupport.headersFor. */
-    val urlsWithoutHeaders: Set<String> = emptySet()
+    /** The section's destinations, each with its own secret and headers (P2-13). */
+    val destinations: List<Destination> = emptyList(),
+    /** The section's own secret, which a destination added by hand starts with. */
+    val sectionSecret: String = ""
 ) {
-    /**
-     * A URL typed in by hand gets the headers, even one that pairing added before. One that is
-     * already in the list is not added twice (every payload would go to it twice): typing a
-     * paired address in again only lifts its mark.
-     */
-    fun withUrl(url: String): WebhookDraft =
-        copy(urls = if (url in urls) urls else urls + url, urlsWithoutHeaders = urlsWithoutHeaders - url)
+    val urls: List<String> get() = destinations.map { it.url }
 
-    fun withoutUrlAt(index: Int): WebhookDraft {
-        val remaining = urls.filterIndexed { i, _ -> i != index }
-        return copy(urls = remaining, urlsWithoutHeaders = urlsWithoutHeaders.filter { it in remaining }.toSet())
+    /** The addresses that have a secret: only those can be the source of Receive, whose answers are verified with it. */
+    val urlsWithSecret: List<String> get() = destinations.filter { !it.secret.isNullOrBlank() }.map { it.url }
+
+    /**
+     * A destination for [url], typed in by hand. It starts with the secret the destinations
+     * share, or the section's, and with no headers: those were typed for another receiver. One
+     * that is already listed is not added twice (every payload would go to it twice).
+     */
+    fun withUrl(url: String, newId: () -> String = Destinations::newId): WebhookDraft {
+        if (url in urls) return this
+        return copy(destinations = destinations + Destination(id = newId(), url = url, secret = defaultSecret()))
     }
+
+    /** The secret a new destination starts with: the one the others (all but [except]) share, or the section's. */
+    private fun defaultSecret(except: String? = null): String? =
+        Destinations.sharedSecret(destinations.filter { it.id != except }) ?: sectionSecret.takeIf { it.isNotBlank() }
+
+    /**
+     * The destination [id] with its address changed to [url]. On the host it was saved with
+     * ([saved]) it keeps its headers and secret, also when it comes back there after a detour
+     * while typing: a new scheme, port or path is the same receiver. On another host it starts
+     * like a new destination, without headers and with the default secret, since those were
+     * set for the old host. One that is not saved yet keeps what it has.
+     */
+    fun withEditedUrl(id: String, url: String, saved: Destination?): WebhookDraft = edit(id) { current ->
+        val wasOnSavedHost = saved != null && Destinations.sameHost(current.url, saved.url)
+        when {
+            saved == null -> current.copy(url = url)
+            Destinations.sameHost(url, saved.url) ->
+                if (wasOnSavedHost) current.copy(url = url) else current.copy(url = url, headers = saved.headers, secret = saved.secret)
+            wasOnSavedHost -> current.copy(url = url, headers = emptyMap(), secret = defaultSecret(except = id))
+            else -> current.copy(url = url)
+        }
+    }
+
+    /** [id] with the headers of [from] in place of its own. */
+    fun withHeadersOf(id: String, from: String): WebhookDraft =
+        destinations.firstOrNull { it.id == from }?.let { source -> edit(id) { it.copy(headers = source.headers) } } ?: this
+
+    /** [id] with the secret of [from]. */
+    fun withSecretOf(id: String, from: String): WebhookDraft =
+        destinations.firstOrNull { it.id == from }?.let { source -> edit(id) { it.copy(secret = source.secret) } } ?: this
+
+    fun without(id: String): WebhookDraft = copy(destinations = destinations.filter { it.id != id })
+
+    /** [transform] applied to the destination [id]; the others stay as they are. */
+    fun edit(id: String, transform: (Destination) -> Destination): WebhookDraft =
+        copy(destinations = destinations.map { if (it.id == id) transform(it) else it })
+
+    /** Every address without the spaces around it, as it is saved. */
+    fun trimmed(): WebhookDraft = copy(destinations = destinations.map { it.copy(url = it.url.trim()) })
+}
+
+/** What the Webhook card can ask for; both tabs implement it. A destination is named by its id, which stays when its address is edited. */
+interface WebhookActions {
+    fun addUrl(url: String)
+    fun setDestinationUrl(id: String, url: String)
+    fun removeDestination(id: String)
+    fun addHeader(id: String, key: String, value: String)
+    fun removeHeader(id: String, key: String)
+    fun setSecret(id: String, secret: String)
+
+    /** Replaces the headers of [id] with those of [from], another destination of the section. */
+    fun copyHeaders(id: String, from: String)
+
+    /** Gives [id] the secret of [from]. */
+    fun copySecret(id: String, from: String)
 }
 
 data class MqttDraft(
@@ -199,6 +257,24 @@ object SettingsRules {
     fun isValidUrl(url: String): Boolean = url.trim().toHttpUrlOrNull() != null
 
     /**
+     * What is wrong with an address about to be added or saved, or null when it can be: not a
+     * valid URL, or one with a credential in it (Destinations.credentialIn).
+     */
+    fun urlProblem(url: String): UiMessage? = when {
+        !isValidUrl(url) -> UiMessage.InvalidUrl
+        else -> Destinations.credentialIn(url)?.let { UiMessage.UrlHasCredentials(it.parameter) }
+    }
+
+    /**
+     * The first problem of an address in [draft] that is not one of [savedUrls]: an address
+     * that is new or edited. One saved before the check existed keeps working as it is. Then
+     * an address listed twice, by an edit that made it equal to another.
+     */
+    fun destinationProblem(draft: WebhookDraft, savedUrls: List<String>): UiMessage? =
+        draft.destinations.firstNotNullOfOrNull { if (it.url in savedUrls) null else urlProblem(it.url) }
+            ?: UiMessage.DuplicateUrl.takeIf { draft.urls.map { it.trim() }.let { urls -> urls.size != urls.distinct().size } }
+
+    /**
      * What is wrong with a header about to be added, or null when it can be: a name that is an
      * HTTP token and a value OkHttp sends, both after trimming, as the tabs save them. A name
      * with a space used to be saved, after which every delivery failed (see WebhookSupport).
@@ -267,6 +343,15 @@ sealed interface UiMessage {
     data object NoDestination : UiMessage
     data object InvalidDayBoundaryHour : UiMessage
     data object InvalidUrl : UiMessage
+
+    /** The address is in the section already; every payload would go to it twice. */
+    data object DuplicateUrl : UiMessage
+
+    /** Nothing was saved: the secure storage cannot keep secrets right now, see DestinationStore.canWrite. */
+    data object SecretsNotReady : UiMessage
+
+    /** The address holds a credential: [parameter] is the query parameter, or null for a user name or password before the host. */
+    data class UrlHasCredentials(val parameter: String?) : UiMessage
     data object HeaderNeedsNameAndValue : UiMessage
     data object InvalidHeaderName : UiMessage
     data object InvalidHeaderValue : UiMessage
@@ -321,5 +406,5 @@ sealed interface UiMessage {
     val isFailure: Boolean
         get() = this is SyncFailed || this is HealthConnectUnavailable || this is UsageAccessMissing ||
             this is PingFailed || this is PingFailedWith || this is PreviewFailed || this is ExportFailed ||
-            this is PartlyDelivered || this is BackfillFailed || this is HeaderBlocksDelivery
+            this is PartlyDelivered || this is BackfillFailed || this is HeaderBlocksDelivery || this is SecretsNotReady
 }

@@ -123,8 +123,8 @@ class MainActivity : ComponentActivity() {
                     PairingDialog(
                         link = link,
                         accent = HealthPrimary,
-                        currentHealth = preferencesManager.healthSectionWebhook(),
-                        currentScreenTime = preferencesManager.screenTimeSectionWebhook(),
+                        currentHealth = preferencesManager.getDestinations(LogType.HEALTH_CONNECT),
+                        currentScreenTime = preferencesManager.getDestinations(LogType.SCREEN_TIME),
                         onDismiss = { pendingPairing.value = null },
                         onConfirm = { choice ->
                             pendingPairing.value = null
@@ -183,7 +183,9 @@ class MainActivity : ComponentActivity() {
      * NavHost), so these are the instances the tabs are showing.
      */
     private fun applyPairing(link: PairingLink, choice: PairingChoice, inWizard: Boolean) {
-        val written = PairingApply.apply(link, choice, preferencesManager.asPairingStore())
+        val result = PairingApply.apply(link, choice, preferencesManager.asPairingStore())
+        if (result.refused.isNotEmpty()) Toast.makeText(this, getString(R.string.secrets_not_ready), Toast.LENGTH_LONG).show()
+        val written = result.written
         if (written.isEmpty()) return
 
         // The wizard re-reads it instead. No ViewModel here: creating the tabs' ones now would
@@ -209,14 +211,17 @@ class MainActivity : ComponentActivity() {
      * The pairing checks itself: one test ping to the paired address, signed with the paired
      * secret, and the outcome in a toast. The pairing is written before this and stays written
      * whatever the ping says: a receiver that is down right now is still the one the user chose,
-     * and the next sync tries it again. No custom headers, like every sync to a paired address.
+     * and the next sync tries it again. Sent to the destination as it is stored now, so with the
+     * headers it has, like every sync to it: none when pairing added it.
      */
     private fun confirmPairing(link: PairingLink, written: Set<PairingSource>) {
         val app = applicationContext
         Toast.makeText(app, getString(R.string.pairing_ping_sending, link.host), Toast.LENGTH_SHORT).show()
         lifecycleScope.launch {
             val logType = if (PairingSource.HEALTH in written) LogType.HEALTH_CONNECT else LogType.SCREEN_TIME
-            val result = TestPing.send(app, listOf(link.url), link.secret, logType)
+            val destination = preferencesManager.getDestinations(logType).firstOrNull { it.url == link.url }
+                ?: Destination(id = Destinations.newId(), url = link.url, secret = link.secret)
+            val result = TestPing.send(app, listOf(destination), logType)
             val text = result.fold(
                 onSuccess = { app.getString(R.string.pairing_ping_delivered, link.host) },
                 onFailure = { app.getString(R.string.pairing_ping_failed, link.host, FailureReason.of(it).orEmpty()) }

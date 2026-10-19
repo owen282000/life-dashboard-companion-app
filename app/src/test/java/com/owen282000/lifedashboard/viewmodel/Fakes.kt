@@ -29,6 +29,9 @@ internal class FakeAppSettings(
 ) : AppSettings {
     var savedHealth = 0
     var savedScreenTime = 0
+
+    /** The secure storage is not ready: every save is refused and stores nothing. */
+    var refuseSaves = false
     var dailyTotals = true
     var allowHttp = false
     var certAlias: String? = null
@@ -42,15 +45,19 @@ internal class FakeAppSettings(
     }
 
     override fun loadHealth() = health
-    override fun saveHealth(draft: HealthDraft, interval: Int) {
+    override fun saveHealth(draft: HealthDraft, interval: Int): Boolean {
+        if (refuseSaves) return false
         savedHealth++
         health = draft.copy(schedule = draft.schedule.copy(intervalText = interval.toString()))
+        return true
     }
 
     override fun loadScreenTime() = screenTime
-    override fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int) {
+    override fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int): Boolean {
+        if (refuseSaves) return false
         savedScreenTime++
         screenTime = draft.copy(schedule = draft.schedule.copy(intervalText = interval.toString()), dayBoundaryHour = dayBoundaryHour.toString())
+        return true
     }
 
     override fun setHealthEnabledTypes(types: Set<HealthDataType>) {

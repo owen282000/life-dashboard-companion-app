@@ -27,15 +27,15 @@ If you would rather start from a working backend, [life-dashboard-stack](https:/
 
 ### The request
 
-The **Health** tab and the **Screen Time** tab each have their own **Webhook URLs**, **Webhook Headers** and **HMAC signing secret (optional)**. Every payload of a section goes to every URL of that section.
+The **Health** tab and the **Screen Time** tab each have their own list of webhook addresses. Every payload of a section goes to every address of that section, and each address has its own **Webhook Headers** and **HMAC signing secret (optional)**: what you set for one address is never sent to another, so two receivers that check their own secret both accept the same payload.
 
 | Part | Value |
 |---|---|
 | Method | `POST` to the URL as entered |
 | `Content-Type` | `application/json; charset=utf-8` |
 | Body | One JSON object, UTF-8 |
-| `X-Signature` | `sha256=<lowercase hex>`, only when the section has a signing secret |
-| Custom headers | The section's **Webhook Headers**, for example an `Authorization` header. A URL that QR pairing added gets none of them, so an address from a pairing code never receives the API keys typed for the others. |
+| `X-Signature` | `sha256=<lowercase hex>`, only when the address has a signing secret, computed with that address's secret |
+| Custom headers | The address's own **Webhook Headers**, for example an `Authorization` header. An address that QR pairing added starts with none, so an address from a pairing code never receives the API keys typed for the others. |
 | Client certificate | Optional mTLS. **Client certificate (mTLS)** under **Advanced** picks a certificate installed in Android's credential store; it is used for every webhook. |
 | Server certificates | Optional, per https host, under **Advanced > Server certificates**: trust the CA certificates installed on the phone for that host (a private CA), or one certificate whose SHA-256 fingerprint you confirmed (self-signed). Both off by default; there is no switch that accepts any certificate. |
 | Transport | HTTPS. Plain `http://` is refused unless **Allow plain HTTP webhooks** is on. |
@@ -159,7 +159,7 @@ Both receivers expect a signing secret. Without one in the app the requests carr
 
 Flask sets no body limit of its own. Both receivers respond before they store, so a crash in between loses that payload; if that matters, write the raw body to disk or a durable queue first and respond after that.
 
-To try a receiver from the phone on your own network, turn on **Allow plain HTTP webhooks** under **Advanced** (on either tab, it applies to both) and enter `http://<computer's address>:3000/life-dashboard`. **Test ping** then sends one request without data, signed when the section has a secret. Use HTTPS for anything beyond your own network.
+To try a receiver from the phone on your own network, turn on **Allow plain HTTP webhooks** under **Advanced** (on either tab, it applies to both) and enter `http://<computer's address>:3000/life-dashboard`. **Test ping** then sends one request without data to every address, each signed with its own secret when it has one. Use HTTPS for anything beyond your own network.
 
 ### n8n and Node-RED
 
@@ -684,7 +684,7 @@ Redirects are followed only on the same host: the same port, or `http` on port 8
 
 A Google Apps Script web app (`https://script.google.com/macros/s/.../exec`) is the one exception. Apps Script runs `doPost` on the POST itself and then answers `302` with the script's output parked on `script.googleusercontent.com`. By then the payload has arrived, so the app counts it as delivered and reads that answer with a plain `GET`, without the body, the signature or your custom headers. The POST is never repeated for it, because that would run the script twice; an answer that cannot be read is noted in the log and does not undo the delivery. Only a `301`, `302` or `303` from a `/macros/` path on `script.google.com` to a `/macros/` path on `script.googleusercontent.com`, both over `https` on port 443, counts.
 
-Deploy the script as a web app with **Execute as** set to yourself and **Who has access** set to **Anyone**. With any other access Google sends the POST to its sign-in page, nothing reaches the script, and the log says so. Apps Script cannot read request headers, so it cannot check `X-Signature` or a custom header. Put a long random token in the URL instead (`.../exec?token=...`) and have the script compare `e.parameter.token` before it writes anything; the app sends the URL exactly as you entered it. The script's answer is not read back as a write-back response.
+Deploy the script as a web app with **Execute as** set to yourself and **Who has access** set to **Anyone**. With any other access Google sends the POST to its sign-in page, nothing reaches the script, and the log says so. Apps Script cannot read request headers, so it cannot check `X-Signature` or a custom header. Put a long random token in the URL instead (`.../exec?token=...`) and have the script compare `e.parameter.token` before it writes anything; the app sends the URL exactly as you entered it. Anywhere else the app refuses an address with a credential in it (`user:pass@`, or a `password`, `token`, `access_token`, `apikey`, `api_key`, `secret` or `auth` parameter), since addresses are stored as plain text and show up in backups and the logs; a header carries those instead. An Apps Script URL, also a Google Workspace one (`/a/macros/<domain>/s/.../exec`), keeps its query because a header is no option there. The script's answer is not read back as a write-back response.
 
 ### Record metadata
 
@@ -771,7 +771,7 @@ The app can also take measurements the other way: readings from a scale or a blo
 
 #### What the app adds to its request
 
-When Receive is on, the payload for one webhook URL, the source URL (the section's URL that contains `/api/webhook/`; the app asks which when there are several), carries a `writeback` block. Every other URL of the section gets the plain payload, and the block never appears in Screen Time or backfill payloads. Receive needs a signing secret.
+When Receive is on, the payload for one webhook URL, the source URL (the section's URL that contains `/api/webhook/`; the app asks which when there are several), carries a `writeback` block. Every other URL of the section gets the plain payload, and the block never appears in Screen Time or backfill payloads. Receive needs a signing secret on the source URL, and verifies the responses with that one.
 
 ```json
 "writeback": {

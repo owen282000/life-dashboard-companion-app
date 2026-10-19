@@ -55,14 +55,9 @@ data class ScreenTimeUiState(
     val canSync: Boolean get() = !isSyncing && draft.hasDestination && hasUsageAccess
 }
 
-interface ScreenTimeActions {
+interface ScreenTimeActions : WebhookActions {
     fun setSyncInterval(text: String)
     fun setSchedule(schedule: ScheduleDraft)
-    fun addUrl(url: String)
-    fun removeUrl(index: Int)
-    fun addHeader(key: String, value: String)
-    fun removeHeader(key: String)
-    fun setSecret(secret: String)
     fun setDayBoundaryHour(text: String)
     fun setUseDayBoundary(enabled: Boolean)
     fun setMqtt(mqtt: MqttDraft)
@@ -179,25 +174,29 @@ class ScreenTimeViewModel(
     override fun setSchedule(schedule: ScheduleDraft) = editDraft { it.copy(schedule = schedule) }
 
     override fun addUrl(url: String) {
-        if (!SettingsRules.isValidUrl(url)) {
-            _toasts.tryEmit(UiMessage.InvalidUrl)
+        (SettingsRules.urlProblem(url) ?: UiMessage.DuplicateUrl.takeIf { url.trim() in _state.value.draft.webhook.urls })?.let {
+            _toasts.tryEmit(it)
             return
         }
         editWebhook { it.withUrl(url.trim()) }
     }
 
-    override fun removeUrl(index: Int) = editWebhook { it.withoutUrlAt(index) }
+    override fun setDestinationUrl(id: String, url: String) =
+        editWebhook { it.withEditedUrl(id, url, _state.value.saved.webhook.destinations.firstOrNull { d -> d.id == id }) }
+    override fun copyHeaders(id: String, from: String) = editWebhook { it.withHeadersOf(id, from) }
+    override fun copySecret(id: String, from: String) = editWebhook { it.withSecretOf(id, from) }
+    override fun removeDestination(id: String) = editWebhook { it.without(id) }
 
-    override fun addHeader(key: String, value: String) {
+    override fun addHeader(id: String, key: String, value: String) {
         SettingsRules.headerProblem(key, value)?.let {
             _toasts.tryEmit(it)
             return
         }
-        editWebhook { it.copy(headers = it.headers + (key.trim() to value.trim())) }
+        editWebhook { it.edit(id) { d -> d.copy(headers = d.headers + (key.trim() to value.trim())) } }
     }
 
-    override fun removeHeader(key: String) = editWebhook { it.copy(headers = it.headers - key) }
-    override fun setSecret(secret: String) = editWebhook { it.copy(secret = secret) }
+    override fun removeHeader(id: String, key: String) = editWebhook { it.edit(id) { d -> d.copy(headers = d.headers - key) } }
+    override fun setSecret(id: String, secret: String) = editWebhook { it.edit(id) { d -> d.copy(secret = secret.ifEmpty { null }) } }
     override fun setDayBoundaryHour(text: String) = editDraft { it.copy(dayBoundaryHour = text) }
     override fun setUseDayBoundary(enabled: Boolean) = editDraft { it.copy(useDayBoundary = enabled) }
     override fun setMqtt(mqtt: MqttDraft) = editDraft { it.copy(mqtt = mqtt) }
@@ -234,7 +233,8 @@ class ScreenTimeViewModel(
     }
 
     private fun persist(): UiMessage {
-        val draft = _state.value.draft
+        val draft = _state.value.draft.let { it.copy(webhook = it.webhook.trimmed()) }
+        SettingsRules.destinationProblem(draft.webhook, _state.value.saved.webhook.urls)?.let { return it }
         SettingsRules.scheduleProblem(draft.schedule)?.let { return it }
         SettingsRules.mqttProblem(draft.mqtt)?.let { return it }
         // In times mode the interval field is hidden and may hold half-typed text; keep what
@@ -244,7 +244,7 @@ class ScreenTimeViewModel(
             ?: SyncSchedule.DEFAULT_INTERVAL_MINUTES
         if (!draft.hasDestination) return UiMessage.NoDestination
         val hour = SettingsRules.dayBoundaryHourOrNull(draft.dayBoundaryHour) ?: return UiMessage.InvalidDayBoundaryHour
-        settings.saveScreenTime(draft, interval, hour)
+        if (!settings.saveScreenTime(draft, interval, hour)) return UiMessage.SecretsNotReady
         val saved = draft.copy(
             schedule = draft.schedule.copy(intervalText = interval.toString()),
             dayBoundaryHour = hour.toString(),

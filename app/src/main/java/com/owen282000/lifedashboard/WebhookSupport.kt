@@ -76,10 +76,10 @@ object WebhookSupport {
     fun refusesPayload(statusCode: Int?): Boolean = statusCode == 400 || statusCode == 413 || statusCode == 422
 
     /**
-     * The custom headers one URL gets. A section's headers were typed for the URLs the user
-     * entered by hand; a URL that QR pairing added is in [urlsWithoutHeaders] and gets none,
-     * so a pairing link to a foreign host, even one the user confirmed, never receives the
-     * API keys configured for the others.
+     * The custom headers one URL got in 1.27.0 and older, where a section had one set: the
+     * ones typed for the URLs the user entered by hand, and none for a URL that QR pairing
+     * added ([urlsWithoutHeaders]). The destinations derived after the update keep exactly
+     * that (see [Destinations.derive]); since then each destination has headers of its own.
      */
     fun headersFor(url: String, headers: Map<String, String>, urlsWithoutHeaders: Set<String>): Map<String, String> =
         if (url in urlsWithoutHeaders) emptyMap() else headers
@@ -189,11 +189,20 @@ object WebhookSupport {
         if (statusCode !in setOf(301, 302, 303) || location.isNullOrBlank()) return null
         val base = runCatching { java.net.URI(from.trim()) }.getOrNull() ?: return null
         val target = runCatching { base.resolve(location.trim()) }.getOrNull() ?: return null
-        if (!isAt(base, rule.scheme, rule.scriptHost) || !isAt(target, rule.scheme, rule.answerHost)) return null
-        if (base.rawPath?.contains("/macros/") != true) return null
+        if (!isAppsScriptWebApp(from, rule) || !isAt(target, rule.scheme, rule.answerHost)) return null
         if (target.rawPath?.startsWith("/macros/") != true) return null
         if (target.rawUserInfo != null) return null
         return target.toString()
+    }
+
+    /**
+     * Whether [url] is a Google Apps Script web app: a `/macros/` path on the script host, also
+     * a Google Workspace one (`/a/macros/<domain>/s/<id>/exec`). The one rule for both the
+     * redirect it answers with and the token it may carry in its query (Destinations.credentialIn).
+     */
+    fun isAppsScriptWebApp(url: String, rule: AppsScriptRule = AppsScriptRule.GOOGLE): Boolean {
+        val uri = runCatching { java.net.URI(url.trim()) }.getOrNull() ?: return false
+        return isAt(uri, rule.scheme, rule.scriptHost) && uri.rawPath?.contains("/macros/") == true
     }
 
     private fun isAt(uri: java.net.URI, scheme: String, hostAndPort: String): Boolean {

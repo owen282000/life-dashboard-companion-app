@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -76,6 +77,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.owen282000.lifedashboard.Destination
+import com.owen282000.lifedashboard.Destinations
 import com.owen282000.lifedashboard.FailureReason
 import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.MqttBroker
@@ -115,6 +118,7 @@ fun OnboardingScreen(
     paired: OnboardingSupport.WizardPairing? = null
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val preferencesManager = remember { PreferencesManager(context) }
     val scope = rememberCoroutineScope()
 
@@ -164,13 +168,20 @@ fun OnboardingScreen(
             val url = webhookUrl.trim()
             val secret = webhookSecret.trim()
             if (OnboardingSupport.writesWebhook(useWebhook, url, secret, pairing?.link)) {
-                if (healthConnect) {
-                    preferencesManager.setHealthWebhookUrls(listOf(url))
-                    if (secret.isNotBlank()) preferencesManager.setHealthWebhookSecret(secret)
+                // The wizard runs on a fresh install, so the address is the section's one destination.
+                val sections = listOfNotNull(
+                    LogType.HEALTH_CONNECT.takeIf { healthConnect },
+                    LogType.SCREEN_TIME.takeIf { screenTime }
+                )
+                val destination = Destination(id = Destinations.newId(), url = url, secret = secret.ifBlank { null })
+                // Checked for every section first: refused, nothing is written and the wizard stays
+                // open, so Finish can be tapped again in a moment.
+                if (sections.any { !preferencesManager.canSetDestinations(it, listOf(destination)) }) {
+                    Toast.makeText(context, resources.getString(R.string.secrets_not_ready), Toast.LENGTH_LONG).show()
+                    return
                 }
-                if (screenTime) {
-                    preferencesManager.setScreenTimeWebhookUrls(listOf(url))
-                    if (secret.isNotBlank()) preferencesManager.setScreenTimeWebhookSecret(secret)
+                for (section in sections) {
+                    preferencesManager.setDestinations(section, listOf(destination.copy(id = Destinations.newId())))
                 }
             }
             if (useMqtt && MqttSupport.isValidHost(mqttHost)) {
@@ -300,9 +311,10 @@ fun OnboardingScreen(
                                     onValueChange = { webhookUrl = it; pingResult = null },
                                     label = stringResource(R.string.webhook_add_a_url)
                                 )
-                                if (webhookUrl.isNotBlank() && !SettingsRules.isValidUrl(webhookUrl)) {
+                                val urlProblem = SettingsRules.urlProblem(webhookUrl).takeIf { webhookUrl.isNotBlank() }
+                                if (urlProblem != null) {
                                     Text(
-                                        stringResource(R.string.webhook_enter_valid_url),
+                                        urlProblem.text(LocalResources.current),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.error,
                                         modifier = Modifier.announced()
@@ -363,7 +375,7 @@ fun OnboardingScreen(
                                         shape = CircleShape,
                                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Accent.ink()),
                                         border = BorderStroke(1.dp, Accent.copy(alpha = 0.4f)),
-                                        enabled = SettingsRules.isValidUrl(webhookUrl) && !pinging,
+                                        enabled = SettingsRules.urlProblem(webhookUrl) == null && !pinging,
                                         onClick = {
                                             scope.launch {
                                                 pinging = true
@@ -372,7 +384,7 @@ fun OnboardingScreen(
                                                 // address goes to, as a sync of it would be.
                                                 pingResult = TestPing.send(
                                                     context,
-                                                    listOf(webhookUrl.trim()),
+                                                    webhookUrl.trim(),
                                                     webhookSecret,
                                                     if (PairingSource.HEALTH in sections || sections.isEmpty()) LogType.HEALTH_CONNECT else LogType.SCREEN_TIME
                                                 ).fold(

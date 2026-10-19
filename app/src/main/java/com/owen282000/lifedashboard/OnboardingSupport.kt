@@ -53,18 +53,18 @@ object OnboardingSupport {
      * in its dialog, and writing it again here would add the ones left out there.
      */
     fun writesWebhook(useWebhook: Boolean, url: String, secret: String, paired: PairingLink?): Boolean {
-        if (!useWebhook || !SettingsRules.isValidUrl(url)) return false
+        if (!useWebhook || SettingsRules.urlProblem(url) != null) return false
         return paired == null || !isPaired(url, secret, paired)
     }
 
     /**
      * Whether the destination step can go on. A chosen destination needs what it sends to:
-     * a valid webhook URL, a broker host and port that can be connected to, as the MQTT card
+     * a valid webhook URL without a credential in it, a broker host and port that can be connected to, as the MQTT card
      * checks them (SettingsRules.brokerHostProblem). Choosing none is what "I will set this up
      * later" is for, so Next with nothing chosen goes on too.
      */
     fun destinationReady(useWebhook: Boolean, url: String, useMqtt: Boolean, mqttHost: String, mqttPort: String): Boolean =
-        (!useWebhook || SettingsRules.isValidUrl(url)) &&
+        (!useWebhook || SettingsRules.urlProblem(url) == null) &&
             (!useMqtt || (MqttSupport.isValidHost(mqttHost) && MqttSupport.portOrNull(mqttPort) != null))
 
     /**

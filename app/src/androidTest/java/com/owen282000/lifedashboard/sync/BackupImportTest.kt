@@ -56,8 +56,9 @@ class BackupImportTest {
         ConfigBackupManager(context).import(ConfigBackup.decode(decrypted))
 
         assertEquals(fixture.health.webhookUrls, prefs.getHealthWebhookUrls())
-        assertEquals("ci-secret-health", prefs.getHealthWebhookSecret())
-        assertEquals(mapOf("X-Api-Key" to "ci-key-screen"), prefs.getScreenTimeWebhookHeaders())
+        // A file from before destinations: every address gets the section's secret and headers.
+        assertEquals(listOf("ci-secret-health", "ci-secret-health"), prefs.getDestinations(LogType.HEALTH_CONNECT).map { it.secret })
+        assertEquals(mapOf("X-Api-Key" to "ci-key-screen"), prefs.getDestinations(LogType.SCREEN_TIME).single().headers)
         assertEquals("ci-mqtt-password", prefs.getSharedMqttBroker().password)
         assertEquals("screentime-ci", prefs.getMqttSection(MqttSection.SCREEN_TIME).baseTopic)
         assertEquals(SyncMode.TIMES, prefs.getSyncSchedule(LogType.HEALTH_CONNECT).mode)
@@ -65,7 +66,13 @@ class BackupImportTest {
         assertEquals("CI Phone", prefs.getPhoneName())
         assertEquals(ThemeMode.DARK, prefs.getThemeMode())
         assertEquals(fixture.health.webhookUrls.orEmpty().first(), prefs.getReceiveSettings().sourceUrl)
-        assertEquals(comparable(fixture), comparable(ConfigBackupManager(context).export()))
+        // The export adds the destinations block; the section keys around it are the fixture's.
+        val exported = comparable(ConfigBackupManager(context).export())
+        assertEquals(fixture.health.webhookUrls, exported.health.destinations?.map { it.url })
+        assertEquals(
+            comparable(fixture),
+            exported.copy(health = exported.health.copy(destinations = null), screenTime = exported.screenTime.copy(destinations = null))
+        )
     }
 
     /** T02. A wrong password is refused and changes nothing. */
@@ -84,8 +91,11 @@ class BackupImportTest {
         ConfigBackupManager(context).import(fixture.withoutSecrets())
         assertEquals("ci-secret-health", prefs.getHealthWebhookSecret())
         assertEquals("ci-secret-screen", prefs.getScreenTimeWebhookSecret())
-        assertEquals(fixture.health.headers, prefs.getHealthWebhookHeaders())
-        assertEquals(fixture.screenTime.headers, prefs.getScreenTimeWebhookHeaders())
+        for (destination in prefs.getDestinations(LogType.HEALTH_CONNECT)) {
+            assertEquals("ci-secret-health", destination.secret)
+            assertEquals(fixture.health.headers, destination.headers)
+        }
+        assertEquals(fixture.screenTime.headers, prefs.getDestinations(LogType.SCREEN_TIME).single().headers)
     }
 
     /**

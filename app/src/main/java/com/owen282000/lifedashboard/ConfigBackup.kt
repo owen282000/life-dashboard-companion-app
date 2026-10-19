@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * A portable snapshot of everything the user configured: webhook URLs and headers, signing
- * secrets, MQTT brokers, the enabled data types and the sync options.
+ * A portable snapshot of everything the user configured: webhook destinations with their
+ * headers and signing secrets, MQTT brokers, the enabled data types and the sync options.
  *
  * This exists because secrets are deliberately excluded from Android's cloud backup (they are
  * encrypted with a key that never leaves the device), so moving to a new phone would otherwise
@@ -80,8 +80,8 @@ data class ConfigBackup(
      * file's own count (see [ConfigBackupManager.dataTypesOnImport]).
      */
     fun summarise(currentDataTypes: Set<HealthDataType>): BackupSummary = BackupSummary(
-        healthWebhooks = health.webhookUrls?.size,
-        screenTimeWebhooks = screenTime.webhookUrls?.size,
+        healthWebhooks = health.destinations?.size ?: health.webhookUrls?.size,
+        screenTimeWebhooks = screenTime.destinations?.size ?: screenTime.webhookUrls?.size,
         enabledDataTypes = options.enabledDataTypes?.let {
             ConfigBackupManager.dataTypesOnImport(it, currentDataTypes, isFromIPhone).size
         },
@@ -115,7 +115,7 @@ data class ConfigBackup(
 
     /** What the import preview says beyond the counts: what this file leaves as it is. */
     fun importNotes(): List<ImportNote> = buildList {
-        if (screenTime.webhookUrls == null) add(ImportNote.SCREEN_TIME_KEPT)
+        if (screenTime.webhookUrls == null && screenTime.destinations == null) add(ImportNote.SCREEN_TIME_KEPT)
         if (isFromIPhone && options.enabledDataTypes != null) add(ImportNote.IPHONE_ANDROID_TYPES_KEPT)
         if (isFromIPhone && hasIPhoneBaseTopic()) add(ImportNote.IPHONE_BASE_TOPIC_KEPT)
         if (isFromIPhone && !options.phoneName.isNullOrBlank()) add(ImportNote.IPHONE_PHONE_NAME_KEPT)
@@ -130,8 +130,10 @@ data class ConfigBackup(
 
     private fun hasIPhoneBaseTopic() = mqtt.healthBaseTopic?.trim() == IOS_DEFAULT_BASE_TOPIC
 
-    private fun hasUnsendableHeaders() =
-        WebhookSupport.headerProblem(health.headers) != null || WebhookSupport.headerProblem(screenTime.headers) != null
+    private fun hasUnsendableHeaders() = listOf(health, screenTime).any { section ->
+        WebhookSupport.headerProblem(section.headers) != null ||
+            section.destinations.orEmpty().any { WebhookSupport.headerProblem(it.headers) != null }
+    }
 }
 
 /** The counts the import preview lists. Null where the file has none and the device keeps its own. */
@@ -170,7 +172,15 @@ enum class ImportNote {
 /** Why a broker in a file cannot be used, by the rules of the MQTT settings. */
 enum class BrokerProblem { HOST, PORT }
 
-/** Webhook configuration of one section (Health Connect or Screen Time). */
+/**
+ * Webhook configuration of one section (Health Connect or Screen Time).
+ *
+ * [destinations] holds each address with its own headers and secret. The section keys around it
+ * ([webhookUrls], [headers], [signingSecret], [urlsWithoutHeaders]) are still written, for a
+ * reader without destinations: Android before them and the iPhone app. See [Destinations.legacy]
+ * for how they are filled so such a reader never sends one receiver's headers to another.
+ */
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class SectionConfig(
     /** Null when the file has no such section, as an iPhone file has no Screen Time: the URLs stay. */
@@ -192,14 +202,83 @@ data class SectionConfig(
      * Not a secret, so it stays in an export without secrets. Absent in an older backup, which
      * reads as empty: that version sent the headers to every URL.
      */
-    @SerialName("urls_without_headers") val urlsWithoutHeaders: List<String> = emptyList()
+    @SerialName("urls_without_headers") val urlsWithoutHeaders: List<String> = emptyList(),
+    /**
+     * The destinations, each with its own headers and secret. Absent in a backup from before
+     * them and in the iPhone's, which import through the section keys; when present, it wins.
+     * Never written as null.
+     */
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val destinations: List<DestinationConfig>? = null
 ) {
-    fun containsSecrets(): Boolean = !signingSecret.isNullOrBlank() || headers.isNotEmpty()
+    fun containsSecrets(): Boolean =
+        !signingSecret.isNullOrBlank() || headers.isNotEmpty() || destinations.orEmpty().any { it.containsSecrets() }
 
-    fun withoutSecrets(): SectionConfig = copy(headers = emptyMap(), signingSecret = null)
+    fun withoutSecrets(): SectionConfig =
+        copy(headers = emptyMap(), signingSecret = null, destinations = destinations?.map { it.withoutSecrets() })
 
     /** Without the headers that cannot be sent; with none left, the device keeps its own, as for a file without headers. */
-    fun withSendableHeaders(): SectionConfig = copy(headers = WebhookSupport.sendableHeaders(headers))
+    fun withSendableHeaders(): SectionConfig = copy(
+        headers = WebhookSupport.sendableHeaders(headers),
+        destinations = destinations?.map { it.copy(headers = WebhookSupport.sendableHeaders(it.headers)) }
+    )
+
+    /**
+     * The destinations of this section once the file is imported, given the [current] ones and
+     * the section's own secret on the device; null when the file has no such section.
+     *
+     * [destinations] wins. From a file without secrets ([backupHasSecrets] false), each one keeps
+     * the secret and headers the device has for the same id, or else for the same address, also
+     * when it has none there; one new to the device starts with the section's secret and no
+     * headers, like one added by hand. A second entry with an id already used gets a new one, so
+     * two addresses never share their secrets.
+     *
+     * A file without destinations is read by the rules it was written with: its secret for every
+     * address and its headers for the ones not in [urlsWithoutHeaders], or, where it has none,
+     * what the device has for that address ([urlsWithoutHeadersOnImport]).
+     */
+    fun destinationsOnImport(
+        current: List<Destination>,
+        sectionSecret: String?,
+        backupHasSecrets: Boolean,
+        newId: () -> String = Destinations::newId
+    ): List<Destination>? {
+        destinations?.let { listed ->
+            val ids = mutableSetOf<String>()
+            return listed.map { entry ->
+                val kept = if (backupHasSecrets) null else current.firstOrNull { it.id == entry.id } ?: current.firstOrNull { it.url == entry.url }
+                Destination(
+                    id = entry.id.takeIf { it.isNotBlank() && ids.add(it) } ?: newId().also { ids.add(it) },
+                    url = entry.url,
+                    format = entry.format,
+                    secret = when {
+                        backupHasSecrets -> entry.signingSecret?.takeIf { it.isNotBlank() }
+                        kept != null -> kept.secret
+                        else -> sectionSecret
+                    },
+                    headers = if (backupHasSecrets) entry.headers else kept?.headers.orEmpty()
+                )
+            }
+        }
+        val urls = webhookUrls ?: return null
+        val withoutHeaders = urlsWithoutHeadersOnImport(
+            deviceUrls = current.map { it.url },
+            deviceUrlsWithoutHeaders = current.filter { it.headers.isEmpty() }.map { it.url }.toSet(),
+            deviceHasHeaders = current.any { it.headers.isNotEmpty() }
+        )
+        return urls.map { url ->
+            val match = current.firstOrNull { it.url == url }
+            Destination(
+                id = match?.id ?: newId(),
+                url = url,
+                secret = signingSecret?.takeIf { it.isNotBlank() } ?: if (match != null) match.secret else sectionSecret,
+                headers = when {
+                    url in withoutHeaders -> emptyMap()
+                    headers.isNotEmpty() -> headers
+                    else -> match?.headers.orEmpty()
+                }
+            )
+        }
+    }
 
     /**
      * Which of this backup's URLs get no custom headers once it is imported. Headers in the
@@ -217,6 +296,32 @@ data class SectionConfig(
             url in urlsWithoutHeaders ||
                 (keepsDeviceHeaders && (url !in deviceUrls || url in deviceUrlsWithoutHeaders))
         }.toSet()
+    }
+}
+
+/** One destination of a section, see [Destination]. */
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+data class DestinationConfig(
+    val id: String,
+    val url: String,
+    val format: String = Destination.FORMAT_DEFAULT,
+    val headers: Map<String, String> = emptyMap(),
+    /** Left out rather than written as null when there is none: the iPhone app refuses a null. */
+    @SerialName("signing_secret") @EncodeDefault(EncodeDefault.Mode.NEVER) val signingSecret: String? = null
+) {
+    fun containsSecrets(): Boolean = !signingSecret.isNullOrBlank() || headers.isNotEmpty()
+
+    fun withoutSecrets(): DestinationConfig = copy(headers = emptyMap(), signingSecret = null)
+
+    companion object {
+        fun from(destination: Destination) = DestinationConfig(
+            id = destination.id,
+            url = destination.url,
+            format = destination.format,
+            headers = destination.headers,
+            signingSecret = destination.secret
+        )
     }
 }
 

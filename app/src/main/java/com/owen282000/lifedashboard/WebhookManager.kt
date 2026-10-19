@@ -60,15 +60,12 @@ class PayloadRefusedException(val statusCode: Int, message: String) : IOExceptio
 class InvalidHeaderException(val problem: WebhookSupport.HeaderProblem) : IllegalArgumentException(problem.message)
 
 class WebhookManager(
-    private val webhookUrls: List<String>,
+    /** Where the payload goes, each destination signed with its own secret and sent its own headers. */
+    private val destinations: List<Destination>,
     private val context: Context? = null,
     private val dataType: String? = null,
     private val recordCount: Int? = null,
     private val logType: LogType = LogType.HEALTH_CONNECT,
-    private val customHeaders: Map<String, String> = emptyMap(),
-    /** URLs that get none of [customHeaders]: the ones QR pairing added, see [WebhookSupport.headersFor]. */
-    private val urlsWithoutHeaders: Set<String> = emptySet(),
-    private val signingSecret: String? = null,
     /**
      * The one URL that gets the `writeback` block and whose response is read. Every other URL
      * gets the plain payload and its response body is never looked at, however it is signed.
@@ -136,7 +133,7 @@ class WebhookManager(
      * least one webhook accepted it; per-URL outcomes are visible in the webhook logs.
      */
     suspend fun postData(jsonPayload: String): Result<WebhookOutcome> = withContext(Dispatchers.IO) {
-        if (webhookUrls.isEmpty()) {
+        if (destinations.isEmpty()) {
             return@withContext Result.failure<WebhookOutcome>(
                 IllegalStateException("No webhook URLs configured")
             )
@@ -151,7 +148,7 @@ class WebhookManager(
         } catch (e: Exception) {
             val timestamp = System.currentTimeMillis()
             val reason = e.message ?: e.javaClass.simpleName
-            webhookUrls.forEach { logWebhookCall(it, timestamp, null, false, reason, jsonPayload) }
+            destinations.forEach { logWebhookCall(it.url, timestamp, null, false, reason, jsonPayload) }
             return@withContext Result.failure<WebhookOutcome>(e)
         }
 
@@ -160,10 +157,11 @@ class WebhookManager(
         var sourceResponse: SourceResponse? = null
         val failedUrls = mutableListOf<String>()
 
-        for (url in webhookUrls) {
+        for (destination in destinations) {
+            val url = destination.url
             val isSource = source != null && url == source.url
             val result = try {
-                postToUrl(clientFor(clients, url), url, if (isSource) source.payload else jsonPayload, readResponse = isSource)
+                postToUrl(clientFor(clients, url), destination, if (isSource) source.payload else jsonPayload, readResponse = isSource)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -188,7 +186,7 @@ class WebhookManager(
         }
 
         if (anySuccess) {
-            Result.success(WebhookOutcome(sourceResponse, missedUrls = failedUrls, urlCount = webhookUrls.size))
+            Result.success(WebhookOutcome(sourceResponse, missedUrls = failedUrls, urlCount = destinations.size))
         } else {
             Result.failure(lastFailure ?: IOException("All webhook posts failed"))
         }
@@ -196,10 +194,11 @@ class WebhookManager(
 
     private suspend fun postToUrl(
         client: OkHttpClient,
-        url: String,
+        destination: Destination,
         jsonPayload: String,
         readResponse: Boolean
     ): Result<SourceResponse?> {
+        val url = destination.url
         val timestamp = System.currentTimeMillis()
 
         // HTTPS by default; plain HTTP only after the user opted in for private networks.
@@ -210,9 +209,9 @@ class WebhookManager(
         }
 
         // A header saved before names were checked, or one from elsewhere, would make OkHttp
-        // throw while building the request. Said here, in words, for this URL alone: one that
-        // gets no headers still goes out.
-        val headers = WebhookSupport.headersFor(url, customHeaders, urlsWithoutHeaders)
+        // throw while building the request. Said here, in words, for this URL alone: the other
+        // destinations still go out.
+        val headers = destination.headers
         WebhookSupport.headerProblem(headers)?.let { problem ->
             logWebhookCall(url, timestamp, null, false, problem.message, jsonPayload)
             return Result.failure(InvalidHeaderException(problem))
@@ -220,7 +219,8 @@ class WebhookManager(
 
         return try {
             val requestBody = jsonPayload.toRequestBody(jsonMediaType)
-            val requestSignature = if (!signingSecret.isNullOrBlank()) WebhookSupport.signature(jsonPayload, signingSecret) else null
+            val secret = destination.secret
+            val requestSignature = if (!secret.isNullOrBlank()) WebhookSupport.signature(jsonPayload, secret) else null
 
             // The same POST for the configured URL and for a redirect on its host: OkHttp would
             // turn a 301 or 302 into a GET without the body and report that as a success.

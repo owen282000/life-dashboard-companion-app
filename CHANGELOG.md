@@ -14,6 +14,29 @@ All notable changes to this project are documented in this file. The format is b
   changed, or for good with **Don't show again**. In English, Dutch and German.
 - The app's languages show in Android's own App languages setting (Android 13 and later), so the app
   can be in Dutch or German on a phone in another language.
+- A webhook address with a credential in it is refused when it is added or edited: a user name or
+  password before the host, or a `password`, `token`, `access_token`, `apikey`, `api_key`, `secret` or
+  `auth` query parameter. Addresses are stored as plain text and end up in backups and the logs, so the message says to put the
+  credential in a header of that address. An address saved before keeps working, and a Google Apps
+  Script URL keeps its token, since Apps Script cannot read headers. In English, Dutch and German.
+
+### Changed
+
+- Every webhook address has its own signing secret and custom headers (P2-13). A section used to have
+  one secret for all its addresses, and pairing replaced it, so a Life Dashboard Stack paired before
+  Home Assistant, or the other way round, answered 401 from then on without a word, because the other
+  address still took the payload. Pairing now writes the secret to the paired address alone, and the
+  dialog says the other addresses keep their own. On the Webhook card, tap an address to set its
+  headers and secret, copy them from another address, or correct the address itself: a new scheme,
+  port or path keeps both, another host starts without them. After the update every
+  address has the secret and headers its section had, and an address QR pairing added still has no
+  headers, so nothing a receiver gets changes. While the secure storage cannot keep secrets, right
+  after a reboot, a save, a pairing or an import changes nothing and says to try again in a moment,
+  instead of storing an address without its secret. In English, Dutch and German.
+- A settings backup carries a `destinations` block with each address's headers and secret. The section
+  keys are still written for the iPhone app and older versions, with headers and a secret only when
+  every address has the same ones, so an older reader gets a 401 instead of sending one receiver's key
+  to another; see [docs/settings-backup.md](docs/settings-backup.md#file-format).
 
 ### Fixed
 

@@ -15,6 +15,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,10 +60,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -78,6 +81,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.permission.HealthPermission
 import com.owen282000.lifedashboard.BackfillTexts
+import com.owen282000.lifedashboard.Destination
+import com.owen282000.lifedashboard.Destinations
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.MqttSupport
 import com.owen282000.lifedashboard.PayloadPreview
@@ -89,6 +94,7 @@ import com.owen282000.lifedashboard.ui.theme.onAccent
 import com.owen282000.lifedashboard.viewmodel.MqttDraft
 import com.owen282000.lifedashboard.viewmodel.SettingsRules
 import com.owen282000.lifedashboard.viewmodel.UiMessage
+import com.owen282000.lifedashboard.viewmodel.WebhookActions
 import com.owen282000.lifedashboard.viewmodel.WebhookDraft
 import java.text.NumberFormat
 import java.time.Instant
@@ -111,6 +117,10 @@ fun UiMessage.text(res: Resources): String = when (this) {
     UiMessage.NoDestination -> res.getString(R.string.sync_no_destination)
     UiMessage.InvalidDayBoundaryHour -> res.getString(R.string.screentime_day_boundary_hour_invalid)
     UiMessage.InvalidUrl -> res.getString(R.string.webhook_enter_valid_url)
+    UiMessage.DuplicateUrl -> res.getString(R.string.webhook_url_duplicate)
+    UiMessage.SecretsNotReady -> res.getString(R.string.secrets_not_ready)
+    is UiMessage.UrlHasCredentials -> parameter?.let { res.getString(R.string.webhook_url_credential_parameter, it) }
+        ?: res.getString(R.string.webhook_url_user_info)
     UiMessage.HeaderNeedsNameAndValue -> res.getString(R.string.webhook_enter_header_name_and_value)
     UiMessage.InvalidHeaderName -> res.getString(R.string.webhook_header_name_invalid)
     UiMessage.InvalidHeaderValue -> res.getString(R.string.webhook_header_value_invalid)
@@ -172,23 +182,25 @@ fun SyncMessageLine(message: UiMessage?, accent: Color) {
     }
 }
 
-/** Webhook URLs, headers and the HMAC secret, folded under one row. */
+/**
+ * The webhook destinations, folded under one row. Each address has its own headers and HMAC
+ * secret (P2-13), shown when the address is tapped: one at a time keeps the card short.
+ */
 @Composable
 fun WebhookRow(
     accent: Color,
     webhook: WebhookDraft,
     expanded: Boolean,
     onToggle: () -> Unit,
-    onAddUrl: (String) -> Unit,
-    onRemoveUrl: (Int) -> Unit,
-    onAddHeader: (String, String) -> Unit,
-    onRemoveHeader: (String) -> Unit,
-    onSecretChange: (String) -> Unit,
-    onScanRequested: () -> Unit
+    actions: WebhookActions,
+    onScanRequested: () -> Unit,
+    /** What is saved, so an address moved to another host can say what it left behind. */
+    saved: WebhookDraft = webhook
 ) {
     var newUrl by remember { mutableStateOf("") }
-    var newHeaderKey by remember { mutableStateOf("") }
-    var newHeaderValue by remember { mutableStateOf("") }
+    // Said under the field, in full: a toast cuts a sentence like the credential one off.
+    var newUrlProblem by remember { mutableStateOf<UiMessage?>(null) }
+    var openId by rememberSaveable { mutableStateOf<String?>(null) }
 
     ExpandableRow(
         icon = Icons.Outlined.Link,
@@ -199,13 +211,23 @@ fun WebhookRow(
         expanded = expanded,
         onToggle = onToggle
     ) {
-        webhook.urls.forEachIndexed { index, url ->
-            // Said only while there are headers to hold back: without any it changes nothing.
-            val withoutHeaders = webhook.headers.isNotEmpty() && url in webhook.urlsWithoutHeaders
+        webhook.destinations.forEach { destination ->
+            val open = openId == destination.id
             ListLine(
-                text = url,
-                secondary = if (withoutHeaders) stringResource(R.string.webhook_url_without_headers) else null,
-                onRemove = { onRemoveUrl(index) }
+                text = destination.url,
+                secondary = destinationSummary(destination),
+                onClick = { openId = if (open) null else destination.id },
+                onRemove = { actions.removeDestination(destination.id) }
+            )
+            AnimatedVisibility(visible = open, enter = expandVertically(), exit = shrinkVertically()) {
+                DestinationDetails(accent, destination, webhook.destinations, saved.destinations.firstOrNull { it.id == destination.id }, actions)
+            }
+        }
+        if (webhook.destinations.isNotEmpty() && openId == null) {
+            Text(
+                stringResource(R.string.webhook_destinations_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         // Typing a URL and 64 hex characters on a phone keyboard is where people give up,
@@ -218,10 +240,14 @@ fun WebhookRow(
         Row(verticalAlignment = Alignment.CenterVertically) {
             FilledField(
                 value = newUrl,
-                onValueChange = { newUrl = it },
+                onValueChange = {
+                    newUrl = it
+                    newUrlProblem = null
+                },
                 accent = accent,
                 placeholder = stringResource(R.string.webhook_url_placeholder),
                 modifier = Modifier.weight(1f),
+                error = newUrlProblem?.text(LocalResources.current),
                 // Only while the field is empty: beside typed text a trailing icon reads
                 // as clear, and this one fills instead.
                 trailingIcon = if (webhook.urls.isNotEmpty() && newUrl.isEmpty()) {
@@ -232,85 +258,164 @@ fun WebhookRow(
             )
             Spacer(modifier = Modifier.width(8.dp))
             AddButton(accent) {
-                onAddUrl(newUrl)
-                if (SettingsRules.isValidUrl(newUrl)) newUrl = ""
+                newUrlProblem = SettingsRules.urlProblem(newUrl)
+                    ?: UiMessage.DuplicateUrl.takeIf { newUrl.trim() in webhook.urls }
+                if (newUrlProblem == null) {
+                    actions.addUrl(newUrl)
+                    newUrl = ""
+                }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(stringResource(R.string.webhook_headers_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-        Text(
-            if (webhook.headers.isEmpty()) stringResource(R.string.common_none_configured)
-            else pluralStringResource(R.plurals.webhook_headers_count, webhook.headers.size, webhook.headers.size),
-            style = MaterialTheme.typography.bodySmall,
-            color = if (webhook.headers.isNotEmpty()) accent.ink() else MaterialTheme.colorScheme.onSurfaceVariant
+/** What one destination sends with it, under its address: signed or not, and how many headers. */
+@Composable
+private fun destinationSummary(destination: Destination): String = stringResource(
+    R.string.webhook_destination_summary,
+    stringResource(if (destination.secret.isNullOrBlank()) R.string.webhook_destination_unsigned else R.string.webhook_destination_signed),
+    if (destination.headers.isEmpty()) {
+        stringResource(R.string.webhook_destination_no_headers)
+    } else {
+        pluralStringResource(R.plurals.webhook_headers_count, destination.headers.size, destination.headers.size)
+    }
+)
+
+/**
+ * One destination opened: its address, its headers and its secret, none of which go to another
+ * unless the user copies them over from one of the [section]'s other destinations.
+ */
+@Composable
+private fun DestinationDetails(
+    accent: Color,
+    destination: Destination,
+    section: List<Destination>,
+    saved: Destination?,
+    actions: WebhookActions
+) {
+    val id = destination.id
+    var newHeaderKey by remember(id) { mutableStateOf("") }
+    var newHeaderValue by remember(id) { mutableStateOf("") }
+    var headerProblem by remember(id) { mutableStateOf<UiMessage?>(null) }
+    var generated by remember(id) { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier.padding(start = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Edited in place, so the secret and headers stay with it when http becomes https; on
+        // another host they are cleared (WebhookDraft.withEditedUrl), and this says why.
+        FilledField(
+            value = destination.url,
+            onValueChange = { actions.setDestinationUrl(id, it) },
+            accent = accent,
+            label = stringResource(R.string.webhook_destination_url),
+            keyboardType = KeyboardType.Uri,
+            error = if (SettingsRules.isValidUrl(destination.url)) null else stringResource(R.string.webhook_enter_valid_url)
         )
-        webhook.headers.forEach { (key, value) ->
-            ListLine(text = key, secondary = value, onRemove = { onRemoveHeader(key) })
+        if (saved != null && SettingsRules.isValidUrl(destination.url) && !Destinations.sameHost(destination.url, saved.url)) {
+            Text(
+                stringResource(R.string.webhook_destination_moved, Destinations.label(saved, listOf(saved))),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        val others = section.filter { it.id != id }
+
+        Text(stringResource(R.string.webhook_headers_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+        destination.headers.forEach { (key, value) ->
+            ListLine(text = key, secondary = value, onRemove = { actions.removeHeader(id, key) })
+        }
+        // Only while this address has none: beside headers of its own, copying would replace them.
+        if (destination.headers.isEmpty()) others.filter { it.headers.isNotEmpty() }.forEach { other ->
+            TextButton(onClick = { actions.copyHeaders(id, other.id) }) {
+                Text(stringResource(R.string.webhook_copy_headers_from, Destinations.label(other, section)), color = accent.ink())
+            }
         }
         FilledField(
             value = newHeaderKey,
-            onValueChange = { newHeaderKey = it },
+            onValueChange = {
+                newHeaderKey = it
+                headerProblem = null
+            },
             accent = accent,
             placeholder = stringResource(R.string.webhook_header_name)
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             FilledField(
                 value = newHeaderValue,
-                onValueChange = { newHeaderValue = it },
+                onValueChange = {
+                    newHeaderValue = it
+                    headerProblem = null
+                },
                 accent = accent,
                 placeholder = stringResource(R.string.webhook_header_value),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                error = headerProblem?.text(LocalResources.current)
             )
             Spacer(modifier = Modifier.width(8.dp))
             AddButton(accent) {
-                onAddHeader(newHeaderKey, newHeaderValue)
-                if (SettingsRules.headerProblem(newHeaderKey, newHeaderValue) == null) {
+                headerProblem = SettingsRules.headerProblem(newHeaderKey, newHeaderValue)
+                if (headerProblem == null) {
+                    actions.addHeader(id, newHeaderKey, newHeaderValue)
                     newHeaderKey = ""
                     newHeaderValue = ""
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
         Text(stringResource(R.string.webhook_hmac_secret_title), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
         Text(
             stringResource(R.string.webhook_hmac_secret_description),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        var generated by remember { mutableStateOf(false) }
-        val context = LocalContext.current
+        // Generate and the copy buttons only while the field is empty: beside a secret they
+        // would replace it with one tap. Clearing the field brings them back.
+        val secretEmpty = destination.secret.isNullOrBlank()
         Row(verticalAlignment = Alignment.CenterVertically) {
             FilledField(
-                value = webhook.secret,
+                value = destination.secret.orEmpty(),
                 onValueChange = {
-                    onSecretChange(it)
+                    actions.setSecret(id, it)
                     generated = false
                 },
                 accent = accent,
                 placeholder = stringResource(R.string.webhook_shared_secret),
+                password = true,
                 modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            if (secretEmpty) {
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(onClick = {
+                    actions.setSecret(id, WebhookSecret.generate())
+                    generated = true
+                }) {
+                    Text(stringResource(R.string.webhook_secret_generate), color = accent.ink())
+                }
+            }
+        }
+        if (secretEmpty) others.filter { !it.secret.isNullOrBlank() }.forEach { other ->
             TextButton(onClick = {
-                onSecretChange(WebhookSecret.generate())
-                generated = true
+                actions.copySecret(id, other.id)
+                generated = false
             }) {
-                Text(stringResource(R.string.webhook_secret_generate), color = accent.ink())
+                Text(stringResource(R.string.webhook_use_secret_of, Destinations.label(other, section)), color = accent.ink())
             }
         }
         // Shown only right after generating. The secret is stored encrypted and the field is
         // repopulated from it, but saying so invites people to come back for it later instead
         // of putting it on their server now, which is the step that actually matters.
-        if (generated && webhook.secret.isNotBlank()) {
+        val secret = destination.secret.orEmpty()
+        if (generated && secret.isNotBlank()) {
             Text(
                 stringResource(R.string.webhook_secret_generated),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             val copied = stringResource(R.string.webhook_secret_copied)
-            TextButton(onClick = { copySecret(context, webhook.secret, copied) }) {
+            TextButton(onClick = { copySecret(context, secret, copied) }) {
                 Text(stringResource(R.string.webhook_secret_copy), color = accent.ink())
             }
         }
@@ -364,12 +469,15 @@ private fun AddButton(accent: Color, onClick: () -> Unit) {
     }
 }
 
-/** One configured value with a remove cross: a URL, or a header name and value. */
+/** One configured value with a remove cross: a URL, or a header name and value. [onClick] opens what it holds. */
 @Composable
-private fun ListLine(text: String, secondary: String? = null, onRemove: () -> Unit) {
+private fun ListLine(text: String, secondary: String? = null, onClick: (() -> Unit)? = null, onRemove: () -> Unit) {
+    val clickLabel = stringResource(R.string.webhook_destination_open)
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .then(if (onClick != null) Modifier.clickable(onClickLabel = clickLabel, onClick = onClick) else Modifier)
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
             .padding(start = 12.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically

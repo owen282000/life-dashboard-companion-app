@@ -55,7 +55,7 @@ class WebhookTrustTest {
     }
 
     private fun manager(url: String, trust: Map<String, ServerTrust>) = WebhookManager(
-        webhookUrls = listOf(url),
+        destinations = destinationsOf(listOf(url)),
         serverTrustOverride = trust,
         trustManagerFor = { WebhookTrust.trustManager(it, userCaStore = ::userStore) }
     )

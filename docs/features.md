@@ -155,12 +155,13 @@ The step-by-step setup for both is in [usage.md](usage.md#phone-to-home-assistan
 
 Any server that accepts a JSON POST can receive the data: your own backend, Node-RED, n8n, or the example [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack).
 
-- **Several URLs per section**, and separate URLs, headers and signing secrets for Health Connect and Screen Time.
-- **Custom headers** for auth tokens or API keys. They go to the URLs you typed in, never to one that QR pairing added. A header that HTTP cannot carry (a space in the name, a line break in the value) is refused when you add it.
-- **HMAC signing.** With a signing secret set, every request carries an `X-Signature` header (HMAC-SHA256 of the body), so your server can check the sender. **Generate** creates a secret of 32 random bytes as hex.
+- **Several URLs per section**, separate for Health Connect and Screen Time, and each with its own headers and signing secret, so a second receiver never breaks the first.
+- **Custom headers** for auth tokens or API keys, per address: they go to the address you set them for and nowhere else. A header that HTTP cannot carry (a space in the name, a line break in the value) is refused when you add it.
+- **HMAC signing.** With a signing secret set on an address, every request to it carries an `X-Signature` header (HMAC-SHA256 of the body), so your server can check the sender. **Generate** creates a secret of 32 random bytes as hex.
+- **No credentials in addresses.** An address with a user name, a password or a parameter such as `token=` is refused, since addresses are stored as plain text; a header carries those instead. A Google Apps Script URL keeps its token.
 - **Test ping** sends a small payload marked `test: true`, signed when a secret is set, so you can check an address and a secret before any data goes there.
 - **Retries.** A request that fails for a temporary reason is tried three times with a growing wait in between; a permanent error fails at once.
-- **QR pairing** with the Home Assistant integration fills in the address and the secret after one confirmation. See [Pairing by QR code](usage.md#pairing-by-qr-code).
+- **QR pairing** with the Home Assistant integration fills in the address and its secret after one confirmation; the other addresses keep their own. See [Pairing by QR code](usage.md#pairing-by-qr-code).
 
 Retry rules are in [webhook.md](webhook.md#responses-retries-and-timeouts), and how to check a signature in [Verifying the signature](webhook.md#verifying-the-signature).
 
