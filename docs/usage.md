@@ -43,7 +43,7 @@ You need Home Assistant 2026.3 or newer with [HACS](https://hacs.xyz) installed.
 
 Steps 1 through 4 happen in Home Assistant and end with a QR code on screen. Steps 5 through 7 happen on the phone.
 
-1. **Add the repository to HACS.** Use the [Open in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration) link. Or, in HACS, open the menu, pick **Custom repositories** and add `https://github.com/owen282000/life-dashboard-ha` with the type **Integration**. The integration isn't in the default HACS list yet.
+1. **Find it in HACS.** In HACS, search for **Life Dashboard**, or use the [Open in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration) link.
 2. **Download** Life Dashboard in HACS.
 3. **Restart Home Assistant.** A new integration is only loaded at startup.
 4. **Add the integration.** Go to Settings > Devices & services > Add integration, search for **Life Dashboard** and give the phone a name. The address is filled in with the one your browser is using. Check that the phone can reach it: see [Which address to use](#which-address-to-use). The dialog then shows a QR code.
