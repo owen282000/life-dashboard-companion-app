@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.27.0] - 2026-10-19
+
+### Highlights
+
+- A webhook server with a certificate from your own CA, or a self-signed one, can be reached over HTTPS: under **Advanced**, **Server certificates**, trust the CA certificates installed on the phone for that host, or one certificate whose fingerprint you checked. Both are off by default and apply to that host alone. Asked for by @syphernl in #160.
+- A Google Apps Script web app works as a webhook URL, so a Google Sheet can take the payload without a server of your own.
+- Workouts carry a readable `name` and the `title` they were given, and payloads carry the phone's `timezone`.
+
 ### Added
 
 - A webhook server with a certificate Android does not trust can be reached without plain HTTP
@@ -972,7 +980,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.26.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.27.0...HEAD
+[1.27.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.26.0...1.27.0
 [1.26.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.25.0...1.26.0
 [1.25.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.24.0...1.25.0
 [1.24.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.23.0...1.24.0

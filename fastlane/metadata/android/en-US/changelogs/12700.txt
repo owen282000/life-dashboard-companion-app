@@ -1,0 +1,5 @@
+New
+- Webhook servers with a certificate from your own CA, or a self-signed one, work over HTTPS: set it per host under Advanced, Server certificates.
+- Workouts carry a readable name and their title, and payloads carry the phone's time zone.
+Fixed
+- Pairing fits any receiver that shows a code, not only Home Assistant.
