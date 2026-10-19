@@ -37,6 +37,7 @@ The **Health** tab and the **Screen Time** tab each have their own **Webhook URL
 | `X-Signature` | `sha256=<lowercase hex>`, only when the section has a signing secret |
 | Custom headers | The section's **Webhook Headers**, for example an `Authorization` header. A URL that QR pairing added gets none of them, so an address from a pairing code never receives the API keys typed for the others. |
 | Client certificate | Optional mTLS. **Client certificate (mTLS)** under **Advanced** picks a certificate installed in Android's credential store; it is used for every webhook. |
+| Server certificates | Optional, per https host, under **Advanced > Server certificates**: trust the CA certificates installed on the phone for that host (a private CA), or one certificate whose SHA-256 fingerprint you confirmed (self-signed). Both off by default; there is no switch that accepts any certificate. |
 | Transport | HTTPS. Plain `http://` is refused unless **Allow plain HTTP webhooks** is on. |
 
 `source` in the body says what kind of payload it is: `health_connect` or `screen_time`. A body with `"test": true` is a [test ping](#test-ping) and carries no data. The iOS app posts the same shape from Apple Health with `"source": "healthkit_ios"`, so one receiver can take both; its [payload reference](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/webhook.md) documents where it differs.

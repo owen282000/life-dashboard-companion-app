@@ -167,6 +167,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_INCLUDE_RECORD_METADATA = "include_record_metadata"
         private const val KEY_ALLOW_HTTP_WEBHOOKS = "allow_http_webhooks"
         private const val KEY_CLIENT_CERT_ALIAS = "client_cert_alias"
+        private const val KEY_SERVER_TRUST = "server_trust"
 
         /** The phone's name for MQTT, shared by both sections; empty means the topics stay as they always were. */
         private const val KEY_PHONE_NAME = "phone_name"
@@ -502,6 +503,17 @@ class PreferencesManager(context: Context) {
 
     fun setClientCertAlias(alias: String?) {
         prefs.edit().putString(KEY_CLIENT_CERT_ALIAS, alias).apply()
+    }
+
+    /**
+     * What each webhook host is trusted with beyond the system CAs, keyed by `host:port`
+     * (issue #160, see [ServerTrust]). Like the client certificate, it is not part of the config
+     * backup: a trust decision belongs to the phone it was made on.
+     */
+    fun serverTrust(): Map<String, ServerTrust> = WebhookTrust.decode(prefs.getString(KEY_SERVER_TRUST, null))
+
+    fun setServerTrust(trust: Map<String, ServerTrust>) {
+        prefs.edit().putString(KEY_SERVER_TRUST, WebhookTrust.encode(trust)).apply()
     }
 
     fun setIncludeDailyTotals(enabled: Boolean) {

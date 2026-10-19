@@ -13,6 +13,7 @@ import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
 import com.owen282000.lifedashboard.SeriesResolution
+import com.owen282000.lifedashboard.ServerTrust
 import com.owen282000.lifedashboard.WriteBackType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -65,6 +66,9 @@ internal class FakeAppSettings(
     override fun setAllowHttpWebhooks(enabled: Boolean) { allowHttp = enabled }
     override fun clientCertAlias() = certAlias
     override fun setClientCertAlias(alias: String?) { certAlias = alias }
+    var trust: Map<String, ServerTrust> = emptyMap()
+    override fun serverTrust() = trust
+    override fun setServerTrust(trust: Map<String, ServerTrust>) { this.trust = trust }
     override fun phoneName() = storedPhoneName
     override fun setPhoneName(name: String?) { storedPhoneName = name?.trim()?.takeIf { it.isNotEmpty() } }
     var receive = ReceiveSettings()

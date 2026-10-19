@@ -40,6 +40,7 @@ androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "workManager" }
 okhttp-mockwebserver3 = { group = "com.squareup.okhttp3", name = "mockwebserver3", version.ref = "okhttp" }
+okhttp-tls = { group = "com.squareup.okhttp3", name = "okhttp-tls", version.ref = "okhttp" }
 json-schema-validator = { group = "io.github.optimumcode", name = "json-schema-validator", version.ref = "jsonSchemaValidator" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }

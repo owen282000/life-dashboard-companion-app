@@ -29,6 +29,25 @@
     <string name="client_cert_none">None</string>
     <string name="client_cert_description">For a server that requires a client certificate. Install it first in Android settings (Security, Encryption &amp; credentials, Install a certificate). Chosen once and used for every webhook, also in the background. MQTT is unaffected.</string>
     <string name="client_cert_choose">Choose</string>
+    <string name="server_trust_title">Server certificates</string>
+    <string name="server_trust_description">Only for a server whose certificate Android does not trust, such as one from your own CA or a self-signed one. Each setting applies to that host alone. MQTT is unaffected.</string>
+    <string name="server_trust_user_cas">Trust certificates installed on this phone</string>
+    <string name="server_trust_user_cas_description">For a certificate from your own CA. Install the CA first in Android settings (Security, Encryption &amp; credentials, Install a certificate, CA certificate).</string>
+    <string name="server_trust_pin_title">Trust this server\'s certificate</string>
+    <string name="server_trust_pin_description">For a self-signed certificate: read it, check the fingerprint, and from then on exactly that certificate is accepted.</string>
+    <string name="server_trust_read">Read</string>
+    <string name="server_trust_reading">Reading the certificate…</string>
+    <string name="server_trust_read_failed">Could not read the certificate: %1$s</string>
+    <string name="server_trust_pinned">Trusted: SHA-256 %1$s…</string>
+    <string name="server_trust_forget">Forget</string>
+    <string name="server_trust_dialog_title">Trust this certificate?</string>
+    <string name="server_trust_dialog_body">Only for your own server. From now on %1$s is accepted with exactly this certificate, also where Android would refuse it. Compare the fingerprint with the one on your server first; a different certificate is refused, also after a renewal, until you confirm it again.</string>
+    <string name="server_trust_subject">Issued to: %1$s</string>
+    <string name="server_trust_issuer">Issued by: %1$s</string>
+    <string name="server_trust_self_signed">Self-signed</string>
+    <string name="server_trust_valid_until">Valid until: %1$s</string>
+    <string name="server_trust_fingerprint">SHA-256 fingerprint</string>
+    <string name="server_trust_confirm">Trust</string>
     <string name="client_cert_clear">Clear</string>
     <string name="webhook_enter_header_name_and_value">Enter header name and value</string>
     <string name="webhook_enter_valid_url">Enter a valid URL</string>
@@ -54,6 +73,7 @@
 
     <!-- Shared sync section, used by Health Connect and Screen Time -->
     <string name="sync_advanced_client_cert">Client certificate</string>
+    <string name="sync_advanced_server_trust">server certificates</string>
     <string name="sync_advanced_https_only">HTTPS only</string>
     <string name="sync_advanced_plain_http_allowed">Plain HTTP allowed</string>
     <string name="sync_advanced_phone_name">Phone %1$s</string>

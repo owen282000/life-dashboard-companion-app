@@ -8,6 +8,7 @@ import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
+import com.owen282000.lifedashboard.ServerTrust
 import com.owen282000.lifedashboard.SyncFailureNotifier
 import com.owen282000.lifedashboard.WriteBackType
 
@@ -33,6 +34,10 @@ interface AppSettings {
     fun setAllowHttpWebhooks(enabled: Boolean)
     fun clientCertAlias(): String?
     fun setClientCertAlias(alias: String?)
+
+    /** Trust per webhook host beyond the system CAs (issue #160), keyed by `host:port`. Applied at once. */
+    fun serverTrust(): Map<String, ServerTrust>
+    fun setServerTrust(trust: Map<String, ServerTrust>)
 
     /** The phone's name for MQTT, shared by both tabs; null when it has none. */
     fun phoneName(): String?
@@ -130,6 +135,8 @@ class PreferencesAppSettings(
     override fun setAllowHttpWebhooks(enabled: Boolean) = prefs.setAllowHttpWebhooks(enabled)
     override fun clientCertAlias() = prefs.clientCertAlias()
     override fun setClientCertAlias(alias: String?) = prefs.setClientCertAlias(alias)
+    override fun serverTrust() = prefs.serverTrust()
+    override fun setServerTrust(trust: Map<String, ServerTrust>) = prefs.setServerTrust(trust)
     override fun phoneName() = prefs.getPhoneName()
     override fun setPhoneName(name: String?) = prefs.setPhoneName(name)
     override fun receiveSettings() = prefs.getReceiveSettings()
