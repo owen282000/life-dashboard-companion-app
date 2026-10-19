@@ -95,6 +95,7 @@ The data can also go to an MQTT broker or a webhook of your own instead. Both ap
   <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="60"></a>
   <a href="https://f-droid.org/packages/com.owen282000.lifedashboard/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60"></a>
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/owen282000/life-dashboard-companion-app"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60"></a>
+  <a href="https://alternativeto.net/software/life-dashboard-companion/about/"><img src="docs/brand/badges/alternativeto.svg" alt="Life Dashboard Companion on AlternativeTo" height="60"></a>
 </p>
 
 The APK on GitHub is signed, each release carries build provenance you can [verify](SECURITY.md#verifying-a-release), and the build is [reproducible](docs/building.md#reproduce-a-release-build). F&#8209;Droid builds each release itself and ships it only when its build matches this APK, so it carries the same signature and you can switch between them; F&#8209;Droid accepted the app on 17 October, and its page appears once F&#8209;Droid's build server has picked it up. Obtainium installs the APK from GitHub and keeps it updated. A Google Play version comes later.
