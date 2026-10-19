@@ -218,6 +218,13 @@ Your server needs `https://` unless you switch on **Allow plain HTTP webhooks** 
 
 If your server requires a client certificate (mTLS), install it in Android's settings (Security > Encryption & credentials > Install a certificate), then pick it under **Advanced > Client certificate (mTLS)** with **Choose**. One certificate is used for every webhook, on both tabs. MQTT doesn't use it.
 
+If your server's own certificate is one Android does not trust, the delivery fails with a certificate error. **Advanced > Server certificates** lists each https host of your webhook URLs, with two options for that host alone:
+
+- **Trust certificates installed on this phone**, for a certificate from your own CA. Install the CA first (Android settings > Security > Encryption & credentials > Install a certificate > CA certificate). Android ignores such CAs for apps by default; this switch counts them for this one host, not for the rest of the app.
+- **Trust this server's certificate**, for a self-signed certificate. **Read** fetches the certificate without sending anything and shows who it was issued to, until when it is valid and its SHA-256 fingerprint. Compare the fingerprint with the one on your server, for example with `openssl x509 -noout -fingerprint -sha256 -in cert.pem`, and tap **Trust**. From then on exactly that certificate is accepted, also when its name does not match the address you use. A different certificate, a renewed one included, fails with a message that shows its fingerprint until you confirm it again; **Forget** removes the trust.
+
+There is no option to ignore certificate errors: it would let anyone between the phone and the server read your health data. Like the client certificate, these settings stay on the phone and are not part of the settings export. MQTT doesn't use them.
+
 **See exactly what the app sends.** Download [webhook-receiver.py](https://raw.githubusercontent.com/owen282000/life-dashboard-companion-app/main/scripts/webhook-receiver.py) to a laptop on the same Wi-Fi as the phone and run `python3 webhook-receiver.py`. It needs nothing but Python 3, and it prints the laptop's network address. Add `http://<that address>:8765/health` as a webhook URL, switch on **Allow plain HTTP webhooks**, and tap **Test ping**. Every POST is printed with its headers and saved to `received.jsonl`. Add `--secret <your signing secret>` to check the signatures too.
 
 ## Sync

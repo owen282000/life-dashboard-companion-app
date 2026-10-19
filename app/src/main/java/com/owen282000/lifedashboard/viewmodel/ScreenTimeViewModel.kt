@@ -11,6 +11,7 @@ import com.owen282000.lifedashboard.AppFilterMode
 import com.owen282000.lifedashboard.FailureReason
 import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
+import com.owen282000.lifedashboard.ServerTrust
 import com.owen282000.lifedashboard.SyncSchedule
 import com.owen282000.lifedashboard.appPreferences
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,6 +30,8 @@ data class ScreenTimeUiState(
     val allowHttpWebhooks: Boolean = false,
     /** KeyChain alias of the client certificate (mTLS) presented to webhooks, null for none. */
     val clientCertAlias: String? = null,
+    /** Trust per webhook host beyond the system CAs, keyed by `host:port`; shared by both tabs. */
+    val serverTrust: Map<String, ServerTrust> = emptyMap(),
     /** The phone's name for MQTT, shared with the Health Connect tab; null when it has none. */
     val phoneName: String? = null,
     val failureNotificationsEnabled: Boolean = false,
@@ -65,6 +68,9 @@ interface ScreenTimeActions {
     fun setMqtt(mqtt: MqttDraft)
     fun setAllowHttpWebhooks(enabled: Boolean)
     fun setClientCertAlias(alias: String?)
+
+    /** Sets what [hostKey] is trusted with; the default removes the entry. */
+    fun setServerTrust(hostKey: String, trust: ServerTrust)
     fun setPhoneName(name: String)
     fun setFailureNotifications(enabled: Boolean)
     fun setFailureThreshold(threshold: Int)
@@ -101,6 +107,7 @@ class ScreenTimeViewModel(
                 hasUsageAccess = ops.hasUsageAccess(),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
+                serverTrust = settings.serverTrust(),
                 phoneName = settings.phoneName(),
                 failureNotificationsEnabled = settings.failureNotificationsEnabled(),
                 failureThreshold = settings.failureThreshold(),
@@ -154,6 +161,7 @@ class ScreenTimeViewModel(
             it.copy(
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
+                serverTrust = settings.serverTrust(),
                 phoneName = settings.phoneName(),
                 // A secret saved on the other tab may have ended the request to enter them again.
                 secretsUnavailable = settings.secretsUnavailable,
@@ -204,6 +212,12 @@ class ScreenTimeViewModel(
         _state.update { it.copy(clientCertAlias = alias) }
     }
 
+    override fun setServerTrust(hostKey: String, trust: ServerTrust) {
+        val updated = (settings.serverTrust() + (hostKey to trust)).filterValues { !it.isDefault }
+        settings.setServerTrust(updated)
+        _state.update { it.copy(serverTrust = updated) }
+    }
+
     override fun setPhoneName(name: String) {
         settings.setPhoneName(name)
         _state.update { it.copy(phoneName = name) }
@@ -248,6 +262,7 @@ class ScreenTimeViewModel(
                 draft = saved,
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
+                serverTrust = settings.serverTrust(),
                 phoneName = settings.phoneName()
             )
         }

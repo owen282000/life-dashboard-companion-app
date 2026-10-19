@@ -243,6 +243,8 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     // WebhookRedirectTest: what goes over the wire when a receiver answers with a redirect.
     testImplementation(libs.okhttp.mockwebserver3)
+    // Certificates for the HTTPS tests of server trust (issue #160).
+    testImplementation(libs.okhttp.tls)
     // TestPingTest: the ping validates against docs/webhook-schema.json, like the payloads do on the emulator.
     testImplementation(libs.json.schema.validator)
     // The instrumented suite (scripts/instrumented.sh). None of this reaches a release build.

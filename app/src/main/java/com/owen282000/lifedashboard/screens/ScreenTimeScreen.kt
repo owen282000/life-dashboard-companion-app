@@ -39,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.owen282000.lifedashboard.ExportManager
 import com.owen282000.lifedashboard.MqttSupport
 import com.owen282000.lifedashboard.R
+import com.owen282000.lifedashboard.WebhookTrust
 import com.owen282000.lifedashboard.ui.theme.ScreenTimePrimary
 import com.owen282000.lifedashboard.viewmodel.ScreenTimeActions
 import com.owen282000.lifedashboard.viewmodel.ScreenTimeUiState
@@ -218,6 +219,7 @@ fun ScreenTimeContent(
                 subtitle = listOfNotNull(
                     if (state.allowHttpWebhooks) stringResource(R.string.sync_advanced_plain_http_allowed) else stringResource(R.string.sync_advanced_https_only),
                     if (state.clientCertAlias != null) stringResource(R.string.sync_advanced_client_cert) else null,
+                    if (WebhookTrust.hostKeys(state.draft.webhook.urls).any { it in state.serverTrust }) stringResource(R.string.sync_advanced_server_trust) else null,
                     MqttSupport.phoneSlug(state.phoneName)?.let { stringResource(R.string.sync_advanced_phone_name, it) }
                 ).joinToString(", "),
                 expanded = advancedExpanded,
@@ -235,6 +237,12 @@ fun ScreenTimeContent(
                     webhookUrl = state.draft.webhook.urls.firstOrNull(),
                     accent = accent,
                     onAliasChange = actions::setClientCertAlias
+                )
+                ServerTrustLines(
+                    urls = state.draft.webhook.urls,
+                    trust = state.serverTrust,
+                    accent = accent,
+                    onChange = actions::setServerTrust
                 )
                 PhoneNameLine(name = state.phoneName.orEmpty(), accent = accent, onChange = actions::setPhoneName)
             }

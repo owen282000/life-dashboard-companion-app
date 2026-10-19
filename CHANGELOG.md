@@ -6,6 +6,13 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
+- A webhook server with a certificate Android does not trust can be reached without plain HTTP
+  (issue #160). Under Advanced, Server certificates, each https host gets two options for that host
+  alone, both off by default: trust the CA certificates installed on the phone, for a private CA,
+  or trust one certificate after reading it and checking its SHA-256 fingerprint, for a self-signed
+  one. A different certificate, also a renewed one, is refused with its fingerprint in the log until
+  it is confirmed again. There is no switch that ignores certificate errors. In English, Dutch and
+  German.
 - A Google Apps Script web app works as a webhook URL, so a Google Sheet can take the payload without a
   server of your own. Apps Script runs the script on the POST and then redirects to
   script.googleusercontent.com for its answer; the app now follows that one redirect to another host,

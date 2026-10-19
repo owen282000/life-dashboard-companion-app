@@ -27,6 +27,25 @@
     <string name="client_cert_none">Keines</string>
     <string name="client_cert_description">Für einen Server, der ein Client-Zertifikat verlangt. Installiere es zuerst in den Android-Einstellungen (Sicherheit, Verschlüsselung &amp; Anmeldedaten, Zertifikat installieren). Einmal gewählt, gilt es für alle Webhooks, auch im Hintergrund. MQTT ist nicht betroffen.</string>
     <string name="client_cert_choose">Wählen</string>
+    <string name="server_trust_title">Server-Zertifikate</string>
+    <string name="server_trust_description">Nur für einen Server, dessen Zertifikat Android nicht vertraut, etwa eines von deiner eigenen CA oder ein selbstsigniertes. Jede Einstellung gilt nur für diesen Host. MQTT ist davon nicht betroffen.</string>
+    <string name="server_trust_user_cas">Auf diesem Telefon installierten Zertifikaten vertrauen</string>
+    <string name="server_trust_user_cas_description">Für ein Zertifikat deiner eigenen CA. Installiere die CA zuerst in den Android-Einstellungen (Sicherheit, Verschlüsselung und Anmeldedaten, Zertifikat installieren, CA-Zertifikat).</string>
+    <string name="server_trust_pin_title">Dem Zertifikat dieses Servers vertrauen</string>
+    <string name="server_trust_pin_description">Für ein selbstsigniertes Zertifikat: auslesen, den Fingerabdruck prüfen, und danach wird genau dieses Zertifikat akzeptiert.</string>
+    <string name="server_trust_read">Auslesen</string>
+    <string name="server_trust_reading">Zertifikat wird ausgelesen…</string>
+    <string name="server_trust_read_failed">Zertifikat konnte nicht ausgelesen werden: %1$s</string>
+    <string name="server_trust_pinned">Vertraut: SHA-256 %1$s…</string>
+    <string name="server_trust_forget">Vergessen</string>
+    <string name="server_trust_dialog_title">Diesem Zertifikat vertrauen?</string>
+    <string name="server_trust_dialog_body">Nur für deinen eigenen Server. Ab jetzt wird %1$s mit genau diesem Zertifikat akzeptiert, auch wo Android es ablehnen würde. Vergleiche den Fingerabdruck vorher mit dem auf deinem Server; ein anderes Zertifikat wird abgelehnt, auch nach einer Erneuerung, bis du es erneut bestätigst.</string>
+    <string name="server_trust_subject">Ausgestellt für: %1$s</string>
+    <string name="server_trust_issuer">Ausgestellt von: %1$s</string>
+    <string name="server_trust_self_signed">Selbstsigniert</string>
+    <string name="server_trust_valid_until">Gültig bis: %1$s</string>
+    <string name="server_trust_fingerprint">SHA-256-Fingerabdruck</string>
+    <string name="server_trust_confirm">Vertrauen</string>
     <string name="client_cert_clear">Entfernen</string>
     <string name="webhook_enter_header_name_and_value">Header-Name und -Wert eingeben</string>
     <string name="webhook_enter_valid_url">Gib eine gültige URL ein</string>
@@ -52,6 +71,7 @@
 
     <!-- Gemeinsamer Synchronisierungsbereich, genutzt von Health Connect und Bildschirmzeit -->
     <string name="sync_advanced_client_cert">Client-Zertifikat</string>
+    <string name="sync_advanced_server_trust">Server-Zertifikate</string>
     <string name="sync_advanced_https_only">Nur HTTPS</string>
     <string name="sync_advanced_plain_http_allowed">Unverschlüsseltes HTTP erlaubt</string>
     <string name="sync_advanced_phone_name">Telefon %1$s</string>

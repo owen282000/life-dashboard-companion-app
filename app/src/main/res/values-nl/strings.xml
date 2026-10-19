@@ -27,6 +27,25 @@
     <string name="client_cert_none">Geen</string>
     <string name="client_cert_description">Voor een server die een clientcertificaat vereist. Installeer het eerst in de Android-instellingen (Beveiliging, Versleuteling en inloggegevens, Certificaat installeren). Eén keer kiezen, daarna geldt het voor alle webhooks, ook op de achtergrond. MQTT staat hier los van.</string>
     <string name="client_cert_choose">Kiezen</string>
+    <string name="server_trust_title">Servercertificaten</string>
+    <string name="server_trust_description">Alleen voor een server waarvan Android het certificaat niet vertrouwt, zoals een van je eigen CA of een zelfondertekend certificaat. Elke instelling geldt alleen voor die host. MQTT valt hier niet onder.</string>
+    <string name="server_trust_user_cas">Certificaten vertrouwen die op deze telefoon zijn geïnstalleerd</string>
+    <string name="server_trust_user_cas_description">Voor een certificaat van je eigen CA. Installeer de CA eerst in de Android-instellingen (Beveiliging, Versleuteling en inloggegevens, Een certificaat installeren, CA-certificaat).</string>
+    <string name="server_trust_pin_title">Het certificaat van deze server vertrouwen</string>
+    <string name="server_trust_pin_description">Voor een zelfondertekend certificaat: lees het uit, controleer de vingerafdruk, en daarna wordt precies dat certificaat geaccepteerd.</string>
+    <string name="server_trust_read">Uitlezen</string>
+    <string name="server_trust_reading">Certificaat uitlezen…</string>
+    <string name="server_trust_read_failed">Kon het certificaat niet uitlezen: %1$s</string>
+    <string name="server_trust_pinned">Vertrouwd: SHA-256 %1$s…</string>
+    <string name="server_trust_forget">Vergeten</string>
+    <string name="server_trust_dialog_title">Dit certificaat vertrouwen?</string>
+    <string name="server_trust_dialog_body">Alleen voor je eigen server. Vanaf nu wordt %1$s geaccepteerd met precies dit certificaat, ook waar Android het zou weigeren. Vergelijk de vingerafdruk eerst met die op je server; een ander certificaat wordt geweigerd, ook na een vernieuwing, tot je het opnieuw bevestigt.</string>
+    <string name="server_trust_subject">Uitgegeven aan: %1$s</string>
+    <string name="server_trust_issuer">Uitgegeven door: %1$s</string>
+    <string name="server_trust_self_signed">Zelfondertekend</string>
+    <string name="server_trust_valid_until">Geldig tot: %1$s</string>
+    <string name="server_trust_fingerprint">SHA-256-vingerafdruk</string>
+    <string name="server_trust_confirm">Vertrouwen</string>
     <string name="client_cert_clear">Wissen</string>
     <string name="webhook_enter_header_name_and_value">Vul een headernaam en waarde in</string>
     <string name="webhook_enter_valid_url">Vul een geldige URL in</string>
@@ -52,6 +71,7 @@
 
     <!-- Gedeelde synchronisatiesectie, gebruikt door Health Connect en Schermtijd -->
     <string name="sync_advanced_client_cert">Clientcertificaat</string>
+    <string name="sync_advanced_server_trust">servercertificaten</string>
     <string name="sync_advanced_https_only">Alleen HTTPS</string>
     <string name="sync_advanced_plain_http_allowed">Plain HTTP toegestaan</string>
     <string name="sync_advanced_phone_name">Telefoon %1$s</string>

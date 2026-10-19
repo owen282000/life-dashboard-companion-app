@@ -8,6 +8,7 @@ import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.SeriesResolution
+import com.owen282000.lifedashboard.ServerTrust
 import com.owen282000.lifedashboard.WriteBackType
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -722,5 +723,21 @@ class HealthConnectViewModelTest {
         settings.certAlias = "home-cert"
         vm.reloadFromSettings()
         assertEquals("home-cert", vm.state.value.clientCertAlias)
+    }
+
+    @Test
+    fun `server trust is applied at once and a host back at the defaults is dropped`() {
+        val settings = FakeAppSettings()
+        val vm = vm(settings)
+
+        vm.setServerTrust("nas.lan:443", ServerTrust(userCas = true))
+        vm.setServerTrust("ha.lan:8123", ServerTrust(pinSha256 = "AB:CD"))
+        assertEquals(mapOf("nas.lan:443" to ServerTrust(userCas = true), "ha.lan:8123" to ServerTrust(pinSha256 = "AB:CD")), settings.trust)
+        assertEquals(settings.trust, vm.state.value.serverTrust)
+        // Applied like the other Advanced settings: nothing waits for Save.
+        assertFalse(vm.state.value.hasChanges)
+
+        vm.setServerTrust("nas.lan:443", ServerTrust())
+        assertEquals(mapOf("ha.lan:8123" to ServerTrust(pinSha256 = "AB:CD")), settings.trust)
     }
 }

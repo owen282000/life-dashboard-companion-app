@@ -13,6 +13,8 @@ import okhttp3.coroutines.executeAsync
 import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.KeyManager
+import javax.net.ssl.X509TrustManager
 import kotlin.math.pow
 
 /** The request for the source URL of Receive (issue #62): the same payload with the `writeback` block in it. */
@@ -86,21 +88,43 @@ class WebhookManager(
      */
     private val countSuccess: Boolean = logSuccess,
     /** Google's Apps Script hosts; a test replaces them with local servers. */
-    private val appsScriptRule: WebhookSupport.AppsScriptRule = WebhookSupport.AppsScriptRule.GOOGLE
+    private val appsScriptRule: WebhookSupport.AppsScriptRule = WebhookSupport.AppsScriptRule.GOOGLE,
+    /** Trust per webhook host (issue #160) when set; otherwise read from the settings. For tests. */
+    private val serverTrustOverride: Map<String, ServerTrust>? = null,
+    /** Builds the trust manager of one host; a test passes one with its own CA store. */
+    private val trustManagerFor: (ServerTrust?) -> X509TrustManager = { WebhookTrust.trustManager(it) }
 ) {
+
+    /** The client and the client certificate's key managers, built once per post. */
+    private class Clients(val base: OkHttpClient, val keyManagers: Array<KeyManager>?)
 
     /**
      * Built per post, on the IO dispatcher: presenting a client certificate means loading it
      * from KeyChain, which blocks and must not run on the main thread.
      */
-    private fun buildClient(): OkHttpClient {
+    private fun buildClient(): Clients {
         val builder = baseClientBuilder()
         val alias = context?.let { PreferencesManager(it).clientCertAlias() }
+        var keyManagers: Array<KeyManager>? = null
         if (context != null && alias != null) {
             val setup = ClientCertSupport.sslSetup(context, alias)
             builder.sslSocketFactory(setup.socketFactory, setup.trustManager)
+            keyManagers = setup.keyManagers
         }
-        return builder.build()
+        return Clients(builder.build(), keyManagers)
+    }
+
+    private val serverTrust: Map<String, ServerTrust> by lazy {
+        serverTrustOverride ?: context?.let { PreferencesManager(it).serverTrust() } ?: emptyMap()
+    }
+
+    /**
+     * The client for one URL: the shared one, or one with the trust the user set for its host,
+     * the client certificate still presented. Shares the pool and dispatcher of the shared one.
+     */
+    private fun clientFor(clients: Clients, url: String): OkHttpClient {
+        val trust = WebhookTrust.hostKey(url)?.let { serverTrust[it] }?.takeUnless { it.isDefault } ?: return clients.base
+        return WebhookTrust.apply(clients.base.newBuilder(), trust, clients.keyManagers, trustManagerFor(trust)).build()
     }
 
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
@@ -118,7 +142,7 @@ class WebhookManager(
 
         // Any failure to set up the client, not only the "certificate unavailable" IOException,
         // is logged against every URL: nothing was sent, and the log is where the user looks.
-        val client = try {
+        val clients = try {
             buildClient()
         } catch (e: CancellationException) {
             throw e
@@ -136,7 +160,16 @@ class WebhookManager(
 
         for (url in webhookUrls) {
             val isSource = source != null && url == source.url
-            val result = postToUrl(client, url, if (isSource) source.payload else jsonPayload, readResponse = isSource)
+            val result = try {
+                postToUrl(clientFor(clients, url), url, if (isSource) source.payload else jsonPayload, readResponse = isSource)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // The trust set for this host could not be set up (the CA store unreadable):
+                // nothing was sent to it, and its log row says why.
+                logWebhookCall(url, System.currentTimeMillis(), null, false, e.message ?: e.javaClass.simpleName, jsonPayload)
+                Result.failure(e)
+            }
             if (result.isSuccess) {
                 anySuccess = true
                 if (isSource) sourceResponse = result.getOrNull()

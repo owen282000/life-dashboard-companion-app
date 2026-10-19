@@ -18,6 +18,7 @@ import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.SeriesResolution
+import com.owen282000.lifedashboard.ServerTrust
 import com.owen282000.lifedashboard.SourceApps
 import com.owen282000.lifedashboard.SourceUrlChoice
 import com.owen282000.lifedashboard.SyncSchedule
@@ -49,6 +50,8 @@ data class HealthUiState(
     val allowHttpWebhooks: Boolean = false,
     /** KeyChain alias of the client certificate (mTLS) presented to webhooks, null for none. */
     val clientCertAlias: String? = null,
+    /** Trust per webhook host beyond the system CAs, keyed by `host:port`; shared by both tabs. */
+    val serverTrust: Map<String, ServerTrust> = emptyMap(),
     /** The phone's name for MQTT, shared with the Screen Time tab; null when it has none. */
     val phoneName: String? = null,
     val failureNotificationsEnabled: Boolean = false,
@@ -121,6 +124,9 @@ interface HealthActions {
     fun setIncludeRecordMetadata(enabled: Boolean)
     fun setAllowHttpWebhooks(enabled: Boolean)
     fun setClientCertAlias(alias: String?)
+
+    /** Sets what [hostKey] is trusted with; the default removes the entry. */
+    fun setServerTrust(hostKey: String, trust: ServerTrust)
     fun setPhoneName(name: String)
     fun setFailureNotifications(enabled: Boolean)
     fun setFailureThreshold(threshold: Int)
@@ -183,6 +189,7 @@ class HealthConnectViewModel(
                 includeRecordMetadata = settings.includeRecordMetadata(),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
+                serverTrust = settings.serverTrust(),
                 phoneName = settings.phoneName(),
                 failureNotificationsEnabled = settings.failureNotificationsEnabled(),
                 failureThreshold = settings.failureThreshold(),
@@ -240,6 +247,7 @@ class HealthConnectViewModel(
             it.copy(
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
+                serverTrust = settings.serverTrust(),
                 phoneName = settings.phoneName(),
                 // A secret saved on the other tab may have ended the request to enter them again.
                 secretsUnavailable = settings.secretsUnavailable,
@@ -347,6 +355,12 @@ class HealthConnectViewModel(
         _state.update { it.copy(clientCertAlias = alias) }
     }
 
+    override fun setServerTrust(hostKey: String, trust: ServerTrust) {
+        val updated = (settings.serverTrust() + (hostKey to trust)).filterValues { !it.isDefault }
+        settings.setServerTrust(updated)
+        _state.update { it.copy(serverTrust = updated) }
+    }
+
     /** Applies at once, like the other shared settings under Advanced; the field shows what is typed, the store keeps it trimmed. */
     override fun setPhoneName(name: String) {
         settings.setPhoneName(name)
@@ -393,6 +407,7 @@ class HealthConnectViewModel(
                 includeRecordMetadata = settings.includeRecordMetadata(),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
+                serverTrust = settings.serverTrust(),
                 phoneName = settings.phoneName(),
                 receive = settings.receiveSettings(),
                 receiveStatus = settings.receiveStatus()

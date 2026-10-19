@@ -4,14 +4,13 @@ import android.content.Context
 import android.security.KeyChain
 import java.io.IOException
 import java.net.Socket
-import java.security.KeyStore
 import java.security.Principal
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
+import javax.net.ssl.KeyManager
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLEngine
 import javax.net.ssl.SSLSocketFactory
-import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509ExtendedKeyManager
 import javax.net.ssl.X509TrustManager
 
@@ -25,7 +24,12 @@ import javax.net.ssl.X509TrustManager
  */
 object ClientCertSupport {
 
-    class Setup(val socketFactory: SSLSocketFactory, val trustManager: X509TrustManager)
+    class Setup(
+        val socketFactory: SSLSocketFactory,
+        val trustManager: X509TrustManager,
+        /** The certificate on its own, for a host with trust of its own (see [WebhookTrust.apply]). */
+        val keyManagers: Array<KeyManager>
+    )
 
     /**
      * Builds an SSL setup presenting the certificate behind [alias], keeping the platform's
@@ -56,16 +60,13 @@ object ClientCertSupport {
         chain: Array<X509Certificate>,
         trustManager: X509TrustManager = platformTrustManager()
     ): Setup {
+        val keyManagers = arrayOf<KeyManager>(FixedKeyManager(alias, key, chain))
         val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(arrayOf(FixedKeyManager(alias, key, chain)), arrayOf(trustManager), null)
-        return Setup(sslContext.socketFactory, trustManager)
+        sslContext.init(keyManagers, arrayOf(trustManager), null)
+        return Setup(sslContext.socketFactory, trustManager, keyManagers)
     }
 
-    private fun platformTrustManager(): X509TrustManager {
-        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        trustManagerFactory.init(null as KeyStore?)
-        return trustManagerFactory.trustManagers.filterIsInstance<X509TrustManager>().first()
-    }
+    private fun platformTrustManager(): X509TrustManager = WebhookTrust.platformTrustManager()
 
     fun unavailableMessage(alias: String) =
         "Client certificate '$alias' is unavailable. Choose it again under Advanced settings."
