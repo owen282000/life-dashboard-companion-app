@@ -55,7 +55,7 @@
     <string name="webhook_header_value_invalid">Ein Header-Wert darf nur einfache ASCII-Zeichen enthalten, keine Zeilenumbrüche oder Buchstaben wie é</string>
     <string name="webhook_header_name_blocks_delivery">Nichts wurde gesendet: Der Name von Header %1$s kann nicht gesendet werden. Entferne ihn unter Webhook und füge ihn mit einem Namen ohne Leerzeichen neu hinzu.</string>
     <string name="webhook_header_value_blocks_delivery">Nichts wurde gesendet: Der Wert von Header %1$s enthält einen Zeilenumbruch oder ein Zeichen, das ein Header nicht tragen kann. Entferne ihn unter Webhook und füge ihn neu hinzu.</string>
-    <string name="webhook_headers_title">Webhook-Header</string>
+    <string name="webhook_headers_title">Webhook-Header (optional)</string>
     <string name="webhook_hmac_secret_description">Wenn gesetzt, bekommt jeder POST einen X-Signature-Header (sha256=&lt;hex&gt;), berechnet als HMAC-SHA256 über den Body, damit dein Server den Absender prüfen kann.</string>
     <string name="webhook_hmac_secret_title">HMAC-Signaturschlüssel (optional)</string>
     <plurals name="webhook_headers_count">
@@ -66,7 +66,19 @@
     <string name="webhook_shared_secret">Gemeinsamer Schlüssel</string>
     <string name="webhook_url_placeholder">https://...</string>
     <string name="webhook_urls_configured">%1$d konfiguriert</string>
-    <string name="webhook_url_without_headers">Per QR-Code gekoppelt: eigene Header werden hier nicht gesendet</string>
+    <string name="webhook_destinations_hint">Tippe auf eine Adresse für ihre eigenen Header und ihr Signaturgeheimnis. Beides geht an keine andere Adresse.</string>
+    <string name="webhook_destination_summary">%1$s, %2$s</string>
+    <string name="webhook_destination_signed">Signiert</string>
+    <string name="webhook_destination_unsigned">Nicht signiert</string>
+    <string name="webhook_destination_no_headers">keine Header</string>
+    <string name="webhook_destination_url">Adresse</string>
+    <string name="webhook_destination_open">Header und Geheimnis anzeigen</string>
+    <string name="webhook_destination_moved">Ein anderer Host als %1$s: Die Header wurden entfernt und das Geheimnis zurückgesetzt, damit nichts, was für %1$s eingestellt war, hierhin geht.</string>
+    <string name="webhook_copy_headers_from">Header von %1$s übernehmen</string>
+    <string name="webhook_use_secret_of">Dasselbe Geheimnis wie %1$s verwenden</string>
+    <string name="webhook_url_duplicate">Diese Adresse steht schon in der Liste</string>
+    <string name="webhook_url_user_info">Entferne den Benutzernamen oder das Passwort aus der Adresse. Adressen stehen als Klartext in den Einstellungen, in Backups und in den Logs; leg die Zugangsdaten stattdessen in einen Header dieser Adresse.</string>
+    <string name="webhook_url_credential_parameter">Entferne %1$s= aus der Adresse. Adressen stehen als Klartext in den Einstellungen, in Backups und in den Logs; leg die Zugangsdaten stattdessen in einen Header dieser Adresse.</string>
     <string name="webhook_urls_title">Webhook-URLs</string>
 
     <!-- Gemeinsamer Synchronisierungsbereich, genutzt von Health Connect und Bildschirmzeit -->
@@ -651,8 +663,8 @@
     <string name="pairing_sections_label">Senden von</string>
     <string name="pairing_section_health">Gesundheit</string>
     <string name="pairing_section_screen_time">Bildschirmzeit</string>
-    <string name="pairing_replaces_secret">Ersetzt das Signaturgeheimnis, das dieser Bereich jetzt verwendet.</string>
-    <string name="pairing_replaces_secret_others">Ersetzt das Signaturgeheimnis, das dieser Bereich jetzt verwendet. %1$s bekommt ab dann Payloads, die mit dem neuen signiert sind: Prüft es Signaturen, gib ihm auch das neue Geheimnis, oder entferne es.</string>
+    <string name="pairing_replaces_secret">Ersetzt das Signaturgeheimnis, das diese Adresse jetzt verwendet.</string>
+    <string name="pairing_others_keep_secret">Andere Adressen behalten ihr eigenes Signaturgeheimnis und ihre Header: %1$s.</string>
     <string name="pairing_already_paired">Dieser Bereich sendet bereits hierhin. Es ändert sich nichts.</string>
     <string name="pairing_types_note">Welche Datentypen gesendet werden, und wann, bleibt deine Wahl auf den Tabs. Das Koppeln füllt nur die Adresse und das Geheimnis ein.</string>
     <string name="pairing_confirm">Koppeln</string>
@@ -720,6 +732,7 @@
     <string name="health_record_metadata_description">Ergänzt jeden Datensatz um den Zeitpunkt der letzten Änderung, die eigene ID und Version der schreibenden App, die Art der Aufzeichnung, das Gerät und den Zeitzonen-Offset, soweit Health Connect sie hat. Macht Payloads größer, am meisten bei der Herzfrequenz.</string>
     <!-- The secret store lost its secrets -->
     <string name="secrets_lost_banner">Gespeicherte Auth-Header, Signing Secrets und MQTT-Passwörter konnten nicht wiederhergestellt werden und müssen neu eingegeben werden. Bis dahin lehnt ein Webhook, der sie prüft, die Daten ab.</string>
+    <string name="secrets_not_ready">Nichts gespeichert: Der sichere Speicher ist noch nicht bereit, daher können Header und Signaturgeheimnisse gerade nicht gespeichert werden. Versuch es gleich noch einmal; passiert es weiter, entsperre das Gerät und öffne die App erneut.</string>
     <string name="battery_hint_title">Akku-Optimierung ist an</string>
     <string name="battery_hint_body">Android kann geplante Synchronisierungen um Stunden verzögern oder auslassen. Lass die App ohne Einschränkungen im Hintergrund laufen.</string>
     <string name="battery_hint_fix">Beheben</string>

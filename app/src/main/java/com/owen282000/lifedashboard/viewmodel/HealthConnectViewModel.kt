@@ -91,11 +91,11 @@ data class HealthUiState(
     val hasChanges: Boolean get() = draft.differsFrom(saved)
 
     /**
-     * Whether Receive can be switched on: the saved section has a signing secret and a URL
-     * that looks like the integration's. Only then does the Receive row stop asking to pair.
+     * Whether Receive can be switched on: the saved section has a destination that looks like
+     * the integration's and has a signing secret. Only then does the Receive row stop asking to pair.
      */
     val receiveAvailable: Boolean get() =
-        saved.webhook.secret.isNotBlank() && WriteBackPayload.sourceUrlChoice(saved.webhook.urls) != SourceUrlChoice.None
+        WriteBackPayload.sourceUrlChoice(saved.webhook.urlsWithSecret) != SourceUrlChoice.None
 
     /**
      * A phone that only receives has nothing to read, but every sync is still the round trip that fetches measurements.
@@ -108,15 +108,10 @@ data class HealthUiState(
 }
 
 /** Everything the Health Connect screen can ask for; the view model implements it, previews can fake it. */
-interface HealthActions {
+interface HealthActions : WebhookActions {
     fun setSyncInterval(text: String)
     fun setSchedule(schedule: ScheduleDraft)
     fun setResolution(type: HealthDataType, resolution: SeriesResolution)
-    fun addUrl(url: String)
-    fun removeUrl(index: Int)
-    fun addHeader(key: String, value: String)
-    fun removeHeader(key: String)
-    fun setSecret(secret: String)
     fun toggleType(type: HealthDataType, enabled: Boolean)
     fun dismissPermissionPrompt()
     fun setMqtt(mqtt: MqttDraft)
@@ -300,25 +295,29 @@ class HealthConnectViewModel(
     }
 
     override fun addUrl(url: String) {
-        if (!SettingsRules.isValidUrl(url)) {
-            _toasts.tryEmit(UiMessage.InvalidUrl)
+        (SettingsRules.urlProblem(url) ?: UiMessage.DuplicateUrl.takeIf { url.trim() in _state.value.draft.webhook.urls })?.let {
+            _toasts.tryEmit(it)
             return
         }
         editWebhook { it.withUrl(url.trim()) }
     }
 
-    override fun removeUrl(index: Int) = editWebhook { it.withoutUrlAt(index) }
+    override fun setDestinationUrl(id: String, url: String) =
+        editWebhook { it.withEditedUrl(id, url, _state.value.saved.webhook.destinations.firstOrNull { d -> d.id == id }) }
+    override fun copyHeaders(id: String, from: String) = editWebhook { it.withHeadersOf(id, from) }
+    override fun copySecret(id: String, from: String) = editWebhook { it.withSecretOf(id, from) }
+    override fun removeDestination(id: String) = editWebhook { it.without(id) }
 
-    override fun addHeader(key: String, value: String) {
+    override fun addHeader(id: String, key: String, value: String) {
         SettingsRules.headerProblem(key, value)?.let {
             _toasts.tryEmit(it)
             return
         }
-        editWebhook { it.copy(headers = it.headers + (key.trim() to value.trim())) }
+        editWebhook { it.edit(id) { d -> d.copy(headers = d.headers + (key.trim() to value.trim())) } }
     }
 
-    override fun removeHeader(key: String) = editWebhook { it.copy(headers = it.headers - key) }
-    override fun setSecret(secret: String) = editWebhook { it.copy(secret = secret) }
+    override fun removeHeader(id: String, key: String) = editWebhook { it.edit(id) { d -> d.copy(headers = d.headers - key) } }
+    override fun setSecret(id: String, secret: String) = editWebhook { it.edit(id) { d -> d.copy(secret = secret.ifEmpty { null }) } }
 
     /**
      * A type goes on only with its read permission granted. Grant asks for the enabled types
@@ -379,7 +378,8 @@ class HealthConnectViewModel(
 
     /** Validates, persists and reschedules; returns the message shown either way. */
     private fun persist(): UiMessage {
-        val draft = _state.value.draft
+        val draft = _state.value.draft.let { it.copy(webhook = it.webhook.trimmed()) }
+        SettingsRules.destinationProblem(draft.webhook, _state.value.saved.webhook.urls)?.let { return it }
         SettingsRules.scheduleProblem(draft.schedule)?.let { return it }
         SettingsRules.mqttProblem(draft.mqtt)?.let { return it }
         // In times mode the interval field is hidden and may hold half-typed text; keep what
@@ -388,7 +388,7 @@ class HealthConnectViewModel(
             ?: SettingsRules.intervalOrNull(_state.value.saved.schedule.intervalText)
             ?: SyncSchedule.DEFAULT_INTERVAL_MINUTES
         if (!draft.hasDestination) return UiMessage.NoDestination
-        settings.saveHealth(draft, interval)
+        if (!settings.saveHealth(draft, interval)) return UiMessage.SecretsNotReady
         val saved = draft.copy(
             schedule = draft.schedule.copy(intervalText = interval.toString()),
             mqtt = draft.mqtt.withPort()
@@ -653,10 +653,10 @@ class HealthConnectViewModel(
     // ==================== Receive (issue #62) ====================
 
     /**
-     * Switching Receive on needs the integration: a webhook URL that looks like a Home
-     * Assistant one, and a signing secret to verify its answers with. The saved section is
-     * what counts, since that is what the sync runs with. One candidate is taken; several
-     * are offered as a choice; none, or no secret, is explained and the switch stays off.
+     * Switching Receive on needs the integration: a destination that looks like a Home
+     * Assistant one, with a signing secret of its own to verify its answers with. The saved
+     * section is what counts, since that is what the sync runs with. One candidate is taken;
+     * several are offered as a choice; none is explained and the switch stays off.
      */
     override fun setReceiveEnabled(enabled: Boolean) {
         if (!enabled) {
@@ -664,12 +664,7 @@ class HealthConnectViewModel(
             _state.update { it.copy(receive = settings.receiveSettings()) }
             return
         }
-        val saved = _state.value.saved.webhook
-        if (saved.secret.isBlank()) {
-            _toasts.tryEmit(UiMessage.ReceiveNeedsIntegration)
-            return
-        }
-        when (val choice = WriteBackPayload.sourceUrlChoice(saved.urls)) {
+        when (val choice = WriteBackPayload.sourceUrlChoice(_state.value.saved.webhook.urlsWithSecret)) {
             SourceUrlChoice.None -> _toasts.tryEmit(UiMessage.ReceiveNeedsIntegration)
             is SourceUrlChoice.One -> enableReceiveWith(choice.url)
             is SourceUrlChoice.Several -> _state.update { it.copy(receiveSourceChoice = choice.urls) }

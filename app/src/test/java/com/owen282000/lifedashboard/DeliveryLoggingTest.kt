@@ -32,7 +32,7 @@ class DeliveryLoggingTest {
     }
 
     private fun manager(failure: Exception) = WebhookManager(
-        webhookUrls = listOf(receiver.url("/hook").toString()),
+        destinations = destinationsOf(listOf(receiver.url("/hook").toString())),
         allowHttpOverride = true,
         logRecorder = { _, _ -> throw failure }
     )

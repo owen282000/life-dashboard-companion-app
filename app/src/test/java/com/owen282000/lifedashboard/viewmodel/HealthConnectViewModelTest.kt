@@ -3,6 +3,7 @@ package com.owen282000.lifedashboard.viewmodel
 import com.owen282000.lifedashboard.BackfillFailure
 import com.owen282000.lifedashboard.BackfillJob
 import com.owen282000.lifedashboard.BackfillStatus
+import com.owen282000.lifedashboard.Destination
 import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
@@ -10,6 +11,7 @@ import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.ServerTrust
 import com.owen282000.lifedashboard.WriteBackType
+import com.owen282000.lifedashboard.destinationsOf
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -72,7 +74,7 @@ class HealthConnectViewModelTest {
         assertEquals(UiMessage.IntervalTooShort, toasts.last())
 
         vm.setSyncInterval("30")
-        vm.removeUrl(0)
+        vm.removeDestination(vm.state.value.draft.webhook.destinations.single().id)
         vm.save()
         assertEquals(UiMessage.NoDestination, toasts.last())
         assertEquals(0, settings.savedHealth)
@@ -118,14 +120,16 @@ class HealthConnectViewModelTest {
         val vm = vm()
         val toasts = mutableListOf<UiMessage>()
         val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
-        vm.addHeader("Bad Header", "value")
+        vm.addUrl("https://example.org/hook")
+        val id = vm.state.value.draft.webhook.destinations.single().id
+        vm.addHeader(id, "Bad Header", "value")
         assertEquals(UiMessage.InvalidHeaderName, toasts.last())
-        vm.addHeader("X-Api-Key", "line\nbreak")
+        vm.addHeader(id, "X-Api-Key", "line\nbreak")
         assertEquals(UiMessage.InvalidHeaderValue, toasts.last())
-        assertTrue(vm.state.value.draft.webhook.headers.isEmpty())
+        assertTrue(vm.state.value.draft.webhook.destinations.single().headers.isEmpty())
 
-        vm.addHeader(" X-Api-Key ", " k ")
-        assertEquals(mapOf("X-Api-Key" to "k"), vm.state.value.draft.webhook.headers)
+        vm.addHeader(id, " X-Api-Key ", " k ")
+        assertEquals(mapOf("X-Api-Key" to "k"), vm.state.value.draft.webhook.destinations.single().headers)
         job.cancel()
     }
 
@@ -142,47 +146,153 @@ class HealthConnectViewModelTest {
         assertFalse(vm.state.value.hasChanges)
     }
 
+    private val stack = Destination(id = "stack", url = "https://stack.example/health", secret = "stack-secret", headers = mapOf("X-Api-Key" to "k"))
+    private val ha = Destination(id = "ha", url = "https://ha.example/api/webhook/abc", secret = "ha-secret")
+
+    private fun twoReceivers() = FakeAppSettings(
+        health = HealthDraft(WebhookDraft(destinations = listOf(stack, ha), sectionSecret = "stack-secret"), emptySet(), emptyMqtt())
+    )
+
     @Test
-    fun `a paired URL keeps going without headers until it is typed in by hand`() = runTest {
-        val paired = "https://paired.example/hook"
-        val settings = FakeAppSettings(
-            health = HealthDraft(
-                WebhookDraft(urls = listOf("https://mine/hook", paired), headers = mapOf("X-Api-Key" to "k"), urlsWithoutHeaders = setOf(paired)),
-                emptySet(),
-                emptyMqtt()
-            )
-        )
+    fun `each destination keeps its own secret and headers when another one is edited`() = runTest {
+        val settings = twoReceivers()
         val vm = vm(settings)
 
-        // Adding a header is no reason to send it to the paired URL.
-        vm.addHeader("Authorization", "Bearer t")
-        assertEquals(setOf(paired), vm.state.value.draft.webhook.urlsWithoutHeaders)
-
-        // Removing it forgets the mark; typing it in again is the user's own choice.
-        vm.removeUrl(1)
-        assertTrue(vm.state.value.draft.webhook.urlsWithoutHeaders.isEmpty())
-        vm.addUrl(paired)
+        vm.setSecret(ha.id, "rotated")
+        vm.addHeader(ha.id, "Authorization", "Bearer t")
+        vm.removeHeader(stack.id, "X-Api-Key")
         vm.save()
-        assertEquals(listOf("https://mine/hook", paired), settings.health.webhook.urls)
-        assertTrue(settings.health.webhook.urlsWithoutHeaders.isEmpty())
+
+        assertEquals(listOf(stack.copy(headers = emptyMap()), ha.copy(secret = "rotated", headers = mapOf("Authorization" to "Bearer t"))), settings.health.webhook.destinations)
     }
 
     @Test
-    fun `typing a paired URL in again lifts its mark without listing it twice`() = runTest {
-        val paired = "https://paired.example/hook"
-        val settings = FakeAppSettings(
-            health = HealthDraft(
-                WebhookDraft(urls = listOf("https://mine/hook", paired), headers = mapOf("X-Api-Key" to "k"), urlsWithoutHeaders = setOf(paired)),
-                emptySet(),
-                emptyMqtt()
-            )
-        )
+    fun `editedUrlKeepsItsSecretAndHeaders`() = runTest {
+        val settings = twoReceivers()
         val vm = vm(settings)
 
-        vm.addUrl(paired)
+        vm.setDestinationUrl(stack.id, " https://stack.example:8443/health ")
         vm.save()
-        assertEquals(listOf("https://mine/hook", paired), settings.health.webhook.urls)
-        assertTrue(settings.health.webhook.urlsWithoutHeaders.isEmpty())
+
+        // Trimmed on save, and still the same destination: its id, secret and headers stay.
+        assertEquals(listOf(stack.copy(url = "https://stack.example:8443/health"), ha), settings.health.webhook.destinations)
+    }
+
+    @Test
+    fun `a URL added by hand starts with the secret the others share and no headers`() = runTest {
+        val shared = FakeAppSettings(
+            health = HealthDraft(WebhookDraft(destinations = listOf(stack)), emptySet(), emptyMqtt())
+        )
+        val vm = vm(shared)
+        vm.addUrl("https://third.example/hook")
+        val added = vm.state.value.draft.webhook.destinations.last()
+        assertEquals("stack-secret", added.secret)
+        assertTrue(added.headers.isEmpty())
+
+        // Two different secrets: the section's own one is the default.
+        val vm2 = vm(twoReceivers())
+        vm2.addUrl("https://third.example/hook")
+        assertEquals("stack-secret", vm2.state.value.draft.webhook.destinations.last().secret)
+
+        // The same address twice is one destination.
+        vm2.addUrl(ha.url)
+        assertEquals(3, vm2.state.value.draft.webhook.destinations.size)
+    }
+
+    @Test
+    fun `an address moved to another host leaves its headers and secret behind, and gets them back on its own host`() = runTest {
+        val settings = twoReceivers()
+        val vm = vm(settings)
+
+        // A new port or scheme is the same receiver.
+        vm.setDestinationUrl(stack.id, "http://stack.example:8080/health")
+        assertEquals(stack.copy(url = "http://stack.example:8080/health"), vm.state.value.draft.webhook.destinations.first())
+
+        // Another host starts like a new address: no headers, and the secret a new one would get.
+        vm.setDestinationUrl(stack.id, "https://elsewhere.example/health")
+        val moved = vm.state.value.draft.webhook.destinations.first()
+        assertTrue(moved.headers.isEmpty())
+        assertEquals("the one the other destinations share", ha.secret, moved.secret)
+
+        // Typed back to its own host, as happens mid-edit, it has its own again.
+        vm.setDestinationUrl(stack.id, stack.url)
+        assertEquals(stack, vm.state.value.draft.webhook.destinations.first())
+    }
+
+    @Test
+    fun `an address listed twice is refused, added or edited`() = runTest {
+        val settings = twoReceivers()
+        val vm = vm(settings)
+        val toasts = mutableListOf<UiMessage>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+
+        vm.addUrl(" ${ha.url} ")
+        assertEquals(UiMessage.DuplicateUrl, toasts.last())
+
+        vm.setDestinationUrl(stack.id, ha.url)
+        vm.save()
+        assertEquals(UiMessage.DuplicateUrl, toasts.last())
+        assertEquals(0, settings.savedHealth)
+        job.cancel()
+    }
+
+    @Test
+    fun `headers and a secret can be copied from another destination`() = runTest {
+        val vm = vm(twoReceivers())
+
+        vm.copyHeaders(ha.id, stack.id)
+        vm.copySecret(ha.id, stack.id)
+
+        assertEquals(ha.copy(headers = stack.headers, secret = stack.secret), vm.state.value.draft.webhook.destinations.last())
+        assertEquals("the source keeps its own", stack, vm.state.value.draft.webhook.destinations.first())
+    }
+
+    @Test
+    fun `a save the secure storage cannot keep is refused and stays unsaved`() = runTest {
+        val settings = FakeAppSettings().apply { refuseSaves = true }
+        val vm = vm(settings)
+        val toasts = mutableListOf<UiMessage>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+
+        vm.addUrl("https://example.org/hook")
+        vm.save()
+
+        assertEquals(UiMessage.SecretsNotReady, toasts.last())
+        assertTrue(toasts.last().isFailure)
+        assertTrue("the user can try again", vm.state.value.hasChanges)
+        job.cancel()
+    }
+
+    @Test
+    fun `urlWithCredentialsIsRejected when added or edited, and one saved before keeps working`() = runTest {
+        val legacy = Destination(id = "old", url = "https://old.example/hook?token=abc")
+        val settings = FakeAppSettings(health = HealthDraft(WebhookDraft(destinations = listOf(legacy)), emptySet(), emptyMqtt()))
+        val vm = vm(settings)
+        val toasts = mutableListOf<UiMessage>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+
+        vm.addUrl("https://user:pass@example.org/hook")
+        assertEquals(UiMessage.UrlHasCredentials(null), toasts.last())
+        vm.addUrl("https://example.org/hook?apiKey=k")
+        assertEquals(UiMessage.UrlHasCredentials("apiKey"), toasts.last())
+        assertEquals(listOf(legacy), vm.state.value.draft.webhook.destinations)
+
+        // Saved before the check existed: saving the tab keeps it.
+        vm.addUrl("https://example.org/hook")
+        vm.save()
+        assertEquals(UiMessage.Saved, toasts.last())
+
+        // Edited, it is checked like a new one.
+        vm.setDestinationUrl(legacy.id, "https://old.example/hook?password=x")
+        vm.save()
+        assertEquals(UiMessage.UrlHasCredentials("password"), toasts.last())
+        assertEquals(1, settings.savedHealth)
+
+        // An Apps Script web app can only check a token in its URL.
+        vm.setDestinationUrl(legacy.id, "https://script.google.com/macros/s/abc/exec?token=t")
+        vm.save()
+        assertEquals(UiMessage.Saved, toasts.last())
+        job.cancel()
     }
 
     @Test
@@ -574,7 +684,7 @@ class HealthConnectViewModelTest {
     private val writeWeight = WriteBackType.WEIGHT.writePermission
 
     private fun pairedSettings(vararg urls: String, secret: String = "s3cret") = FakeAppSettings(
-        health = HealthDraft(WebhookDraft(urls = urls.toList(), secret = secret), emptySet(), emptyMqtt())
+        health = HealthDraft(WebhookDraft(destinations = destinationsOf(urls.toList(), secret = secret.ifEmpty { null })), emptySet(), emptyMqtt())
     )
 
     @Test

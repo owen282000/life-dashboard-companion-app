@@ -26,6 +26,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.owen282000.lifedashboard.Destination
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.screens.DataTypesRow
@@ -34,6 +35,7 @@ import com.owen282000.lifedashboard.screens.SyncMessageLine
 import com.owen282000.lifedashboard.screens.WebhookRow
 import com.owen282000.lifedashboard.ui.theme.HealthPrimary
 import com.owen282000.lifedashboard.viewmodel.UiMessage
+import com.owen282000.lifedashboard.viewmodel.WebhookActions
 import com.owen282000.lifedashboard.viewmodel.WebhookDraft
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -109,14 +111,19 @@ class TalkBackSemanticsTest {
             MaterialTheme {
                 WebhookRow(
                     accent = HealthPrimary,
-                    webhook = WebhookDraft(urls = listOf("https://ha.example/api/webhook/x")),
+                    webhook = WebhookDraft(destinations = listOf(Destination(id = "ha", url = "https://ha.example/api/webhook/x"))),
                     expanded = true,
                     onToggle = {},
-                    onAddUrl = {},
-                    onRemoveUrl = {},
-                    onAddHeader = { _, _ -> },
-                    onRemoveHeader = {},
-                    onSecretChange = {},
+                    actions = object : WebhookActions {
+                        override fun addUrl(url: String) = Unit
+                        override fun setDestinationUrl(id: String, url: String) = Unit
+                        override fun removeDestination(id: String) = Unit
+                        override fun addHeader(id: String, key: String, value: String) = Unit
+                        override fun removeHeader(id: String, key: String) = Unit
+                        override fun setSecret(id: String, secret: String) = Unit
+                        override fun copyHeaders(id: String, from: String) = Unit
+                        override fun copySecret(id: String, from: String) = Unit
+                    },
                     onScanRequested = {}
                 )
             }

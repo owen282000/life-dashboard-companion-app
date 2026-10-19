@@ -55,7 +55,7 @@
     <string name="webhook_header_value_invalid">Een headerwaarde mag alleen gewone ASCII-tekens bevatten, zonder regeleinden of letters zoals é</string>
     <string name="webhook_header_name_blocks_delivery">Er is niets verstuurd: header %1$s heeft een naam die niet verstuurd kan worden. Verwijder hem onder Webhook en voeg hem opnieuw toe met een naam zonder spaties.</string>
     <string name="webhook_header_value_blocks_delivery">Er is niets verstuurd: de waarde van header %1$s bevat een regeleinde of een teken dat niet in een header kan. Verwijder hem onder Webhook en voeg hem opnieuw toe.</string>
-    <string name="webhook_headers_title">Webhook-headers</string>
+    <string name="webhook_headers_title">Webhook-headers (optioneel)</string>
     <string name="webhook_hmac_secret_description">Als dit is ingesteld, krijgt elke POST een X-Signature header (sha256=&lt;hex&gt;) die als HMAC-SHA256 over de body wordt berekend, zodat je server de afzender kan verifiëren.</string>
     <string name="webhook_hmac_secret_title">HMAC-ondertekeningssleutel (optioneel)</string>
     <plurals name="webhook_headers_count">
@@ -66,7 +66,19 @@
     <string name="webhook_shared_secret">Gedeeld geheim</string>
     <string name="webhook_url_placeholder">https://...</string>
     <string name="webhook_urls_configured">%1$d ingesteld</string>
-    <string name="webhook_url_without_headers">Gekoppeld via QR-code: eigen headers gaan hier niet heen</string>
+    <string name="webhook_destinations_hint">Tik op een adres voor zijn eigen headers en ondertekeningsgeheim. Geen van beide gaat naar een ander adres.</string>
+    <string name="webhook_destination_summary">%1$s, %2$s</string>
+    <string name="webhook_destination_signed">Ondertekend</string>
+    <string name="webhook_destination_unsigned">Niet ondertekend</string>
+    <string name="webhook_destination_no_headers">geen headers</string>
+    <string name="webhook_destination_url">Adres</string>
+    <string name="webhook_destination_open">headers en geheim tonen</string>
+    <string name="webhook_destination_moved">Een andere host dan %1$s: de headers zijn gewist en het geheim teruggezet, zodat niets wat voor %1$s was ingesteld hierheen gaat.</string>
+    <string name="webhook_copy_headers_from">Headers kopiëren van %1$s</string>
+    <string name="webhook_use_secret_of">Hetzelfde geheim gebruiken als %1$s</string>
+    <string name="webhook_url_duplicate">Dit adres staat al in de lijst</string>
+    <string name="webhook_url_user_info">Haal de gebruikersnaam of het wachtwoord uit het adres. Adressen staan als gewone tekst in de instellingen, in back-ups en in de logs; zet de inloggegevens in een header van dit adres.</string>
+    <string name="webhook_url_credential_parameter">Haal %1$s= uit het adres. Adressen staan als gewone tekst in de instellingen, in back-ups en in de logs; zet de inloggegevens in een header van dit adres.</string>
     <string name="webhook_urls_title">Webhook-URL\'s</string>
 
     <!-- Gedeelde synchronisatiesectie, gebruikt door Health Connect en Schermtijd -->
@@ -651,8 +663,8 @@
     <string name="pairing_sections_label">Versturen vanaf</string>
     <string name="pairing_section_health">Gezondheid</string>
     <string name="pairing_section_screen_time">Schermtijd</string>
-    <string name="pairing_replaces_secret">Vervangt het ondertekeningsgeheim dat dit onderdeel nu gebruikt.</string>
-    <string name="pairing_replaces_secret_others">Vervangt het ondertekeningsgeheim dat dit onderdeel nu gebruikt. %1$s krijgt vanaf dan payloads met het nieuwe: controleert het handtekeningen, geef het dan ook het nieuwe geheim, of haal het weg.</string>
+    <string name="pairing_replaces_secret">Vervangt het ondertekeningsgeheim dat dit adres nu gebruikt.</string>
+    <string name="pairing_others_keep_secret">Andere adressen houden hun eigen ondertekeningsgeheim en headers: %1$s.</string>
     <string name="pairing_already_paired">Dit onderdeel verstuurt hier al naartoe. Er verandert niets.</string>
     <string name="pairing_types_note">Welke gegevenstypen worden verstuurd, en wanneer, blijft jouw keuze op de tabbladen. Koppelen vult alleen het adres en het geheim in.</string>
     <string name="pairing_confirm">Koppelen</string>
@@ -720,6 +732,7 @@
     <string name="health_record_metadata_description">Voegt aan elk record toe wanneer het voor het laatst gewijzigd is, de eigen id en versie van de schrijvende app, hoe het is vastgelegd, het apparaat en de tijdzone, waar Health Connect die heeft. Maakt payloads groter, het meest bij hartslag.</string>
     <!-- The secret store lost its secrets -->
     <string name="secrets_lost_banner">Opgeslagen auth-headers, signing secrets en MQTT-wachtwoorden konden niet worden teruggehaald en moeten opnieuw worden ingevoerd. Tot dan weigert een webhook die ze controleert de data.</string>
+    <string name="secrets_not_ready">Er is niets opgeslagen: de beveiligde opslag is nog niet klaar, dus headers en ondertekeningsgeheimen kunnen nu niet worden bewaard. Probeer het zo opnieuw; blijft het gebeuren, ontgrendel dan het toestel en open de app opnieuw.</string>
     <string name="battery_hint_title">Batterijoptimalisatie staat aan</string>
     <string name="battery_hint_body">Android kan geplande syncs uren uitstellen of overslaan. Laat de app zonder beperkingen op de achtergrond draaien.</string>
     <string name="battery_hint_fix">Oplossen</string>

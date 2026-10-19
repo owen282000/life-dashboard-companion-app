@@ -21,8 +21,8 @@ Webhook auth headers, HMAC signing secrets and MQTT passwords are stored encrypt
 | Included | Not included |
 |---|---|
 | Webhook URLs, per section | Sync watermarks (last-sync timestamps), client certificate choice |
-| Custom headers, and which URLs get none (the ones QR pairing added) | Webhook logs and raw payloads |
-| HMAC signing secrets | Lifetime statistics |
+| Custom headers, per address | Webhook logs and raw payloads |
+| HMAC signing secrets, per address | Lifetime statistics |
 | The sync schedule per section: interval or fixed times, days and quiet hours | Health Connect permissions |
 | MQTT brokers, topics and switches | Usage access permission |
 | The 33 data-type toggles | Which entities Home Assistant sends (that choice lives in the integration) |
@@ -59,7 +59,11 @@ Permissions are granted by Android, not by the app, so you still grant Health Co
 
 An import replaces your current configuration, so the preview shows the webhook counts, data types and broker count first, and below them what the file leaves as it is. A setting the file does not mention keeps the value on the device; it is never reset to its default because a key is missing. A file without secrets keeps the credentials already on the device rather than clearing them, so you can import a shared setup and fill in your own tokens. A broker keeps its username and password only when the file points at the same broker: the same host, port and TLS setting. Otherwise they are left empty. That way they never go to a server they were not set for, or out in plain text to a broker that used TLS.
 
-Custom headers follow the same rule. A file with headers restores them together with its own list of URLs that get none. A file without them keeps the headers on the device, and those go only to the URLs they went to before the import: a URL that is new to the device, or one that QR pairing added there, gets none of them.
+Every address has its own headers and signing secret. A file with secrets restores each address with the ones the file has for it. A file without secrets keeps what the phone has for the same address, matched by its `id` first and by the URL second, so an address whose URL you corrected still matches; an address without a secret on the phone stays without one. An address that is new to the phone starts with the section's signing secret and no headers, like one you add by hand.
+
+A file from before 1.28.0, or from the iPhone app, has no `destinations` and is read the way it was written: its signing secret goes to every address, and its headers to every address that is not in its `urls_without_headers`. Without headers in the file, each address keeps the headers the phone has for it, and an address new to the phone gets none.
+
+Right after a restart the phone's secure storage can need a moment. An import then changes nothing and says so; import again a little later.
 
 Reopen the app after importing so every screen reads the new values.
 
@@ -82,7 +86,11 @@ Plain exports are readable JSON:
     "sync_days": "MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY,SUNDAY",
     "quiet_from": null,
     "quiet_to": null,
-    "urls_without_headers": ["https://ha.example.com/api/webhook/abc"]
+    "urls_without_headers": ["https://ha.example.com/api/webhook/abc"],
+    "destinations": [
+      { "id": "0f8e0c4e-6a43-4c55-9d6c-2b1f9a0d7e11", "url": "https://example.com/health", "format": "default", "headers": {} },
+      { "id": "5b1d2a7c-91f0-4e8a-b3c4-7d6e5f4a3b21", "url": "https://ha.example.com/api/webhook/abc", "format": "default", "headers": {} }
+    ]
   },
   "screen_time": {
     "webhook_urls": ["https://ha.example.com/api/webhook/abc"],
@@ -128,7 +136,9 @@ Plain exports are readable JSON:
 }
 ```
 
-`urls_without_headers` lists the webhook URLs of that section that QR pairing added, which get none of its custom headers. A backup written before this list existed has none, and imports the way it always did, with the headers going to every URL.
+`destinations` lists each address of the section with its own settings: `id` (stays the same when the URL is edited), `url`, `format` (always `default`, the JSON payload), `headers` and `signing_secret`. An export with secrets fills in `headers` and `signing_secret` per address; one without secrets leaves `headers` empty and `signing_secret` out. The block never holds `null`: an address without a secret has no `signing_secret` key. When a file has `destinations`, the import takes the addresses, headers and secrets from there and ignores the section keys below.
+
+`webhook_urls`, `headers`, `signing_secret` and `urls_without_headers` are still written for a reader without destinations: Android before 1.28.0 and the iPhone app. Such a reader signs every address with the section's `signing_secret` and sends the section's `headers` to every address not in `urls_without_headers`. So `headers` is only filled in when every address with headers has the same ones, and the addresses without headers are listed in `urls_without_headers` (none when no address has headers); when two addresses have different headers, `headers` is empty and every address is listed. `signing_secret` is only filled in when every address has the same secret. An older reader then gets a 401 from a receiver whose secret it does not have, instead of sending one receiver's key to another. A backup written before `urls_without_headers` existed has none, and imports the way it always did, with the headers going to every URL.
 
 Each section's schedule is in five keys next to `sync_interval_minutes`. `sync_mode` is `INTERVAL` (every `sync_interval_minutes` minutes) or `TIMES` (at the times in `sync_times`, `HH:mm` and comma separated). `sync_days` lists the days a sync may run, as uppercase English day names (`MONDAY`). `quiet_from` and `quiet_to` hold the quiet hours, or `null` for none. A file with none of these five keys moves only the interval and leaves the rest of the schedule as it is.
 

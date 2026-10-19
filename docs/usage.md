@@ -73,11 +73,11 @@ The integration shows a QR code when you add it, and again under its **Reconfigu
 - **From the Webhook card** on the **Health** or **Screen Time** tab, with **Scan a pairing code**. Once an address is set up, this becomes a small QR icon inside the address field.
 - **With the phone's camera.** Point it at the code. The app opens straight from the camera, because the code is a link that Android checks against the app's signing certificate.
 
-Under **Send from**, pick which sections to fill: **Health**, **Screen Time** or both. The dialog warns you when a section's existing signing secret will be replaced. A section has one secret for all its webhooks, so after pairing, your other webhooks in that section get payloads signed with the new secret. If they check signatures, give them the new secret too, or they'll reject the data. The dialog also offers to allow plain HTTP when the address starts with `http://`. Nothing is saved until you tap **Pair**. A code only fills in the address and the secret. You still choose which data types sync, and how often, on the tabs.
+Under **Send from**, pick which sections to fill: **Health**, **Screen Time** or both. The secret goes to the paired address alone: every other address in the section keeps its own secret and headers, which the dialog lists, so pairing Home Assistant does not break a receiver you already had, or the other way round. Pairing an address that is already there again replaces only its own secret, and the dialog says so. The dialog also offers to allow plain HTTP when the address starts with `http://`. Nothing is saved until you tap **Pair**. A code only fills in the address and the secret. You still choose which data types sync, and how often, on the tabs.
 
 Pairing from the **Webhook** card or with the camera reloads both tabs from the saved settings, so tap **Save Changes** first if you have unsaved changes (see [Changing settings later](#changing-settings-later)).
 
-A header name can only use the characters HTTP allows in one (letters, digits and ``!#$%&'*+-.^_`|~``, no spaces), and a value only printable ASCII without line breaks; the app refuses anything else when you add it. An address added by pairing gets none of the custom headers you set for that section. Those headers were meant for addresses you entered yourself, and a code can come from anyone, so an API key is never sent to a scanned address. The **Webhook** card says so under the address while the section has headers. To send the headers there anyway, type the address in by hand.
+A header name can only use the characters HTTP allows in one (letters, digits and ``!#$%&'*+-.^_`|~``, no spaces), and a value only printable ASCII without line breaks; the app refuses anything else when you add it. An address added by pairing starts without custom headers. Headers belong to the address they were set for, and a code can come from anyone, so an API key is never sent to a scanned address. To send a header there, tap the address on the **Webhook** card and add it.
 
 Without the app installed, the code opens a web page that explains where to get it. The secret sits in the part of the link after the `#`, which a browser never sends to any server.
 
@@ -118,10 +118,10 @@ Everything the wizard sets can be changed later on the **Health** and **Screen T
 
 Most settings on a tab are a draft until you save them. As soon as you change one, a green **Save Changes** button appears near the bottom of the tab, below **Sync Now**. These need it:
 
-- On the **Health** tab: **Data Types**, **Data Resolution**, **Sync Schedule**, **Webhook** (including **Webhook Headers** and the signing secret) and **MQTT**.
+- On the **Health** tab: **Data Types**, **Data Resolution**, **Sync Schedule**, **Webhook** (the addresses, and each address's **Webhook Headers** and signing secret) and **MQTT**.
 - On the **Screen Time** tab: **Sync Schedule**, **Webhook**, **MQTT**, **Day Boundary** and **Apps to send**.
 
-An unsaved change survives a look at the other tab, but it is lost when you close the app or Android ends it in the background. Scheduled syncs and **Backfill** always use the saved settings. **View** and **Export** on the **Health** tab use the **Data Types** and **Data Resolution** shown on screen, without saving them. **Sync Now** saves your unsaved changes first, on both tabs, and does not sync when they can't be saved; without unsaved changes it saves nothing. **Test ping** uses the address and secret on screen, saved or not.
+An unsaved change survives a look at the other tab, but it is lost when you close the app or Android ends it in the background. Scheduled syncs and **Backfill** always use the saved settings. **View** and **Export** on the **Health** tab use the **Data Types** and **Data Resolution** shown on screen, without saving them. **Sync Now** saves your unsaved changes first, on both tabs, and does not sync when they can't be saved; without unsaved changes it saves nothing. Right after a restart the phone's secure storage can need a moment: a save, a pairing or an import then changes nothing and says so, and works when you try again. **Test ping** uses the addresses, headers and secrets on screen, saved or not.
 
 The rest takes effect the moment you change it: everything under **Advanced** and **Notifications**, and **Receive** on the **Health** tab.
 
@@ -209,10 +209,11 @@ For a throwaway test setup on a laptop, see the Docker setup in [building.md](bu
 
 For your own server or dashboard, the app sends a JSON POST to every address you enter, after every sync. [webhook.md](webhook.md) describes every field. [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is an example backend with a receiver, Postgres and Grafana.
 
-1. On the **Health** tab, open **Webhook** and add your URL. The **Screen Time** tab has its own list. A URL you entered in the wizard is already on the tabs you picked there.
-2. Optional: add headers under **Webhook Headers**, such as an API key or `Authorization` token.
-3. Optional but recommended: set an **HMAC signing secret**. **Generate** makes one and **Copy** puts it on the clipboard. Your server can then check that each request really came from your phone ([webhook.md](webhook.md#verifying-the-signature) explains how).
-4. Tap **Test ping**: a small POST that tells you whether your server accepts it. Then tap **Save Changes** to keep the settings.
+1. On the **Health** tab, open **Webhook** and add your URL. The **Screen Time** tab has its own list. A URL you entered in the wizard is already on the tabs you picked there. An address cannot hold a user name, a password or a query parameter such as `token=` or `apikey=`: addresses are stored as plain text and show up in backups and the logs. Put a credential in a header instead. A Google Apps Script URL is the exception, see [webhook.md](webhook.md#google-apps-script).
+2. Tap the address to open its own settings. You can correct the address there too: a new scheme, port or path (from `http://` to `https://`, say) keeps its headers and secret, while another host starts without headers and with the default secret, so nothing set for the old host goes to the new one. **Copy headers from** and **Use the same secret as** take them over from another address of the section.
+3. Optional: add headers under **Webhook Headers**, such as an API key or `Authorization` token. They go to this address only.
+4. Optional but recommended: set an **HMAC signing secret**. **Generate** makes one and **Copy** puts it on the clipboard. Your server can then check that each request really came from your phone ([webhook.md](webhook.md#verifying-the-signature) explains how). Each address has its own; a new address starts with the secret your other addresses share, if they share one.
+5. Tap **Test ping**: a small POST that tells you whether your server accepts it. Then tap **Save Changes** to keep the settings.
 
 Your server needs `https://` unless you switch on **Allow plain HTTP webhooks** under **Advanced**. Only do that for a server on your own network or VPN: the data then travels unencrypted.
 

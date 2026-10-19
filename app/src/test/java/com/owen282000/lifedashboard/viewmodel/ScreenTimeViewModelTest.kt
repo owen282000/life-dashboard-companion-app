@@ -63,9 +63,9 @@ class ScreenTimeViewModelTest {
         val toasts = mutableListOf<UiMessage>()
         val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
         vm.addUrl("https://example.org/hook")
-        vm.addHeader("Bad Header", "value")
+        vm.addHeader(vm.state.value.draft.webhook.destinations.single().id, "Bad Header", "value")
         assertEquals(UiMessage.InvalidHeaderName, toasts.last())
-        assertTrue(vm.state.value.draft.webhook.headers.isEmpty())
+        assertTrue(vm.state.value.draft.webhook.destinations.single().headers.isEmpty())
 
         val mqtt = vm.state.value.draft.mqtt
         val enabled = mqtt.copy(section = mqtt.section.copy(enabled = true))

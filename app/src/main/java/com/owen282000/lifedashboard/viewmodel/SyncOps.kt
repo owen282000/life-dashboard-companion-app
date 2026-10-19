@@ -131,7 +131,7 @@ class RealHealthOps(private val context: Context) : HealthOps {
     override fun stoppedBackfill() = BackfillWork.stopped(context)
 
     override suspend fun testPing(webhook: WebhookDraft): Result<Unit> =
-        TestPing.send(context, webhook.urls, webhook.secret, LogType.HEALTH_CONNECT, webhook.headers, webhook.urlsWithoutHeaders)
+        TestPing.send(context, webhook.trimmed().destinations, LogType.HEALTH_CONNECT)
 }
 
 class RealScreenTimeOps(private val context: Context, private val prefs: PreferencesManager) : ScreenTimeOps {
@@ -140,7 +140,7 @@ class RealScreenTimeOps(private val context: Context, private val prefs: Prefere
     override suspend fun preview() = ScreenTimeSyncManager(context).previewData()
 
     override suspend fun testPing(webhook: WebhookDraft): Result<Unit> =
-        TestPing.send(context, webhook.urls, webhook.secret, LogType.SCREEN_TIME, webhook.headers, webhook.urlsWithoutHeaders)
+        TestPing.send(context, webhook.trimmed().destinations, LogType.SCREEN_TIME)
 
     override suspend fun appChoices(listed: Set<String>): List<AppChoice> = withContext(Dispatchers.IO) {
         val manager = ScreenTimeManager(context, prefs)

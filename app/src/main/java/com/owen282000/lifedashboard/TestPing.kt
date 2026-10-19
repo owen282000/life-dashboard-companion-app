@@ -40,30 +40,25 @@ object TestPing {
     }
 
     /**
-     * Sends one ping to [urls], logged in the Logs tab like any delivery. The failure carries
-     * the reason the user sees. Never queued: a ping that did not arrive has nothing to keep.
+     * Sends one ping to [destinations], each signed with its own secret and with its own
+     * headers, and logged in the Logs tab like any delivery. The failure carries the reason the
+     * user sees. Never queued: a ping that did not arrive has nothing to keep.
      */
-    suspend fun send(
-        context: Context,
-        urls: List<String>,
-        secret: String?,
-        logType: LogType,
-        headers: Map<String, String> = emptyMap(),
-        urlsWithoutHeaders: Set<String> = emptySet()
-    ): Result<Unit> = try {
+    suspend fun send(context: Context, destinations: List<Destination>, logType: LogType): Result<Unit> = try {
         WebhookManager(
-            webhookUrls = urls,
+            destinations = destinations,
             context = context,
             dataType = "test",
             recordCount = 0,
-            logType = logType,
-            customHeaders = headers,
-            urlsWithoutHeaders = urlsWithoutHeaders,
-            signingSecret = secret?.trim()?.ifBlank { null }
+            logType = logType
         ).postData(payload(logType, appVersion(context))).map { }
     } catch (e: kotlinx.coroutines.CancellationException) {
         throw e
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    /** One ping to [url], signed with [secret] and without headers: the wizard's check before anything is stored. */
+    suspend fun send(context: Context, url: String, secret: String?, logType: LogType): Result<Unit> =
+        send(context, listOf(Destination(id = Destinations.newId(), url = url.trim(), secret = secret?.trim()?.ifBlank { null })), logType)
 }

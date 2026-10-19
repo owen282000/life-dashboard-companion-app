@@ -6,27 +6,21 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 private class FakePairingStore(
-    var healthUrls: List<String> = emptyList(),
-    var healthSecret: String? = null,
-    var screenTimeUrls: List<String> = emptyList(),
-    var screenTimeSecret: String? = null,
+    var health: List<Destination> = emptyList(),
+    var screenTime: List<Destination> = emptyList(),
     var plainHttpAllowed: Boolean = false,
-    var healthWithoutHeaders: Set<String> = emptySet(),
-    var screenTimeWithoutHeaders: Set<String> = emptySet()
+    /** The secure storage is not ready: nothing is stored. */
+    var refuse: Boolean = false
 ) : PairingStore {
-    override fun health() = SectionWebhook(healthUrls, healthSecret, healthWithoutHeaders)
-    override fun screenTime() = SectionWebhook(screenTimeUrls, screenTimeSecret, screenTimeWithoutHeaders)
+    val healthUrls get() = health.map { it.url }
+    val screenTimeUrls get() = screenTime.map { it.url }
 
-    override fun setHealth(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>) {
-        healthUrls = urls
-        healthSecret = secret
-        healthWithoutHeaders = urlsWithoutHeaders
-    }
+    override fun destinations(source: PairingSource) = if (source == PairingSource.HEALTH) health else screenTime
 
-    override fun setScreenTime(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>) {
-        screenTimeUrls = urls
-        screenTimeSecret = secret
-        screenTimeWithoutHeaders = urlsWithoutHeaders
+    override fun setDestinations(source: PairingSource, destinations: List<Destination>): Boolean {
+        if (refuse) return false
+        if (source == PairingSource.HEALTH) health = destinations else screenTime = destinations
+        return true
     }
 
     override fun setAllowPlainHttp(enabled: Boolean) {
@@ -43,38 +37,73 @@ class PairingApplyTest {
         sources = setOf(PairingSource.HEALTH, PairingSource.SCREEN_TIME)
     )
     private val both = PairingChoice(health = true, screenTime = true, allowPlainHttp = true)
+    private var ids = 0
+    private val newId = { "new-${ids++}" }
+    private val stack = Destination(id = "stack", url = "https://stack.example/health", secret = "stack-secret", headers = mapOf("X-Api-Key" to "k"))
 
     @Test
     fun aFreshInstallGetsTheAddressAndTheSecret() {
         val store = FakePairingStore()
 
-        val written = PairingApply.apply(link, both, store)
+        val written = PairingApply.apply(link, both, store, newId).written
 
         assertEquals(setOf(PairingSource.HEALTH, PairingSource.SCREEN_TIME), written)
         assertEquals(listOf(link.url), store.healthUrls)
         assertEquals(listOf(link.url), store.screenTimeUrls)
-        assertEquals("s3cret", store.healthSecret)
-        assertEquals("s3cret", store.screenTimeSecret)
+        assertEquals("s3cret", store.health.single().secret)
+        assertEquals("s3cret", store.screenTime.single().secret)
+    }
+
+    @Test
+    fun pairingSetsSecretOnlyOnThePairedDestination() {
+        // The stack paired first, Home Assistant second: before P2-13 this re-signed the stack
+        // with Home Assistant's secret and the stack answered 401 from then on.
+        val store = FakePairingStore(health = listOf(stack), screenTime = listOf(stack))
+
+        PairingApply.apply(link, both, store, newId)
+
+        for (section in listOf(store.health, store.screenTime)) {
+            assertEquals(stack, section.first())
+            val paired = section.last()
+            assertEquals(link.url, paired.url)
+            assertEquals("s3cret", paired.secret)
+        }
+
+        // Pairing the stack again with a rotated secret touches the stack alone.
+        val rotated = link.copy(url = stack.url, secret = "rotated")
+        PairingApply.apply(rotated, both, store, newId)
+        assertEquals(stack.copy(secret = "rotated"), store.health.first())
+        assertEquals("s3cret", store.health.last().secret)
+        assertEquals(2, store.health.size)
+    }
+
+    @Test
+    fun aPairingTheSecureStorageCannotKeepIsReportedAndChangesNothing() {
+        val store = FakePairingStore(health = listOf(stack), refuse = true)
+
+        val result = PairingApply.apply(link, both, store, newId)
+
+        assertEquals(setOf(PairingSource.HEALTH, PairingSource.SCREEN_TIME), result.refused)
+        assertTrue(result.written.isEmpty())
+        assertEquals(listOf(stack), store.health)
+        assertFalse("nothing paired, no permission change", store.plainHttpAllowed)
     }
 
     @Test
     fun anExistingReceiverIsKept() {
         // Someone feeding their own server as well should not lose it.
-        val store = FakePairingStore(
-            healthUrls = listOf("https://my.server/hook"),
-            healthSecret = "old"
-        )
+        val store = FakePairingStore(health = listOf(stack))
 
-        PairingApply.apply(link, both, store)
+        PairingApply.apply(link, both, store, newId)
 
-        assertEquals(listOf("https://my.server/hook", link.url), store.healthUrls)
+        assertEquals(listOf(stack.url, link.url), store.healthUrls)
     }
 
     @Test
     fun theSameAddressTwiceDoesNotDuplicate() {
-        val store = FakePairingStore(healthUrls = listOf(link.url))
+        val store = FakePairingStore(health = destinationsOf(listOf(link.url)))
 
-        PairingApply.apply(link, both, store)
+        PairingApply.apply(link, both, store, newId)
 
         assertEquals(listOf(link.url), store.healthUrls)
     }
@@ -87,11 +116,10 @@ class PairingApplyTest {
             link,
             PairingChoice(health = false, screenTime = true, allowPlainHttp = true),
             store
-        )
+        ).written
 
         assertEquals(setOf(PairingSource.SCREEN_TIME), written)
-        assertTrue(store.healthUrls.isEmpty())
-        assertEquals(null, store.healthSecret)
+        assertTrue(store.health.isEmpty())
         assertEquals(listOf(link.url), store.screenTimeUrls)
     }
 
@@ -100,7 +128,7 @@ class PairingApplyTest {
         val healthOnly = link.copy(sources = setOf(PairingSource.HEALTH))
         val store = FakePairingStore()
 
-        val written = PairingApply.apply(healthOnly, both, store)
+        val written = PairingApply.apply(healthOnly, both, store).written
 
         assertEquals(setOf(PairingSource.HEALTH), written)
         assertTrue(store.screenTimeUrls.isEmpty())
@@ -109,7 +137,7 @@ class PairingApplyTest {
     @Test
     fun plainHttpIsOnlyEnabledWhenAskedAndNeeded() {
         val store = FakePairingStore()
-        PairingApply.apply(link, both, store)
+        PairingApply.apply(link, both, store, newId)
         assertTrue("an internal HA address is http://", store.plainHttpAllowed)
 
         val declined = FakePairingStore()
@@ -129,7 +157,7 @@ class PairingApplyTest {
             link,
             PairingChoice(health = false, screenTime = false, allowPlainHttp = true),
             store
-        )
+        ).written
 
         assertTrue(written.isEmpty())
         assertTrue(store.healthUrls.isEmpty())
@@ -140,31 +168,30 @@ class PairingApplyTest {
     @Test
     fun thePreviewSaysWhatWillHappen() {
         assertEquals(
-            SectionChange(addsUrl = true, replacesSecret = false),
-            PairingApply.preview(link, SectionWebhook(emptyList(), null))
+            SectionChange(addsUrl = true, setsSecret = false, replacesSecret = false),
+            PairingApply.preview(link, emptyList())
         )
-        // The address already there keeps getting payloads, signed with the new secret from then on.
+        // The address already there keeps its own secret, which the dialog says.
         assertEquals(
-            SectionChange(addsUrl = true, replacesSecret = true, othersSignedWithNewSecret = listOf("https://other/hook")),
-            PairingApply.preview(link, SectionWebhook(listOf("https://other/hook"), "old"))
+            SectionChange(addsUrl = true, setsSecret = false, replacesSecret = false, othersKeepTheirOwn = listOf(stack.url)),
+            PairingApply.preview(link, listOf(stack))
         )
         // Already paired with this receiver: nothing to announce.
-        val unchanged = PairingApply.preview(link, SectionWebhook(listOf(link.url), link.secret))
-        assertEquals(SectionChange(addsUrl = false, replacesSecret = false), unchanged)
+        val unchanged = PairingApply.preview(link, destinationsOf(listOf(link.url), secret = link.secret))
+        assertEquals(SectionChange(addsUrl = false, setsSecret = false, replacesSecret = false), unchanged)
         assertTrue(unchanged.changesNothing)
-        // The same secret is not a replacement, even when the address is new.
-        assertEquals(
-            SectionChange(addsUrl = true, replacesSecret = false),
-            PairingApply.preview(link, SectionWebhook(listOf("https://other/hook"), link.secret))
-        )
+        // An address that had no secret gets one, which is a change but replaces nothing.
+        val signed = PairingApply.preview(link, destinationsOf(listOf(link.url)))
+        assertFalse(signed.changesNothing)
+        assertFalse(signed.replacesSecret)
     }
 
     @Test
     fun aRepairOfTheSameReceiverNamesNoOtherAddress() {
         // Pairing again with a rotated secret: the paired address itself is not an "other" one.
-        val change = PairingApply.preview(link, SectionWebhook(listOf(link.url), "rotated-away"))
+        val change = PairingApply.preview(link, destinationsOf(listOf(link.url), secret = "rotated-away"))
         assertTrue(change.replacesSecret)
-        assertEquals(emptyList<String>(), change.othersSignedWithNewSecret)
+        assertEquals(emptyList<String>(), change.othersKeepTheirOwn)
     }
 
     @Test
@@ -182,24 +209,24 @@ class PairingApplyTest {
     @Test
     fun aPairedAddressGetsNoCustomHeaders() {
         // A phishing code the user confirms must not receive the API keys typed for the others.
-        val store = FakePairingStore(healthUrls = listOf("https://my.server/hook"))
+        val store = FakePairingStore(health = listOf(stack), screenTime = listOf(stack))
 
-        PairingApply.apply(link, both, store)
+        PairingApply.apply(link, both, store, newId)
 
-        assertEquals(setOf(link.url), store.healthWithoutHeaders)
-        assertEquals(setOf(link.url), store.screenTimeWithoutHeaders)
-        val headers = mapOf("Authorization" to "Bearer key")
-        assertEquals(headers, WebhookSupport.headersFor("https://my.server/hook", headers, store.healthWithoutHeaders))
-        assertEquals(emptyMap<String, String>(), WebhookSupport.headersFor(link.url, headers, store.healthWithoutHeaders))
+        for (section in listOf(store.health, store.screenTime)) {
+            assertEquals(mapOf("X-Api-Key" to "k"), section.first { it.url == stack.url }.headers)
+            assertEquals(emptyMap<String, String>(), section.first { it.url == link.url }.headers)
+        }
     }
 
     @Test
     fun anAddressTypedInBeforeKeepsItsHeaders() {
         // Pairing adds nothing here, so it takes nothing away either.
-        val store = FakePairingStore(healthUrls = listOf(link.url), healthWithoutHeaders = setOf("https://old/hook"))
+        val typed = Destination(id = "typed", url = link.url, headers = mapOf("X-Api-Key" to "k"))
+        val store = FakePairingStore(health = listOf(typed))
 
-        PairingApply.apply(link, both.copy(screenTime = false), store)
+        PairingApply.apply(link, both.copy(screenTime = false), store, newId)
 
-        assertEquals(setOf("https://old/hook"), store.healthWithoutHeaders)
+        assertEquals(listOf(typed.copy(secret = link.secret)), store.health)
     }
 }

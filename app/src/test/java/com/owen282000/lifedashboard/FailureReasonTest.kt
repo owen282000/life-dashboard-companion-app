@@ -79,7 +79,7 @@ class FailureReasonTest {
             server.enqueue(MockResponse.Builder().code(404).build())
             val url = server.url("/api/webhook/secret-id?token=abc").toString()
 
-            val result = WebhookManager(webhookUrls = listOf(url), allowHttpOverride = true).postData("{}")
+            val result = WebhookManager(destinationsOf(listOf(url)), allowHttpOverride = true).postData("{}")
 
             assertTrue(result.isFailure)
             assertEquals("HTTP 404", FailureReason.of(result.exceptionOrNull()))

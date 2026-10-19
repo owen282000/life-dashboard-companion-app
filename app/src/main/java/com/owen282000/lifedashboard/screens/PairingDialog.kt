@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.owen282000.lifedashboard.Destination
 import com.owen282000.lifedashboard.PairingApply
 import com.owen282000.lifedashboard.PairingChoice
 import com.owen282000.lifedashboard.PairingLink
@@ -26,7 +27,6 @@ import com.owen282000.lifedashboard.PairingSource
 import com.owen282000.lifedashboard.PartialDelivery
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.SectionChange
-import com.owen282000.lifedashboard.SectionWebhook
 
 /**
  * The one thing that stands between a scanned code and the app's settings.
@@ -39,8 +39,8 @@ import com.owen282000.lifedashboard.SectionWebhook
 fun PairingDialog(
     link: PairingLink,
     accent: Color,
-    currentHealth: SectionWebhook,
-    currentScreenTime: SectionWebhook,
+    currentHealth: List<Destination>,
+    currentScreenTime: List<Destination>,
     onDismiss: () -> Unit,
     onConfirm: (PairingChoice) -> Unit
 ) {
@@ -155,10 +155,14 @@ fun PairingDialog(
 
 /** What this section is in for, when there is anything worth saying. */
 @Composable
-private fun sectionNote(change: SectionChange): String? = when {
-    change.changesNothing -> stringResource(R.string.pairing_already_paired)
-    change.replacesSecret && change.othersSignedWithNewSecret.isNotEmpty() ->
-        stringResource(R.string.pairing_replaces_secret_others, PartialDelivery.hosts(change.othersSignedWithNewSecret))
-    change.replacesSecret -> stringResource(R.string.pairing_replaces_secret)
-    else -> null
+private fun sectionNote(change: SectionChange): String? {
+    if (change.changesNothing) return stringResource(R.string.pairing_already_paired)
+    val replaces = if (change.replacesSecret) stringResource(R.string.pairing_replaces_secret) else null
+    // Said because 1.27.0 and older did re-sign them, and someone who paired before may expect it.
+    val others = if (change.othersKeepTheirOwn.isNotEmpty()) {
+        stringResource(R.string.pairing_others_keep_secret, PartialDelivery.hosts(change.othersKeepTheirOwn))
+    } else {
+        null
+    }
+    return listOfNotNull(replaces, others).joinToString(" ").ifEmpty { null }
 }

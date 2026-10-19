@@ -92,10 +92,7 @@ class WebhookRedirectTest {
 
     /** The manager as a sync builds it, but allowed to reach the local http:// servers. */
     private fun manager(urls: List<String>, urlsWithoutHeaders: Set<String> = emptySet()) = WebhookManager(
-        webhookUrls = urls,
-        customHeaders = mapOf("X-Api-Key" to "secret-key"),
-        urlsWithoutHeaders = urlsWithoutHeaders,
-        signingSecret = "s3cret",
+        destinations = Destinations.derive(LogType.HEALTH_CONNECT, urls, "s3cret", mapOf("X-Api-Key" to "secret-key"), urlsWithoutHeaders),
         allowHttpOverride = true
     )
 
@@ -106,6 +103,7 @@ class WebhookRedirectTest {
         receiver.enqueue(MockResponse.Builder().code(200).build())
         elsewhere.enqueue(MockResponse.Builder().code(200).build())
 
+        // Migrated from 1.27.0, where pairing marked the address instead of giving it headers of its own.
         assertTrue(manager(listOf(typed, paired), urlsWithoutHeaders = setOf(paired)).postData("{}").isSuccess)
 
         assertEquals("secret-key", receiver.takeRequest().headers["X-Api-Key"])
@@ -121,13 +119,14 @@ class WebhookRedirectTest {
         val paired = elsewhere.url("/paired").toString()
         elsewhere.enqueue(MockResponse.Builder().code(200).build())
         val manager = WebhookManager(
-            webhookUrls = listOf(typed, paired),
-            customHeaders = mapOf("Bad Header" to "secret-key"),
-            urlsWithoutHeaders = setOf(paired),
+            destinations = listOf(
+                Destination(id = "typed", url = typed, headers = mapOf("Bad Header" to "secret-key")),
+                Destination(id = "paired", url = paired)
+            ),
             allowHttpOverride = true
         )
 
-        // The paired URL gets no headers, so it still takes the payload.
+        // The paired URL has no headers, so it still takes the payload.
         val outcome = manager.postData("{}")
         assertTrue(outcome.isSuccess)
         assertEquals(listOf(typed), outcome.getOrNull()?.missedUrls)
@@ -135,8 +134,7 @@ class WebhookRedirectTest {
         assertEquals(1, elsewhere.requestCount)
 
         val failure = WebhookManager(
-            webhookUrls = listOf(typed),
-            customHeaders = mapOf("Bad Header" to "secret-key"),
+            destinations = destinationsOf(listOf(typed), headers = mapOf("Bad Header" to "secret-key")),
             allowHttpOverride = true
         ).postData("{}").exceptionOrNull()
         assertTrue(failure is InvalidHeaderException)
@@ -192,9 +190,7 @@ class WebhookRedirectTest {
 
     /** The manager with the two local servers standing in for Apps Script and its answer host. */
     private fun appsScriptManager(url: String) = WebhookManager(
-        webhookUrls = listOf(url),
-        customHeaders = mapOf("X-Api-Key" to "secret-key"),
-        signingSecret = "s3cret",
+        destinations = destinationsOf(listOf(url), secret = "s3cret", headers = mapOf("X-Api-Key" to "secret-key")),
         allowHttpOverride = true,
         appsScriptRule = WebhookSupport.AppsScriptRule(
             scheme = "http",

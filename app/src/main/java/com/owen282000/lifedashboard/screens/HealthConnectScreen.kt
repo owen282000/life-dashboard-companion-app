@@ -234,12 +234,9 @@ fun HealthConnectContent(
                 webhook = draft.webhook,
                 expanded = webhookExpanded,
                 onToggle = { webhookExpanded = !webhookExpanded },
-                onAddUrl = actions::addUrl,
-                onRemoveUrl = actions::removeUrl,
-                onAddHeader = actions::addHeader,
-                onRemoveHeader = actions::removeHeader,
-                onSecretChange = actions::setSecret,
-                onScanRequested = onScanRequested
+                actions = actions,
+                onScanRequested = onScanRequested,
+                saved = state.saved.webhook
             )
             GroupDivider()
             ReceiveRow(

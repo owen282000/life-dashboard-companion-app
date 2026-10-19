@@ -65,22 +65,16 @@ object PendingDrainer {
             if (System.currentTimeMillis() - startedAt >= DRAIN_BUDGET_MS) break
             val isScreenTime = item.logType == LogType.SCREEN_TIME.name
             val logType = if (isScreenTime) LogType.SCREEN_TIME else LogType.HEALTH_CONNECT
-            val urls = if (isScreenTime) preferencesManager.getScreenTimeWebhookUrls()
-                       else preferencesManager.getHealthWebhookUrls()
-            if (urls.isEmpty()) continue
+            val destinations = preferencesManager.getDestinations(logType)
+            if (destinations.isEmpty()) continue
+            val urls = destinations.map { it.url }
 
             val webhookManager = WebhookManager(
-                webhookUrls = urls,
+                destinations = destinations,
                 context = context,
                 dataType = item.dataType,
                 recordCount = item.recordCount,
-                logType = logType,
-                customHeaders = if (isScreenTime) preferencesManager.getScreenTimeWebhookHeaders()
-                                else preferencesManager.getHealthWebhookHeaders(),
-                urlsWithoutHeaders = if (isScreenTime) preferencesManager.getScreenTimeUrlsWithoutHeaders()
-                                     else preferencesManager.getHealthUrlsWithoutHeaders(),
-                signingSecret = if (isScreenTime) preferencesManager.getScreenTimeWebhookSecret()
-                                else preferencesManager.getHealthWebhookSecret()
+                logType = logType
             )
 
             val result = webhookManager.postData(item.payload)

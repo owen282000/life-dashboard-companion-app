@@ -19,9 +19,13 @@ import com.owen282000.lifedashboard.WriteBackType
  */
 interface AppSettings {
     fun loadHealth(): HealthDraft
-    fun saveHealth(draft: HealthDraft, interval: Int)
+
+    /** False when nothing was saved because the secure storage is not ready yet; the draft stays unsaved. */
+    fun saveHealth(draft: HealthDraft, interval: Int): Boolean
     fun loadScreenTime(): ScreenTimeDraft
-    fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int)
+
+    /** False when nothing was saved, see [saveHealth]. */
+    fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int): Boolean
 
     /** Written straight through when a fresh install pre-selects the types it already has permission for. */
     fun setHealthEnabledTypes(types: Set<HealthDataType>)
@@ -72,37 +76,32 @@ class PreferencesAppSettings(
     override fun loadHealth() = HealthDraft(
         schedule = ScheduleDraft.from(prefs.getSyncSchedule(LogType.HEALTH_CONNECT)),
         webhook = WebhookDraft(
-            urls = prefs.getHealthWebhookUrls(),
-            headers = prefs.getHealthWebhookHeaders(),
-            secret = prefs.getHealthWebhookSecret() ?: "",
-            urlsWithoutHeaders = prefs.getHealthUrlsWithoutHeaders()
+            destinations = prefs.getDestinations(LogType.HEALTH_CONNECT),
+            sectionSecret = prefs.getSectionSecret(LogType.HEALTH_CONNECT).orEmpty()
         ),
         enabledTypes = prefs.getHealthEnabledDataTypes(),
         resolutions = prefs.getSeriesResolutions(),
         mqtt = MqttDraft.from(prefs.getMqttSection(MqttSection.HEALTH), prefs.getSharedMqttBroker())
     )
 
-    override fun saveHealth(draft: HealthDraft, interval: Int) {
+    override fun saveHealth(draft: HealthDraft, interval: Int): Boolean {
+        // First, so a refusal leaves every setting of the tab as it was.
+        if (!prefs.setDestinations(LogType.HEALTH_CONNECT, draft.webhook.destinations)) return false
         prefs.setSyncSchedule(LogType.HEALTH_CONNECT, draft.schedule.toSchedule(fallbackInterval = interval))
-        prefs.setHealthWebhookUrls(draft.webhook.urls)
         prefs.setHealthEnabledDataTypes(draft.enabledTypes)
         prefs.setSeriesResolutions(draft.resolutions)
-        prefs.setHealthWebhookHeaders(draft.webhook.headers)
-        prefs.setHealthUrlsWithoutHeaders(draft.webhook.urlsWithoutHeaders)
-        prefs.setHealthWebhookSecret(draft.webhook.secret.trim())
         val mqtt = draft.mqtt.withPort()
         prefs.setMqttSection(MqttSection.HEALTH, mqtt.section)
         prefs.setSharedMqttBroker(mqtt.sharedBroker)
         (context.applicationContext as? LifeDashboardApplication)?.scheduleHealthSyncWork()
+        return true
     }
 
     override fun loadScreenTime() = ScreenTimeDraft(
         schedule = ScheduleDraft.from(prefs.getSyncSchedule(LogType.SCREEN_TIME)),
         webhook = WebhookDraft(
-            urls = prefs.getScreenTimeWebhookUrls(),
-            headers = prefs.getScreenTimeWebhookHeaders(),
-            secret = prefs.getScreenTimeWebhookSecret() ?: "",
-            urlsWithoutHeaders = prefs.getScreenTimeUrlsWithoutHeaders()
+            destinations = prefs.getDestinations(LogType.SCREEN_TIME),
+            sectionSecret = prefs.getSectionSecret(LogType.SCREEN_TIME).orEmpty()
         ),
         dayBoundaryHour = prefs.getScreenTimeDayBoundaryHour().toString(),
         useDayBoundary = prefs.useScreenTimeDayBoundary(),
@@ -110,19 +109,17 @@ class PreferencesAppSettings(
         appFilter = prefs.getScreenTimeAppFilter()
     )
 
-    override fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int) {
+    override fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int): Boolean {
+        if (!prefs.setDestinations(LogType.SCREEN_TIME, draft.webhook.destinations)) return false
         prefs.setSyncSchedule(LogType.SCREEN_TIME, draft.schedule.toSchedule(fallbackInterval = interval))
-        prefs.setScreenTimeWebhookUrls(draft.webhook.urls)
         prefs.setScreenTimeDayBoundaryHour(dayBoundaryHour)
         prefs.setUseScreenTimeDayBoundary(draft.useDayBoundary)
         prefs.setScreenTimeAppFilter(draft.appFilter)
-        prefs.setScreenTimeWebhookHeaders(draft.webhook.headers)
-        prefs.setScreenTimeUrlsWithoutHeaders(draft.webhook.urlsWithoutHeaders)
-        prefs.setScreenTimeWebhookSecret(draft.webhook.secret.trim())
         val mqtt = draft.mqtt.withPort()
         prefs.setMqttSection(MqttSection.SCREEN_TIME, mqtt.section)
         prefs.setSharedMqttBroker(mqtt.sharedBroker)
         (context.applicationContext as? LifeDashboardApplication)?.scheduleScreenTimeSyncWork()
+        return true
     }
 
     override fun setHealthEnabledTypes(types: Set<HealthDataType>) = prefs.setHealthEnabledDataTypes(types)

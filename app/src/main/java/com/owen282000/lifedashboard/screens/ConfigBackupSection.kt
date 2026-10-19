@@ -342,7 +342,12 @@ fun ConfigBackupSection() {
                 TextButton(
                     onClick = {
                         runCatching { ConfigBackupManager(context).import(backup) }
-                            .onSuccess {
+                            .onSuccess { imported ->
+                                if (!imported) {
+                                    // Nothing was written; the dialog stays so the import can be tried again.
+                                    Toast.makeText(context, resources.getString(R.string.secrets_not_ready), Toast.LENGTH_LONG).show()
+                                    return@TextButton
+                                }
                                 // The imported schedule has to reach WorkManager now, not at the next app start.
                                 SyncScheduler.rescheduleAll(context)
                                 Toast.makeText(context, resources.getString(R.string.backup_imported), Toast.LENGTH_LONG).show()

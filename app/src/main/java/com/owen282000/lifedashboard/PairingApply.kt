@@ -1,25 +1,23 @@
 package com.owen282000.lifedashboard
 
-/** What one webhook section holds today, as far as pairing cares. */
-data class SectionWebhook(
-    val urls: List<String>,
-    val secret: String?,
-    /** URLs that get none of the section's custom headers, see [WebhookSupport.headersFor]. */
-    val urlsWithoutHeaders: Set<String> = emptySet()
-)
-
 /** What pairing would change per section, so the dialog can say it before anything happens. */
 data class SectionChange(
     val addsUrl: Boolean,
+    /** The paired address is there already and gets a secret, which [replacesSecret] when it had another one. */
+    val setsSecret: Boolean,
     val replacesSecret: Boolean,
-    /**
-     * The other addresses in the section when the secret changes: they keep getting payloads,
-     * signed with the new secret from then on, and one that checks signatures starts refusing.
-     */
-    val othersSignedWithNewSecret: List<String> = emptyList()
+    /** The other addresses of the section: they keep their own secret and headers. */
+    val othersKeepTheirOwn: List<String> = emptyList()
 ) {
-    val changesNothing: Boolean get() = !addsUrl && !replacesSecret
+    val changesNothing: Boolean get() = !addsUrl && !setsSecret
 }
+
+/** The section of the settings a pairing source writes to. */
+val PairingSource.logType: LogType
+    get() = when (this) {
+        PairingSource.HEALTH -> LogType.HEALTH_CONNECT
+        PairingSource.SCREEN_TIME -> LogType.SCREEN_TIME
+    }
 
 /** The user's answer in the confirmation dialog. */
 data class PairingChoice(
@@ -35,34 +33,39 @@ data class PairingChoice(
  * rules below can be tested without Android's SharedPreferences.
  */
 interface PairingStore {
-    fun health(): SectionWebhook
-    fun screenTime(): SectionWebhook
-    fun setHealth(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>)
-    fun setScreenTime(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>)
+    fun destinations(source: PairingSource): List<Destination>
+
+    /** False when nothing was stored because the secure storage is not ready yet. */
+    fun setDestinations(source: PairingSource, destinations: List<Destination>): Boolean
     fun setAllowPlainHttp(enabled: Boolean)
 }
+
+/** The sections a pairing wrote, and the ones it could not, because the secure storage was not ready. */
+data class PairingResult(val written: Set<PairingSource>, val refused: Set<PairingSource> = emptySet())
 
 /**
  * Turning a scanned pairing link into settings.
  *
  * Two rules worth stating plainly, because both are visible in the dialog before the user
  * agrees to them. The address is appended, not replaced: someone feeding a second receiver
- * keeps it. The secret is replaced, because a section holds exactly one and the new
- * receiver would otherwise be signed for with the old one and refused.
+ * keeps it. The secret goes to the paired destination alone: every other destination keeps
+ * its own, so pairing Home Assistant never breaks the signature check of a receiver already
+ * there, and the other way round (P2-13).
  *
- * A third one shows on the Webhook card afterwards: an address pairing adds gets none of the
- * section's custom headers. Those were typed for the receivers already there, and a pairing
- * link can come from anyone, so an API key never follows a scanned code to its host.
+ * A third one shows on the Webhook card afterwards: a destination pairing adds has none of
+ * the custom headers. Those were typed for the receivers already there, and a pairing link
+ * can come from anyone, so an API key never follows a scanned code to its host.
  */
 object PairingApply {
 
-    /** What pairing would do, without doing it. */
-    fun preview(link: PairingLink, current: SectionWebhook): SectionChange {
-        val replacesSecret = current.secret != null && current.secret != link.secret
+    /** What pairing would do to a section with [current], without doing it. */
+    fun preview(link: PairingLink, current: List<Destination>): SectionChange {
+        val existing = current.firstOrNull { it.url == link.url }
         return SectionChange(
-            addsUrl = link.url !in current.urls,
-            replacesSecret = replacesSecret,
-            othersSignedWithNewSecret = if (replacesSecret) current.urls.filter { it != link.url } else emptyList()
+            addsUrl = existing == null,
+            setsSecret = existing != null && existing.secret != link.secret,
+            replacesSecret = existing?.secret != null && existing.secret != link.secret,
+            othersKeepTheirOwn = current.map { it.url }.filter { it != link.url }
         )
     }
 
@@ -71,21 +74,26 @@ object PairingApply {
 
     /**
      * Write the link into the sections the user picked. Returns the sections written, so the
-     * caller knows which ViewModels to reload and what to report.
+     * caller knows which ViewModels to reload and what to report, and the ones refused, which
+     * keep what they had: the user pairs again in a moment.
      */
-    fun apply(link: PairingLink, choice: PairingChoice, store: PairingStore): Set<PairingSource> {
+    fun apply(
+        link: PairingLink,
+        choice: PairingChoice,
+        store: PairingStore,
+        newId: () -> String = Destinations::newId
+    ): PairingResult {
         val written = mutableSetOf<PairingSource>()
+        val refused = mutableSetOf<PairingSource>()
 
-        if (choice.health && PairingSource.HEALTH in link.sources) {
-            val current = store.health()
-            store.setHealth(withUrl(current.urls, link.url), link.secret, withoutHeaders(current, link.url))
-            written += PairingSource.HEALTH
-        }
-
-        if (choice.screenTime && PairingSource.SCREEN_TIME in link.sources) {
-            val current = store.screenTime()
-            store.setScreenTime(withUrl(current.urls, link.url), link.secret, withoutHeaders(current, link.url))
-            written += PairingSource.SCREEN_TIME
+        for (source in PairingSource.entries) {
+            val picked = if (source == PairingSource.HEALTH) choice.health else choice.screenTime
+            if (!picked || source !in link.sources) continue
+            if (store.setDestinations(source, Destinations.paired(store.destinations(source), link.url, link.secret, newId))) {
+                written += source
+            } else {
+                refused += source
+            }
         }
 
         // Only ever turned on, and only when something was actually paired: an internal Home
@@ -95,13 +103,6 @@ object PairingApply {
             store.setAllowPlainHttp(true)
         }
 
-        return written
+        return PairingResult(written, refused)
     }
-
-    private fun withUrl(urls: List<String>, url: String): List<String> =
-        if (url in urls) urls else urls + url
-
-    /** Only an address pairing adds is marked: one the user typed in already keeps its headers. */
-    private fun withoutHeaders(current: SectionWebhook, url: String): Set<String> =
-        if (url in current.urls) current.urlsWithoutHeaders else current.urlsWithoutHeaders + url
 }

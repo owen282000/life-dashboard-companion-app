@@ -30,6 +30,9 @@ class PreferencesManager(context: Context) {
     private val vault: SecretVault.Opened = SecretVault.open(context)
     private val securePrefs: SharedPreferences = vault.store
 
+    /** The webhook destinations of both sections, see [DestinationStore]. */
+    private val destinations = DestinationStore(prefs, securePrefs) { vault.state != SecretState.UNAVAILABLE }
+
     /**
      * True when encrypted storage could not be opened, so secrets cannot be read or saved in
      * this process. Transient: the next start tries again.
@@ -149,7 +152,7 @@ class PreferencesManager(context: Context) {
 
         /** The secrets versions before 1.6.0 kept in the plain settings, moved into the store on migration. */
         val LEGACY_PLAIN_SECRET_KEYS: List<String>
-            get() = listOf(KEY_HEALTH_WEBHOOK_HEADERS, KEY_SCREENTIME_WEBHOOK_HEADERS, KEY_HEALTH_WEBHOOK_SECRET, KEY_SCREENTIME_WEBHOOK_SECRET)
+            get() = listOf(DestinationStore.HEALTH.headers, DestinationStore.SCREEN_TIME.headers, DestinationStore.HEALTH.secret, DestinationStore.SCREEN_TIME.secret)
 
         private const val WRITEBACK_PREFS_NAME = "life_dashboard_writeback"
 
@@ -206,7 +209,6 @@ class PreferencesManager(context: Context) {
          */
         private const val HEALTH_SCHEDULE_PREFIX = "health_schedule_"
         private const val SCREENTIME_SCHEDULE_PREFIX = "screentime_schedule_"
-        private const val KEY_HEALTH_WEBHOOK_URLS = "health_webhook_urls"
         private const val KEY_HEALTH_ENABLED_DATA_TYPES = "health_enabled_data_types"
         private const val KEY_HEALTH_SERIES_RESOLUTIONS = "health_series_resolutions"
         private const val KEY_HEALTH_BUCKET_CARRY = "health_bucket_carry"
@@ -214,21 +216,12 @@ class PreferencesManager(context: Context) {
         // Screen Time keys
         private const val KEY_SCREENTIME_LAST_SYNC_TS = "screentime_last_sync_ts"
         private const val KEY_SCREENTIME_SYNC_INTERVAL_MINUTES = "screentime_sync_interval_minutes"
-        private const val KEY_SCREENTIME_WEBHOOK_URLS = "screentime_webhook_urls"
         private const val KEY_SCREENTIME_DAY_BOUNDARY_HOUR = "screentime_day_boundary_hour"
         private const val KEY_SCREENTIME_USE_DAY_BOUNDARY = "screentime_use_day_boundary"
         private const val KEY_SCREENTIME_APP_FILTER_MODE = "screentime_app_filter_mode"
         private const val KEY_SCREENTIME_APP_FILTER_PACKAGES = "screentime_app_filter_packages"
 
-        // Webhook header keys
-        private const val KEY_HEALTH_WEBHOOK_HEADERS = "health_webhook_headers"
-        private const val KEY_SCREENTIME_WEBHOOK_HEADERS = "screentime_webhook_headers"
-        private const val KEY_HEALTH_WEBHOOK_SECRET = "health_webhook_secret"
-        private const val KEY_SCREENTIME_WEBHOOK_SECRET = "screentime_webhook_secret"
-
-        // URLs that get no custom headers (the ones QR pairing added); not secret themselves
-        private const val KEY_HEALTH_URLS_WITHOUT_HEADERS = "health_webhook_urls_without_headers"
-        private const val KEY_SCREENTIME_URLS_WITHOUT_HEADERS = "screentime_webhook_urls_without_headers"
+        // The webhook keys (addresses, headers, secrets, the destination lists) are in DestinationStore.
 
         // Shared keys
         private const val KEY_KEEP_FULL_PAYLOADS = "keep_full_payloads"
@@ -251,18 +244,75 @@ class PreferencesManager(context: Context) {
         prefs.edit().putInt(KEY_HEALTH_SYNC_INTERVAL_MINUTES, minutes).apply()
     }
 
-    fun getHealthWebhookUrls(): List<String> {
-        val urlsString = prefs.getString(KEY_HEALTH_WEBHOOK_URLS, "") ?: ""
-        return if (urlsString.isEmpty()) emptyList() else urlsString.split(",")
+    /** The addresses of the health destinations, in order. */
+    fun getHealthWebhookUrls(): List<String> = getDestinations(LogType.HEALTH_CONNECT).map { it.url }
+
+    /**
+     * The destinations of [source], each with its secret and headers. Derived from the keys of
+     * 1.27.0 and older until the first change stores them, see [DestinationStore].
+     */
+    fun getDestinations(source: LogType): List<Destination> = destinations.read(source)
+
+    /** Whether [setDestinations] would store [list] now, see [DestinationStore.canWrite]. */
+    fun canSetDestinations(source: LogType, list: List<Destination>): Boolean = destinations.canWrite(source, list)
+
+    /**
+     * Stores [list] as the destinations of [source], or nothing and false while the secure
+     * storage is not ready ([DestinationStore.write]); the caller says so. Receive follows its
+     * source destination: an edited address moves the source URL along, a removed one forgets
+     * it, and a new secret on it means a new counterpart (protocol section 6); each of those
+     * starts the ledger afresh.
+     */
+    fun setDestinations(source: LogType, list: List<Destination>): Boolean {
+        val previous = if (source == LogType.HEALTH_CONNECT) destinations.read(source) else emptyList()
+        if (!destinations.write(source, list)) return false
+        if (source != LogType.HEALTH_CONNECT) return true
+        val sourceUrl = getReceiveSourceUrl() ?: return true
+        val before = previous.firstOrNull { it.url == sourceUrl }
+        val after = before?.let { b -> list.firstOrNull { it.id == b.id } } ?: list.firstOrNull { it.url == sourceUrl }
+        when {
+            after == null -> setReceiveSourceUrl(null)
+            after.url != sourceUrl -> setReceiveSourceUrl(after.url)
+            before?.secret != null && before.secret != after.secret?.trim()?.takeIf { it.isNotEmpty() } -> clearWriteBackState()
+        }
+        return true
     }
 
+    /** The secret a destination added by hand starts with, see [DestinationStore.write]. */
+    fun getSectionSecret(source: LogType): String? = destinations.sectionSecret(source)
+
+    fun setSectionSecret(source: LogType, secret: String?) = destinations.setSectionSecret(source, secret)
+
+    // ==================== The webhook keys of 1.27.0 ====================
+    // The instrumented harness sets a phone up with these, the way an update over 1.27.0 finds
+    // it: each one drops a stored destination list, so the destinations are derived from them
+    // again. The app itself writes destinations.
+
     fun setHealthWebhookUrls(urls: List<String>) {
-        val urlsString = urls.joinToString(",")
-        prefs.edit().putString(KEY_HEALTH_WEBHOOK_URLS, urlsString).apply()
+        destinations.setLegacyUrls(LogType.HEALTH_CONNECT, urls)
         // The source URL of Receive must stay one of the section's URLs; removing it forgets
         // the choice, and with it the ledger that belonged to that receiver.
         val source = getReceiveSourceUrl()
         if (source != null && source !in urls) setReceiveSourceUrl(null)
+    }
+
+    /** The section headers of 1.27.0: every address gets them, except the ones in [setHealthUrlsWithoutHeaders]. */
+    fun setHealthWebhookHeaders(headers: Map<String, String>) = destinations.setLegacyHeaders(LogType.HEALTH_CONNECT, headers)
+
+    /** The addresses of 1.27.0 that get none of the section headers, see [WebhookSupport.headersFor]. */
+    fun setHealthUrlsWithoutHeaders(urls: Set<String>) = destinations.setLegacyUrlsWithoutHeaders(LogType.HEALTH_CONNECT, urls)
+
+    /** The health section's own secret, see [getSectionSecret]. */
+    fun getHealthWebhookSecret(): String? = getSectionSecret(LogType.HEALTH_CONNECT)
+
+    /** The one secret of the health section in 1.27.0, which every address was signed with. */
+    fun setHealthWebhookSecret(secret: String?) {
+        val previous = getHealthWebhookSecret()
+        destinations.forgetList(LogType.HEALTH_CONNECT)
+        destinations.setSectionSecret(LogType.HEALTH_CONNECT, secret)
+        // A new secret means a new counterpart for Receive: the ledger and the acks belonged
+        // to the old one (protocol section 6).
+        if (previous != null && previous != secret?.takeIf { it.isNotBlank() }) clearWriteBackState()
     }
 
     fun getHealthEnabledDataTypes(): Set<HealthDataType> {
@@ -442,40 +492,6 @@ class PreferencesManager(context: Context) {
         if (durable) commit() else apply()
     }
 
-    fun getHealthWebhookHeaders(): Map<String, String> {
-        val headersJson = securePrefs.getString(KEY_HEALTH_WEBHOOK_HEADERS, null) ?: return emptyMap()
-        return try {
-            Json.decodeFromString<Map<String, String>>(headersJson)
-        } catch (e: Exception) {
-            emptyMap()
-        }
-    }
-
-    fun setHealthWebhookHeaders(headers: Map<String, String>) {
-        // No headers is no value, not "{}": the secret store only counts a real value as a
-        // secret entered again, and has nothing to encrypt.
-        val headersJson = headers.takeIf { it.isNotEmpty() }?.let { Json.encodeToString(it) }
-        securePrefs.edit().putString(KEY_HEALTH_WEBHOOK_HEADERS, headersJson).apply()
-    }
-
-    /** Health URLs that get none of the custom headers, see [WebhookSupport.headersFor]. */
-    fun getHealthUrlsWithoutHeaders(): Set<String> = urlSet(KEY_HEALTH_URLS_WITHOUT_HEADERS)
-
-    fun setHealthUrlsWithoutHeaders(urls: Set<String>) = putUrlSet(KEY_HEALTH_URLS_WITHOUT_HEADERS, urls)
-
-    private fun urlSet(key: String): Set<String> {
-        val stored = prefs.getString(key, null) ?: return emptySet()
-        return runCatching { Json.decodeFromString<List<String>>(stored).toSet() }.getOrDefault(emptySet())
-    }
-
-    private fun putUrlSet(key: String, urls: Set<String>) {
-        if (urls.isEmpty()) {
-            prefs.edit().remove(key).apply()
-            return
-        }
-        prefs.edit().putString(key, Json.encodeToString(urls.toList())).apply()
-    }
-
     /** Daily deduplicated totals in the payload (aggregate API merges phone + watch). */
     fun includeDailyTotals(): Boolean = prefs.getBoolean(KEY_INCLUDE_DAILY_TOTALS, true)
 
@@ -531,22 +547,6 @@ class PreferencesManager(context: Context) {
     fun setPhoneName(name: String?) {
         val trimmed = name?.trim().orEmpty()
         prefs.edit { if (trimmed.isEmpty()) remove(KEY_PHONE_NAME) else putString(KEY_PHONE_NAME, trimmed) }
-    }
-
-    fun getHealthWebhookSecret(): String? {
-        return securePrefs.getString(KEY_HEALTH_WEBHOOK_SECRET, null)?.takeIf { it.isNotBlank() }
-    }
-
-    fun setHealthWebhookSecret(secret: String?) {
-        val previous = getHealthWebhookSecret()
-        if (secret.isNullOrBlank()) {
-            securePrefs.edit().remove(KEY_HEALTH_WEBHOOK_SECRET).apply()
-        } else {
-            securePrefs.edit().putString(KEY_HEALTH_WEBHOOK_SECRET, secret).apply()
-        }
-        // A new secret, whether typed or paired, means a new counterpart for Receive: the
-        // ledger and the acks belonged to the old one (protocol section 6).
-        if (previous != null && previous != secret?.takeIf { it.isNotBlank() }) clearWriteBackState()
     }
 
     // ==================== Receive (write-back from Home Assistant, issue #62) ====================
@@ -688,45 +688,23 @@ class PreferencesManager(context: Context) {
         prefs.edit().putInt(KEY_SCREENTIME_SYNC_INTERVAL_MINUTES, minutes).apply()
     }
 
-    fun getScreenTimeWebhookUrls(): List<String> {
-        val urlsString = prefs.getString(KEY_SCREENTIME_WEBHOOK_URLS, "") ?: ""
-        return if (urlsString.isEmpty()) emptyList() else urlsString.split(",")
-    }
+    /** The addresses of the Screen Time destinations, in order. */
+    fun getScreenTimeWebhookUrls(): List<String> = getDestinations(LogType.SCREEN_TIME).map { it.url }
 
-    fun setScreenTimeWebhookUrls(urls: List<String>) {
-        val urlsString = urls.joinToString(",")
-        prefs.edit().putString(KEY_SCREENTIME_WEBHOOK_URLS, urlsString).apply()
-    }
+    /** The Screen Time section's own secret, see [getSectionSecret]. */
+    fun getScreenTimeWebhookSecret(): String? = getSectionSecret(LogType.SCREEN_TIME)
 
-    fun getScreenTimeWebhookHeaders(): Map<String, String> {
-        val headersJson = securePrefs.getString(KEY_SCREENTIME_WEBHOOK_HEADERS, null) ?: return emptyMap()
-        return try {
-            Json.decodeFromString<Map<String, String>>(headersJson)
-        } catch (e: Exception) {
-            emptyMap()
-        }
-    }
+    // The webhook keys of 1.27.0 for Screen Time; see the health ones.
 
-    fun setScreenTimeWebhookHeaders(headers: Map<String, String>) {
-        val headersJson = headers.takeIf { it.isNotEmpty() }?.let { Json.encodeToString(it) }
-        securePrefs.edit().putString(KEY_SCREENTIME_WEBHOOK_HEADERS, headersJson).apply()
-    }
+    fun setScreenTimeWebhookUrls(urls: List<String>) = destinations.setLegacyUrls(LogType.SCREEN_TIME, urls)
 
-    /** Screen Time URLs that get none of the custom headers, see [WebhookSupport.headersFor]. */
-    fun getScreenTimeUrlsWithoutHeaders(): Set<String> = urlSet(KEY_SCREENTIME_URLS_WITHOUT_HEADERS)
+    fun setScreenTimeWebhookHeaders(headers: Map<String, String>) = destinations.setLegacyHeaders(LogType.SCREEN_TIME, headers)
 
-    fun setScreenTimeUrlsWithoutHeaders(urls: Set<String>) = putUrlSet(KEY_SCREENTIME_URLS_WITHOUT_HEADERS, urls)
-
-    fun getScreenTimeWebhookSecret(): String? {
-        return securePrefs.getString(KEY_SCREENTIME_WEBHOOK_SECRET, null)?.takeIf { it.isNotBlank() }
-    }
+    fun setScreenTimeUrlsWithoutHeaders(urls: Set<String>) = destinations.setLegacyUrlsWithoutHeaders(LogType.SCREEN_TIME, urls)
 
     fun setScreenTimeWebhookSecret(secret: String?) {
-        if (secret.isNullOrBlank()) {
-            securePrefs.edit().remove(KEY_SCREENTIME_WEBHOOK_SECRET).apply()
-        } else {
-            securePrefs.edit().putString(KEY_SCREENTIME_WEBHOOK_SECRET, secret).apply()
-        }
+        destinations.forgetList(LogType.SCREEN_TIME)
+        destinations.setSectionSecret(LogType.SCREEN_TIME, secret)
     }
 
     fun getScreenTimeLastSyncTimestamp(): Long? {
@@ -828,28 +806,10 @@ class PreferencesManager(context: Context) {
     // owns, so it goes through here. PairingStore is narrower than this class on purpose,
     // so the rules in PairingApply stay unit-testable without SharedPreferences.
 
-    fun healthSectionWebhook(): SectionWebhook =
-        SectionWebhook(getHealthWebhookUrls(), getHealthWebhookSecret(), getHealthUrlsWithoutHeaders())
-
-    fun screenTimeSectionWebhook(): SectionWebhook =
-        SectionWebhook(getScreenTimeWebhookUrls(), getScreenTimeWebhookSecret(), getScreenTimeUrlsWithoutHeaders())
-
     fun asPairingStore(): PairingStore = object : PairingStore {
-        override fun health() = healthSectionWebhook()
-        override fun screenTime() = screenTimeSectionWebhook()
-
-        override fun setHealth(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>) {
-            setHealthWebhookUrls(urls)
-            setHealthWebhookSecret(secret)
-            setHealthUrlsWithoutHeaders(urlsWithoutHeaders)
-        }
-
-        override fun setScreenTime(urls: List<String>, secret: String, urlsWithoutHeaders: Set<String>) {
-            setScreenTimeWebhookUrls(urls)
-            setScreenTimeWebhookSecret(secret)
-            setScreenTimeUrlsWithoutHeaders(urlsWithoutHeaders)
-        }
-
+        override fun destinations(source: PairingSource) = getDestinations(source.logType)
+        override fun setDestinations(source: PairingSource, destinations: List<Destination>) =
+            this@PreferencesManager.setDestinations(source.logType, destinations)
         override fun setAllowPlainHttp(enabled: Boolean) = setAllowHttpWebhooks(enabled)
     }
 }
