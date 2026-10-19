@@ -109,7 +109,7 @@ There are two ways into Home Assistant. Use one, not both: with both you get two
 
 **MQTT with Home Assistant Discovery** suits a setup that already has a broker and only needs current values. Point the app at the broker, and sensors for 24 of the 33 types, plus screen time, appear under one device without any configuration in Home Assistant.
 
-<img src="screenshots/mqtt.png" alt="The MQTT section in the app: broker host, port, optional credentials and a shared base topic" width="300" align="right">
+<img src="screenshots/mqtt.png" alt="The MQTT section in the app: the shared broker mqtt.lan on port 1883, optional credentials, the base topic and the last publish of 11 sensors" width="300" align="right">
 
 <img src="screenshots/home-assistant.png" alt="The device Home Assistant creates from the app's MQTT discovery messages, with its sensors" width="560">
 
@@ -171,7 +171,7 @@ A section can have several webhooks and MQTT at the same time. When a sync reach
 
 ## Scheduling
 
-<img src="screenshots/sync-schedule.png" alt="Sync Schedule set to fixed times: 09:00, 11:00 and 14:00, on Monday, Wednesday, Thursday, Saturday and Sunday" width="300" align="right">
+<img src="screenshots/sync-schedule.png" alt="Sync Schedule set to fixed times: 9:00 AM, 11:00 AM and 2:00 PM, on Monday, Wednesday, Thursday, Saturday and Sunday" width="300" align="right">
 
 Health Connect and Screen Time each have their own **Sync Schedule**, so screen time can sync every hour while health data syncs at 08:00 and 21:00.
 
