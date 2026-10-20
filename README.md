@@ -27,9 +27,11 @@
   &nbsp;·&nbsp;
   <a href="docs/webhook.md">Payload&nbsp;reference</a>
   &nbsp;·&nbsp;
-  <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iPhone&nbsp;version</a>
-  &nbsp;·&nbsp;
   <a href="https://owen282000.com/life-dashboard/android/">Website</a>
+</p>
+
+<p align="center">
+  <sub>Life Dashboard: <b>Android app</b> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iPhone app</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-ha">Home Assistant integration</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-stack">Grafana stack</a></sub>
 </p>
 
 <p align="center">
@@ -39,7 +41,13 @@
   </picture>
 </p>
 
-Your watch, ring or scale already writes to Health Connect. This app reads that data, plus how long you spend in each app, and sends both to a server you run. In Home Assistant you get sensors for today and a year of history in long-term statistics. Over MQTT, sensors set themselves up. A webhook gets every record as JSON, signed if you set a secret, to store and graph however you like.
+Your watch, ring or scale already writes to Health Connect. This app sends that data, from every source app at once, plus your screen time per app, to Home Assistant, an MQTT broker or a webhook you run. There is no account and no Google account in between, and none of it reaches me.
+
+- In Home Assistant every day lands on its own date, up to a year back, paired with one QR code. The Home Assistant companion app shows the latest value.
+- Edits and deletions go out too, not only new records, so your server stays in step with Health Connect.
+- Samsung Health, Fitbit, Garmin, Oura, Withings: if it writes to Health Connect, it arrives. That includes Fitbit after Google switches off the Fitbit Web API on 30 October 2026.
+- Open source (MIT), with the same signing key on GitHub, F-Droid and Google Play.
+- Want to ask Claude or a local model in Ollama about your own history? The [Grafana stack](https://github.com/owen282000/life-dashboard-stack#ask-your-own-ai-mcp) adds an MCP server with eight read-only tools. The app itself contains no AI.
 
 <a id="why-this-app"></a>
 
@@ -98,7 +106,7 @@ The data can also go to an MQTT broker or a webhook of your own instead. Both ap
   <a href="https://alternativeto.net/software/life-dashboard-companion/about/"><img src="docs/brand/badges/alternativeto.svg" alt="Life Dashboard Companion on AlternativeTo" height="60"></a>
 </p>
 
-The APK on GitHub is signed, each release carries build provenance you can [verify](SECURITY.md#verifying-a-release), and the build is [reproducible](docs/building.md#reproduce-a-release-build). F&#8209;Droid builds each release itself and ships it only when its build matches this APK, so it carries the same signature and you can switch between them; F&#8209;Droid accepted the app on 17 October, and its page appears once F&#8209;Droid's build server has picked it up. Obtainium installs the APK from GitHub and keeps it updated. A Google Play version comes later.
+The APK on GitHub is signed. Each release has build provenance that you can [verify](SECURITY.md#verifying-a-release), and the build is [reproducible](docs/building.md#reproduce-a-release-build). F&#8209;Droid builds each release on its own server and ships it only if the result matches this APK, so both have the same signature and you can switch between them. Obtainium installs the APK from GitHub and keeps it updated. Google Play is next, as a paid listing. The APK here and on F&#8209;Droid stays free.
 
 Screen time works on Android 8.0 and newer. The health part needs Android 9 or newer with [Health Connect](https://developer.android.com/health-and-fitness/health-connect), which is built into Android 14 and later and comes from Google Play on Android 9 through 13.
 
@@ -176,11 +184,15 @@ Any server that accepts a JSON POST can be a destination: n8n, Node-RED, a small
 
 This example is shortened. Every raw record has a `uuid` to deduplicate on and a `source` that names the app that wrote it. The [payload reference](docs/webhook.md) documents every type and has a minimal receiver to start from, plus [notes for n8n and Node-RED](docs/webhook.md#n8n-and-node-red). The [JSON Schema](docs/webhook-schema.json) lets you validate what your receiver gets.
 
-If you have no backend yet, [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is an example Docker Compose setup: a receiver that checks the signature, Postgres, and a Grafana dashboard. Treat it as a starting point rather than a finished product.
+If you have no backend yet, [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is an example Docker Compose setup: a receiver that checks the signature, Postgres, and a Grafana dashboard. It's a one-person project offered as-is, built to be changed.
+
+## Ask your own AI
+
+Want to ask an AI how your sleep changed in the weeks you walked more? The [Grafana stack](https://github.com/owen282000/life-dashboard-stack#ask-your-own-ai-mcp) keeps every record in Postgres and has an MCP server with eight read-only tools, for Claude, a local model in Ollama or any other MCP client. Already on Home Assistant or your own Postgres? The [recipe](docs/recipes/ask-your-own-llm.md) has a route for each, without the stack. The app itself sends nothing to any AI: the data only goes where you point it.
 
 ## Privacy
 
-The app has no analytics, no crash reporting and no ads, and there is no Life Dashboard server. Your data goes from the phone to the destinations you configure and nowhere else. Webhooks use HTTPS unless you switch on **Allow plain HTTP webhooks**, for example for a Home Assistant server on your home network. Secrets are encrypted on the phone with a key from the Android Keystore. [PRIVACY.md](PRIVACY.md) lists every permission and every field that can leave the phone.
+The app has no analytics, no crash reporting and no ads, and there is no Life Dashboard server. Your data goes from the phone to the destinations you configure and nowhere else. Webhooks use HTTPS unless you switch on **Allow plain HTTP webhooks**, for example for a Home Assistant server on your home network. Secrets are encrypted on the phone with a key from the Android Keystore. In short, the app asks for read access to the Health Connect types you switch on, write access to seven body and blood pressure types for **Receive**, usage access for screen time, the camera only to scan a pairing code, and the network to send. [PRIVACY.md](PRIVACY.md) lists every permission and every field that can leave the phone.
 
 ## Documentation
 
@@ -194,7 +206,7 @@ The app has no analytics, no crash reporting and no ads, and there is no Life Da
 
 Questions go to [Discussions](https://github.com/owen282000/life-dashboard-companion-app/discussions). Bugs go to [issues](https://github.com/owen282000/life-dashboard-companion-app/issues/new/choose); the template asks for what helps, like your phone, the source app and a log entry. [SUPPORT.md](.github/SUPPORT.md) explains which is which.
 
-Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the checks CI runs, and [building.md](docs/building.md) gets you a working build. Translations happen on [Weblate](https://hosted.weblate.org/engage/life-dashboard-companion/), in the browser, without a build: pick your language or add a new one.
+Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the checks CI runs, and [building.md](docs/building.md) gets you a working build. Not into Kotlin? The issues labelled [good first issue](https://github.com/owen282000/life-dashboard-companion-app/issues?q=is%3Aopen+label%3A%22good+first+issue%22) include a Node-RED recipe, a brand guide for a device you own, and example payloads checked against the schema. Translations happen on [Weblate](https://hosted.weblate.org/engage/life-dashboard-companion/), in the browser, without a build: pick your language or add a new one.
 
 ## Acknowledgments
 
@@ -207,7 +219,7 @@ Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the checks 
 
 ## Support the project
 
-Stars, shares and good bug reports all help. This is a one-person project, but your setup doesn't depend on that person: there is no server of mine to switch off, your history lives in your own Home Assistant or database, and the code is MIT. If you want to chip in for the evenings that go into it, there is [Ko-fi](https://ko-fi.com/owen282000). The app stays free and open source either way.
+Stars, shares and good bug reports all help. This is a one-person project, but your setup doesn't depend on that person: there is no server of mine to switch off, your history lives in your own Home Assistant or database, and the code is MIT. If you want to chip in for the evenings that go into it, there is [Ko-fi](https://ko-fi.com/owen282000). The APK on GitHub and F&#8209;Droid stays free, and the code stays open source, either way.
 
 MIT licensed. See [LICENSE](LICENSE).
 
