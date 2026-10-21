@@ -6,6 +6,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
+- Backfill reaches back further (stack#23): besides 30 and 90 days it offers 6 months, 1, 2 and 5
+  years, and **All history**, which starts at the oldest record of the enabled types and sends
+  everything Health Connect has. The dialog lists the lengths with what each covers, names the month
+  All history starts in, and leaves out the lengths that reach back past your oldest record (once it
+  has history access to see that far). A stopped backfill of any length continues where it was, as
+  before. In English, Dutch and German.
 - A card on the Health and Screen Time tabs while Android's battery optimization is on for the app,
   which can hold scheduled syncs back for hours. **Fix** asks Android to let the app run in the
   background (the Google Play build, which may not ask, opens the app's settings instead, where

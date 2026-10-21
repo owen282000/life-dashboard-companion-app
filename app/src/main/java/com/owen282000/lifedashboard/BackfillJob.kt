@@ -21,6 +21,7 @@ import java.util.UUID
 @Serializable
 data class BackfillJob(
     val id: String,
+    /** The length that was chosen: a number of days, or [ALL_HISTORY]. See [spanDays] for the range itself. */
     val days: Int,
     /** The range in epoch milliseconds, whole seconds, so a resumed job walks the same windows. */
     val rangeStart: Long,
@@ -50,6 +51,9 @@ data class BackfillJob(
     val updatedAt: Long
 ) {
     val windowCount: Int get() = windowCount(rangeStart, rangeEnd)
+
+    /** The whole days the range covers, rounded up: [days] for a fixed length, the found span for [ALL_HISTORY]. */
+    val spanDays: Int get() = ((rangeEnd - rangeStart + DAY_MILLIS - 1) / DAY_MILLIS).toInt()
 
     val isFinished: Boolean get() = nextWindow >= windowCount
 
@@ -117,6 +121,23 @@ data class BackfillJob(
     companion object {
         const val WINDOW_DAYS = 3L
         private val WINDOW_MILLIS = Duration.ofDays(WINDOW_DAYS).toMillis()
+        private val DAY_MILLIS = Duration.ofDays(1).toMillis()
+
+        /**
+         * The length for a backfill of all history (stack#23): its range starts at the oldest
+         * record of the enabled types, which the start looks up in Health Connect, rather than a
+         * fixed number of days back. Stored as [days], so starting "All" again continues it.
+         */
+        const val ALL_HISTORY = 0
+
+        /** The lengths the dialog offers, shortest first; the last one is [ALL_HISTORY]. */
+        val LENGTHS: List<Int> = listOf(30, 90, 180, 365, 730, 1825, ALL_HISTORY)
+
+        /**
+         * Nothing older counts as the start of all history, so one record with a wrong date (a
+         * weight entered as 1970) cannot add decades of empty windows.
+         */
+        val ALL_HISTORY_NOT_BEFORE: Instant = Instant.parse("2000-01-01T00:00:00Z")
 
         /**
          * Runs in a row without a delivery before a job gives up. With the backoff of
@@ -134,6 +155,23 @@ data class BackfillJob(
 
         private val json = Json { ignoreUnknownKeys = true }
 
+        /**
+         * The lengths the dialog offers when the oldest record is [earliest] (null when it is not
+         * known: all of them). A fixed length that reaches back past the oldest record would send
+         * what All sends, so it is left out; [keep], the length of a stopped job, always stays.
+         */
+        fun lengthsFor(earliest: Long?, now: Long, keep: Int? = null): List<Int> {
+            earliest ?: return LENGTHS
+            val historyDays = (now - earliest + DAY_MILLIS - 1) / DAY_MILLIS
+            return LENGTHS.filter { it == ALL_HISTORY || it < historyDays || it == keep }
+        }
+
+        /** The windows a backfill of [days] walks, for the dialog's line under each length. */
+        fun windowsFor(days: Int): Int = ((days + WINDOW_DAYS - 1) / WINDOW_DAYS).toInt()
+
+        /** The windows a backfill from [earliest] up to [now] walks, for the dialog's line under All. */
+        fun allHistoryWindows(earliest: Long, now: Long): Int = start(ALL_HISTORY, emptyList(), now, earliest, id = "").windowCount
+
         fun windowCount(rangeStart: Long, rangeEnd: Long): Int {
             if (rangeEnd <= rangeStart) return 0
             return ((rangeEnd - rangeStart + WINDOW_MILLIS - 1) / WINDOW_MILLIS).toInt()
@@ -142,13 +180,23 @@ data class BackfillJob(
         /** The names a job keeps of [types], sorted, so two sets compare by value. */
         fun typeNames(types: Collection<HealthDataType>): List<String> = types.map { it.name }.sorted()
 
-        /** A new job over the [days] up to [now], which is floored to a whole second like the payload's window_end. */
-        fun start(days: Int, types: List<String>, now: Long, id: String = UUID.randomUUID().toString()): BackfillJob {
+        /**
+         * A new job over the [days] up to [now], which is floored to a whole second like the
+         * payload's window_end. For [ALL_HISTORY] the range starts at [earliest], the oldest
+         * record found, also floored to a whole second, and covers at least a day.
+         */
+        fun start(days: Int, types: List<String>, now: Long, earliest: Long? = null, id: String = UUID.randomUUID().toString()): BackfillJob {
             val end = now - Math.floorMod(now, 1000L)
+            val rangeStart = if (days == ALL_HISTORY) {
+                requireNotNull(earliest) { "a backfill of all history needs the oldest record" }
+                minOf(earliest - Math.floorMod(earliest, 1000L), end - DAY_MILLIS)
+            } else {
+                end - Duration.ofDays(days.toLong()).toMillis()
+            }
             return BackfillJob(
                 id = id,
                 days = days,
-                rangeStart = end - Duration.ofDays(days.toLong()).toMillis(),
+                rangeStart = rangeStart,
                 rangeEnd = end,
                 types = types,
                 updatedAt = now
@@ -160,8 +208,8 @@ data class BackfillJob(
          * stopped job of the same length and types from the last [RESUME_WINDOW], with its idle
          * count reset because someone asked again; otherwise a new job.
          */
-        fun startOrContinue(stored: BackfillJob?, days: Int, types: List<String>, now: Long): BackfillJob =
-            if (continues(stored, days, types, now)) stored!!.copy(idleRuns = 0, updatedAt = now) else start(days, types, now)
+        fun startOrContinue(stored: BackfillJob?, days: Int, types: List<String>, now: Long, earliest: Long? = null): BackfillJob =
+            if (continues(stored, days, types, now)) stored!!.copy(idleRuns = 0, updatedAt = now) else start(days, types, now, earliest)
 
         fun continues(stored: BackfillJob?, days: Int, types: List<String>, now: Long): Boolean =
             stored != null && !stored.isFinished && stored.days == days && stored.types == types &&
@@ -268,7 +316,10 @@ enum class BackfillStart {
     STARTED,
 
     /** One is queued or running already; the start did nothing. */
-    ALREADY_RUNNING
+    ALREADY_RUNNING,
+
+    /** A backfill of all history found no record of the enabled types; nothing to send. */
+    NO_RECORDS
 }
 
 /** The backfill as the screen sees it, from the WorkManager job. */

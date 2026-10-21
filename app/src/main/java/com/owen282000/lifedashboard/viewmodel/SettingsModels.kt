@@ -380,6 +380,7 @@ sealed interface UiMessage {
     /** The backfill stopped on [failure]; the screen words it, see BackfillTexts. */
     data class BackfillFailed(val failure: BackfillFailure) : UiMessage
     data object BackfillAlreadyRunning : UiMessage
+    data object BackfillNoRecords : UiMessage
 
     /** Receive (issue #62): the sync line when something was written, and the two things that stop a switch. */
     data class SyncedRecordsWritten(val count: Int, val written: Int) : UiMessage

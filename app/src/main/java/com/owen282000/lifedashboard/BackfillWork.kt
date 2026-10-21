@@ -47,9 +47,12 @@ object BackfillJobStore {
     fun enabledTypes(context: Context): List<String> =
         BackfillJob.typeNames(PreferencesManager(context).getHealthEnabledDataTypes())
 
-    /** Stores the job a start of [days] runs, see [BackfillJob.startOrContinue], and returns it. */
-    fun startOrContinue(context: Context, days: Int, now: Long = System.currentTimeMillis()): BackfillJob = synchronized(lock) {
-        val job = BackfillJob.startOrContinue(load(context), days, enabledTypes(context), now)
+    /**
+     * Stores the job a start of [days] runs, see [BackfillJob.startOrContinue], and returns it.
+     * [earliest] is the oldest record, needed by a new backfill of all history only.
+     */
+    fun startOrContinue(context: Context, days: Int, now: Long = System.currentTimeMillis(), earliest: Long? = null): BackfillJob = synchronized(lock) {
+        val job = BackfillJob.startOrContinue(load(context), days, enabledTypes(context), now, earliest)
         prefs(context).edit(commit = true) { putString(KEY_JOB, BackfillJob.encode(job)) }
         job
     }
@@ -112,7 +115,15 @@ object BackfillWork {
         val workManager = WorkManager.getInstance(context)
         val active = workManager.getWorkInfosForUniqueWork(WORK_NAME).get().any { !it.state.isFinished }
         if (active && BackfillJobStore.load(context) != null) return@withContext BackfillStart.ALREADY_RUNNING
-        BackfillJobStore.startOrContinue(context, days)
+        val now = System.currentTimeMillis()
+        // All history starts at the oldest record, looked up now; a stopped one continues where it stood.
+        val continuing = BackfillJob.continues(BackfillJobStore.load(context), days, BackfillJobStore.enabledTypes(context), now)
+        val earliest = if (days == BackfillJob.ALL_HISTORY && !continuing) {
+            earliestRecord(context) ?: return@withContext BackfillStart.NO_RECORDS
+        } else {
+            null
+        }
+        BackfillJobStore.startOrContinue(context, days, now, earliest)
         val request = OneTimeWorkRequestBuilder<BackfillWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             // Without a network every delivery fails; waiting for one is what the user wants.
@@ -121,6 +132,17 @@ object BackfillWork {
             .build()
         workManager.enqueueUniqueWork(WORK_NAME, if (active) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.KEEP, request)
         BackfillStart.STARTED
+    }
+
+    /**
+     * The oldest record of the enabled types in epoch milliseconds, or null when there is none:
+     * where a backfill of all history starts, and what tells the dialog which lengths are longer
+     * than the history there is. See [HealthConnectManager.earliestRecordTime].
+     */
+    suspend fun earliestRecord(context: Context): Long? = withContext(Dispatchers.IO) {
+        HealthConnectManager(context)
+            .earliestRecordTime(PreferencesManager(context).getHealthEnabledDataTypes(), BackfillJob.ALL_HISTORY_NOT_BEFORE)
+            ?.toEpochMilli()
     }
 
     /** Stops the backfill and forgets the job. What was sent stays with the receiver. */
@@ -184,6 +206,14 @@ object BackfillWork {
 
 /** The backfill's words for the user: its failures, on screen and in the Logs tab, and its rows there. */
 object BackfillTexts {
+
+    /** A backfill length as the dialog and its notes name it: 30 days, 6 months, 2 years, All history. */
+    fun length(res: Resources, days: Int): String = when {
+        days == BackfillJob.ALL_HISTORY -> res.getString(R.string.health_backfill_length_all)
+        days % 365 == 0 -> res.getQuantityString(R.plurals.health_backfill_length_years, days / 365, days / 365)
+        days > 90 && days % 30 == 0 -> res.getQuantityString(R.plurals.health_backfill_length_months, days / 30, days / 30)
+        else -> res.getQuantityString(R.plurals.health_backfill_length_days, days, days)
+    }
 
     fun failure(res: Resources, failure: BackfillFailure): String = when (failure) {
         BackfillFailure.NoWebhook -> res.getString(R.string.health_backfill_needs_webhook)

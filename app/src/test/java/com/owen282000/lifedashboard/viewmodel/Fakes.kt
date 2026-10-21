@@ -117,6 +117,10 @@ internal class FakeHealthOps(
     var backfillCancels = 0
     var stopped: BackfillJob? = null
 
+    /** The oldest record the dialog and a backfill of all history find; null is none. */
+    var earliest: Long? = null
+    var earliestLookups = 0
+
     /** Stop cleared the job, so a start replaces the work that still reports itself running, as BackfillWork does. */
     private var cancelled = false
 
@@ -133,6 +137,7 @@ internal class FakeHealthOps(
     override fun backfillStatus(): Flow<BackfillStatus> = backfillReports
     override suspend fun startBackfill(days: Int): BackfillStart {
         if (backfill is BackfillStatus.Running && !cancelled) return BackfillStart.ALREADY_RUNNING
+        if (days == BackfillJob.ALL_HISTORY && earliest == null) return BackfillStart.NO_RECORDS
         cancelled = false
         backfillStarts += days
         backfill = BackfillStatus.Running(0, days / 3)
@@ -145,6 +150,7 @@ internal class FakeHealthOps(
         cancelled = true
     }
     override fun stoppedBackfill() = stopped
+    override suspend fun earliestRecord(): Long? { earliestLookups++; return earliest }
     override suspend fun testPing(webhook: WebhookDraft) = pingResult
     override suspend fun otherSourcesWriting(type: WriteBackType) = otherSources
 }

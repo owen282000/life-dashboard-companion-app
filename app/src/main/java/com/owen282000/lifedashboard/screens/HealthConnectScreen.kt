@@ -3,6 +3,7 @@ package com.owen282000.lifedashboard.screens
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +23,9 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
@@ -44,6 +48,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.owen282000.lifedashboard.BackfillJob
+import com.owen282000.lifedashboard.BackfillTexts
 import com.owen282000.lifedashboard.ExportManager
 import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.MqttSupport
@@ -55,6 +61,9 @@ import com.owen282000.lifedashboard.viewmodel.HcAvailability
 import com.owen282000.lifedashboard.viewmodel.HealthActions
 import com.owen282000.lifedashboard.viewmodel.HealthConnectViewModel
 import com.owen282000.lifedashboard.viewmodel.HealthUiState
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 private const val HEALTH_CONNECT_PACKAGE = "com.google.android.apps.healthdata"
 private const val HEALTH_CONNECT_STORE_URL = "https://play.google.com/store/apps/details?id=$HEALTH_CONNECT_PACKAGE"
@@ -441,47 +450,79 @@ fun HealthConnectContent(
         )
     }
 
-    if (state.backfillDialog) {
-        // Without READ_HEALTH_DATA_HISTORY Health Connect only exposes the 30 days before the
-        // first permission grant, so a 90/365 day backfill would silently return recent data
-        // only (#39). This button is the one place that asks for history access.
-        val hasHistoryPermission = HealthConnectManager.HISTORY_PERMISSION in state.grantedPermissions
-        AlertDialog(
-            onDismissRequest = actions::dismissBackfillDialog,
-            title = { Text(stringResource(R.string.health_backfill_title)) },
-            text = {
-                Column {
-                    Text(stringResource(R.string.health_backfill_dialog_description))
-                    state.stoppedBackfill?.let { job ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            stringResource(R.string.health_backfill_continues, job.days, job.nextWindow, job.windowCount),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+    if (state.backfillDialog) BackfillDialog(state, actions)
+}
+
+/**
+ * The lengths a backfill can have, as a list with what each one covers (stack#23). Lengths that
+ * reach back past the oldest record are left out once that is known, since they would send what
+ * All sends; it is only looked up with history access, see [HealthUiState.backfillEarliest].
+ */
+@Composable
+private fun BackfillDialog(state: HealthUiState, actions: HealthActions) {
+    // Without READ_HEALTH_DATA_HISTORY Health Connect only exposes the 30 days before the
+    // first permission grant, so a longer backfill would silently return recent data only
+    // (#39). This button is the one place that asks for history access.
+    val hasHistoryPermission = HealthConnectManager.HISTORY_PERMISSION in state.grantedPermissions
+    val res = LocalResources.current
+    val locale = LocalConfiguration.current.locales[0]
+    val now = remember { System.currentTimeMillis() }
+    val earliest = state.backfillEarliest.takeIf { hasHistoryPermission }
+    val lengths = BackfillJob.lengthsFor(earliest, now, keep = state.stoppedBackfill?.days)
+    AlertDialog(
+        onDismissRequest = actions::dismissBackfillDialog,
+        title = { Text(stringResource(R.string.health_backfill_title)) },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text(stringResource(R.string.health_backfill_dialog_description))
+                state.stoppedBackfill?.let { job ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.health_backfill_continues, BackfillTexts.length(res, job.days), job.nextWindow, job.windowCount),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                if (!hasHistoryPermission) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.health_backfill_history_permission_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    TextButton(onClick = actions::requestHistoryPermission) {
+                        Text(stringResource(R.string.health_backfill_grant_history))
                     }
-                    if (!hasHistoryPermission) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            stringResource(R.string.health_backfill_history_permission_warning),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        TextButton(onClick = actions::requestHistoryPermission) {
-                            Text(stringResource(R.string.health_backfill_grant_history))
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    lengths.forEach { days ->
+                        val all = days == BackfillJob.ALL_HISTORY
+                        val detail = when {
+                            !all -> BackfillJob.windowsFor(days).let { pluralStringResource(R.plurals.health_backfill_length_chunks, it, it) }
+                            earliest != null -> {
+                                val since = DateTimeFormatter.ofPattern("LLLL yyyy", locale)
+                                    .format(Instant.ofEpochMilli(earliest).atZone(ZoneId.systemDefault()))
+                                val windows = BackfillJob.allHistoryWindows(earliest, now)
+                                pluralStringResource(R.plurals.health_backfill_length_all_since, windows, since, windows)
+                            }
+                            else -> stringResource(R.string.health_backfill_length_all_any)
+                        }
+                        OutlinedCard(
+                            onClick = { actions.backfill(days) },
+                            modifier = Modifier.fillMaxWidth(),
+                            border = if (all) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else CardDefaults.outlinedCardBorder()
+                        ) {
+                            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                                Text(BackfillTexts.length(res, days), style = MaterialTheme.typography.titleSmall)
+                                Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                 }
-            },
-            confirmButton = {
-                Row {
-                    listOf(30, 90, 365).forEach { days ->
-                        TextButton(onClick = { actions.backfill(days) }) { Text(stringResource(R.string.health_backfill_days, days)) }
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = actions::dismissBackfillDialog) { Text(stringResource(R.string.common_cancel)) }
             }
-        )
-    }
+        },
+        confirmButton = {
+            TextButton(onClick = actions::dismissBackfillDialog) { Text(stringResource(R.string.common_cancel)) }
+        }
+    )
 }

@@ -150,6 +150,7 @@ fun UiMessage.text(res: Resources): String = when (this) {
     UiMessage.BackfillNeedsWebhook -> res.getString(R.string.health_backfill_needs_webhook)
     is UiMessage.BackfillFailed -> BackfillTexts.failure(res, failure)
     UiMessage.BackfillAlreadyRunning -> res.getString(R.string.health_backfill_already_running)
+    UiMessage.BackfillNoRecords -> res.getString(R.string.health_backfill_no_records)
     is UiMessage.SyncedRecordsWritten -> res.getString(
         R.string.receive_synced_and_written,
         res.getQuantityString(R.plurals.health_synced_records, count, count),

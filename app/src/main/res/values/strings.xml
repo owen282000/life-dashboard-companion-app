@@ -188,13 +188,13 @@
 
     <!-- Health Connect screen -->
     <string name="health_backfill_dialog_description">Sends historical data for all enabled types to your webhooks in 3-day chunks, oldest first. Regular syncing is unaffected; overlapping records deduplicate on their uuid. This can take a while and use mobile data.</string>
-    <string name="health_backfill_days">%1$dd</string>
     <plurals name="health_backfill_complete">
         <item quantity="one">Backfill complete: %1$d record sent</item>
         <item quantity="other">Backfill complete: %1$d records sent</item>
     </plurals>
     <string name="health_backfill_already_running">A backfill is already running</string>
-    <string name="health_backfill_continues">The last backfill of %1$d days stopped after %2$d of %3$d chunks. Choose %1$dd again to continue there; another length starts over.</string>
+    <string name="health_backfill_no_records">Health Connect has no records of the switched-on types to send</string>
+    <string name="health_backfill_continues">The last backfill of %1$s stopped after %2$d of %3$d chunks. Choose %1$s again to continue there; another length starts over.</string>
     <string name="health_backfill_failed_delivery">Delivery failed after %1$d of %2$d chunks. Start the same backfill again to continue there.</string>
     <string name="health_backfill_failed_no_progress">Backfill stopped at chunk %1$d of %2$d: several runs in a row sent nothing (Health Connect\'s read quota, or Android stopping it). Start the same backfill again to continue there.</string>
     <string name="health_backfill_failed_no_types">Backfill needs at least one data type switched on</string>
@@ -212,6 +212,28 @@
     <string name="health_backfill_grant_history">Grant history access</string>
     <string name="health_backfill_history">Backfill History</string>
     <string name="health_backfill_history_permission_warning">Health Connect limits reads to the last 30 days until you grant history access.</string>
+    <string name="health_backfill_length_all">All history</string>
+    <string name="health_backfill_length_all_any">Everything Health Connect has, from your oldest record</string>
+    <plurals name="health_backfill_length_all_since">
+        <item quantity="one">Everything since %1$s, %2$d chunk of 3 days</item>
+        <item quantity="other">Everything since %1$s, %2$d chunks of 3 days</item>
+    </plurals>
+    <plurals name="health_backfill_length_chunks">
+        <item quantity="one">%1$d chunk of 3 days</item>
+        <item quantity="other">%1$d chunks of 3 days</item>
+    </plurals>
+    <plurals name="health_backfill_length_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <plurals name="health_backfill_length_months">
+        <item quantity="one">%1$d month</item>
+        <item quantity="other">%1$d months</item>
+    </plurals>
+    <plurals name="health_backfill_length_years">
+        <item quantity="one">%1$d year</item>
+        <item quantity="other">%1$d years</item>
+    </plurals>
     <string name="health_backfill_paused">Backfill paused at %1$d/%2$d, continues by itself...</string>
     <string name="health_backfill_progress">Backfilling %1$d/%2$d...</string>
     <string name="health_backfill_restarted">Data types changed, started over: %1$d/%2$d...</string>

@@ -244,11 +244,11 @@ To sync without opening the app, add the **Sync Life Dashboard** tile to Quick S
 
 ### Backfill older history
 
-**Backfill** on the **Health** tab sends past data for all enabled types, in chunks of 3 days, oldest first. Pick **30d**, **90d** or **365d**.
+**Backfill** on the **Health** tab sends past data for all enabled types, in chunks of 3 days, oldest first. Pick a length from 30 days to 5 years, or **All history**, which starts at your oldest record. The list leaves out lengths that reach back further than the data you have.
 
-Health Connect needs history access before it hands out anything from more than 30 days before you first gave this app access. On a recent install, a 90- or 365-day backfill without it comes back short. The backfill dialog shows **Grant history access** when it's missing; tap it before you pick 90d or 365d.
+Health Connect needs history access before it hands out anything from more than 30 days before you first gave this app access. On a recent install, a longer backfill without it comes back short. The backfill dialog shows **Grant history access** when it's missing; tap it before you pick anything longer than 30 days. Until you do, the dialog can't see how far your data goes back, so it lists every length.
 
-A backfill goes to webhooks, and the Home Assistant integration counts as one. MQTT only carries the latest value, so it can't fill in the past. The backfill runs in the background, so you can leave the app, and if Android interrupts it, it picks up where it left off. A year can take a while and can use mobile data. [features.md](features.md#backfill) has the details.
+A backfill goes to webhooks, and the Home Assistant integration counts as one. MQTT only carries the latest value, so it can't fill in the past. The backfill runs in the background, so you can leave the app, and if Android interrupts it, it picks up where it left off. A year or more can take a while and can use mobile data: five years is about 600 chunks. [features.md](features.md#backfill) has the details.
 
 ## Receiving measurements from Home Assistant
 

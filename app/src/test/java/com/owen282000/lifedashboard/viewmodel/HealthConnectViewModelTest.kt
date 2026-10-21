@@ -495,6 +495,38 @@ class HealthConnectViewModelTest {
     }
 
     @Test
+    fun `the dialog looks up the oldest record only with history access, and again once it is granted`() = runTest {
+        val ops = FakeHealthOps().apply { earliest = 1_600_000_000_000L }
+        val vm = vm(ops = ops)
+        vm.refreshPermissions()
+        vm.addUrl("https://example.org/hook")
+        vm.openBackfillDialog()
+        assertEquals("without history access the answer would be cut off", 0, ops.earliestLookups)
+        assertNull(vm.state.value.backfillEarliest)
+
+        ops.granted = ops.granted + HealthConnectManager.HISTORY_PERMISSION
+        vm.refreshPermissions()
+        assertEquals(1, ops.earliestLookups)
+        assertEquals(1_600_000_000_000L, vm.state.value.backfillEarliest)
+
+        vm.dismissBackfillDialog()
+        vm.openBackfillDialog()
+        assertEquals("looked up again each time the dialog opens", 2, ops.earliestLookups)
+    }
+
+    @Test
+    fun `a backfill of all history with nothing to send says so`() = runTest {
+        val ops = FakeHealthOps()
+        val vm = vm(ops = ops)
+        val toasts = mutableListOf<UiMessage>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+        vm.backfill(BackfillJob.ALL_HISTORY)
+        assertEquals(listOf<UiMessage>(UiMessage.BackfillNoRecords), toasts)
+        assertEquals(emptyList<Int>(), ops.backfillStarts)
+        job.cancel()
+    }
+
+    @Test
     fun `the dialog names the stopped backfill that its length continues`() = runTest {
         val stopped = BackfillJob.start(days = 90, types = listOf("STEPS"), now = 1_000_000L).copy(nextWindow = 12)
         val vm = vm(ops = FakeHealthOps().apply { this.stopped = stopped })
