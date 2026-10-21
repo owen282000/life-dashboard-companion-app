@@ -1040,7 +1040,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.27.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.28.0...HEAD
+[1.28.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.27.0...1.28.0
 [1.27.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.26.0...1.27.0
 [1.26.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.25.0...1.26.0
 [1.25.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.24.0...1.25.0
