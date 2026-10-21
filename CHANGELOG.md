@@ -9,12 +9,12 @@ All notable changes to this project are documented in this file. The format is b
 ### Highlights
 
 - Every webhook address has its own signing secret and headers, so pairing the Life Dashboard stack no longer breaks Home Assistant, or the other way round. After the update each address keeps what its section had; nothing a receiver gets changes.
-- Backfill reaches back to all your history: 30 days up to 5 years, or **All history** from your oldest record. Asked for in owen282000/life-dashboard-stack#23.
+- Backfill reaches back to all your history: 30 days up to 5 years, or **All history** from your oldest record. Asked for by @ADeliciousMan in [life-dashboard-stack#23](https://github.com/owen282000/life-dashboard-stack/issues/23).
 - A card says when Android's battery optimization holds syncs back, with a one-tap fix, and the app's language can be set in Android's own App languages.
 
 ### Added
 
-- Backfill reaches back further (stack#23): besides 30 and 90 days it offers 6 months, 1, 2 and 5
+- Backfill reaches back further, asked for by @ADeliciousMan in [life-dashboard-stack#23](https://github.com/owen282000/life-dashboard-stack/issues/23): besides 30 and 90 days it offers 6 months, 1, 2 and 5
   years, and **All history**, which starts at the oldest record of the enabled types and sends
   everything Health Connect has. The dialog lists the lengths with what each covers, names the month
   All history starts in, and leaves out the lengths that reach back past your oldest record (once it
