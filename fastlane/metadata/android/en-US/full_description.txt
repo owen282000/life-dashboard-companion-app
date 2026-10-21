@@ -1,6 +1,6 @@
 Send Health Connect and screen time from your Android phone to Home Assistant, MQTT or your own server. No cloud in between, no account, no analytics or tracking SDKs.
 
-Pair with Home Assistant by scanning one QR code, and get 33 Health Connect types and up to a year of history.
+Pair with Home Assistant by scanning one QR code, and get 34 Health Connect types and all your history.
 
 Works with any app that writes to Health Connect, such as Samsung Health, Google Health (Fitbit and Pixel Watch), Garmin Connect, Oura, Withings and Gadgetbridge.
 
@@ -9,10 +9,10 @@ Your data goes only to the addresses you enter: your Home Assistant, your MQTT b
 Home Assistant:
 - The Life Dashboard integration, installed through HACS. Scan the QR code it shows and you're paired, with no broker and no YAML. Every synced day lands in Home Assistant's long-term statistics on its own date, so a backfill becomes a year of history.
 - Receive, with the integration: a scale or blood pressure monitor connected to Home Assistant sends its readings to the app, which writes them into Health Connect (weight, height, body composition, blood pressure). Samsung Health and Google Health can show the weight and body fat from there. You switch it on per type.
-- MQTT Discovery, for a setup that already runs a broker: 24 of the 33 types plus screen time as sensors under one device, with optional TLS and login.
+- MQTT Discovery, for a setup that already runs a broker: 25 of the 34 types plus screen time as sensors under one device, with optional TLS and login.
 
 Health Connect:
-- 33 types: steps, sleep with stages, heart rate, HRV, blood pressure, blood glucose, VO2 max, skin temperature, cycle tracking and more.
+- 34 types: steps, sleep with stages, heart rate, HRV, speed, blood pressure, blood glucose, VO2 max, skin temperature, cycle tracking and more.
 - Every record carries its source app and a stable ID, so a duplicate is easy to drop. Daily totals come from Health Connect itself, so a walk recorded by both phone and watch counts once.
 - Each sync sends only what changed since the last one, per data type, edits and deletions included. When a change can't be sent, the payload says so.
 - Optional data resolution: send dense series such as heart rate as one summary per 1, 5, 15 or 60 minutes.

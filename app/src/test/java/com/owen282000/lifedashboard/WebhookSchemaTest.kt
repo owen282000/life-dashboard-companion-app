@@ -20,7 +20,7 @@ class WebhookSchemaTest {
         val declaredKeys = schema.getValue("properties").jsonObject.keys
 
         val payloadKeys = listOf(
-            "steps", "sleep", "heart_rate", "distance", "active_calories", "total_calories",
+            "steps", "sleep", "heart_rate", "distance", "speed", "active_calories", "total_calories",
             "weight", "height", "blood_pressure", "blood_glucose", "oxygen_saturation",
             "body_temperature", "respiratory_rate", "resting_heart_rate", "exercise",
             "hydration", "nutrition", "mindfulness", "body_fat", "lean_body_mass",

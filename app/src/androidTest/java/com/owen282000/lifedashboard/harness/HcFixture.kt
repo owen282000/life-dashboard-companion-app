@@ -6,6 +6,7 @@ import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.SleepSessionRecord
+import androidx.health.connect.client.records.SpeedRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.WeightRecord
@@ -15,6 +16,7 @@ import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
+import androidx.health.connect.client.units.Velocity
 import com.owen282000.lifedashboard.HealthDataType
 import kotlinx.coroutines.runBlocking
 import java.time.Duration
@@ -58,6 +60,13 @@ class HcFixture(private val context: Context) {
         samples.first().first, offset(samples.first().first),
         samples.last().first, offset(samples.last().first),
         samples.map { (time, bpm) -> HeartRateRecord.Sample(time, bpm) },
+        meta()
+    )
+
+    fun speed(samples: List<Pair<Instant, Double>>): SpeedRecord = SpeedRecord(
+        samples.first().first, offset(samples.first().first),
+        samples.last().first, offset(samples.last().first),
+        samples.map { (time, metersPerSecond) -> SpeedRecord.Sample(time, Velocity.metersPerSecond(metersPerSecond)) },
         meta()
     )
 

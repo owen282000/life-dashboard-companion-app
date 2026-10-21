@@ -49,6 +49,22 @@ class MqttSupportTest {
     }
 
     @Test
+    fun speedIsTheLatestSampleInMetersPerSecond() {
+        val data = emptyHealthData().copy(
+            speed = listOf(
+                SpeedData(2.8, t1, "com.app.a", "r1#1"),
+                SpeedData(3.254, t2, "com.app.a", "r1#2")
+            )
+        )
+        val sensor = MqttSupport.sensorsFrom(data).single()
+        assertEquals("speed", sensor.key)
+        assertEquals("3.25", sensor.state)
+        assertEquals("m/s", sensor.unit)
+        assertEquals("speed", sensor.deviceClass)
+        assertEquals(t2.toString(), sensor.attributes["measured_at"])
+    }
+
+    @Test
     fun bloodPressureYieldsTwoSensors() {
         val data = emptyHealthData().copy(
             bloodPressure = listOf(BloodPressureData(121.0, 79.0, t1, "com.app.a", "u1"))

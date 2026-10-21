@@ -7,7 +7,7 @@ import com.owen282000.lifedashboard.viewmodel.SettingsRules
  * unit tested on the JVM.
  *
  * A fresh install has zero data types enabled, which meant a new user's first screen was a
- * wall of 33 toggles and an empty configuration. The wizard asks two questions instead:
+ * wall of 34 toggles and an empty configuration. The wizard asks two questions instead:
  * where should the data go, and which types matter to you.
  */
 object OnboardingSupport {

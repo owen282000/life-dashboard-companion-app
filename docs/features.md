@@ -29,10 +29,11 @@ What Life Dashboard Companion does, section by section. For setup and day-to-day
 - [How this compares to the Home Assistant companion app](#how-this-compares-to-the-home-assistant-companion-app)
 
 <a id="33-supported-data-types"></a>
+<a id="34-supported-data-types"></a>
 
 ## Health data
 
-The app reads 33 Health Connect data types. Each has its own switch and its own permission, so you share only what you choose. Every enabled type goes to your webhooks as individual records; 25 of them also become a sensor in Home Assistant through the integration, 24 over MQTT. The integration adds a last workout sensor and the workout minutes of today and yesterday (0.10.0 and newer), and minutes per day for mindfulness sessions.
+The app reads 34 Health Connect data types. Each has its own switch and its own permission, so you share only what you choose. Every enabled type goes to your webhooks as individual records; 26 of them also become a sensor in Home Assistant through the integration, 25 over MQTT. The integration adds a last workout sensor and the workout minutes of today and yesterday (0.10.0 and newer), and minutes per day for mindfulness sessions.
 
 | Category | Type | Sensor in Home Assistant |
 |---|---|---|
@@ -40,6 +41,7 @@ The app reads 33 Health Connect data types. Each has its own switch and its own 
 | Activity | Distance | Today's total |
 | Activity | Active calories | Today's total |
 | Activity | Total calories | Today's total |
+| Activity | Speed | Latest value, in m/s |
 | Activity | Exercise sessions | Last workout, exercise today and yesterday (integration 0.10.0 and newer); minutes per day in the statistics |
 | Body | Weight | Latest value |
 | Body | Height | Latest value |
@@ -107,7 +109,7 @@ There are two ways into Home Assistant. Use one, not both: with both you get two
 
 **The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha)** is the recommended one. You install it from HACS and pair the phone by scanning a QR code. It receives the webhook directly, needs no broker, keeps every day in long-term statistics (a backfill and screen time included), and comes with an example dashboard. It is also the only way to [receive measurements](#receiving-from-home-assistant) on the phone.
 
-**MQTT with Home Assistant Discovery** suits a setup that already has a broker and only needs current values. Point the app at the broker, and sensors for 24 of the 33 types, plus screen time, appear under one device without any configuration in Home Assistant.
+**MQTT with Home Assistant Discovery** suits a setup that already has a broker and only needs current values. Point the app at the broker, and sensors for 25 of the 34 types, plus screen time, appear under one device without any configuration in Home Assistant.
 
 <img src="screenshots/mqtt.png" alt="The MQTT section in the app: the shared broker mqtt.lan on port 1883, optional credentials, the base topic and the last publish of 11 sensors" width="300" align="right">
 
@@ -118,7 +120,7 @@ There are two ways into Home Assistant. Use one, not both: with both you get two
 Both routes create the same sensors, each one the first time its type arrives, so you only get the types you sync. Grouped by key:
 
 - **Today's totals:** `steps_today`, `distance_today`, `active_calories_today`, `total_calories_today`, each with the day as a `date` attribute.
-- **Latest value:** `heart_rate`, `resting_heart_rate`, `heart_rate_variability`, `sleep_duration`, `weight`, `height`, `blood_pressure_systolic`, `blood_pressure_diastolic`, `blood_glucose`, `oxygen_saturation`, `body_temperature`, `skin_temperature_delta`, `basal_body_temperature`, `respiratory_rate`, `hydration`, `body_fat`, `lean_body_mass`, `bone_mass`, `body_water_mass`, `basal_metabolic_rate`, `vo2_max`. Each carries `measured_at`, `source` (the app that wrote the record) and `uuid` (the record's ID) as attributes. In the integration, a type you send per time window under **Data Resolution** shows the average of the newest window instead, with `sample_count`, `min`, `max` and `sources` as attributes.
+- **Latest value:** `heart_rate`, `speed`, `resting_heart_rate`, `heart_rate_variability`, `sleep_duration`, `weight`, `height`, `blood_pressure_systolic`, `blood_pressure_diastolic`, `blood_glucose`, `oxygen_saturation`, `body_temperature`, `skin_temperature_delta`, `basal_body_temperature`, `respiratory_rate`, `hydration`, `body_fat`, `lean_body_mass`, `bone_mass`, `body_water_mass`, `basal_metabolic_rate`, `vo2_max`. Each carries `measured_at`, `source` (the app that wrote the record) and `uuid` (the record's ID) as attributes. In the integration, a type you send per time window under **Data Resolution** shows the average of the newest window instead, with `sample_count`, `min`, `max` and `sources` as attributes.
 - **Screen time:** `screen_time_today` and `screen_time_yesterday` in minutes, with `date`, `app_count` and `top_apps` (the top five with their minutes) as attributes, and `screen_time_top_app`, today's most used app, with `package`, `minutes` and `date`. The integration adds a sensor per app, described [below](#what-only-the-integration-adds). With an app filter on, the minutes are those of the apps that are sent and `all_apps_minutes` holds the real total (in the integration, 0.8.0 or newer).
 
 Over MQTT the key is part of the topic (`<base>/<key>/state`), and the sensors sit on a device called Life Dashboard Companion. With the integration, they sit on a device with the **Name** you gave when you added the integration, and the entity ID is that name plus the key: "Pixel 8" gives `sensor.pixel_8_steps_today`. Three sensors have a different name in the integration:
@@ -286,10 +288,10 @@ The [Home Assistant companion app](https://companion.home-assistant.io/docs/core
 
 | | HA companion app | Life Dashboard Companion |
 |---|---|---|
-| Health Connect coverage | 26 sensors from 25 types | 33 data types |
+| Health Connect coverage | 26 sensors from 25 types | 34 data types |
 | Exercise sessions, nutrition, sleep stages, cycle tracking, mindfulness, skin temperature | Missing ([open issue](https://github.com/home-assistant/android/issues/4804)) | Supported |
 | Detail | Latest value or daily aggregate per sensor | Every record, with the source app and a stable ID, plus deduplicated daily totals |
-| History | "Only the last 30 days of data is used" | Unlimited, with backfill of up to a year |
+| History | "Only the last 30 days of data is used" | Unlimited, with backfill of all history |
 | Screen time | Last used app; total screen-on time through History Stats | Foreground time per app, custom day boundary |
 | Destination | Your Home Assistant | Home Assistant through the Life Dashboard integration or MQTT Discovery, and any webhook backend |
 | Direction | Export only | Both: Health Connect to your server, and Home Assistant to Health Connect through the Life Dashboard integration |

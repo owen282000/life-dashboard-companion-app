@@ -25,7 +25,7 @@ Webhook auth headers, HMAC signing secrets and MQTT passwords are stored encrypt
 | HMAC signing secrets, per address | Lifetime statistics |
 | The sync schedule per section: interval or fixed times, days and quiet hours | Health Connect permissions |
 | MQTT brokers, topics and switches | Usage access permission |
-| The 33 data-type toggles | Which entities Home Assistant sends (that choice lives in the integration) |
+| The 34 data-type toggles | Which entities Home Assistant sends (that choice lives in the integration) |
 | Data resolution per type | The Receive ledger (which readings were written, and their Health Connect IDs) |
 | Daily totals, record metadata, plain HTTP, full payloads, day boundary, failure threshold | The **Notify after failed syncs** switch (the threshold is included) |
 | Receive: the switch, the types, **Accept older measurements** and the source URL | |
@@ -187,7 +187,7 @@ Two values in an iPhone file describe the iPhone itself. This app does not copy 
 
 The preview lists both when the file has them.
 
-The data types in an iPhone file are the ones enabled on the iPhone, so the file decides only the types the iPhone app has: those are switched on or off as the file says. The types it does not have (bone mass, body water mass, basal metabolic rate and skin temperature) keep their state on this phone. The preview counts the types the phone ends up with, and notes that those four stay as they are. Receive and the series resolutions are not in an iPhone file at all, so they stay as they are too. What carries over the other way is in the iOS app's [settings-backup.md](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/settings-backup.md#moving-between-android-and-iphone).
+The data types in an iPhone file are the ones enabled on the iPhone, so the file decides only the types the iPhone app has: those are switched on or off as the file says. The types it does not have (bone mass, body water mass, basal metabolic rate, skin temperature and speed) keep their state on this phone. The preview counts the types the phone ends up with, and notes that those five stay as they are. Receive and the series resolutions are not in an iPhone file at all, so they stay as they are too. What carries over the other way is in the iOS app's [settings-backup.md](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/settings-backup.md#moving-between-android-and-iphone).
 
 ## Keeping an export safe
 

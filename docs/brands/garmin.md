@@ -21,7 +21,7 @@ From Garmin's list of what it writes to Health Connect, these are the types this
 
 In Home Assistant, daily totals and the latest readings become sensors, and each day is stored in long-term statistics on its own date. On a phone where Samsung Health or another app also counts steps, the daily totals still count every step once: they come from Health Connect's own deduplicated figures ([why](../usage.md#samsung-health-and-garmin-both-write-steps-will-they-double)).
 
-Garmin also writes floors, speed, elevation gained, cycling cadence and swimming strokes, which aren't among this app's types.
+Garmin also writes speed, which this app sends, and floors, elevation gained, cycling cadence and swimming strokes, which aren't among its types.
 
 ## What stays with Garmin
 

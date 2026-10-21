@@ -40,7 +40,7 @@ The UREVO Android app writes treadmill sessions into Health Connect. Observed on
 | Total calories | Yes |
 | Speed | Not observed |
 
-This app only forwards what Health Connect holds, so actual treadmill speed is not in the payload unless some other app writes it.
+This app only forwards what Health Connect holds. It sends speed since issue #180, but the treadmill speed stays out of the payload unless some app writes it to Health Connect.
 
 **Duplicate metric records.** One physical session was observed as a single Exercise record plus two Distance, two Steps and two Total Calories records. Each pair had different Health Connect UUIDs and the same `source`, type, start time, end time and value. Deduplicating only on `uuid` still double-counts if a receiver sums those records. For session totals, treat identical source, type, interval and value as one measurement and keep the UUIDs as provenance. This was seen with UREVO; other apps may not do it.
 

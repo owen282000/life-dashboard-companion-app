@@ -718,7 +718,7 @@ fun NotificationsRow(
     }
 }
 
-/** The 33 Health Connect types with their toggles, folded under one row. */
+/** The 34 Health Connect types with their toggles, folded under one row. */
 @Composable
 fun DataTypesRow(
     accent: Color,

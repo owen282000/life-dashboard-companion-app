@@ -460,7 +460,7 @@ class ConfigBackupTest {
         // When this fails, a type was added on either side: check HealthDataType.swift in the
         // iOS repo and update ConfigBackupManager.IPHONE_DATA_TYPES.
         assertEquals(
-            setOf(HealthDataType.BONE_MASS, HealthDataType.BODY_WATER_MASS, HealthDataType.BASAL_METABOLIC_RATE, HealthDataType.SKIN_TEMPERATURE),
+            setOf(HealthDataType.BONE_MASS, HealthDataType.BODY_WATER_MASS, HealthDataType.BASAL_METABOLIC_RATE, HealthDataType.SKIN_TEMPERATURE, HealthDataType.SPEED),
             HealthDataType.entries.toSet() - ConfigBackupManager.IPHONE_DATA_TYPES
         )
     }

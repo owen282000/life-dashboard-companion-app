@@ -177,7 +177,7 @@ object DeletionTracking {
      * across every enabled type.
      *
      * The step runs before the first delivery and does one round trip to Health Connect per
-     * enabled type, up to 33. Warm, that is milliseconds each. A scheduled run that starts
+     * enabled type, up to 34. Warm, that is milliseconds each. A scheduled run that starts
      * while the phone is dozing can find the service cold and a call that does not return, and
      * a hang is not an exception, so without a bound the whole sync would sit there until
      * Android stopped the worker, which delivers nothing at all. A type that does not fit keeps
@@ -209,6 +209,7 @@ object DeletionTracking {
         HealthDataType.SLEEP -> "sleep"
         HealthDataType.HEART_RATE -> "heart_rate"
         HealthDataType.DISTANCE -> "distance"
+        HealthDataType.SPEED -> "speed"
         HealthDataType.ACTIVE_CALORIES -> "active_calories"
         HealthDataType.TOTAL_CALORIES -> "total_calories"
         HealthDataType.WEIGHT -> "weight"
