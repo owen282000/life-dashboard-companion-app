@@ -6,7 +6,7 @@ What Life Dashboard Companion does, section by section. For setup and day-to-day
 
 - **Every record.** Each heart rate sample, sleep stage, meal and workout, with the app that wrote it and a stable ID, plus deduplicated daily totals.
 - **Home Assistant, MQTT or any webhook.** The Life Dashboard integration (paired by QR code), MQTT Discovery, or any server that accepts a JSON POST.
-- **A year of history.** Backfill sends up to 365 days, so your graphs start full.
+- **All your history.** Backfill sends anything from 30 days to everything Health Connect has, so your graphs start full.
 - **Two-way with Health Connect.** With the Life Dashboard integration, readings from a scale or blood pressure monitor in Home Assistant go into Health Connect, where Samsung Health and Google Health pick up the weight and body fat.
 - **Screen time per app**, next to your health data, with a day that ends when you go to bed.
 - **No cloud of its own and no analytics.** Data goes only to the destinations you set.
@@ -188,7 +188,10 @@ A regular sync reads what changed since the last one, reaching back a week for r
 
 ### Backfill
 
-**Backfill** on the **Health** tab sends the last 30, 90 or 365 days of every enabled type to your webhooks.
+**Backfill** on the **Health** tab sends past data of every enabled type to your webhooks: 30 days, 90 days, 6 months, 1 year, 2 years, 5 years, or **All history**.
+
+- **All history** starts at the oldest record of the enabled types, so it sends everything Health Connect has, however many years that is. The dialog names the month it starts in. Lengths that reach back further than your oldest record are left out of the list, since they would send the same.
+- The Life Dashboard stack takes history of any age. The Home Assistant integration may take in only about the last year of it for now; older days follow in a later version of the integration.
 
 - It goes in 3-day chunks, oldest first, and doesn't touch what the regular sync keeps track of. A receiver can drop records sent twice by their `uuid`.
 - Data from more than 30 days before you first gave the app access needs Health Connect's history access, which the dialog asks for.

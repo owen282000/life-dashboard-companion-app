@@ -52,6 +52,9 @@ interface HealthOps {
 
     /** The stopped backfill that starting one of its length would continue, or null. */
     fun stoppedBackfill(): BackfillJob?
+
+    /** The oldest record of the enabled types in epoch milliseconds, or null when there is none or it cannot be read. */
+    suspend fun earliestRecord(): Long?
     suspend fun testPing(webhook: WebhookDraft): Result<Unit>
 
     /** Package names of other apps that wrote [type] to Health Connect in the last week (Receive, issue #62). */
@@ -129,6 +132,13 @@ class RealHealthOps(private val context: Context) : HealthOps {
     override suspend fun startBackfill(days: Int) = BackfillWork.start(context, days)
     override fun cancelBackfill() = BackfillWork.cancel(context)
     override fun stoppedBackfill() = BackfillWork.stopped(context)
+    override suspend fun earliestRecord(): Long? = try {
+        BackfillWork.earliestRecord(context)
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        null
+    }
 
     override suspend fun testPing(webhook: WebhookDraft): Result<Unit> =
         TestPing.send(context, webhook.trimmed().destinations, LogType.HEALTH_CONNECT)

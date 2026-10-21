@@ -11,6 +11,7 @@ import com.owen282000.lifedashboard.BackfillJob
 import com.owen282000.lifedashboard.BackfillStart
 import com.owen282000.lifedashboard.BackfillStatus
 import com.owen282000.lifedashboard.FailureReason
+import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthPermissionRequests
 import com.owen282000.lifedashboard.HealthSyncResult
@@ -80,6 +81,13 @@ data class HealthUiState(
     val backfillDialog: Boolean = false,
     /** A stopped backfill that choosing its length in the dialog continues; read when the dialog opens. */
     val stoppedBackfill: BackfillJob? = null,
+    /**
+     * The oldest record of the enabled types in epoch milliseconds, looked up when the dialog
+     * opens with history access, so the dialog leaves out the lengths that reach back past it.
+     * Null before that, without history access (Health Connect then hides older records), and
+     * when there is no record or it could not be read.
+     */
+    val backfillEarliest: Long? = null,
     /** Receive (issue #62): the stored switches, what the integration reported, and the two prompts. */
     val receive: ReceiveSettings = ReceiveSettings(),
     val receiveStatus: ReceiveStatus = ReceiveStatus(),
@@ -260,6 +268,8 @@ class HealthConnectViewModel(
             }
             val granted = ops.grantedPermissions()
             _state.update { it.copy(availability = availability, hasPermissions = granted.isNotEmpty(), grantedPermissions = granted) }
+            // History access granted from the open backfill dialog: now the oldest record can be found.
+            if (_state.value.backfillDialog && _state.value.backfillEarliest == null) loadBackfillEarliest()
 
             pendingReceiveType?.let { type ->
                 pendingReceiveType = null
@@ -543,7 +553,17 @@ class HealthConnectViewModel(
             _toasts.tryEmit(UiMessage.BackfillNeedsWebhook)
             return
         }
-        _state.update { it.copy(backfillDialog = true, stoppedBackfill = ops.stoppedBackfill()) }
+        _state.update { it.copy(backfillDialog = true, stoppedBackfill = ops.stoppedBackfill(), backfillEarliest = null) }
+        loadBackfillEarliest()
+    }
+
+    /** Looks up the oldest record for the open dialog, only with history access: without it the answer is cut off. */
+    private fun loadBackfillEarliest() {
+        if (HealthConnectManager.HISTORY_PERMISSION !in _state.value.grantedPermissions) return
+        viewModelScope.launch {
+            val earliest = ops.earliestRecord()
+            _state.update { if (it.backfillDialog) it.copy(backfillEarliest = earliest) else it }
+        }
     }
 
     override fun dismissBackfillDialog() = _state.update { it.copy(backfillDialog = false) }
@@ -558,8 +578,10 @@ class HealthConnectViewModel(
         stopping = false
         viewModelScope.launch {
             try {
-                if (ops.startBackfill(days) == BackfillStart.ALREADY_RUNNING) {
-                    _toasts.tryEmit(UiMessage.BackfillAlreadyRunning)
+                when (ops.startBackfill(days)) {
+                    BackfillStart.ALREADY_RUNNING -> _toasts.tryEmit(UiMessage.BackfillAlreadyRunning)
+                    BackfillStart.NO_RECORDS -> _toasts.tryEmit(UiMessage.BackfillNoRecords)
+                    BackfillStart.STARTED -> Unit
                 }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e

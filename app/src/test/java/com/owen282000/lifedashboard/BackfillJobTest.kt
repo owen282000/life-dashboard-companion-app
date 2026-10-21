@@ -223,4 +223,57 @@ class BackfillJobTest {
         }
         assertNull(BackfillFailure.of("from_a_newer_version", 0, 0, null))
     }
+
+    @Test
+    fun `a backfill of all history starts at the oldest record, on a whole second, and ends now`() {
+        val earliest = Instant.parse("2020-03-14T07:30:00.999Z").toEpochMilli()
+        val job = BackfillJob.start(BackfillJob.ALL_HISTORY, steps, now, earliest)
+        assertEquals(Instant.parse("2020-03-14T07:30:00Z").toEpochMilli(), job.rangeStart)
+        assertEquals(Instant.parse("2026-10-03T12:00:00Z").toEpochMilli(), job.rangeEnd)
+        assertEquals(BackfillJob.ALL_HISTORY, job.days)
+        assertEquals(2395, job.spanDays)
+        assertEquals((2395 + 2) / 3, job.windowCount)
+        assertEquals(job.windowCount, BackfillJob.allHistoryWindows(earliest, now))
+    }
+
+    @Test
+    fun `all history covers at least a day, and cannot start without the oldest record`() {
+        val job = BackfillJob.start(BackfillJob.ALL_HISTORY, steps, now, earliest = now)
+        assertEquals(Duration.ofDays(1).toMillis(), job.rangeEnd - job.rangeStart)
+        assertEquals(1, job.windowCount)
+        assertTrue(runCatching { BackfillJob.start(BackfillJob.ALL_HISTORY, steps, now) }.isFailure)
+    }
+
+    @Test
+    fun `starting all history again continues the stopped one, without looking up the oldest record`() {
+        val earliest = Instant.parse("2021-01-01T00:00:00Z").toEpochMilli()
+        val stopped = BackfillJob.start(BackfillJob.ALL_HISTORY, steps, now, earliest).afterWindow(10, now).afterIdleRun(now)
+        val again = BackfillJob.startOrContinue(stopped, BackfillJob.ALL_HISTORY, steps, now + hour)
+        assertEquals(stopped.id, again.id)
+        assertEquals(stopped.rangeStart, again.rangeStart)
+        assertEquals(1, again.nextWindow)
+
+        val fixed = BackfillJob.startOrContinue(stopped, 365, steps, now + hour)
+        assertNotEquals("another length starts over", stopped.id, fixed.id)
+        assertEquals(365, fixed.spanDays)
+    }
+
+    @Test
+    fun `the dialog leaves out lengths that reach back past the oldest record`() {
+        assertEquals("unknown: all of them", BackfillJob.LENGTHS, BackfillJob.lengthsFor(null, now))
+        val threeYears = now - Duration.ofDays(3 * 365).toMillis()
+        assertEquals(listOf(30, 90, 180, 365, 730, BackfillJob.ALL_HISTORY), BackfillJob.lengthsFor(threeYears, now))
+        val tenDays = now - Duration.ofDays(10).toMillis()
+        assertEquals(listOf(BackfillJob.ALL_HISTORY), BackfillJob.lengthsFor(tenDays, now))
+        val exactlyAYear = now - Duration.ofDays(365).toMillis()
+        assertEquals("a length as long as the history is All", listOf(30, 90, 180, BackfillJob.ALL_HISTORY), BackfillJob.lengthsFor(exactlyAYear, now))
+        assertEquals("a stopped job's length stays", listOf(30, 90, 180, 1825, BackfillJob.ALL_HISTORY), BackfillJob.lengthsFor(exactlyAYear, now, keep = 1825))
+    }
+
+    @Test
+    fun `the windows the dialog names match the job each length starts`() {
+        BackfillJob.LENGTHS.filter { it != BackfillJob.ALL_HISTORY }.forEach { days ->
+            assertEquals("$days days", start(days).windowCount, BackfillJob.windowsFor(days))
+        }
+    }
 }

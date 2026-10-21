@@ -615,6 +615,39 @@ class HealthConnectManager(
         null
     }
 
+    /**
+     * The oldest record of [types] this app may read, where a backfill of all history starts
+     * (issue stack#23): one read per record type, oldest first and one record long, so years of
+     * data are found without walking empty windows from a fixed date. Nothing before
+     * [notBefore] counts, so one record with a wrong date (a weight entered as 1970) cannot
+     * add decades of empty chunks. A type that cannot be read is left out, as the backfill
+     * itself would leave it out; the quota is thrown, so the start can say so. Null when no
+     * type has a record. Without history access Health Connect only shows the 30 days before
+     * the first grant, so the answer is never older than that.
+     */
+    suspend fun earliestRecordTime(types: Collection<HealthDataType>, notBefore: Instant, now: Instant = Instant.now()): Instant? {
+        var earliest: Instant? = null
+        for (recordClass in types.map { it.recordClass }.distinct()) {
+            val request = ReadRecordsRequest(
+                recordType = recordClass,
+                timeRangeFilter = TimeRangeFilter.between(notBefore, now),
+                ascendingOrder = true,
+                pageSize = 1
+            )
+            val first = try {
+                bounded("the oldest ${recordClass.simpleName}") { healthConnectClient.readRecords(request) }.records.firstOrNull()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (ResilientReadLogic.isQuotaError(e)) throw e
+                null
+            }
+            val time = first?.let { recordTime(it) } ?: continue
+            if (earliest == null || time < earliest) earliest = time
+        }
+        return earliest
+    }
+
     private suspend fun readStepsData(
         startTime: Instant,
         endTime: Instant,

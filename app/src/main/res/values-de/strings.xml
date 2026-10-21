@@ -186,13 +186,13 @@
 
     <!-- Health-Connect-Bildschirm -->
     <string name="health_backfill_dialog_description">Sendet historische Daten aller aktivierten Typen in 3-Tage-Blöcken an deine Webhooks, älteste zuerst. Die reguläre Synchronisierung bleibt unberührt; überlappende Datensätze werden anhand ihrer uuid entdoppelt. Das kann eine Weile dauern und mobile Daten verbrauchen.</string>
-    <string name="health_backfill_days">%1$d T</string>
     <plurals name="health_backfill_complete">
         <item quantity="one">Nachtrag abgeschlossen: %1$d Datensatz gesendet</item>
         <item quantity="other">Nachtrag abgeschlossen: %1$d Datensätze gesendet</item>
     </plurals>
     <string name="health_backfill_already_running">Es läuft bereits ein Nachtragen</string>
-    <string name="health_backfill_continues">Das letzte Nachtragen von %1$d Tagen hat nach %2$d von %3$d Blöcken angehalten. Wähle wieder %1$d T, um dort weiterzumachen; eine andere Länge beginnt von vorn.</string>
+    <string name="health_backfill_no_records">Health Connect hat keine Datensätze der aktivierten Typen zum Senden</string>
+    <string name="health_backfill_continues">Das letzte Nachtragen von %1$s hat nach %2$d von %3$d Blöcken angehalten. Wähle wieder %1$s, um dort weiterzumachen; eine andere Länge beginnt von vorn.</string>
     <string name="health_backfill_failed_delivery">Zustellung nach %1$d von %2$d Blöcken fehlgeschlagen. Starte dasselbe Nachtragen erneut, um dort weiterzumachen.</string>
     <string name="health_backfill_failed_no_progress">Nachtragen bei Block %1$d von %2$d angehalten: mehrere Läufe hintereinander haben nichts gesendet (das Lesekontingent von Health Connect, oder Android hat es gestoppt). Starte dasselbe Nachtragen erneut, um dort weiterzumachen.</string>
     <string name="health_backfill_failed_no_types">Nachladen braucht mindestens einen aktivierten Datentyp</string>
@@ -210,6 +210,28 @@
     <string name="health_backfill_grant_history">Verlaufszugriff erteilen</string>
     <string name="health_backfill_history">Verlauf nachtragen</string>
     <string name="health_backfill_history_permission_warning">Health Connect liest nur die letzten 30 Tage, bis du den Verlaufszugriff erteilst.</string>
+    <string name="health_backfill_length_all">Alles</string>
+    <string name="health_backfill_length_all_any">Alles, was Health Connect hat, ab deinem ältesten Datensatz</string>
+    <plurals name="health_backfill_length_all_since">
+        <item quantity="one">Alles seit %1$s, %2$d Block zu 3 Tagen</item>
+        <item quantity="other">Alles seit %1$s, %2$d Blöcke zu 3 Tagen</item>
+    </plurals>
+    <plurals name="health_backfill_length_chunks">
+        <item quantity="one">%1$d Block zu 3 Tagen</item>
+        <item quantity="other">%1$d Blöcke zu 3 Tagen</item>
+    </plurals>
+    <plurals name="health_backfill_length_days">
+        <item quantity="one">%1$d Tag</item>
+        <item quantity="other">%1$d Tage</item>
+    </plurals>
+    <plurals name="health_backfill_length_months">
+        <item quantity="one">%1$d Monat</item>
+        <item quantity="other">%1$d Monate</item>
+    </plurals>
+    <plurals name="health_backfill_length_years">
+        <item quantity="one">%1$d Jahr</item>
+        <item quantity="other">%1$d Jahre</item>
+    </plurals>
     <string name="health_backfill_paused">Nachtragen pausiert bei %1$d/%2$d, geht von selbst weiter...</string>
     <string name="health_backfill_progress">Nachtragen %1$d/%2$d...</string>
     <string name="health_backfill_restarted">Datentypen geändert, neu begonnen: %1$d/%2$d...</string>

@@ -653,7 +653,7 @@ Each sync reads a type starting a week before the last sync that read the whole 
 
 ### Backfill windows
 
-**Backfill** on the **Health** tab sends the last 30, 90 or 365 days in 3-day windows, oldest first. A backfill is also the fallback for deletions, and marks each window it has sent in full. Every backfill payload carries:
+**Backfill** on the **Health** tab sends past data in 3-day windows, oldest first: a length from 30 days to 5 years, or all history from the oldest record of the enabled types. A backfill is also the fallback for deletions, and marks each window it has sent in full. Every backfill payload carries:
 
 ```json
 "backfill": true,
@@ -662,7 +662,7 @@ Each sync reads a type starting a week before the last sync that read the whole 
 "window_complete": true
 ```
 
-Windows are 72 hours long. The first starts 30, 90 or 365 days before the moment the backfill started, so the bounds fall at that time of day, not at midnight. The last window ends at that moment, and for 365 days it is shorter than the others.
+Windows are 72 hours long. The first starts the chosen length before the moment the backfill started, so the bounds fall at that time of day, not at midnight; for all history it starts at the time of the oldest record. The last window ends at that moment, and can be shorter than the others.
 
 - `window_complete: true` is on the last payload of a window. It means every record the phone holds for that window has now been sent, so a receiver may treat any `uuid` it holds for that window, but that the backfill did not send, as deleted.
 - A window split into several payloads carries `window_complete: false` on all but the last.

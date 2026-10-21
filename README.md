@@ -55,7 +55,7 @@ Your watch, ring or scale already writes to Health Connect. This app sends that 
 
 - **33 Health Connect types.** Steps, sleep with stages, heart rate and HRV, weight and body composition, blood pressure, glucose, workouts, nutrition, cycle tracking and more. Each type has its own switch.
 - **Every record, plus clean daily totals.** Every raw record goes out with the app that wrote it. Daily totals for steps, distance and calories come from Health Connect itself, so a walk recorded by both phone and watch counts once.
-- **A year of history.** Backfill 30, 90 or 365 days in one go. In Home Assistant each day lands on its own date.
+- **All your history.** Backfill from 30 days up to 5 years, or everything Health Connect has, in one go. In Home Assistant each day lands on its own date.
 - **Screen time per app.** Foreground minutes for every app, with a day boundary you choose (say 04:00 for late nights) and a filter to leave apps out.
 - **Back into Health Connect.** With **Receive** on, readings from a scale or blood pressure monitor in Home Assistant go into Health Connect. Samsung Health and Google Health pick up the weight and body fat from there. This needs the Life Dashboard integration.
 - **Runs on its own.** An interval or fixed times, on the days you pick, with quiet hours, and nothing running in between. If your server is down or only reachable at home, payloads wait on the phone for the next sync that gets through.

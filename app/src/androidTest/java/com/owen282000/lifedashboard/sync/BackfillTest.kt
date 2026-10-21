@@ -125,6 +125,28 @@ class BackfillTest {
         assertEquals(steps.size + weights.size, row.recordCount)
     }
 
+    /**
+     * stack#23. A backfill of all history starts at the oldest record of the enabled types:
+     * one read per type finds it, a type without records does not count, and nothing before
+     * the cut-off does either, so a record with a wrong date cannot stretch the range.
+     */
+    @Test
+    fun theOldestRecordIsWhereAllHistoryStarts() = runBlocking {
+        TestSetup.health(receiver, setOf(STEPS, WEIGHT))
+        fixture.assertNoForeignRecords(StepsRecord::class, WeightRecord::class)
+        val day = 24 * 60L
+        val oldWeight = ago(40 * day)
+        val oldSteps = ago(10 * day + 60)
+        fixture.insert(fixture.weight(80.0, oldWeight), fixture.weight(79.5, ago(2 * day)))
+        fixture.insert(fixture.steps(500, oldSteps, ago(10 * day)))
+        val manager = HealthConnectManager(context)
+
+        assertEquals(oldWeight, manager.earliestRecordTime(setOf(STEPS, WEIGHT), notBefore = ago(400 * day)))
+        assertEquals("only the types asked for", oldSteps, manager.earliestRecordTime(setOf(STEPS), notBefore = ago(400 * day)))
+        assertEquals("nothing before the cut-off", oldSteps, manager.earliestRecordTime(setOf(STEPS, WEIGHT), notBefore = ago(20 * day)))
+        assertNull("a type without records", manager.earliestRecordTime(setOf(STEPS), notBefore = ago(5 * day)))
+    }
+
     /** T44. An empty window still sends one complete snapshot: that is how a receiver learns it is empty. */
     @Test
     fun emptyWindowSendsOneCompletePayload() = runBlocking {

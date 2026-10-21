@@ -186,13 +186,13 @@
 
     <!-- Health Connect-scherm -->
     <string name="health_backfill_dialog_description">Verstuurt historische data van alle ingeschakelde types naar je webhooks in blokken van 3 dagen, oudste eerst. Gewone synchronisatie gaat gewoon door; overlappende records worden ontdubbeld op hun uuid. Dit kan even duren en mobiele data verbruiken.</string>
-    <string name="health_backfill_days">%1$dd</string>
     <plurals name="health_backfill_complete">
         <item quantity="one">Backfill klaar: %1$d record verstuurd</item>
         <item quantity="other">Backfill klaar: %1$d records verstuurd</item>
     </plurals>
     <string name="health_backfill_already_running">Er loopt al een backfill</string>
-    <string name="health_backfill_continues">De vorige backfill van %1$d dagen stopte na %2$d van %3$d blokken. Kies opnieuw %1$dd om daar verder te gaan; een andere lengte begint opnieuw.</string>
+    <string name="health_backfill_no_records">Health Connect heeft geen records van de ingeschakelde types om te versturen</string>
+    <string name="health_backfill_continues">De vorige backfill van %1$s stopte na %2$d van %3$d blokken. Kies opnieuw %1$s om daar verder te gaan; een andere lengte begint opnieuw.</string>
     <string name="health_backfill_failed_delivery">Bezorging mislukt na %1$d van %2$d blokken. Start dezelfde backfill opnieuw om daar verder te gaan.</string>
     <string name="health_backfill_failed_no_progress">Backfill gestopt bij blok %1$d van %2$d: meerdere pogingen achter elkaar verstuurden niets (het leesquotum van Health Connect, of Android stopte hem). Start dezelfde backfill opnieuw om daar verder te gaan.</string>
     <string name="health_backfill_failed_no_types">Aanvullen vereist minstens één ingeschakeld datatype</string>
@@ -210,6 +210,28 @@
     <string name="health_backfill_grant_history">Toegang tot geschiedenis geven</string>
     <string name="health_backfill_history">Geschiedenis backfillen</string>
     <string name="health_backfill_history_permission_warning">Health Connect leest alleen de laatste 30 dagen totdat je toegang tot de geschiedenis geeft.</string>
+    <string name="health_backfill_length_all">Alles</string>
+    <string name="health_backfill_length_all_any">Alles wat Health Connect heeft, vanaf je oudste record</string>
+    <plurals name="health_backfill_length_all_since">
+        <item quantity="one">Alles sinds %1$s, %2$d blok van 3 dagen</item>
+        <item quantity="other">Alles sinds %1$s, %2$d blokken van 3 dagen</item>
+    </plurals>
+    <plurals name="health_backfill_length_chunks">
+        <item quantity="one">%1$d blok van 3 dagen</item>
+        <item quantity="other">%1$d blokken van 3 dagen</item>
+    </plurals>
+    <plurals name="health_backfill_length_days">
+        <item quantity="one">%1$d dag</item>
+        <item quantity="other">%1$d dagen</item>
+    </plurals>
+    <plurals name="health_backfill_length_months">
+        <item quantity="one">%1$d maand</item>
+        <item quantity="other">%1$d maanden</item>
+    </plurals>
+    <plurals name="health_backfill_length_years">
+        <item quantity="one">%1$d jaar</item>
+        <item quantity="other">%1$d jaar</item>
+    </plurals>
     <string name="health_backfill_paused">Backfill gepauzeerd bij %1$d/%2$d, gaat vanzelf verder...</string>
     <string name="health_backfill_progress">Backfillen %1$d/%2$d...</string>
     <string name="health_backfill_restarted">Datatypes veranderd, opnieuw begonnen: %1$d/%2$d...</string>

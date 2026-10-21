@@ -866,7 +866,7 @@ class HealthSyncManager(
         val note = listOfNotNull(
             if (progress.restarted) res.getString(R.string.health_backfill_log_restarted) else null,
             when (status) {
-                STATUS_DONE -> res.getQuantityString(R.plurals.health_backfill_log_done, job.recordsSent, job.days, job.windowCount, job.recordsSent)
+                STATUS_DONE -> res.getQuantityString(R.plurals.health_backfill_log_done, job.recordsSent, job.spanDays, job.windowCount, job.recordsSent)
                 STATUS_PAUSED -> res.getString(R.string.health_backfill_log_paused, at, job.windowCount)
                 else -> res.getString(R.string.health_backfill_log_stopped, at, job.windowCount)
             }
@@ -874,7 +874,8 @@ class HealthSyncManager(
         val summary = buildJsonObject {
             put("backfill", true)
             put("status", status)
-            put("days", job.days)
+            put("days", job.spanDays)
+            put("all_history", job.days == BackfillJob.ALL_HISTORY)
             put("windows_done", job.nextWindow)
             put("window_count", job.windowCount)
             put("records_sent", sent)

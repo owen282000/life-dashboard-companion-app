@@ -102,7 +102,7 @@
     "window_start": {
       "type": "string",
       "format": "date-time",
-      "description": "Backfill only: start of the window this payload belongs to. Windows are 72 hours long (the last one can be shorter), the first starting 30, 90 or 365 days before the moment the backfill started, so their bounds fall at that time of day, not at midnight"
+      "description": "Backfill only: start of the window this payload belongs to. Windows are 72 hours long (the last one can be shorter), the first starting the chosen length (30 days to 5 years) before the moment the backfill started, or at the oldest record for all history, so their bounds fall at that time of day, not at midnight"
     },
     "window_end": {
       "type": "string",
