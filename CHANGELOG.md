@@ -9,12 +9,12 @@ All notable changes to this project are documented in this file. The format is b
 ### Highlights
 
 - Every webhook address has its own signing secret and headers, so pairing the Life Dashboard stack no longer breaks Home Assistant, or the other way round. After the update each address keeps what its section had; nothing a receiver gets changes.
-- Backfill reaches back to all your history: 30 days up to 5 years, or **All history** from your oldest record. Asked for in owen282000/life-dashboard-stack#23.
+- Backfill reaches back to all your history: 30 days up to 5 years, or **All history** from your oldest record. Asked for by @ADeliciousMan in [life-dashboard-stack#23](https://github.com/owen282000/life-dashboard-stack/issues/23).
 - A card says when Android's battery optimization holds syncs back, with a one-tap fix, and the app's language can be set in Android's own App languages.
 
 ### Added
 
-- Backfill reaches back further (stack#23): besides 30 and 90 days it offers 6 months, 1, 2 and 5
+- Backfill reaches back further, asked for by @ADeliciousMan in [life-dashboard-stack#23](https://github.com/owen282000/life-dashboard-stack/issues/23): besides 30 and 90 days it offers 6 months, 1, 2 and 5
   years, and **All history**, which starts at the oldest record of the enabled types and sends
   everything Health Connect has. The dialog lists the lengths with what each covers, names the month
   All history starts in, and leaves out the lengths that reach back past your oldest record (once it
@@ -1040,7 +1040,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.27.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.28.0...HEAD
+[1.28.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.27.0...1.28.0
 [1.27.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.26.0...1.27.0
 [1.26.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.25.0...1.26.0
 [1.25.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.24.0...1.25.0
