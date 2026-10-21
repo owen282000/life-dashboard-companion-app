@@ -1,0 +1,6 @@
+New
+- Every webhook address has its own signing secret and headers, so pairing one receiver no longer breaks another.
+- Backfill reaches back to all your history: 30 days up to 5 years, or everything from your oldest record.
+- A card says when battery optimization holds syncs back, with a one-tap fix.
+Fixed
+- A delivered payload is never sent twice when its log cannot be written.
