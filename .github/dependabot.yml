@@ -9,6 +9,12 @@ updates:
     commit-message:
       prefix: "build"
       include: "scope"
+    groups:
+      # Every github/codeql-action step must run the same version, or CodeQL fails;
+      # one pull request moves init, analyze and upload-sarif together.
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
