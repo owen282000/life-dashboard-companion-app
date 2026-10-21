@@ -1,5 +1,7 @@
 package com.owen282000.lifedashboard
 
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -218,6 +220,21 @@ class ResolutionPayloadTest {
         // Long past 08:10 by the clock, but the cap makes 08:06 the boundary: 08:00 is sent, 08:05 waits.
         assertEquals(listOf("2026-09-14T08:00:00Z"), starts(a))
         assertEquals(1, a.carriedOut[HealthDataType.HEART_RATE]?.size)
+    }
+
+    @Test
+    fun `speed is bucketed like heart rate, as the average of its samples`() {
+        val data = HealthData(
+            speed = listOf(
+                SpeedData(2.0, at("2026-09-14T08:01:00Z"), "com.watch"),
+                SpeedData(3.0, at("2026-09-14T08:03:00Z"), "com.watch")
+            )
+        )
+        val a = ResolutionApplier.from(data, mapOf(HealthDataType.SPEED to SeriesResolution.FIVE_MINUTES), now = at("2026-09-14T12:00:00Z"))
+        assertTrue(a.isBucketed("speed"))
+        val bucket = a.series.getValue("speed").single() as JsonObject
+        assertEquals("2026-09-14T08:00:00Z", bucket["bucket_start"]?.jsonPrimitive?.content)
+        assertEquals(2.5, bucket.getValue("avg").jsonPrimitive.double, 1e-9)
     }
 
     @Test

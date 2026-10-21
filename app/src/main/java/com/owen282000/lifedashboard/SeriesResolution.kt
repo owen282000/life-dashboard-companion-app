@@ -66,7 +66,8 @@ enum class ResolutionFamily {
             HealthDataType.HEART_RATE_VARIABILITY,
             HealthDataType.OXYGEN_SATURATION,
             HealthDataType.RESPIRATORY_RATE,
-            HealthDataType.SKIN_TEMPERATURE -> SAMPLED
+            HealthDataType.SKIN_TEMPERATURE,
+            HealthDataType.SPEED -> SAMPLED
 
             HealthDataType.STEPS,
             HealthDataType.DISTANCE,

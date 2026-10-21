@@ -909,7 +909,7 @@ class HealthSyncManager(
                 data.nutrition.size + data.mindfulness.size + data.bodyFat.size +
                 data.leanBodyMass.size + data.boneMass.size + data.bodyWaterMass.size +
                 data.hrv.size + data.menstruationPeriod.size + data.menstruationFlow.size +
-                data.basalMetabolicRate.size + data.vo2Max.size + data.skinTemperature.size +
+                data.basalMetabolicRate.size + data.vo2Max.size + data.skinTemperature.size + data.speed.size +
                 data.basalBodyTemperature.size + data.intermenstrualBleeding.size +
                 data.ovulationTest.size + data.cervicalMucus.size + data.sexualActivity.size
     }
@@ -925,7 +925,7 @@ class HealthSyncManager(
                 data.bodyWaterMass.isEmpty() && data.hrv.isEmpty() &&
                 data.menstruationPeriod.isEmpty() && data.menstruationFlow.isEmpty() &&
                 data.basalMetabolicRate.isEmpty() && data.vo2Max.isEmpty() &&
-                data.skinTemperature.isEmpty() && data.basalBodyTemperature.isEmpty() &&
+                data.skinTemperature.isEmpty() && data.speed.isEmpty() && data.basalBodyTemperature.isEmpty() &&
                 data.intermenstrualBleeding.isEmpty() && data.ovulationTest.isEmpty() &&
                 data.cervicalMucus.isEmpty() && data.sexualActivity.isEmpty()
     }
@@ -1100,6 +1100,9 @@ class HealthSyncManager(
         }
         if (data.skinTemperature.isNotEmpty()) {
             syncCounts[HealthDataType.SKIN_TEMPERATURE] = data.skinTemperature.size
+        }
+        if (data.speed.isNotEmpty()) {
+            syncCounts[HealthDataType.SPEED] = data.speed.size
         }
         if (data.basalBodyTemperature.isNotEmpty()) {
             syncCounts[HealthDataType.BASAL_BODY_TEMPERATURE] = data.basalBodyTemperature.size
@@ -1485,6 +1488,17 @@ class HealthSyncManager(
                 }
             }
 
+            if (healthData.speed.isNotEmpty() && !resolved.isBucketed("speed")) {
+                putJsonArray("speed") {
+                    healthData.speed.forEach { add(buildJsonObject {
+                        put("meters_per_second", it.metersPerSecond)
+                        put("time", it.time.toString())
+                        it.uuid?.let { u -> put("uuid", u); putRecordMeta(healthData, u) }
+                        it.source?.let { s -> put("source", s) }
+                    }) }
+                }
+            }
+
             if (healthData.skinTemperature.isNotEmpty() && !resolved.isBucketed("skin_temperature")) {
                 putJsonArray("skin_temperature") {
                     healthData.skinTemperature.forEach { add(buildJsonObject {
@@ -1602,7 +1616,7 @@ class HealthSyncManager(
 
 /**
  * The record's `metadata` object (P2-7), when the read kept it: looked up by the record's id,
- * which for a heart rate or skin temperature sample is the part of its uuid before the `#`.
+ * which for a heart rate, speed or skin temperature sample is the part of its uuid before the `#`.
  */
 private fun kotlinx.serialization.json.JsonObjectBuilder.putRecordMeta(data: HealthData, uuid: String) {
     data.recordMeta[uuid.substringBefore('#')]?.let { put("metadata", it.toJson()) }

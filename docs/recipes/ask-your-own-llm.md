@@ -116,9 +116,9 @@ The stack's Grafana (`admin` / `lifedash`, on all interfaces), its database (`li
 
 If n8n or a receiver of your own already stores the payloads in a Postgres you run, a general MCP server for Postgres can read it the same way. Three things in how you store them decide whether a model's answers hold up:
 
-- Records keyed on `uuid`, in a `text` column. Heart rate and skin temperature samples carry `#<epoch milliseconds>` after the record's ID, so it isn't a Postgres `uuid`. A record sent again then replaces itself instead of counting twice.
+- Records keyed on `uuid`, in a `text` column. Heart rate, speed and skin temperature samples carry `#<epoch milliseconds>` after the record's ID, so it isn't a Postgres `uuid`. A record sent again then replaces itself instead of counting twice.
 - `daily_totals` as one row per date, replaced only by a payload with a higher `sequence`. These are the totals to ask about for steps, distance and calories.
-- The deletions in `deleted_records` applied, by `type` and `uuid`, and for heart rate and skin temperature every sample whose `uuid` starts with that `uuid` and `#`. Otherwise a record you deleted on the phone is still there to read.
+- The deletions in `deleted_records` applied, by `type` and `uuid`, and for heart rate, speed and skin temperature every sample whose `uuid` starts with that `uuid` and `#`. Otherwise a record you deleted on the phone is still there to read.
 
 [webhook.md](../webhook.md#deduplication-and-ordering) has the rules, including how `sequence` settles deletions and daily totals when a payload arrives late, and the rest of that page what every record type holds. Then:
 

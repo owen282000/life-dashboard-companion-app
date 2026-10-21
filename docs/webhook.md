@@ -198,11 +198,11 @@ One sync reads at most this many records per type into one payload, oldest chang
 
 | Types | Records per payload |
 |---|---|
-| Heart rate, steps, total calories | 1000 |
+| Heart rate, speed, steps, total calories | 1000 |
 | Heart rate variability, respiratory rate, skin temperature | 500 |
 | Every other type | 200 |
 
-Heart rate and skin temperature count samples and keep each record whole, so the last record can take a payload past the cap. A type with more waiting is read again for another payload in the same sync, up to 8 payloads with records per sync; the rest follows on the next sync. A backfill sends as many payloads as a 3-day window needs, up to 400. All 33 types at their caps, with [record metadata](#record-metadata) on, come to a few megabytes. Allow at least 10 MB per request, in the framework and in any proxy in front of it (nginx allows 1 MB by default, through `client_max_body_size`). A 413 is a refusal of the payload (see above), so a body limit that is too low drops data after a week.
+Heart rate, speed and skin temperature count samples and keep each record whole, so the last record can take a payload past the cap. A type with more waiting is read again for another payload in the same sync, up to 8 payloads with records per sync; the rest follows on the next sync. A backfill sends as many payloads as a 3-day window needs, up to 400. All 34 types at their caps, with [record metadata](#record-metadata) on, come to a few megabytes. Allow at least 10 MB per request, in the framework and in any proxy in front of it (nginx allows 1 MB by default, through `client_max_body_size`). A 413 is a refusal of the payload (see above), so a body limit that is too low drops data after a week.
 
 ### Deduplication and ordering
 
@@ -307,6 +307,7 @@ One table per group. Interval types carry `start_time` and `end_time`; instant t
 | `distance` | `meters` number | interval | sum |
 | `active_calories` | `calories` number, kcal | interval | sum |
 | `total_calories` | `calories` number, kcal | interval | sum |
+| `speed` | `meters_per_second` number | instant, one object per sample | average |
 | `exercise` | `type` string, `duration_seconds` integer, optional `segments` and `laps` arrays | interval | no |
 
 ```json
@@ -314,8 +315,11 @@ One table per group. Interval types carry `start_time` and `end_time`; instant t
 "distance": [ { "meters": 1523.5, "start_time": "2026-10-04T08:00:00Z", "end_time": "2026-10-04T09:00:00Z" } ],
 "active_calories": [ { "calories": 245.3, "start_time": "2026-10-04T08:00:00Z", "end_time": "2026-10-04T09:00:00Z" } ],
 "total_calories": [ { "calories": 1850.0, "start_time": "2026-10-04T00:00:00Z", "end_time": "2026-10-04T09:00:00Z" } ],
+"speed": [ { "meters_per_second": 3.2, "time": "2026-10-04T07:12:30Z", "uuid": "7c41e0b2-5d3a-4f18-9b6e-2a8c1f0d9e47#1791097950000" } ],
 "exercise": [ { "type": "56", "name": "running", "title": "Morning run", "start_time": "2026-10-04T07:00:00Z", "end_time": "2026-10-04T08:00:00Z", "duration_seconds": 3600 } ]
 ```
+
+A speed record in Health Connect holds many samples, like a heart rate record: each sample is its own object, with `<record id>#<epoch milliseconds>` as its `uuid`. Running and cycling apps write it during a workout, so the samples fall inside an `exercise` session.
 
 `exercise.type` is Health Connect's exercise type constant as a string of digits: `"56"` is running, `"79"` walking. The full list is in [`ExerciseSessionRecord`](https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/ExerciseSessionRecord). Next to it, `name` is Health Connect's own name for that constant in lower case, such as `"running"`, `"strength_training"` or `"high_intensity_interval_training"`, so a receiver needs no lookup table; a type from a newer Health Connect than the app knows keeps its number and gets no `name`. `title` is what the user or the recording app called the session, such as `"Leg day"`, and is left out when it wrote none. The iOS app sends a name in `type` itself, such as `"running"`, from HealthKit's list, so the two apps' names do not always match.
 
@@ -593,7 +597,7 @@ A bucketed series replaces its raw array under the same key, and the objects ins
 "_resolutions": { "heart_rate": "1m", "steps": "1h" }
 ```
 
-Measured values (heart rate, heart rate variability, oxygen saturation, respiratory rate, skin temperature) are averaged into `avg`, with `min` and `max` kept, because an average alone cannot tell a night's sleep from a sprint. Accumulated quantities (steps, distance, active and total calories) are summed into `total` and carry no average. `avg`, `min`, `max` and `total` are numbers with a decimal point, even for steps. `sources` lists the apps whose records went in, and is left out when there are none. `_resolutions` names the window per bucketed series (`1m`, `5m`, `15m` or `1h`), so a receiver can store the data correctly without being configured separately.
+Measured values (heart rate, speed, heart rate variability, oxygen saturation, respiratory rate, skin temperature) are averaged into `avg`, with `min` and `max` kept, because an average alone cannot tell a night's sleep from a sprint. Accumulated quantities (steps, distance, active and total calories) are summed into `total` and carry no average. `avg`, `min`, `max` and `total` are numbers with a decimal point, even for steps. `sources` lists the apps whose records went in, and is left out when there are none. `_resolutions` names the window per bucketed series (`1m`, `5m`, `15m` or `1h`), so a receiver can store the data correctly without being configured separately.
 
 When you store buckets:
 
@@ -624,7 +628,7 @@ The app follows Health Connect's change feed and names the records that are gone
 ```
 
 - `type` is the payload key the record arrived under, so a receiver drops that `uuid` from that collection.
-- A heart rate or skin temperature deletion names the record, while its samples arrived as `<record uuid>#<epoch millis>`: drop every sample whose `uuid` starts with that `uuid` followed by `#`.
+- A heart rate, speed or skin temperature deletion names the record, while its samples arrived as `<record uuid>#<epoch millis>`: drop every sample whose `uuid` starts with that `uuid` followed by `#`.
 - The field is absent when nothing was deleted. Deletions ride along on the first payload of a sync, and when nothing else changed they get a [deletion payload](#payload-overview) of their own.
 - The app never names a record as deleted that exists again, and never sends one `uuid` as a record and as a deletion in the same payload.
 
@@ -710,9 +714,9 @@ With **Record metadata in payload** on (**Health** tab, **Advanced**; off by def
 - `client_record_id` and `client_record_version` are the writing app's own ID and version for the record, when it gave them. A source that writes a record again under the same ID raises the version.
 - `recording_method` is `active` (a workout the user started), `automatic` (recorded in the background), `manual` (typed in) or `unknown`.
 - `device` is the device the source says it recorded on; `type` is one of `watch`, `phone`, `scale`, `ring`, `head_mounted`, `fitness_band`, `chest_strap`, `smart_display` or `unknown`.
-- `zone_offset` belongs to a record at one moment (a weight, a heart rate variability reading), `start_zone_offset` and `end_zone_offset` to a record over a period (steps, a night, a workout, and the heart rate and skin temperature records whose samples are sent). They are the offsets the source wrote, such as `+02:00`, with `Z` for UTC. With them a receiver puts a record on the local day it happened on, even after traveling.
+- `zone_offset` belongs to a record at one moment (a weight, a heart rate variability reading), `start_zone_offset` and `end_zone_offset` to a record over a period (steps, a night, a workout, and the heart rate, speed and skin temperature records whose samples are sent). They are the offsets the source wrote, such as `+02:00`, with `Z` for UTC. With them a receiver puts a record on the local day it happened on, even after traveling.
 
-Anything Health Connect does not have is left out, so `metadata` holds at least `last_modified` and `recording_method`. Heart rate and skin temperature samples carry the metadata of the record they belong to. Buckets carry none: a window has no single record. Records the app wrote itself through Receive never go out, with or without metadata. Metadata makes payloads larger, by roughly 150 to 250 bytes per record, which matters most for dense heart rate; [Data resolution](#data-resolution) is the way to keep those small.
+Anything Health Connect does not have is left out, so `metadata` holds at least `last_modified` and `recording_method`. Heart rate, speed and skin temperature samples carry the metadata of the record they belong to. Buckets carry none: a window has no single record. Records the app wrote itself through Receive never go out, with or without metadata. Metadata makes payloads larger, by roughly 150 to 250 bytes per record, which matters most for dense heart rate; [Data resolution](#data-resolution) is the way to keep those small.
 
 ### Diagnostics
 
@@ -743,7 +747,7 @@ A Health Connect payload with records, and the payload of an empty backfill wind
 |---|---|
 | `permission_granted` | Whether the app holds the read permission for the type |
 | `page_count` | Pages Health Connect returned |
-| `raw_record_count` | Records Health Connect returned for the read range (samples, for heart rate and skin temperature) |
+| `raw_record_count` | Records Health Connect returned for the read range (samples, for heart rate, speed and skin temperature) |
 | `raw_min_time`, `raw_max_time` | Timestamp range of those records |
 | `raw_latest_modified_time` | Newest modification time among them |
 | `filtered_record_count` | Records newer than the watermark, that is, delivered in this payload |

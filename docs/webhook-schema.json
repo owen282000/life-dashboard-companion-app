@@ -128,7 +128,7 @@
           },
           "raw_record_count": {
             "type": "integer",
-            "description": "Records Health Connect returned for the read range, before the watermark filter; samples for heart rate and skin temperature"
+            "description": "Records Health Connect returned for the read range, before the watermark filter; samples for heart rate, speed and skin temperature"
           },
           "raw_min_time": {
             "type": [
@@ -579,6 +579,90 @@
               "bucket_end",
               "sample_count",
               "total"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "speed": {
+      "type": "array",
+      "items": {
+        "description": "A raw record, or an aggregate when this series has a resolution set",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "meters_per_second": {
+                "type": "number",
+                "description": "Speed in metres per second, one sample of a Health Connect SpeedRecord"
+              },
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Package name of the app that wrote the record to Health Connect"
+              },
+              "uuid": {
+                "type": "string",
+                "description": "<record id>#<sample time in epoch milliseconds>: one record holds many samples, and a deletion names the record id"
+              },
+              "metadata": {
+                "$ref": "#/definitions/recordMetadata"
+              }
+            },
+            "required": [
+              "meters_per_second",
+              "time"
+            ],
+            "additionalProperties": true
+          },
+          {
+            "type": "object",
+            "properties": {
+              "bucket_start": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Start of the window, aligned to the clock in UTC"
+              },
+              "bucket_end": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sample_count": {
+                "type": "integer",
+                "description": "Records that went into this window, so a receiver can tell a sparse bucket from a full one"
+              },
+              "avg": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "complete": {
+                "type": "boolean",
+                "const": true,
+                "description": "Present when the bucket holds every record the window had when it was built: replace a stored window with it. Absent: combine it with the stored window. Only accumulated series carry it."
+              }
+            },
+            "required": [
+              "bucket_start",
+              "bucket_end",
+              "sample_count",
+              "avg",
+              "min",
+              "max"
             ],
             "additionalProperties": false
           }

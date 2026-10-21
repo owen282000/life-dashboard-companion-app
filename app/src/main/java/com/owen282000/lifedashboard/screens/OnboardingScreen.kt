@@ -104,7 +104,7 @@ private val Accent = HealthPrimary
 private val ChoiceShape = RoundedCornerShape(20.dp)
 
 /**
- * First-run wizard. A fresh install used to drop the user onto a screen with 33 toggles and
+ * First-run wizard. A fresh install used to drop the user onto a screen with 34 toggles and
  * an empty configuration; this asks three questions (what to sync, where it should go, and
  * which health types to start with) and leaves everything else to the regular screens.
  * Every choice here is changeable later, and the whole thing can be skipped.

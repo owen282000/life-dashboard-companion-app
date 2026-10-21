@@ -53,7 +53,7 @@ Your watch, ring or scale already writes to Health Connect. This app sends that 
 
 ## What you get
 
-- **33 Health Connect types.** Steps, sleep with stages, heart rate and HRV, weight and body composition, blood pressure, glucose, workouts, nutrition, cycle tracking and more. Each type has its own switch.
+- **34 Health Connect types.** Steps, sleep with stages, heart rate and HRV, speed, weight and body composition, blood pressure, glucose, workouts, nutrition, cycle tracking and more. Each type has its own switch.
 - **Every record, plus clean daily totals.** Every raw record goes out with the app that wrote it. Daily totals for steps, distance and calories come from Health Connect itself, so a walk recorded by both phone and watch counts once.
 - **All your history.** Backfill from 30 days up to 5 years, or everything Health Connect has, in one go. In Home Assistant each day lands on its own date.
 - **Screen time per app.** Foreground minutes for every app, with a day boundary you choose (say 04:00 for late nights) and a filter to leave apps out.
@@ -126,7 +126,7 @@ There are two ways in. Neither needs YAML.
 | | Life Dashboard integration | MQTT |
 |---|---|---|
 | Setup | HACS, then scan a QR code | Enter your broker |
-| Sensors | 24 of 33 types, plus screen time in total and per app | The same, without the sensors per app |
+| Sensors | 25 of 34 types, plus screen time in total and per app | The same, without the sensors per app |
 | History | Every day, up to a year back, through backfill | From the first sync on |
 | Workouts and mindfulness | Minutes per day | No |
 | **Receive** into Health Connect | Yes | No |
@@ -147,7 +147,7 @@ Keep it. It does presence, notifications and device sensors, and this app doesn'
 
 The companion app also has Health Connect sensors, but with a different goal. Its [documentation](https://companion.home-assistant.io/docs/core/sensors) says "only the last 30 days of data is used", and each type becomes a sensor showing the latest value. Writing into Health Connect needs extra permissions that Google reviews, and the companion app hasn't added it yet ([#6799](https://github.com/home-assistant/android/pull/6799), [#5650](https://github.com/home-assistant/android/issues/5650)). For screen time it has a last used app sensor, but no time per app.
 
-This app covers the health side in depth: 33 types instead of 25, full history in long-term statistics, writing back into Health Connect, and screen time per app. The [full comparison](docs/features.md#how-this-compares-to-the-home-assistant-companion-app) goes row by row.
+This app covers the health side in depth: 34 types instead of 25, full history in long-term statistics, writing back into Health Connect, and screen time per app. The [full comparison](docs/features.md#how-this-compares-to-the-home-assistant-companion-app) goes row by row.
 
 </details>
 

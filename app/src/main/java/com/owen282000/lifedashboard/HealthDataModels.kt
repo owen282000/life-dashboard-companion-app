@@ -16,6 +16,7 @@ enum class HealthDataType(@StringRes val displayNameRes: Int, val recordClass: K
     SLEEP(R.string.data_type_sleep, SleepSessionRecord::class),
     HEART_RATE(R.string.data_type_heart_rate, HeartRateRecord::class),
     DISTANCE(R.string.data_type_distance, DistanceRecord::class),
+    SPEED(R.string.data_type_speed, SpeedRecord::class),
     ACTIVE_CALORIES(R.string.data_type_active_calories, ActiveCaloriesBurnedRecord::class),
     TOTAL_CALORIES(R.string.data_type_total_calories, TotalCaloriesBurnedRecord::class),
     WEIGHT(R.string.data_type_weight, WeightRecord::class),
@@ -51,6 +52,7 @@ data class HealthData(
     val steps: List<StepsData> = emptyList(),
     val sleep: List<SleepData> = emptyList(),
     val heartRate: List<HeartRateData> = emptyList(),
+    val speed: List<SpeedData> = emptyList(),
     val distance: List<DistanceData> = emptyList(),
     val activeCalories: List<ActiveCaloriesData> = emptyList(),
     val totalCalories: List<TotalCaloriesData> = emptyList(),
@@ -124,7 +126,7 @@ data class HealthData(
     val wholeCoverage: Map<HealthDataType, ReadCoverage> = emptyMap(),
     /**
      * Each delivered record's metadata by its Health Connect id, when the read was asked for it
-     * (P2-7). A heart rate or skin temperature sample's uuid is `<record id>#<millis>`, so it
+     * (P2-7). A heart rate, speed or skin temperature sample's uuid is `<record id>#<millis>`, so it
      * looks up by the part before the `#`.
      */
     val recordMeta: Map<String, RecordMeta> = emptyMap()
@@ -132,6 +134,14 @@ data class HealthData(
 
 data class BasalMetabolicRateData(
     val kilocaloriesPerDay: Double,
+    val time: Instant,
+    val source: String? = null,
+    val uuid: String? = null
+)
+
+/** One speed sample of a [SpeedRecord] (issue #180), like a heart rate sample. */
+data class SpeedData(
+    val metersPerSecond: Double,
     val time: Instant,
     val source: String? = null,
     val uuid: String? = null
@@ -560,7 +570,7 @@ data class DailyTotals(
  */
 val HealthDataType.maxRecordsPerSync: Int
     get() = when (this) {
-        HealthDataType.HEART_RATE, HealthDataType.STEPS, HealthDataType.TOTAL_CALORIES -> 1000
+        HealthDataType.HEART_RATE, HealthDataType.STEPS, HealthDataType.TOTAL_CALORIES, HealthDataType.SPEED -> 1000
         HealthDataType.HEART_RATE_VARIABILITY, HealthDataType.RESPIRATORY_RATE,
         HealthDataType.SKIN_TEMPERATURE -> 500
         else -> 200

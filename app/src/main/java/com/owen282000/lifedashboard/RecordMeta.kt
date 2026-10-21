@@ -30,6 +30,7 @@ import androidx.health.connect.client.records.RestingHeartRateRecord
 import androidx.health.connect.client.records.SexualActivityRecord
 import androidx.health.connect.client.records.SkinTemperatureRecord
 import androidx.health.connect.client.records.SleepSessionRecord
+import androidx.health.connect.client.records.SpeedRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.Vo2MaxRecord
@@ -124,6 +125,7 @@ data class RecordMeta(
             is NutritionRecord -> Offsets(record.startZoneOffset, record.endZoneOffset, interval = true)
             is SkinTemperatureRecord -> Offsets(record.startZoneOffset, record.endZoneOffset, interval = true)
             is SleepSessionRecord -> Offsets(record.startZoneOffset, record.endZoneOffset, interval = true)
+            is SpeedRecord -> Offsets(record.startZoneOffset, record.endZoneOffset, interval = true)
             is StepsRecord -> Offsets(record.startZoneOffset, record.endZoneOffset, interval = true)
             is TotalCaloriesBurnedRecord -> Offsets(record.startZoneOffset, record.endZoneOffset, interval = true)
             is BasalBodyTemperatureRecord -> Offsets(record.zoneOffset, null, interval = false)

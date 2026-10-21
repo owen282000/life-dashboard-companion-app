@@ -19,7 +19,7 @@ From Gadgetbridge's list of what it writes to Health Connect, these are the type
 | Heart and breathing | Heart rate, resting heart rate, heart rate variability, oxygen saturation, respiratory rate, blood pressure |
 | Body | Weight, body temperature, skin temperature, blood glucose |
 
-What your watch actually records depends on the model and on what Gadgetbridge supports for it. Gadgetbridge also writes cadence, elevation gained, exercise routes, power and speed, which aren't among this app's types.
+What your watch actually records depends on the model and on what Gadgetbridge supports for it. Gadgetbridge also writes speed, which this app sends, and cadence, elevation gained, exercise routes and power, which aren't among its types.
 
 In Home Assistant, daily totals and the latest readings become sensors, and each day is stored in long-term statistics on its own date. To get your older data in as well, let Gadgetbridge send its history on its first sync, then run a backfill in this app.
 

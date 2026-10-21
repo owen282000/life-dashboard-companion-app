@@ -6,7 +6,7 @@ import androidx.health.connect.client.permission.HealthPermission
  * What each Health Connect permission request asks for.
  *
  * A grant asks for what the setup uses and nothing more: the read permission of every enabled
- * type, reading in the background, and history only from the backfill that needs it. Asking for all 35 at once, reproductive data included,
+ * type, reading in the background, and history only from the backfill that needs it. Asking for all 36 at once, reproductive data included,
  * scared off a user who had picked 8 types in the wizard.
  *
  * Free of Android types apart from the permission names, so the sets are unit tested on the JVM.

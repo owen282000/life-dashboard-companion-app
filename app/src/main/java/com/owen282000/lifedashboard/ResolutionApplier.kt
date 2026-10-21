@@ -163,6 +163,9 @@ class ResolutionApplier(
             Series(HealthDataType.SKIN_TEMPERATURE, "skin_temperature", ResolutionFamily.SAMPLED) { d ->
                 d.skinTemperature.map { CarriedSample(it.time, it.deltaCelsius, it.source) }
             },
+            Series(HealthDataType.SPEED, "speed", ResolutionFamily.SAMPLED) { d ->
+                d.speed.map { CarriedSample(it.time, it.metersPerSecond, it.source) }
+            },
             Series(HealthDataType.STEPS, "steps", ResolutionFamily.ACCUMULATED) { d ->
                 d.steps.map { CarriedSample(it.startTime, it.count.toDouble(), it.source) }
             },

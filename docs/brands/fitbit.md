@@ -23,7 +23,7 @@ From Google's own list of what Google Health writes to Health Connect, these are
 
 In Home Assistant, daily totals and the latest readings become sensors, and each day is stored in long-term statistics on its own date. The app's backfill sends whatever history Google Health has written to Health Connect, up to a year, each day on its own date.
 
-Google Health also writes floors, speed, step cadence, elevation gained and exercise routes, which aren't among this app's types.
+Google Health also writes speed, which this app sends, and floors, step cadence, elevation gained and exercise routes, which aren't among its types.
 
 ## What stays with Fitbit
 

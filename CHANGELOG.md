@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- Speed from Health Connect (issue #180), synced like heart rate: every sample with its time, in
+  regular syncs and in backfill, under `speed` with `meters_per_second`, with deletions and record
+  metadata, and as a 1, 5 or 15 minute average like the other measured series. Over MQTT it is a
+  sensor in m/s. Running, cycling and treadmill apps write it during a workout. It needs one more
+  Health Connect permission, asked for when you switch it on. In English, Dutch and German.
+
 ## [1.28.0] - 2026-10-21
 
 ### Highlights

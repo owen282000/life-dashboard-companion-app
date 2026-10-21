@@ -22,7 +22,7 @@ From Samsung's list of what it syncs with Health Connect, these are the types th
 
 In Home Assistant, daily totals and the latest readings become sensors, and each day is stored in long-term statistics on its own date. Daily totals come from Health Connect's own deduplicated figures, so a phone and a watch counting the same steps don't add up to twice the number.
 
-Samsung also writes exercise power and speed, which aren't among this app's types.
+Samsung also writes speed, which this app sends, and exercise power, which isn't among its types.
 
 ## What stays with Samsung
 
@@ -50,8 +50,8 @@ Samsung has no cloud integration for Home Assistant. The other way in is the Hom
 
 | | Companion app sensors | This app |
 |---|---|---|
-| Types | 25 | 33 |
-| History | Latest value, reads the last 30 days | Every day in long-term statistics, backfill up to a year |
+| Types | 25 | 34 |
+| History | Latest value, reads the last 30 days | Every day in long-term statistics, backfill of all history |
 | Exercise sessions, nutrition, sleep stages | No | Yes |
 | Destination | Your Home Assistant | Home Assistant, an MQTT broker or any webhook |
 

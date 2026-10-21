@@ -252,7 +252,7 @@ class SeriesBucketingTest {
     fun `every configurable type has a family and the rest do not`() {
         val configurable = ResolutionFamily.configurableTypes
         assertTrue(configurable.all { ResolutionFamily.of(it) != null })
-        assertEquals(9, configurable.size)
+        assertEquals(10, configurable.size)
         assertTrue(HealthDataType.entries.filterNot { it in configurable }.none { ResolutionFamily.of(it) != null })
     }
 

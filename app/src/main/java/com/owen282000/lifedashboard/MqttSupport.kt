@@ -219,6 +219,10 @@ object MqttSupport {
             sensors += MqttSensor("heart_rate", "Heart Rate", it.bpm.toString(),
                 "bpm", null, attrs(it.time, it.source, it.uuid))
         }
+        latest(data.speed) { it.time }?.let {
+            sensors += MqttSensor("speed", "Speed", num(it.metersPerSecond, 2),
+                "m/s", "speed", attrs(it.time, it.source, it.uuid))
+        }
         latest(data.restingHeartRate) { it.time }?.let {
             sensors += MqttSensor("resting_heart_rate", "Resting Heart Rate", it.bpm.toString(),
                 "bpm", null, attrs(it.time, it.source, it.uuid))

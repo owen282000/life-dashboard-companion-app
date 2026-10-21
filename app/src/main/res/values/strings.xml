@@ -257,6 +257,7 @@
     <string name="data_type_sleep">Sleep</string>
     <string name="data_type_heart_rate">Heart Rate</string>
     <string name="data_type_distance">Distance</string>
+    <string name="data_type_speed">Speed</string>
     <string name="data_type_active_calories">Active Calories</string>
     <string name="data_type_total_calories">Total Calories</string>
     <string name="data_type_weight">Weight</string>
@@ -457,7 +458,7 @@
     <string name="onboarding_done_short">What remains lives on the main screens; then tap Sync Now.</string>
     <string name="onboarding_done_title">You are set</string>
     <string name="onboarding_feature_health">Health Connect</string>
-    <string name="onboarding_feature_health_desc">Steps, sleep, heart rate and 30 more types from Health Connect</string>
+    <string name="onboarding_feature_health_desc">Steps, sleep, heart rate and 31 more types from Health Connect</string>
     <string name="onboarding_feature_screen">Screen Time</string>
     <string name="onboarding_feature_screen_desc">Daily and per-app usage from Android\'s usage stats</string>
     <string name="onboarding_features_body">Pick one or both. Each has its own tab, permissions and settings.</string>
@@ -470,7 +471,7 @@
     <string name="onboarding_skip">Skip setup</string>
     <string name="onboarding_skip_destination">I will set this up later</string>
     <string name="onboarding_step_of">Step %1$d of %2$d</string>
-    <string name="onboarding_summary_all">all 33</string>
+    <string name="onboarding_summary_all">all 34</string>
     <string name="onboarding_summary_dest">Destination</string>
     <string name="onboarding_summary_essentials">8 essentials</string>
     <string name="onboarding_summary_later">none yet</string>
@@ -481,7 +482,7 @@
     <string name="onboarding_task_health_sub">Health tab, the card at the top</string>
     <string name="onboarding_task_screen">Allow usage access for screen time</string>
     <string name="onboarding_task_screen_sub">Screen Time tab, opens Android settings</string>
-    <string name="onboarding_types_all">All 33 data types</string>
+    <string name="onboarding_types_all">All 34 data types</string>
     <string name="onboarding_types_all_desc">Everything Health Connect offers, from steps to cycle tracking</string>
     <string name="onboarding_types_body">Only enabled types are read and sent. Start broad or start small; every type keeps its own toggle in the Health tab.</string>
     <string name="onboarding_types_essentials">The essentials</string>

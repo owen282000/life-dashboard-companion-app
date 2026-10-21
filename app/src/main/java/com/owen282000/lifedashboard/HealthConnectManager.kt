@@ -126,6 +126,8 @@ class HealthConnectManager(
                 readType(HealthDataType.SLEEP) { readSleepData(startOf(HealthDataType.SLEEP), endTime, lastSyncTimestamps[HealthDataType.SLEEP]) } else emptyList()
             val heartRateData = if (HealthDataType.HEART_RATE in enabledTypes)
                 readType(HealthDataType.HEART_RATE) { readHeartRateData(startOf(HealthDataType.HEART_RATE), endOf(HealthDataType.HEART_RATE), lastSyncTimestamps[HealthDataType.HEART_RATE]) } else emptyList()
+            val speedData = if (HealthDataType.SPEED in enabledTypes)
+                readType(HealthDataType.SPEED) { readSpeedData(startOf(HealthDataType.SPEED), endOf(HealthDataType.SPEED), lastSyncTimestamps[HealthDataType.SPEED]) } else emptyList()
             val distanceData = if (HealthDataType.DISTANCE in enabledTypes)
                 readType(HealthDataType.DISTANCE) { readDistanceData(startOf(HealthDataType.DISTANCE), endOf(HealthDataType.DISTANCE), lastSyncTimestamps[HealthDataType.DISTANCE]) } else emptyList()
             val activeCaloriesData = if (HealthDataType.ACTIVE_CALORIES in enabledTypes)
@@ -239,6 +241,7 @@ class HealthConnectManager(
                 basalMetabolicRate = basalMetabolicRateData,
                 vo2Max = vo2MaxData,
                 skinTemperature = skinTemperatureData,
+                speed = speedData,
                 basalBodyTemperature = basalBodyTemperatureData,
                 intermenstrualBleeding = intermenstrualBleedingData,
                 ovulationTest = ovulationTestData,
@@ -986,6 +989,7 @@ class HealthConnectManager(
         is StepsRecord -> record.startTime
         is SleepSessionRecord -> record.startTime
         is HeartRateRecord -> record.startTime
+        is SpeedRecord -> record.startTime
         is DistanceRecord -> record.startTime
         is ActiveCaloriesBurnedRecord -> record.startTime
         is TotalCaloriesBurnedRecord -> record.startTime
@@ -1188,6 +1192,56 @@ class HealthConnectManager(
      * like heart rate this filters and caps at RECORD granularity on modification time; samples
      * inherit the parent record's baseline and data origin.
      */
+    /**
+     * Speed samples (issue #180), read like heart rate: whole records filtered on their
+     * modification time and capped by samples, one object per sample with the record id and
+     * the sample time as its uuid.
+     */
+    private suspend fun readSpeedData(startTime: Instant, endTime: Instant, lastSync: Watermark?): List<SpeedData> {
+        try {
+            val paged = readAllRecordsResilient(SpeedRecord::class, startTime, endTime)
+            readIds[HealthDataType.SPEED] = paged.records.map { it.metadata.id }.toSet()
+            val rawSamples = paged.records.sumOf { it.samples.size }
+            val (own, newRecords) = ownRecordsPartition(
+                paged.records.filter { lastSync == null || lastSync.admits(it.metadata.lastModifiedTime, it.metadata.id) }
+            )
+            val includedRecords = ResilientReadLogic.capRecordsBySamples(
+                newRecords,
+                HealthDataType.SPEED.maxRecordsPerSync,
+                samplesOf = { it.samples.size },
+                timeOf = { it.metadata.lastModifiedTime },
+                idOf = { it.metadata.id }
+            )
+            val capped = includedRecords.size < newRecords.size
+            if (capped) cappedTypes += HealthDataType.SPEED
+            if (collectMetadata) includedRecords.forEach { recordMeta[it.metadata.id] = RecordMeta.of(it) }
+            watermarkFor(includedRecords, own, capped)?.let { watermarks[HealthDataType.SPEED] = it }
+            val limited = includedRecords.flatMap { record -> record.samples.map { sample -> sample to record } }
+            val times = limited.map { it.first.time }
+            recordDiag(
+                type = HealthDataType.SPEED,
+                pageCount = paged.pageCount,
+                rawRecordCount = rawSamples,
+                filteredRecordCount = limited.size,
+                minTime = times.minOrNull(),
+                maxTime = times.maxOrNull(),
+                error = skippedWindowsNote(paged.skippedWindows),
+                ownRecordsSkipped = own.size
+            )
+            return limited.map { (sample, record) ->
+                SpeedData(
+                    sample.speed.inMetersPerSecond,
+                    sample.time,
+                    record.metadata.dataOrigin.packageName,
+                    "${record.metadata.id}#${sample.time.toEpochMilli()}"
+                )
+            }
+        } catch (e: Exception) {
+            recordDiag(type = HealthDataType.SPEED, error = e.message ?: e.javaClass.simpleName)
+            throw e
+        }
+    }
+
     private suspend fun readSkinTemperatureData(startTime: Instant, endTime: Instant, lastSync: Watermark?): List<SkinTemperatureData> {
         try {
             val paged = readAllRecordsResilient(SkinTemperatureRecord::class, startTime, endTime)
