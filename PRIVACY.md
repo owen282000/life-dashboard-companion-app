@@ -120,7 +120,7 @@ The app does not request access to contacts, location, the microphone or your fi
 
 The app is distributed as a signed APK through GitHub Releases, which you can also install and keep up to date with Obtainium. GitHub handles the download under its own policy; the app adds nothing to that.
 
-When you install the app from Google Play (a paid listing) or F-Droid (accepted on 17 October 2026), the store may keep its own installation statistics under its own policy.
+When you install the app from Google Play (a paid listing) or F-Droid, the store may keep its own installation statistics under its own policy.
 
 ## Your control
 

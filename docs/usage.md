@@ -92,7 +92,7 @@ On the phone the app is called **Life Dashboard**.
 
 To get updates automatically, add the repository to [Obtainium](https://github.com/ImranR98/Obtainium), which installs new versions from GitHub Releases.
 
-[F-Droid](https://f-droid.org/packages/com.owen282000.lifedashboard/) accepted the app on 17 October and lists it once its build server has built it; it ships the same signed APK, so you can switch between F-Droid, Obtainium and GitHub without reinstalling. A Google Play listing will come later.
+The app is also on [F-Droid](https://f-droid.org/packages/com.owen282000.lifedashboard/). F-Droid builds it from the source and checks that the result matches the signed APK, so it ships the same APK with the same signature, and you can switch between F-Droid, Obtainium and GitHub without reinstalling. F-Droid picks up each new version by itself after its GitHub release. A Google Play listing will come later.
 
 Every release is signed with the same key and carries a provenance attestation that ties it to the commit it was built from. [SECURITY.md](../SECURITY.md#verifying-a-release) explains how to check both, if you want to.
 
