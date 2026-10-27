@@ -284,7 +284,7 @@ Under **About > Backup & restore** you can export your webhooks, headers, secret
 
 ## How this compares to the Home Assistant companion app
 
-The [Home Assistant companion app](https://companion.home-assistant.io/docs/core/sensors) ships Health Connect sensors of its own, so if you run Home Assistant you may wonder what this app adds. The companion app gives you the latest value of 25 metrics inside Home Assistant; this app gives you every record of 33 types, wherever you want them. Checked against the companion app's documentation on September 14, 2026.
+The [Home Assistant companion app](https://companion.home-assistant.io/docs/core/sensors) ships Health Connect sensors of its own, so if you run Home Assistant you may wonder what this app adds. The companion app gives you the latest value of 25 metrics inside Home Assistant; this app gives you every record of 34 types, wherever you want them. Checked against the companion app's documentation on September 14, 2026.
 
 | | HA companion app | Life Dashboard Companion |
 |---|---|---|
