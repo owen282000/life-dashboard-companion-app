@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.29.0] - 2026-10-27
+
+### Highlights
+
+- Speed from Health Connect, synced like heart rate: every sample with its time, also in backfill, and a sensor over MQTT and in the Home Assistant integration (0.11.0 and newer). Asked for by @gcvt in [#180](https://github.com/owen282000/life-dashboard-companion-app/issues/180).
+- The Google Play version asks for a rating once per version, only after a sync went well, and has **Rate the app** under **About**. The GitHub and F-Droid versions never ask and carry no Google library.
+- **About** in the GitHub and F-Droid versions says the app is also on Google Play, where buying it supports development.
+
 ### Added
 
 - Speed from Health Connect (issue #180), synced like heart rate: every sample with its time, in
@@ -14,6 +22,27 @@ All notable changes to this project are documented in this file. The format is b
 - **About** in the GitHub and F-Droid builds has a row that says the app is also on Google Play,
   where buying it supports development, and opens the listing. The Play build leaves it out. In
   English, Dutch and German.
+- The Google Play build asks for a rating with Google Play's In-App Review, at a good moment only,
+  the same rule as the iPhone app: the last sync, within a day, reached every address and nothing
+  is failing or queued, or a backfill just finished. Never next to an error, not in the first three
+  days of use, and once per version at most; Google Play decides itself whether its dialog appears.
+  **Rate the app** under **About** opens the Play listing. Both are in the Play build only: the
+  library is a dependency of that build alone, so the APK on GitHub and F-Droid stays free of Google
+  libraries and builds exactly as before. In English, Dutch and German.
+
+### Changed
+
+- The README, the usage guide and the pairing page put Google Play first, as the easy way that
+  supports development, with GitHub Releases, Obtainium and F-Droid next to it as the free routes.
+  The docs say the app is on F-Droid, the Sponsor button offers GitHub Sponsors next to Ko-fi, and
+  the README counts 34 Health Connect types again, with speed in the list.
+- PRIVACY.md says what the rating dialog of the Google Play version does: the request goes to the
+  Play Store app and carries none of your data.
+
+### Fixed
+
+- In German the app says Nachtragen for backfill everywhere, the word the iPhone app uses. The sync
+  actions, two messages and the privacy policy still said Nachladen.
 
 ## [1.28.0] - 2026-10-21
 
@@ -1051,7 +1080,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.28.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.29.0...HEAD
+[1.29.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.28.0...1.29.0
 [1.28.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.27.0...1.28.0
 [1.27.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.26.0...1.27.0
 [1.26.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.25.0...1.26.0
