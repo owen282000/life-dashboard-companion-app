@@ -4,15 +4,20 @@
   seven 1080x1920 panels (7560x1920), rendered whole (panorama-en.png) and per panel (en-1.png
   to en-7.png, panorama.html?panel=1 to ?panel=7) by docs/brand/play-panorama/render.sh.
 
+  ?lang=nl and ?lang=de render the Dutch and German set (nl-1.png, de-1.png and so on) from the
+  captures in store-src/nl/ and store-src/de/, with the captions and labels from TEXT below;
+  English is the default. The Home Assistant and stack cards stay English, as they are.
+
   One continuous background, a heartbeat line through all seven panels, and two phones that
   lean well over into the next panel (losing only their right edge), so the row reads as one picture when swiping. Same
   messages and order as the flat set (docs/brand/store-shot.html, agreed on 17 October).
 
   Every phone screen is a real capture in docs/brand/store-src/ (see store-shot.html for where
-  they come from); nothing is drawn over the app. Floating cards are enlarged crops of those
-  captures, or of Home Assistant and the separate Life Dashboard Stack, labelled as such. The
-  webhook address with its secret on the Receive screen is left out by stacking the bands
-  above and below it, as store-shot.html does.
+  they come from; scripts/store-screenshots.sh takes the app's own, per language); nothing is
+  drawn over the app. Floating cards are enlarged crops of those captures, or of Home Assistant
+  and the separate Life Dashboard Stack, labelled as such. The webhook address with its secret
+  on the Receive screen is left out by stacking the bands above and below it, as
+  store-shot.html does.
 
   Play rules for the captions: no prices, rankings or calls to action, no other stores or
   platforms, no Google logos, no medical claims. The app itself contains no AI: the stack
@@ -136,7 +141,73 @@
 </div>
 
 <script>
-const W = 1080, H = 1920, SRC = "../store-src/";
+const params = new URLSearchParams(location.search);
+const LANG = ["nl", "de"].includes(params.get("lang")) ? params.get("lang") : "en";
+document.documentElement.lang = LANG;
+// The app's own screens per language; Home Assistant (H*) and the stack (S*) stay English.
+const W = 1080, H = 1920, SRC = "../store-src/", APP = LANG === "en" ? SRC : `${SRC}${LANG}/`;
+
+// Where things are in the captures, per language: [x, y, w, h] for a crop, [y0, y1] for the
+// bands of a phone screen. scripts/store-screenshots.sh prints the rows these follow from.
+const RECTS = {
+  en: {
+    DELETED: [160, 1054, 840, 190],         // A6-payload.png: "deleted_records" in the payload
+    RECEIVE: [[0, 715], [913, 2400]],        // A7-receive.png without the address that holds the secret
+  },
+  nl: {
+    DELETED: [160, 1026, 840, 190],
+    RECEIVE: [[0, 736], [934, 2400]],
+  },
+  de: {
+    DELETED: [160, 1048, 840, 190],
+    RECEIVE: [[0, 757], [955, 2400]],
+  },
+};
+const { DELETED, RECEIVE } = RECTS[LANG];
+
+// Every word on the panels, per language. Dutch says "je", German "du"; the app's own terms
+// from app/src/main/res/values-nl and values-de (aanvullen, Nachtragen, Schermtijd,
+// Bildschirmzeit, ondertekend, signiert). A third value is a smaller headline size, for a
+// language whose longest line would not fit at 98px.
+const TEXT = {
+  en: {
+    cap1: [`Health Connect to<br><em>your own server</em>`, `Home Assistant, MQTT or your own webhook`],
+    cap2: [`Pair with<br><em>one QR code</em>`, `No account, no YAML, no broker`],
+    cap3: [`All your history<br><em>in one go</em>`, `Backfill: 30 days or everything. Home Assistant shows the last year day by day.`],
+    cap4: [`Screen time<br><em>per app</em>`, `You choose which apps are sent`],
+    cap5: [`Your history, for<br><em>your own AI</em>`, `Optional: the separate Life Dashboard Stack, with a model on your own machine`],
+    stack: `Life Dashboard Stack <small>on your own server</small>`,
+    cap6: [`Edits and deletions<br><em>are sent too</em>`, `Signed JSON for n8n, Node-RED or your scripts`],
+    deleted: `Deleted, in the payload`,
+    signed: `Signed`,
+    cap7: [`Scale readings into<br><em>Health Connect</em>`, `Weight and blood pressure from Home Assistant`],
+  },
+  nl: {
+    cap1: [`Health Connect naar<br><em>je eigen server</em>`, `Home Assistant, MQTT of je eigen webhook`],
+    cap2: [`Koppelen met<br><em>één QR-code</em>`, `Geen account, geen YAML, geen broker`],
+    cap3: [`Al je geschiedenis<br><em>in één keer</em>`, `Aanvullen: 30 dagen of alles. Home Assistant toont het afgelopen jaar per dag.`],
+    cap4: [`Schermtijd<br><em>per app</em>`, `Jij kiest welke apps worden verstuurd`],
+    cap5: [`Je geschiedenis voor<br><em>je eigen AI</em>`, `Optioneel: de losse Life Dashboard Stack, met een model op je eigen computer`],
+    stack: `Life Dashboard Stack <small>op je eigen server</small>`,
+    cap6: [`Ook wijzigingen<br><em>en verwijderingen</em>`, `Ondertekende JSON voor n8n, Node-RED of je eigen scripts`],
+    deleted: `Verwijderd, in de payload`,
+    signed: `Ondertekend`,
+    cap7: [`Je weegschaal<br><em>in Health Connect</em>`, `Gewicht en bloeddruk uit Home Assistant`],
+  },
+  de: {
+    cap1: [`Von Health Connect<br><em>auf deinen Server</em>`, `Home Assistant, MQTT oder dein eigener Webhook`],
+    cap2: [`Koppeln mit<br><em>einem QR-Code</em>`, `Kein Konto, kein YAML, kein Broker`],
+    cap3: [`Dein ganzer Verlauf<br><em>auf einmal</em>`, `Nachtragen: 30 Tage oder alles.<br>Home Assistant zeigt das letzte Jahr pro Tag.`],
+    cap4: [`Bildschirmzeit<br><em>pro App</em>`, `Du wählst, welche Apps gesendet werden`],
+    cap5: [`Dein Verlauf für<br><em>deine eigene KI</em>`, `Optional: der separate Life Dashboard Stack, mit einem Modell auf deinem eigenen Rechner`],
+    stack: `Life Dashboard Stack <small>auf deinem eigenen Server</small>`,
+    cap6: [`Auch Änderungen<br><em>und Löschungen</em>`, `Signiertes JSON für n8n, Node-RED oder deine Skripte`],
+    deleted: `Gelöscht, im Payload`,
+    signed: `Signiert`,
+    cap7: [`Waagenwerte<br><em>in Health Connect</em>`, `Gewicht und Blutdruck aus Home Assistant`],
+  },
+};
+const T = TEXT[LANG];
 
 // The heartbeat: a flat line through every panel with a beat between the phones.
 (function () {
@@ -177,8 +248,12 @@ function float(html, x, y, { label, dot, rotate = 0, z = 5, bg } = {}) {
     `<div class="frame" style="${bg ? `background:${bg}` : ""}">${html}</div></div>`;
 }
 
-function caption(n, h, p, cls = "") {
-  return `<div class="cap ${cls}" style="left:${(n - 1) * W + 60}px"><h1>${h}</h1><p>${p}</p></div>`;
+// size: a smaller headline, for a language whose longest line would not fit at 98px. Names
+// in the subline stay on one line.
+function caption(n, [h, p, size], cls = "") {
+  p = p.replace(/Home Assistant|Health Connect|Node-RED/g, (name) => `<span style="white-space:nowrap">${name}</span>`);
+  const style = size ? ` style="font-size:${size}px;letter-spacing:${(-2.5 * size / 98).toFixed(1)}px"` : "";
+  return `<div class="cap ${cls}" style="left:${(n - 1) * W + 60}px"><h1${style}>${h}</h1><p>${p}</p></div>`;
 }
 
 const tilt = (rz, ry = 0) => `perspective(2600px) rotateY(${ry}deg) rotate(${rz}deg)`;
@@ -187,54 +262,55 @@ const X = (n, lx) => (n - 1) * W + lx;
 const items = [];
 
 // 1. Health Connect to your own server
-items.push(caption(1, `Health Connect to<br><em>your own server</em>`, `Home Assistant, MQTT or your own webhook`));
+items.push(caption(1, T.cap1));
 // The phone leans well over into panel 2; only its right edge, chevrons and buttons, goes.
-items.push(phone(SRC + "A1-health.png", X(1, 610), 470, 640, tilt(6, -8), 4));
+items.push(phone(APP + "A1-health.png", X(1, 610), 470, 640, tilt(6, -8), 4));
 items.push(float(crop(SRC + "H1-today.png", 1082, [18, 296, 1046, 318], 660),
   X(1, 40), 960, { label: "Home Assistant", rotate: -3, z: 6 }));
 
 // 2. Pair with one QR code
-items.push(caption(2, `Pair with<br><em>one QR code</em>`, `No account, no YAML, no broker`));
-items.push(phone(SRC + "A2-pair.png", X(2, 400), 480, 620, tilt(-4, 10)));
+items.push(caption(2, T.cap2));
+items.push(phone(APP + "A2-pair.png", X(2, 400), 480, 620, tilt(-4, 10)));
 items.push(float(crop(SRC + "H2-qr.png", 1082, [62, 232, 848, 848], 400),
   X(2, 150), 1220, { label: "Home Assistant", rotate: -5, z: 6 }));
 
-// 3. Up to a year of history
-items.push(caption(3, `Up to a year<br><em>of history</em>`, `Each day on its own date in Home Assistant`));
-items.push(phone(SRC + "A3-backfill.png", X(3, 60), 480, 640, tilt(-5, 8)));
-items.push(float(crop(SRC + "H3-history.png", 1082, [20, 296, 1044, 735], 600),
-  X(3, 440), 1390, { label: "Home Assistant", rotate: -3, z: 6 }));
+// 3. All your history in one go: the backfill lengths, up to everything Health Connect has
+items.push(caption(3, T.cap3));
+items.push(phone(APP + "A3-backfill.png", X(3, 60), 480, 640, tilt(-5, 8)));
+// Below the lengths, so "All history" stays in view.
+items.push(float(crop(SRC + "H3-history.png", 1082, [20, 296, 1044, 735], 460),
+  X(3, 470), 1480, { label: "Home Assistant", rotate: -3, z: 6 }));
 
 // 4. Screen time per app
-items.push(caption(4, `Screen time<br><em>per app</em>`, `You choose which apps are sent`, "purple"));
+items.push(caption(4, T.cap4, "purple"));
 // The phone leans well over into panel 5.
-items.push(phone(SRC + "A4-screen-time.png", X(4, 590), 470, 640, tilt(6, -8), 4));
+items.push(phone(APP + "A4-screen-time.png", X(4, 590), 470, 640, tilt(6, -8), 4));
 items.push(float(crop(SRC + "H4-apps.png", 1082, [20, 468, 1042, 954], 560),
   X(4, 50), 900, { label: "Home Assistant", dot: "#B79BFF", rotate: -4, z: 6 }));
 
 // 5. Your history for your own AI, through the separate stack
-items.push(caption(5, `Your history, for<br><em>your own AI</em>`, `Optional: the separate Life Dashboard Stack, with a model on your own machine`));
-items.push(phone(SRC + "A5-webhook.png", X(5, 400), 520, 600, tilt(-5, 10)));
+items.push(caption(5, T.cap5));
+items.push(phone(APP + "A5-webhook.png", X(5, 400), 520, 600, tilt(-5, 10)));
 items.push(float(crop(SRC + "S5-chat.png", 1082, [24, 190, 1040, 500], 640),
-  X(5, 110), 1180, { label: "Life Dashboard Stack <small>on your own server</small>", dot: "#30B77E", rotate: -3, z: 6 }));
+  X(5, 110), 1180, { label: T.stack, dot: "#30B77E", rotate: -3, z: 6 }));
 
 // 6. Edits and deletions are sent too
-items.push(caption(6, `Edits and deletions<br><em>are sent too</em>`, `Signed JSON for n8n, Node-RED or your scripts`));
-items.push(phone(SRC + "A6-payload.png", X(6, 60), 480, 620, tilt(-5, 8)));
-items.push(float(crop(SRC + "A6-payload.png", 1080, [160, 1018, 840, 190], 560),
-  X(6, 460), 1050, { label: "Deleted, in the payload", dot: "#E06C75", rotate: -3, z: 6 }));
-items.push(`<div class="badge" style="left:${X(6, 560)}px;top:1420px;transform:rotate(4deg);z-index:6">${shield}<div><b>Signed</b><small>HMAC-SHA256</small></div></div>`);
+items.push(caption(6, T.cap6));
+items.push(phone(APP + "A6-payload.png", X(6, 60), 480, 620, tilt(-5, 8)));
+items.push(float(crop(APP + "A6-payload.png", 1080, DELETED, 560),
+  X(6, 460), 1050, { label: T.deleted, dot: "#E06C75", rotate: -3, z: 6 }));
+items.push(`<div class="badge" style="left:${X(6, 560)}px;top:1420px;transform:rotate(4deg);z-index:6">${shield}<div><b>${T.signed}</b><small>HMAC-SHA256</small></div></div>`);
 
 // 7. Scale readings into Health Connect
-items.push(caption(7, `Scale readings into<br><em>Health Connect</em>`, `Weight and blood pressure from Home Assistant`));
-items.push(phone([SRC + "A7-receive.png", [[0, 665], [855, 2400]]], X(7, 400), 480, 640, tilt(5, -10)));
-items.push(float(crop(SRC + "A7-hc-weight.png", 1080, [30, 500, 1020, 560], 560),
+items.push(caption(7, T.cap7));
+items.push(phone([APP + "A7-receive.png", RECEIVE], X(7, 400), 480, 640, tilt(5, -10)));
+items.push(float(crop(APP + "A7-hc-weight.png", 1080, [30, 500, 1020, 560], 560),
   X(7, 40), 1150, { label: "Health Connect", dot: "#30B77E", rotate: -4, z: 6 }));
 
 document.getElementById("items").innerHTML = items.join("");
 
 // ?panel=n shows one 1080-wide panel of the panorama.
-const panel = +(new URLSearchParams(location.search).get("panel") || 0);
+const panel = +(params.get("panel") || 0);
 if (panel) {
   document.documentElement.style.width = document.body.style.width = W + "px";
   document.getElementById("stage").style.transform = `translateX(${-(panel - 1) * W}px)`;

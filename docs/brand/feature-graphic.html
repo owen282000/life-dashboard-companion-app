@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
   Source for the store feature graphic (fastlane/metadata/android/en-US/images/featureGraphic.png),
-  1024x500, rendered by docs/brand/render-store.sh with headless Chrome.
+  1024x500, rendered by docs/brand/render-store.sh with headless Chrome. ?lang=nl and ?lang=de
+  give the Dutch and German line (nl-NL, de-DE); the labels are names and stay as they are.
 
   Generic outlines of a watch, a ring and a scale (no real product) feed a small Health Connect
   node, which feeds the three destinations: Home Assistant, MQTT and Webhook. One line of text.
@@ -55,7 +56,7 @@
   <div class="grid"></div>
   <div class="glow"></div>
 
-  <h1>Your health data, on <em>your own server.</em></h1>
+  <h1 id="line">Your health data, on <em>your own server.</em></h1>
 
   <svg class="flow" width="1024" height="500" viewBox="0 0 1024 500">
     <g fill="none" stroke="#C9D3D6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
@@ -86,5 +87,19 @@
   <div class="card ha" style="top:182px">Home Assistant</div>
   <div class="card" style="top:267px">MQTT</div>
   <div class="card" style="top:352px">Webhook</div>
+<script>
+// The one line per language, Dutch with "je", German with "du"; a smaller size where it is longer.
+const LINES = {
+  nl: [`Je gezondheidsdata, op <em>je eigen server.</em>`, 46],
+  de: [`Deine Gesundheitsdaten, auf <em>deinem Server.</em>`, 40],
+};
+const lang = new URLSearchParams(location.search).get("lang");
+if (LINES[lang]) {
+  document.documentElement.lang = lang;
+  const h1 = document.getElementById("line");
+  h1.innerHTML = LINES[lang][0];
+  h1.style.fontSize = LINES[lang][1] + "px";
+}
+</script>
 </body>
 </html>
