@@ -43,6 +43,8 @@ All notable changes to this project are documented in this file. The format is b
 
 - In German the app says Nachtragen for backfill everywhere, the word the iPhone app uses. The sync
   actions, two messages and the privacy policy still said Nachladen.
+- In Dutch the app says aanvullen for backfill everywhere, like the iPhone app: Geschiedenis aanvullen,
+  Aanvullen klaar and the progress line, where it still said backfill or backfillen.
 
 ## [1.28.0] - 2026-10-21
 
