@@ -100,13 +100,21 @@ The data can also go to an MQTT broker or a webhook of your own instead. Both ap
 ## Install
 
 <p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard&referrer=utm_source%3Dgh-android-readme%26utm_medium%3Dreadme"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="90"></a>
+</p>
+
+Google Play is the easy way: updates arrive automatically, and buying the app supports development. It costs €4.99 (US$4.99) once, with no subscription.
+
+Free, or build it yourself:
+
+<p align="center">
   <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="60"></a>
   <a href="https://f-droid.org/packages/com.owen282000.lifedashboard/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60"></a>
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/owen282000/life-dashboard-companion-app"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60"></a>
   <a href="https://alternativeto.net/software/life-dashboard-companion/about/"><img src="docs/brand/badges/alternativeto.svg" alt="Life Dashboard Companion on AlternativeTo" height="60"></a>
 </p>
 
-The APK on GitHub is signed. Each release has build provenance that you can [verify](SECURITY.md#verifying-a-release), and the build is [reproducible](docs/building.md#reproduce-a-release-build). F&#8209;Droid builds each release on its own server and ships it only if the result matches this APK, so both have the same signature and you can switch between them. Obtainium installs the APK from GitHub and keeps it updated. Google Play is next, as a paid listing. The APK here and on F&#8209;Droid stays free.
+The APK on GitHub is signed. Each release has build provenance that you can [verify](SECURITY.md#verifying-a-release), and the build is [reproducible](docs/building.md#reproduce-a-release-build). F&#8209;Droid builds each release on its own server and ships it only if the result matches this APK, so both have the same signature and you can switch between them. Obtainium installs the APK from GitHub and keeps it updated. These routes stay free, and they are the same app as on Google Play, signed with the same key. [building.md](docs/building.md) explains how to build it yourself.
 
 Screen time works on Android 8.0 and newer. The health part needs Android 9 or newer with [Health Connect](https://developer.android.com/health-and-fitness/health-connect), which is built into Android 14 and later and comes from Google Play on Android 9 through 13.
 
@@ -219,7 +227,7 @@ Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the checks 
 
 ## Support the project
 
-Stars, shares and good bug reports all help. This is a one-person project, but your setup doesn't depend on that person: there is no server of mine to switch off, your history lives in your own Home Assistant or database, and the code is MIT. If you want to chip in for the evenings that go into it, there is [Ko-fi](https://ko-fi.com/owen282000). The APK on GitHub and F&#8209;Droid stays free, and the code stays open source, either way.
+Stars, shares and good bug reports all help. This is a one-person project, but your setup doesn't depend on that person: there is no server of mine to switch off, your history lives in your own Home Assistant or database, and the code is MIT. If you want to chip in for the evenings that go into it, buy the app on [Google Play](https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard&referrer=utm_source%3Dgh-android-readme%26utm_medium%3Dreadme), or there is [Ko-fi](https://ko-fi.com/owen282000). The APK on GitHub and F&#8209;Droid stays free, and the code stays open source, either way.
 
 MIT licensed. See [LICENSE](LICENSE).
 

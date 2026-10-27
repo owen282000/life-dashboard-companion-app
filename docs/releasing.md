@@ -30,6 +30,14 @@ git config core.hooksPath .githooks
    git push origin 1.23.0
    ```
 
+4. Build the Play bundle from the tag, with the signing variables from [KEYSTORE_SETUP.md](KEYSTORE_SETUP.md#local-signed-build-optional) set, and upload it to Google Play (see [The Play build](#the-play-build)):
+
+   ```bash
+   ./gradlew bundlePlay
+   ```
+
+   The bundle is `app/build/outputs/bundle/play/app-play.aab`. Its release note in the Play Console is the same store release note F-Droid shows.
+
 The tag starts the [release workflow](../.github/workflows/release.yml). It checks that the tag is strict semver and higher than the last one, runs the hardcoded-strings check, the unit tests and Android Lint, builds and signs the APK, and attests its build provenance. It then creates the GitHub release with the APK, the provenance bundle (`app-release.apk.sigstore.json`) and the R8 mapping (`mapping-X.Y.Z.txt`) attached. The release notes are the tag's section of `CHANGELOG.md`, followed by the list of changes GitHub generates.
 
 ## Files that must match the tag
@@ -56,4 +64,4 @@ apksigner sign --ks ~/.android/debug.keystore --ks-pass pass:android \
 
 ## The Play build
 
-The planned Google Play listing is paid, so its build leaves out the Ko-fi row in **About**. It is a build type of its own, `play`, made from the release build with the same application ID and signing key. `./gradlew bundlePlay` makes the bundle for Play. The GitHub release and the F-Droid recipe use `assembleRelease` and are not affected.
+The [Google Play listing](https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard) is paid, so its build leaves out the Ko-fi row in **About**. It is a build type of its own, `play`, made from the release build with the same application ID and signing key. `./gradlew bundlePlay` makes the bundle for Play. The GitHub release and the F-Droid recipe use `assembleRelease` and are not affected.

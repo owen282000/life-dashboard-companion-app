@@ -85,14 +85,20 @@ Without the app installed, the code opens a web page that explains where to get 
 
 ## Install the app
 
-1. Download the latest `app-release.apk` from [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases/latest) on the phone.
-2. Open the downloaded file. Android asks once to allow installs from the browser or file manager you opened it with; allow it, then tap **Install**.
+The easy way is [Google Play](https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard). It costs €4.99 (US$4.99) once, with no subscription, updates arrive automatically, and buying the app supports development.
 
 On the phone the app is called **Life Dashboard**.
 
+### Free routes
+
+The same app, signed with the same key, is free outside Google Play:
+
+1. Download the latest `app-release.apk` from [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases/latest) on the phone.
+2. Open the downloaded file. Android asks once to allow installs from the browser or file manager you opened it with; allow it, then tap **Install**.
+
 To get updates automatically, add the repository to [Obtainium](https://github.com/ImranR98/Obtainium), which installs new versions from GitHub Releases.
 
-The app is also on [F-Droid](https://f-droid.org/packages/com.owen282000.lifedashboard/). F-Droid builds it from the source and checks that the result matches the signed APK, so it ships the same APK with the same signature, and you can switch between F-Droid, Obtainium and GitHub without reinstalling. F-Droid picks up each new version by itself after its GitHub release. A Google Play listing will come later.
+The app is also on [F-Droid](https://f-droid.org/packages/com.owen282000.lifedashboard/). F-Droid builds it from the source and checks that the result matches the signed APK, so it ships the same APK with the same signature, and you can switch between F-Droid, Obtainium and GitHub without reinstalling. F-Droid picks up each new version by itself after its GitHub release.
 
 Every release is signed with the same key and carries a provenance attestation that ties it to the commit it was built from. [SECURITY.md](../SECURITY.md#verifying-a-release) explains how to check both, if you want to.
 
@@ -306,11 +312,11 @@ The **Logs** tab shows when syncs actually ran, which tells you whether they're 
 
 ### Scanning the code opens a web page instead of the app
 
-Android checks the pairing link against the app's signing certificate when the app is installed, and remembers the result. The APK from GitHub Releases passes that check. An APK you built and signed yourself doesn't, and a phone that had no internet connection during the install may have failed the check.
+Android checks the pairing link against the app's signing certificate when the app is installed, and remembers the result. The app from Google Play, F-Droid or GitHub Releases passes that check, since all three are signed with the same key. An APK you built and signed yourself doesn't, and a phone that had no internet connection during the install may have failed the check.
 
 The web page has an **Open in the app** button, which always works. Scanning from inside the app, with **Scan a pairing code** on the **Webhook** card, doesn't depend on this check at all.
 
-To fix the camera route itself, reinstall the released APK, or ask Android to check again from a computer with `adb`:
+To fix the camera route itself, reinstall the app from one of those, or ask Android to check again from a computer with `adb`:
 
 ```sh
 adb shell pm verify-app-links --re-verify com.owen282000.lifedashboard

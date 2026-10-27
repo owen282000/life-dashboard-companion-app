@@ -69,6 +69,7 @@ body:
     attributes:
       label: Where did you install the app from?
       options:
+        - Google Play
         - GitHub Releases
         - Obtainium
         - F-Droid
