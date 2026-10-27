@@ -64,4 +64,4 @@ apksigner sign --ks ~/.android/debug.keystore --ks-pass pass:android \
 
 ## The Play build
 
-The [Google Play listing](https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard) is paid, so its build leaves out the Ko-fi row in **About**. It is a build type of its own, `play`, made from the release build with the same application ID and signing key. `./gradlew bundlePlay` makes the bundle for Play. The GitHub release and the F-Droid recipe use `assembleRelease` and are not affected.
+The [Google Play listing](https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard) is paid, so its build leaves out the Ko-fi row in **About**, and the row that points to Google Play. It is a build type of its own, `play`, made from the release build with the same application ID and signing key. `./gradlew bundlePlay` makes the bundle for Play. The GitHub release and the F-Droid recipe use `assembleRelease` and are not affected.

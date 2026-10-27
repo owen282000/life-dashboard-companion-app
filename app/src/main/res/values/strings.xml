@@ -589,6 +589,8 @@
     <string name="about_report">Report a problem</string>
     <string name="about_report_sub">GitHub issues</string>
     <string name="about_github">View on GitHub</string>
+    <string name="about_play">Also on Google Play</string>
+    <string name="about_play_sub">The same app; buying it there supports development</string>
     <string name="about_coffee">Buy me a coffee</string>
     <string name="about_coffee_sub">The app stays free and open source; a coffee keeps releases quick</string>
     <string name="about_privacy_policy">Privacy policy</string>

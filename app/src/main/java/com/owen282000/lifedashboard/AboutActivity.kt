@@ -58,6 +58,7 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SelfImprovement
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Shop
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -111,6 +112,7 @@ import kotlinx.coroutines.delay
 
 private const val REPO_URL = "https://github.com/owen282000/life-dashboard-companion-app"
 private const val SITE_URL = "https://owen282000.com/life-dashboard/"
+private const val PLAY_URL = "https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard&referrer=utm_source%3Dapp-about%26utm_medium%3Dapp"
 
 class AboutActivity : ComponentActivity() {
 
@@ -305,6 +307,10 @@ class AboutActivity : ComponentActivity() {
                     LinkCard(Icons.Outlined.AutoAwesome, stringResource(R.string.about_whats_new), stringResource(R.string.about_whats_new_sub, versionName), "$REPO_URL/releases/tag/$versionName")
                     LinkCard(Icons.Outlined.BugReport, stringResource(R.string.about_report), stringResource(R.string.about_report_sub), "$REPO_URL/issues/new")
                     LinkCard(Icons.Outlined.Code, stringResource(R.string.about_github), "owen282000/life-dashboard-companion-app", REPO_URL)
+                    // Only in the GitHub and F-Droid builds (P1-27): the Play build is that listing.
+                    if (booleanResource(R.bool.show_play_listing)) {
+                        LinkCard(Icons.Outlined.Shop, stringResource(R.string.about_play), stringResource(R.string.about_play_sub), PLAY_URL)
+                    }
                     // Not in the Google Play build, which is paid (P1-13, src/play/res/values/bools.xml).
                     if (booleanResource(R.bool.show_donation)) {
                         LinkCard(Icons.Outlined.LocalCafe, stringResource(R.string.about_coffee), stringResource(R.string.about_coffee_sub), "https://ko-fi.com/owen282000")
