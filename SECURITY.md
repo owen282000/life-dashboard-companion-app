@@ -33,7 +33,7 @@ That prints the same value without separators and in lowercase, which is the oth
 271406d5baf790506e914d82aca2533336ae083d01c79fbacb0015f42e4ff61f
 ```
 
-A different fingerprint means the APK was not signed by this project, whatever the file is called. F-Droid's metadata for the app pins the same value as `AllowedAPKSigningKeys`: F-Droid builds the app itself and ships the release APK, with this same signature, only when its own build matches it (a reproducible build).
+A different fingerprint means the APK was not signed by this project, whatever the file is called. F-Droid's metadata for the app pins the same value as `AllowedAPKSigningKeys`: F-Droid builds the app itself and ships the release APK, with this same signature, only when its own build matches it (a reproducible build). Google Play signs the app with this same key too, so an install from Play shows the same fingerprint.
 
 **The provenance attestation** links the APK to the workflow run and the commit that produced it. With the [GitHub CLI](https://cli.github.com/):
 

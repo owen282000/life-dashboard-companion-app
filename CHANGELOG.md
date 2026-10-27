@@ -11,6 +11,9 @@ All notable changes to this project are documented in this file. The format is b
   metadata, and as a 1, 5 or 15 minute average like the other measured series. Over MQTT it is a
   sensor in m/s. Running, cycling and treadmill apps write it during a workout. It needs one more
   Health Connect permission, asked for when you switch it on. In English, Dutch and German.
+- **About** in the GitHub and F-Droid builds has a row that says the app is also on Google Play,
+  where buying it supports development, and opens the listing. The Play build leaves it out. In
+  English, Dutch and German.
 
 ## [1.28.0] - 2026-10-21
 
