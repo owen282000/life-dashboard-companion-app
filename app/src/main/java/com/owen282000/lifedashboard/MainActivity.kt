@@ -139,6 +139,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** Coming to the front is a moment to ask for a rating, in the Play build and after the setup only (P1-28). */
+    override fun onResume() {
+        super.onResume()
+        if (preferencesManager.onboardingCompleted()) ReviewMoment.consider(this)
+    }
+
     /**
      * A pairing link arriving while the app is already running.
      *

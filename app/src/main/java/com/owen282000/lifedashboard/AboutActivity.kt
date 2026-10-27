@@ -59,6 +59,7 @@ import androidx.compose.material.icons.outlined.SelfImprovement
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Shop
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -113,6 +114,7 @@ import kotlinx.coroutines.delay
 private const val REPO_URL = "https://github.com/owen282000/life-dashboard-companion-app"
 private const val SITE_URL = "https://owen282000.com/life-dashboard/"
 private const val PLAY_URL = "https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard&referrer=utm_source%3Dapp-about%26utm_medium%3Dapp"
+private const val RATE_URL = "https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard"
 
 class AboutActivity : ComponentActivity() {
 
@@ -310,6 +312,10 @@ class AboutActivity : ComponentActivity() {
                     // Only in the GitHub and F-Droid builds (P1-27): the Play build is that listing.
                     if (booleanResource(R.bool.show_play_listing)) {
                         LinkCard(Icons.Outlined.Shop, stringResource(R.string.about_play), stringResource(R.string.about_play_sub), PLAY_URL)
+                    }
+                    // Only in the Google Play build (P1-28), in place of the row above: the listing, to rate it.
+                    if (booleanResource(R.bool.show_rate_app)) {
+                        LinkCard(Icons.Outlined.StarOutline, stringResource(R.string.about_rate), stringResource(R.string.about_rate_sub), RATE_URL)
                     }
                     // Not in the Google Play build, which is paid (P1-13, src/play/res/values/bools.xml).
                     if (booleanResource(R.bool.show_donation)) {

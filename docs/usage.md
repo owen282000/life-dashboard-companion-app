@@ -87,6 +87,8 @@ Without the app installed, the code opens a web page that explains where to get 
 
 The easy way is [Google Play](https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard). It costs €4.99 (US$4.99) once, with no subscription, updates arrive automatically, and buying the app supports development.
 
+The Google Play version has **Rate the app** under **About**, and asks for a rating itself at most once per version: not in the first three days, and only right after things went well, when the last sync reached every address with nothing failing or queued, or a backfill finished. Google Play decides whether its dialog appears. The free versions below never ask.
+
 On the phone the app is called **Life Dashboard**.
 
 ### Free routes

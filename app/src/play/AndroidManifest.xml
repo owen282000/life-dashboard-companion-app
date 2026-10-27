@@ -7,4 +7,9 @@
     <uses-permission
         android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
         tools:node="remove" />
+
+    <!-- The same application with Play's In-App Review behind it (P1-28, PlayApplication). -->
+    <application
+        android:name=".PlayApplication"
+        tools:replace="android:name" />
 </manifest>

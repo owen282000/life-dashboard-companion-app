@@ -588,6 +588,8 @@
     <string name="about_github">Bekijk op GitHub</string>
     <string name="about_play">Ook op Google Play</string>
     <string name="about_play_sub">Dezelfde app; wie hem daar koopt, steunt de ontwikkeling</string>
+    <string name="about_rate">Beoordeel de app</string>
+    <string name="about_rate_sub">Een beoordeling op Google Play helpt anderen hem te vinden</string>
     <string name="about_coffee">Trakteer me op koffie</string>
     <string name="about_coffee_sub">De app blijft gratis en open source; een koffie houdt de releases snel</string>
     <string name="about_privacy_policy">Privacybeleid</string>

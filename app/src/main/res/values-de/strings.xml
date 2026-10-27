@@ -588,6 +588,8 @@
     <string name="about_github">Auf GitHub ansehen</string>
     <string name="about_play">Auch bei Google Play</string>
     <string name="about_play_sub">Dieselbe App; wer sie dort kauft, unterstützt die Entwicklung</string>
+    <string name="about_rate">App bewerten</string>
+    <string name="about_rate_sub">Eine Bewertung bei Google Play hilft anderen, sie zu finden</string>
     <string name="about_coffee">Spendier mir einen Kaffee</string>
     <string name="about_coffee_sub">Die App bleibt kostenlos und Open Source; ein Kaffee hält die Releases schnell</string>
     <string name="about_privacy_policy">Datenschutzerklärung</string>

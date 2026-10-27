@@ -113,6 +113,7 @@ fun HealthConnectScreen(
     LaunchedEffect(state.hasPermissions) {
         state.hasPermissions?.let { onPermissionResult?.invoke(it) }
     }
+    ReviewAfterSync(state.syncMessage)
 
     HealthConnectContent(
         state = state,

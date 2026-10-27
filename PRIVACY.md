@@ -122,6 +122,8 @@ The app is on Google Play (a paid listing) and F-Droid, and it is distributed as
 
 When you install the app from Google Play or F-Droid, the store may keep its own installation statistics under its own policy. On Google Play, Google handles the purchase under its own policy.
 
+The version from Google Play can ask Google Play to show its rating dialog, at most once per version and only after a sync went well. The request goes to the Play Store app on the phone and carries none of your data, and the app does not learn whether or how you rated it. **Rate the app** under **About** opens the Play listing. The versions from GitHub and F-Droid contain neither.
+
 ## Your control
 
 Everything is opt-in and can be undone in the app: which types are read, where they go, how often, which apps Screen Time sends, which types Home Assistant may write, and whether full payloads are kept in the log. Revoking a permission in Android stops the matching reads and writes immediately.

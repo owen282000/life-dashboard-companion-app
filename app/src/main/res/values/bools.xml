@@ -4,6 +4,8 @@
     <bool name="show_donation">true</bool>
     <!-- The About row that points to the Google Play listing. Off in the Play build, which is that listing. -->
     <bool name="show_play_listing">true</bool>
+    <!-- Rate the app in About, opening the Play listing. On in the Play build only (P1-28): a rating needs a Play install. -->
+    <bool name="show_rate_app">false</bool>
     <!-- The battery card asks Android's own dialog to exempt the app; off in the Play build, see the manifest. -->
     <bool name="ask_battery_exemption">true</bool>
 </resources>

@@ -153,10 +153,13 @@ android {
         // paid listing cannot carry, and without the row that points to Google Play itself
         // (P1-27). A build type of its own rather than a flavour, so every existing task, output
         // path and the F-Droid recipe (assembleRelease) stay exactly as they are; src/play/res
-        // switches both rows off. Same application id and signing key as
+        // switches both rows off. It is also the only build that asks for a rating (P1-28):
+        // src/play brings Play's In-App Review and a Rate the app row, and only playImplementation
+        // pulls in the Google library for it. Same application id and signing key as
         // the release build. Build it with ./gradlew bundlePlay.
         create("play") {
             initWith(getByName("release"))
+            proguardFile("proguard-play.pro")
         }
     }
     compileOptions {
@@ -245,6 +248,13 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.zxing.core)
+
+    // Asking for a rating through Google Play (P1-28), in the Play build only. The release build
+    // that GitHub and F-Droid ship has no Google library, and its dependencies stay as they were.
+    "playImplementation"(libs.play.review.ktx)
+    // Play's libraries ask for Fragment 1.1.0, older than the 1.3.0 that the Activity Result API
+    // needs (lint's InvalidFragmentVersionForActivityResult); the Play build takes a current one.
+    "playImplementation"(libs.androidx.fragment)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
