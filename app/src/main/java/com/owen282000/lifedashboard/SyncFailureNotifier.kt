@@ -239,6 +239,18 @@ object SyncFailureNotifier {
         manager.createNotificationChannel(channel)
     }
 
+    /** Failed rounds in a row, every sync category and Receive together; 0 when nothing is failing. */
+    fun failureStreak(context: Context): Int {
+        val prefs = prefs(context)
+        return LogType.entries.sumOf { prefs.getInt(KEY_STREAK_PREFIX + it.name, 0) } + prefs.getInt(RECEIVE_STREAK_KEY, 0)
+    }
+
+    /** Deliveries in a row that some webhook missed, every sync category together. */
+    fun partialStreak(context: Context): Int {
+        val prefs = prefs(context)
+        return LogType.entries.sumOf { prefs.getInt(KEY_PARTIAL_PREFIX + it.name, 0) }
+    }
+
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 }

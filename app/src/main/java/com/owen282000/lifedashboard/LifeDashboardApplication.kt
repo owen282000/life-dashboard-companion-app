@@ -2,10 +2,13 @@ package com.owen282000.lifedashboard
 
 import android.app.Application
 
-class LifeDashboardApplication : Application() {
+open class LifeDashboardApplication : Application() {
 
     /** The one PreferencesManager for the process; screens and view models share it. */
     val preferencesManager: PreferencesManager by lazy { PreferencesManager(this) }
+
+    /** Asking for a rating: nothing here, Play's In-App Review in the Google Play build (src/play). */
+    open val storeReview: StoreReview get() = StoreReview.NONE
 
     override fun onCreate() {
         super.onCreate()

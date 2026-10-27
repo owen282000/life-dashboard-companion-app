@@ -1,0 +1,5 @@
+New
+- Speed from Health Connect, synced like heart rate: every sample with its time, also in backfill, and a sensor in Home Assistant.
+- About says the app is also on Google Play, where buying it supports development.
+Fixed
+- In German and Dutch the app says Nachtragen and aanvullen for backfill everywhere, like the iPhone app.

@@ -73,6 +73,7 @@ fun ScreenTimeScreen(
     LaunchedEffect(Unit) {
         viewModel.openUsageAccess.collect { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
     }
+    ReviewAfterSync(state.syncMessage)
 
     ScreenTimeContent(
         state = state,

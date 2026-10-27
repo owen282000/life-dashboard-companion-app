@@ -26,6 +26,9 @@ splashScreen = "1.2.0"
 glance = "1.1.1"
 camerax = "1.6.2"
 zxing = "3.5.4"
+# Only in the Google Play build (playImplementation): the in-app review dialog, P1-28.
+playReview = "2.0.2"
+fragment = "1.8.9"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -68,6 +71,11 @@ androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", 
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+# Google Play's In-App Review API. Never on the release build that GitHub and F-Droid ship, which
+# stays free of Google libraries; see the play build type in app/build.gradle.kts.
+play-review-ktx = { group = "com.google.android.play", name = "review-ktx", version.ref = "playReview" }
+# In the Play build only, over the Fragment 1.1.0 that Play's libraries ask for.
+androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
 hivemq-mqtt = { group = "com.hivemq", name = "hivemq-mqtt-client", version.ref = "hivemqMqtt" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 # Call.executeAsync(): a request that is cancelled with the coroutine that waits for it.

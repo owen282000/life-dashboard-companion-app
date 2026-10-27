@@ -4,6 +4,8 @@
     <bool name="show_donation">false</bool>
     <!-- Already installed from Google Play, so no row pointing there. -->
     <bool name="show_play_listing">false</bool>
+    <!-- Rate the app, which opens the Play listing (P1-28). -->
+    <bool name="show_rate_app">true</bool>
     <!-- No REQUEST_IGNORE_BATTERY_OPTIMIZATIONS here (src/play/AndroidManifest.xml): the card opens app info. -->
     <bool name="ask_battery_exemption">false</bool>
 </resources>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!-- The seven rendered panels (en-1.png to en-7.png) side by side, for a quick review. render.sh
-     renders it to contact-sheet.png at 2172x578. -->
+     renders it to contact-sheet.png at 2172x578, and with ?lang=nl or ?lang=de the Dutch and
+     German panels to contact-sheet-nl.png and contact-sheet-de.png. -->
 <html>
 <head>
 <meta charset="utf-8">
@@ -17,5 +18,11 @@
   <img src="en-1.png" alt=""><img src="en-2.png" alt=""><img src="en-3.png" alt=""><img src="en-4.png" alt="">
   <img src="en-5.png" alt=""><img src="en-6.png" alt=""><img src="en-7.png" alt="">
 </div>
+<script>
+const lang = new URLSearchParams(location.search).get("lang");
+if (["nl", "de"].includes(lang)) {
+  document.querySelectorAll("img").forEach((img, n) => { img.src = `${lang}-${n + 1}.png`; });
+}
+</script>
 </body>
 </html>
