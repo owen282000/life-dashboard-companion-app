@@ -57,6 +57,8 @@ The `app-release.apk.sigstore.json` published next to each APK is the same attes
 gh attestation verify app-release.apk --repo owen282000/life-dashboard-companion-app --bundle app-release.apk.sigstore.json
 ```
 
+From the first release after 1.29.0, `app-release.apk.intoto.jsonl` holds the same signed SLSA provenance as a DSSE envelope on one line, the form SLSA tooling reads.
+
 ## Reporting a vulnerability
 
 Please do not open a public issue for a security vulnerability.

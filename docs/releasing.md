@@ -38,7 +38,7 @@ git config core.hooksPath .githooks
 
    The bundle is `app/build/outputs/bundle/play/app-play.aab`. Its release note in the Play Console is the same store release note F-Droid shows.
 
-The tag starts the [release workflow](../.github/workflows/release.yml). It checks that the tag is strict semver and higher than the last one, runs the hardcoded-strings check, the unit tests and Android Lint, builds and signs the APK, and attests its build provenance. It then creates the GitHub release with the APK, the provenance bundle (`app-release.apk.sigstore.json`) and the R8 mapping (`mapping-X.Y.Z.txt`) attached. The release notes are the tag's section of `CHANGELOG.md`, followed by the list of changes GitHub generates.
+The tag starts the [release workflow](../.github/workflows/release.yml). It checks that the tag is strict semver and higher than the last one, runs the hardcoded-strings check, the unit tests and Android Lint, builds and signs the APK, and attests its build provenance. It then creates the GitHub release with the APK, the provenance bundle (`app-release.apk.sigstore.json`, and the same provenance as `app-release.apk.intoto.jsonl`) and the R8 mapping (`mapping-X.Y.Z.txt`) attached. The release notes are the tag's section of `CHANGELOG.md`, followed by the list of changes GitHub generates.
 
 ## Files that must match the tag
 
