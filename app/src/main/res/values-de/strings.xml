@@ -187,15 +187,15 @@
     <!-- Health-Connect-Bildschirm -->
     <string name="health_backfill_dialog_description">Sendet historische Daten aller aktivierten Typen in 3-Tage-Blöcken an deine Webhooks, älteste zuerst. Die reguläre Synchronisierung bleibt unberührt; überlappende Datensätze werden anhand ihrer uuid entdoppelt. Das kann eine Weile dauern und mobile Daten verbrauchen.</string>
     <plurals name="health_backfill_complete">
-        <item quantity="one">Nachtrag abgeschlossen: %1$d Datensatz gesendet</item>
-        <item quantity="other">Nachtrag abgeschlossen: %1$d Datensätze gesendet</item>
+        <item quantity="one">Nachtragen abgeschlossen: %1$d Datensatz gesendet</item>
+        <item quantity="other">Nachtragen abgeschlossen: %1$d Datensätze gesendet</item>
     </plurals>
     <string name="health_backfill_already_running">Es läuft bereits ein Nachtragen</string>
     <string name="health_backfill_no_records">Health Connect hat keine Datensätze der aktivierten Typen zum Senden</string>
     <string name="health_backfill_continues">Das letzte Nachtragen von %1$s hat nach %2$d von %3$d Blöcken angehalten. Wähle wieder %1$s, um dort weiterzumachen; eine andere Länge beginnt von vorn.</string>
     <string name="health_backfill_failed_delivery">Zustellung nach %1$d von %2$d Blöcken fehlgeschlagen. Starte dasselbe Nachtragen erneut, um dort weiterzumachen.</string>
     <string name="health_backfill_failed_no_progress">Nachtragen bei Block %1$d von %2$d angehalten: mehrere Läufe hintereinander haben nichts gesendet (das Lesekontingent von Health Connect, oder Android hat es gestoppt). Starte dasselbe Nachtragen erneut, um dort weiterzumachen.</string>
-    <string name="health_backfill_failed_no_types">Nachladen braucht mindestens einen aktivierten Datentyp</string>
+    <string name="health_backfill_failed_no_types">Nachtragen braucht mindestens einen aktivierten Datentyp</string>
     <string name="health_backfill_failed_not_returned">Nach %1$d von %2$d Blöcken angehalten: Health Connect hat %3$s nicht geliefert. Starte dasselbe Nachtragen erneut, um dort weiterzumachen.</string>
     <string name="health_backfill_failed_read">Nachtragen gestoppt: Health Connect konnte nicht gelesen werden (%1$s). Starte es erneut, um weiterzumachen.</string>
     <string name="health_backfill_failed_too_many_chunks">Nach %1$d von %2$d Blöcken angehalten: der nächste braucht mehr als %3$d Sendungen.</string>
@@ -505,7 +505,7 @@
     <string name="sync_action_preview">Ansehen</string>
     <string name="sync_action_ping">Test-Ping</string>
     <string name="sync_action_export">Export</string>
-    <string name="sync_action_backfill">Nachladen</string>
+    <string name="sync_action_backfill">Nachtragen</string>
     <string name="sync_no_destination">Füge zuerst eine Webhook-URL hinzu oder aktiviere MQTT</string>
     <string name="logs_delivered">Zugestellt</string>
     <string name="logs_published">Veröffentlicht</string>
@@ -603,7 +603,7 @@
     <string name="privacy_title">Datenschutzerklärung</string>
     <string name="privacy_intro">Life Dashboard Companion ist ein Werkzeug zum Selbsthosten. Die App liest Gesundheits- und Bildschirmzeitdaten auf diesem Telefon und sendet sie nur an Server, die du selbst einrichtest. Der Entwickler erhält, speichert oder sieht keine deiner Daten.</string>
     <string name="privacy_reads_title">Was die App liest</string>
-    <string name="privacy_reads_body">Health-Connect-Datensätze, nur für die Typen, die du einschaltest, und erst nachdem du die Berechtigung erteilst. App-Nutzungsstatistiken für Bildschirmzeit, über den Nutzungszugriff. Mit der Verlaufsberechtigung auch Datensätze, die älter als 30 Tage sind, für ein einmaliges Nachladen. Die Kamera nutzt nur der Kopplungsscanner, solange dieser Bildschirm offen ist: Bilder werden auf dem Telefon ausgewertet und nie gespeichert oder gesendet.</string>
+    <string name="privacy_reads_body">Health-Connect-Datensätze, nur für die Typen, die du einschaltest, und erst nachdem du die Berechtigung erteilst. App-Nutzungsstatistiken für Bildschirmzeit, über den Nutzungszugriff. Mit der Verlaufsberechtigung auch Datensätze, die älter als 30 Tage sind, für ein einmaliges Nachtragen. Die Kamera nutzt nur der Kopplungsscanner, solange dieser Bildschirm offen ist: Bilder werden auf dem Telefon ausgewertet und nie gespeichert oder gesendet.</string>
     <string name="privacy_writes_title">Was die App schreibt</string>
     <string name="privacy_writes_body">Nichts, außer du schaltest Empfangen ein. Dann schreibt sie die Messwerte, die dein eigenes Home Assistant sendet, in Health Connect: Gewicht, Größe, Körperfett, fettfreie Masse, Knochenmasse, Körperwasser und Blutdruck, jeweils mit eigenem Schalter und eigener Berechtigung. Sie kann nur Datensätze ändern, die sie selbst geschrieben hat.</string>
     <string name="privacy_where_title">Wohin die Daten gehen</string>
@@ -628,7 +628,7 @@
         <item quantity="one">%1$d Tag quantifiziertes Du</item>
         <item quantity="other">%1$d Tage quantifiziertes Du</item>
     </plurals>
-    <string name="health_backfill_needs_webhook">Nachladen braucht eine Webhook-URL: MQTT trägt nur den letzten Wert je Typ</string>
+    <string name="health_backfill_needs_webhook">Nachtragen braucht eine Webhook-URL: MQTT trägt nur den letzten Wert je Typ</string>
     <string name="schedule_title">Sync-Zeitplan</string>
     <string name="schedule_mode_interval">Alle X Minuten</string>
     <string name="schedule_mode_times">Zu festen Zeiten</string>
