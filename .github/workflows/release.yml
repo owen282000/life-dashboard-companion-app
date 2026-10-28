@@ -101,6 +101,10 @@ jobs:
           subject-path: app/build/outputs/apk/release/app-release.apk
       - name: Prepare provenance bundle as release asset
         run: cp "${{ steps.attest.outputs.bundle-path }}" app-release.apk.sigstore.json
+      # The same SLSA provenance as a signed DSSE envelope on one line, the .intoto.jsonl form
+      # that SLSA tooling and OpenSSF Scorecard look for next to a release.
+      - name: Extract the provenance as in-toto JSON lines
+        run: jq -c .dsseEnvelope app-release.apk.sigstore.json > app-release.apk.intoto.jsonl
       - name: Name the R8 mapping after the tag
         run: cp app/build/outputs/mapping/release/mapping.txt "mapping-$GITHUB_REF_NAME.txt"
       - name: Upload release APK as artifact
@@ -166,6 +170,7 @@ jobs:
           path: |
             RELEASE_NOTES.md
             app-release.apk.sigstore.json
+            app-release.apk.intoto.jsonl
           retention-days: 90
 
   # F-Droid ships a tag only when its own build matches this signed APK; a tag that does not
@@ -199,6 +204,7 @@ jobs:
           files: |
             app-release.apk
             app-release.apk.sigstore.json
+            app-release.apk.intoto.jsonl
             mapping-${{ github.ref_name }}.txt
           body_path: RELEASE_NOTES.md
           generate_release_notes: true
