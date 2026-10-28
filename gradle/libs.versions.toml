@@ -28,7 +28,7 @@ camerax = "1.6.2"
 zxing = "3.5.4"
 # Only in the Google Play build (playImplementation): the in-app review dialog, P1-28.
 playReview = "2.0.2"
-fragment = "1.8.9"
+fragment = "1.9.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
