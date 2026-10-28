@@ -252,7 +252,7 @@ The protocol is in [webhook.md](webhook.md#inbound-what-the-integration-may-send
 - **TalkBack.** Every switch row is one control that TalkBack reads with its name and state, such as "Allow plain HTTP webhooks, off, switch", and a tap anywhere on the row flips it. Selected tabs, filters and schedule days are announced, as is the result of a sync or a test ping. Status that was only a color is spoken too: the widget reads "Last sync succeeded" or "Last sync failed".
 - **Contrast.** Text in the accent and status colors reads at 4.5:1 or more, in both the light and dark themes.
 - **Material 3** with a light and a dark theme. **About > Appearance** follows the system, or keeps the app light or dark whatever the phone does; the widget always follows the system.
-- **Languages:** English, Dutch and German, following the system language.
+- **Languages:** English, Dutch, German and Simplified Chinese, following the system language.
 
 <a id="automation"></a>
 

@@ -1,0 +1,744 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Proper noun: the app name is identical in every locale, so it is never translated. -->
+
+    <!-- Shared / common -->
+    <string name="common_add">添加</string>
+    <string name="common_back">返回</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_close">关闭</string>
+    <string name="common_collapse">收起</string>
+    <string name="common_csv">CSV</string>
+    <string name="common_expand">展开</string>
+    <string name="common_grant">授予</string>
+    <string name="common_json">JSON</string>
+    <string name="common_never">从未</string>
+    <string name="common_none_configured">未配置</string>
+    <string name="common_permissions_required">需要权限</string>
+    <string name="common_remove">移除</string>
+    <string name="common_show_password">显示密码</string>
+    <string name="common_hide_password">隐藏密码</string>
+    <string name="common_saved">已保存！</string>
+
+    <!-- Shared webhook / sync settings, used by Health Connect and Screen Time -->
+    <string name="webhook_add_a_url">添加 Webhook 网址</string>
+    <string name="webhook_allow_plain_http">允许使用普通 HTTP Webhook</string>
+    <string name="webhook_allow_plain_http_description">适用于您自己的局域网或 VPN 中没有证书的 Webhook。默认仍使用 HTTPS，此开关同时适用于“健康数据共享”和屏幕使用时间，包括 Home Assistant 发送到此手机的测量数据。不影响 MQTT。</string>
+    <string name="client_cert_title">客户端证书 (mTLS)</string>
+    <string name="client_cert_none">无</string>
+    <string name="client_cert_description">适用于要求客户端证书的服务器。请先在 Android 设置中安装证书（安全、加密与凭据、安装证书）。只需选择一次，即可用于所有 Webhook，包括在后台。不影响 MQTT。</string>
+    <string name="client_cert_choose">选择</string>
+    <string name="server_trust_title">服务器证书</string>
+    <string name="server_trust_description">仅适用于 Android 不信任其证书的服务器，例如由您自己的 CA 签发的证书或自签名证书。每项设置仅适用于对应的主机。不影响 MQTT。</string>
+    <string name="server_trust_user_cas">信任此手机上安装的证书</string>
+    <string name="server_trust_user_cas_description">适用于由您自己的 CA 签发的证书。请先在 Android 设置中安装该 CA（安全、加密与凭据、安装证书、CA 证书）。</string>
+    <string name="server_trust_pin_title">信任此服务器的证书</string>
+    <string name="server_trust_pin_description">适用于自签名证书：读取证书并核对指纹，之后只接受这一个证书。</string>
+    <string name="server_trust_read">读取</string>
+    <string name="server_trust_reading">正在读取证书…</string>
+    <string name="server_trust_read_failed">无法读取证书：%1$s</string>
+    <string name="server_trust_pinned">已信任：SHA-256 %1$s…</string>
+    <string name="server_trust_forget">忘记</string>
+    <string name="server_trust_dialog_title">要信任此证书吗？</string>
+    <string name="server_trust_dialog_body">仅适用于您自己的服务器。从现在起，%1$s 将以这个证书被接受，即使 Android 会拒绝它也是如此。请先将指纹与您服务器上的指纹进行比对；如果证书不同（包括续期后），在您再次确认之前将被拒绝。</string>
+    <string name="server_trust_subject">颁发给：%1$s</string>
+    <string name="server_trust_issuer">颁发者：%1$s</string>
+    <string name="server_trust_self_signed">自签名</string>
+    <string name="server_trust_valid_until">有效期至：%1$s</string>
+    <string name="server_trust_fingerprint">SHA-256 指纹</string>
+    <string name="server_trust_confirm">信任</string>
+    <string name="client_cert_clear">清除</string>
+    <string name="webhook_enter_header_name_and_value">请输入请求头名称和值</string>
+    <string name="webhook_enter_valid_url">请输入有效的网址</string>
+    <string name="webhook_header_name">请求头名称</string>
+    <string name="webhook_header_value">请求头值</string>
+    <string name="webhook_header_name_invalid">请求头名称只能包含字母、数字以及 - 和 _ 等字符，不能包含空格</string>
+    <string name="webhook_header_value_invalid">请求头值只能包含普通 ASCII 字符，不能包含换行符或 é 等字母</string>
+    <string name="webhook_header_name_blocks_delivery">未发送任何内容：请求头 %1$s 的名称无法发送。请在 Webhook 下将其移除，然后使用不含空格的名称重新添加。</string>
+    <string name="webhook_header_value_blocks_delivery">未发送任何内容：请求头 %1$s 的值包含换行符或请求头无法承载的字符。请在 Webhook 下将其移除并重新添加。</string>
+    <string name="webhook_headers_title">Webhook 请求头（可选）</string>
+    <string name="webhook_hmac_secret_description">设置后，每个 POST 请求都会带有 X-Signature 请求头 (sha256=&lt;hex&gt;)，该值是基于请求正文计算的 HMAC-SHA256，以便您的服务器验证发送方。</string>
+    <string name="webhook_hmac_secret_title">HMAC 签名密钥（可选）</string>
+    <plurals name="webhook_headers_count">
+        <item quantity="other">%1$d 个请求头</item>
+    </plurals>
+    <string name="webhook_min_interval">至少 15 分钟</string>
+    <string name="webhook_shared_secret">共享密钥</string>
+    <string name="webhook_url_placeholder">https://…</string>
+    <string name="webhook_urls_configured">已配置 %1$d 个</string>
+    <string name="webhook_destinations_hint">点按某个地址即可设置其专属的请求头和签名密钥。这些内容不会发送到任何其他地址。</string>
+    <string name="webhook_destination_summary">%1$s，%2$s</string>
+    <string name="webhook_destination_signed">已签名</string>
+    <string name="webhook_destination_unsigned">未签名</string>
+    <string name="webhook_destination_no_headers">无请求头</string>
+    <string name="webhook_destination_url">地址</string>
+    <string name="webhook_destination_open">显示请求头和密钥</string>
+    <string name="webhook_destination_moved">主机不再是 %1$s：请求头已清除，密钥已重置，因此为 %1$s 设置的任何内容都不会发送到这里。</string>
+    <string name="webhook_copy_headers_from">从 %1$s 复制请求头</string>
+    <string name="webhook_use_secret_of">使用与 %1$s 相同的密钥</string>
+    <string name="webhook_url_duplicate">此地址已在列表中</string>
+    <string name="webhook_url_user_info">请从地址中移除用户名或密码。地址会以纯文本形式保存在备份和日志中；请改为将凭据放在此地址的请求头中。</string>
+    <string name="webhook_url_credential_parameter">请从地址中移除 %1$s=。地址会以纯文本形式保存在备份和日志中；请改为将凭据放在此地址的请求头中。</string>
+    <string name="webhook_urls_title">Webhook 网址</string>
+
+    <!-- Shared sync section, used by Health Connect and Screen Time -->
+    <string name="sync_advanced_client_cert">客户端证书</string>
+    <string name="sync_advanced_server_trust">服务器证书</string>
+    <string name="sync_advanced_https_only">仅限 HTTPS</string>
+    <string name="sync_advanced_plain_http_allowed">允许普通 HTTP</string>
+    <string name="sync_advanced_phone_name">手机 %1$s</string>
+    <string name="phone_name_title">手机名称</string>
+    <string name="phone_name_description">适用于连接到同一 MQTT 代理服务器的第二部手机。留空则设备和主题保持不变；设置名称后，此手机会在基础主题下拥有自己的设备和主题。</string>
+    <string name="phone_name_placeholder">可选</string>
+    <string name="phone_name_device_id">将以 %1$s 的身份发布。旧设备会保留在 Home Assistant 中，直到您在那里将其删除。</string>
+    <string name="phone_name_unusable">此名称不含字母或数字，因此手机将保持未命名状态。</string>
+
+    <!-- Receive: measurements from Home Assistant into Health Connect -->
+    <string name="receive_title">接收</string>
+    <string name="receive_subtitle">从 Home Assistant 接收到“健康数据共享”</string>
+    <string name="receive_off">已关闭</string>
+    <string name="receive_summary_written">%1$s · %2$s</string>
+    <plurals name="receive_written_today">
+        <item quantity="other">今天已写入 %1$d 条</item>
+    </plurals>
+    <string name="receive_enable">从 Home Assistant 接收测量数据</string>
+    <string name="receive_enable_description">Life Dashboard 集成会发送您在其中选择的实体；下方的每种类型都需要单独的“健康数据共享”写入权限。</string>
+    <string name="receive_needs_integration">需要 Life Dashboard 集成：请先与 Home Assistant 配对，以便获得 Webhook 地址和签名密钥。</string>
+    <string name="receive_source">来源：%1$s</string>
+    <string name="receive_update_integration">请更新 Life Dashboard 集成以接收测量数据，或检查此 Webhook 是否属于该集成：它上次的响应中不包含测量数据协议。</string>
+    <string name="receive_no_types_yet">下次同步时会询问 Home Assistant 提供哪些类型。</string>
+    <string name="receive_choose_type">开启下方的某种类型即可接收该类型。</string>
+    <string name="receive_permission_missing">缺少写入权限：%1$s</string>
+    <string name="receive_type_permission_missing_a11y">%1$s，缺少写入权限</string>
+    <string name="receive_summary_needs_pairing">需要与 Home Assistant 配对</string>
+    <string name="receive_summary_update_integration">请更新集成</string>
+    <string name="receive_summary_nothing_mapped">Home Assistant 中未映射任何类型</string>
+    <string name="receive_nothing_mapped">Home Assistant 尚未为此手机提供任何类型：请在集成的选项中选择实体。</string>
+    <string name="receive_types_chosen_in_ha">请在 Home Assistant 中集成的选项下选择要发送哪些实体。</string>
+    <string name="receive_older_measurements">接受较早的测量数据</string>
+    <string name="receive_older_measurements_description">同时写入超过 30 天的测量数据，用于接收 Home Assistant 发送的历史记录。</string>
+    <string name="receive_permission_needed">请授予将%1$s写入“健康数据共享”的权限。测量数据来自 Home Assistant 中您所选择的实体。在您开启之前不会写入任何数据。</string>
+    <string name="receive_choose_source_title">哪个 Webhook 是 Home Assistant？</string>
+    <string name="receive_choose_source_body">有多个地址看起来像 Home Assistant Webhook。系统将从您选择的那个地址读取测量数据。</string>
+    <string name="receive_other_source_writes">%1$s 已在向“健康数据共享”写入%2$s。如果同时从 Home Assistant 接收，将产生两份读数。</string>
+    <string name="receive_synced_and_written">%1$s · %2$s</string>
+    <plurals name="receive_written_count">
+        <item quantity="other">已向“健康数据共享”写入 %1$d 条</item>
+    </plurals>
+    <string name="logs_row_receive_title">健康 · 来自 Home Assistant</string>
+    <plurals name="logs_row_written">
+        <item quantity="other">%1$s · 已写入 %2$d 条</item>
+    </plurals>
+    <string name="logs_written">已写入</string>
+    <string name="logs_skipped">已跳过</string>
+    <string name="logs_receive_outcome_reason">%1$s（%2$s）</string>
+    <string name="receive_failing_title">来自 Home Assistant 的测量数据未能写入“健康数据共享”</string>
+    <plurals name="receive_failing_text">
+        <item quantity="other">已连续 %1$d 轮失败。请查看日志了解详情。</item>
+    </plurals>
+    <string name="sync_failures_channel_name">同步失败</string>
+    <string name="sync_failures_channel_description">同步持续失败时发出提醒</string>
+    <string name="sync_failing_title">%1$s同步失败</string>
+    <plurals name="sync_failing_text">
+        <item quantity="other">已连续 %1$d 次同步失败。请查看“日志”标签页了解详情。</item>
+    </plurals>
+    <string name="sync_failing_last_error">上次错误：%1$s</string>
+    <string name="sync_failing_health_connect_silent">“健康数据共享”没有响应</string>
+    <string name="sync_partly_delivered">已发送到 %2$d 个目标地址中的 %1$d 个，请查看日志。</string>
+    <string name="partial_delivery_title">并非所有目标地址都收到了您的%1$s数据</string>
+    <plurals name="partial_delivery_text">
+        <item quantity="other">%2$s 错过了最近 %1$d 次同步。由于其他目标地址已接收这些数据，因此不会为 %2$s 排入队列。请查看“日志”标签页。</item>
+    </plurals>
+    <string name="outbox_dropped_title">%1$s数据已丢失</string>
+    <plurals name="outbox_dropped_text">
+        <item quantity="other">%1$d 次未送达的同步已从待发送队列中丢弃，其中的记录已丢失。请查看日志了解详情。</item>
+    </plurals>
+    <string name="outbox_dropped_log">已从待发送队列中丢弃：队列已满（%1$d 次未送达的同步），因此其中的记录已丢失</string>
+    <string name="outbox_replaced_log">已在待发送队列中被较新的快照替换，新快照不再包含最早未送达的几天，因此这些数据已丢失</string>
+    <string name="sync_advanced_title">高级</string>
+    <string name="sync_data_preview_title">数据预览</string>
+    <string name="sync_export_failed">导出失败</string>
+    <string name="sync_export_failed_with_reason">导出失败：%1$s</string>
+    <string name="sync_failed_with_reason">失败：%1$s</string>
+    <string name="sync_failed_prefix">失败</string>
+    <string name="sync_interval_subtitle">两次同步之间的分钟数</string>
+    <string name="sync_interval_title">同步间隔</string>
+    <string name="sync_loading">正在加载…</string>
+    <string name="sync_manual_subtitle">立即同步</string>
+    <string name="sync_manual_title">手动同步</string>
+    <string name="sync_no_new_data">没有新数据</string>
+    <string name="sync_now">立即同步</string>
+    <string name="sync_preview_data">预览数据</string>
+    <string name="sync_preview_failed">预览失败</string>
+    <string name="sync_preview_failed_with_reason">预览失败：%1$s</string>
+    <string name="sync_preview_payload_description">以下是将要发送的 JSON 数据包：</string>
+    <string name="sync_preview_full_in_copy_share">选择“复制 JSON”或“分享”可获取完整的数据包。</string>
+    <string name="sync_preview_full_in_share">选择“分享”可获取完整的数据包。</string>
+    <string name="sync_save_changes">保存更改</string>
+    <string name="sync_syncing">正在同步…</string>
+
+    <!-- Health Connect screen -->
+    <string name="health_backfill_dialog_description">以 3 天为一个分块，从最早的数据开始，将所有已启用类型的历史数据发送到您的 Webhook。常规同步不受影响；重叠的记录会根据其 uuid 去重。此过程可能需要一段时间，并可能消耗移动数据流量。</string>
+    <plurals name="health_backfill_complete">
+        <item quantity="other">补全历史数据完成：已发送 %1$d 条记录</item>
+    </plurals>
+    <string name="health_backfill_already_running">补全历史数据已在进行中</string>
+    <string name="health_backfill_no_records">“健康数据共享”中没有可发送的已开启类型的记录</string>
+    <string name="health_backfill_continues">上次补全 %1$s 的历史数据时在 %3$d 个分块中的第 %2$d 个后停止。再次选择 %1$s 可从该处继续；选择其他时长则会重新开始。</string>
+    <string name="health_backfill_failed_delivery">在 %2$d 个分块中的第 %1$d 个后发送失败。再次启动相同的补全即可从该处继续。</string>
+    <string name="health_backfill_failed_no_progress">补全历史数据在第 %1$d 个分块（共 %2$d 个）处停止：连续多次运行均未发送任何数据（可能是“健康数据共享”的读取配额已用完，或 Android 停止了该进程）。再次启动相同的补全即可从该处继续。</string>
+    <string name="health_backfill_failed_no_types">补全历史数据需要至少开启一种数据类型</string>
+    <string name="health_backfill_failed_not_returned">在 %2$d 个分块中的第 %1$d 个后停止：“健康数据共享”未返回%3$s。再次启动相同的补全即可从该处继续。</string>
+    <string name="health_backfill_failed_read">补全历史数据已停止：无法读取“健康数据共享”（%1$s）。请重新开始以继续。</string>
+    <string name="health_backfill_failed_too_many_chunks">已在第 %1$d 批（共 %2$d 批）后停止：下一批需要超过 %3$d 个数据包。</string>
+    <string name="health_backfill_failed_unexpected">补全历史数据已停止：%1$s</string>
+    <plurals name="health_backfill_log_done">
+        <item quantity="other">已补全 %1$d 天的历史数据：%2$d 批，%3$d 条记录</item>
+    </plurals>
+    <string name="health_backfill_log_paused">已在第 %1$d 批（共 %2$d 批）暂停：“健康数据共享”的读取配额已用完，将自动继续</string>
+    <string name="health_backfill_log_restarted">此次补全开始后数据类型发生了变化，因此已从第一批重新开始。</string>
+    <string name="health_backfill_log_stopped">已在第 %1$d 批（共 %2$d 批）停止</string>
+    <string name="health_backfill_grant_history">授予过往数据访问权限</string>
+    <string name="health_backfill_history">补全历史数据</string>
+    <string name="health_backfill_history_permission_warning">在您授予过往数据访问权限之前，“健康数据共享”只允许读取最近 30 天的数据。</string>
+    <string name="health_backfill_length_all">全部历史数据</string>
+    <string name="health_backfill_length_all_any">“健康数据共享”中的所有数据，从您最早的记录开始</string>
+    <plurals name="health_backfill_length_all_since">
+        <item quantity="other">自 %1$s 以来的所有数据，共 %2$d 批，每批 3 天</item>
+    </plurals>
+    <plurals name="health_backfill_length_chunks">
+        <item quantity="other">%1$d 批，每批 3 天</item>
+    </plurals>
+    <plurals name="health_backfill_length_days">
+        <item quantity="other">%1$d 天</item>
+    </plurals>
+    <plurals name="health_backfill_length_months">
+        <item quantity="other">%1$d 个月</item>
+    </plurals>
+    <plurals name="health_backfill_length_years">
+        <item quantity="other">%1$d 年</item>
+    </plurals>
+    <string name="health_backfill_paused">补全已在 %1$d/%2$d 暂停，将自动继续…</string>
+    <string name="health_backfill_progress">正在补全 %1$d/%2$d…</string>
+    <string name="health_backfill_restarted">数据类型已变化，已重新开始：%1$d/%2$d…</string>
+    <string name="health_backfill_stop">停止</string>
+    <string name="health_backfill_title">补全历史数据</string>
+    <string name="health_backfill_waiting">补全将在当前同步完成后开始…</string>
+    <string name="health_connect_not_available">“健康数据共享”不可用</string>
+    <string name="health_connect_not_available_short">“健康数据共享”不可用</string>
+    <string name="health_connect_not_installed">未安装“健康数据共享”</string>
+    <string name="health_connect_needs_update">“健康数据共享”需要更新</string>
+    <string name="health_could_not_open">无法打开“健康数据共享”</string>
+    <plurals name="health_data_types_selected">
+        <item quantity="other">已选择 %1$d 种数据类型</item>
+    </plurals>
+    <string name="health_data_types_selected_of">已选择 %1$d 项，共 %2$d 项</string>
+    <string name="health_type_permission_missing_a11y">%1$s，缺少权限</string>
+    <string name="health_data_types_title">数据类型</string>
+    <!-- The names of the data types, as shown on screen. The payload, MQTT and the stored settings use the enum name, never these. -->
+    <string name="data_type_steps">步数</string>
+    <string name="data_type_sleep">睡眠</string>
+    <string name="data_type_heart_rate">心率</string>
+    <string name="data_type_distance">距离</string>
+    <string name="data_type_speed">速度</string>
+    <string name="data_type_active_calories">运动消耗的卡路里</string>
+    <string name="data_type_total_calories">消耗的总卡路里</string>
+    <string name="data_type_weight">体重</string>
+    <string name="data_type_height">身高</string>
+    <string name="data_type_blood_pressure">血压</string>
+    <string name="data_type_blood_glucose">血糖</string>
+    <string name="data_type_oxygen_saturation">血氧饱和度</string>
+    <string name="data_type_body_temperature">体温</string>
+    <string name="data_type_respiratory_rate">呼吸频率</string>
+    <string name="data_type_resting_heart_rate">静息心率</string>
+    <string name="data_type_exercise">锻炼</string>
+    <string name="data_type_hydration">饮水量</string>
+    <string name="data_type_nutrition">营养</string>
+    <string name="data_type_mindfulness">正念</string>
+    <string name="data_type_body_fat">体脂</string>
+    <string name="data_type_lean_body_mass">净体重</string>
+    <string name="data_type_bone_mass">骨质密度</string>
+    <string name="data_type_body_water_mass">身体含水量</string>
+    <string name="data_type_heart_rate_variability">心率变异性</string>
+    <string name="data_type_menstruation_period">经期</string>
+    <string name="data_type_menstruation_flow">月经量</string>
+    <string name="data_type_basal_metabolic_rate">基础代谢率</string>
+    <string name="data_type_vo2_max">最大摄氧量</string>
+    <string name="data_type_skin_temperature">体表温度</string>
+    <string name="data_type_basal_body_temperature">基础体温</string>
+    <string name="data_type_intermenstrual_bleeding">经间期出血</string>
+    <string name="data_type_ovulation_test">排卵检测</string>
+    <string name="data_type_cervical_mucus">宫颈粘液</string>
+    <string name="data_type_sexual_activity">性活动</string>
+    <string name="health_daily_totals">每日总计</string>
+    <string name="health_daily_totals_description">通过聚合 API 获取已去重的每日总计（步数、距离、卡路里），合并手机和手表的数据</string>
+    <string name="health_daily_totals_title">数据包中包含每日总计</string>
+    <string name="health_error_with_reason">错误：%1$s</string>
+    <string name="health_install">安装</string>
+    <string name="health_no_daily_totals">无每日总计</string>
+    <string name="health_notifications_after_failures">连续失败后</string>
+    <string name="health_notifications_notify_after_failed">同步失败后通知</string>
+    <string name="health_notifications_off">关闭</string>
+    <plurals name="health_notifications_on">
+        <item quantity="other">开启，同步失败 %1$d 次后通知</item>
+    </plurals>
+    <string name="health_notifications_title">通知</string>
+    <string name="health_open_app">打开应用</string>
+    <string name="health_permission_needed">请授予权限以同步%1$s。</string>
+    <string name="health_permission_required_title">需要权限</string>
+    <string name="health_mqtt_description">通过 Home Assistant Discovery 将每种已同步数据类型的最新值发布到您的 MQTT 代理服务器：传感器会自动显示在 Home Assistant 中，无需在服务器端进行设置。</string>
+    <plurals name="health_synced_records">
+        <item quantity="other">已同步 %1$d 条记录</item>
+    </plurals>
+    <plurals name="health_queued_records">
+        <item quantity="other">无法连接到服务器 - %1$d 条记录已加入重试队列</item>
+    </plurals>
+    <string name="health_test_ping">发送测试 Ping</string>
+    <string name="health_test_ping_delivered">测试 Ping 已送达</string>
+    <string name="health_test_ping_failed">测试 Ping 失败，请查看日志</string>
+    <string name="health_test_ping_failed_with_reason">测试 Ping 失败：%1$s</string>
+    <string name="health_test_pinging">正在 Ping…</string>
+    <string name="health_update">更新</string>
+
+    <!-- Dashboard cards on the Health Connect and Screen Time screens -->
+    <string name="dashboard_last_sync">上次同步</string>
+    <string name="dashboard_last_sync_succeeded">成功</string>
+    <string name="dashboard_last_sync_failed">失败</string>
+    <string name="dashboard_lifetime">累计</string>
+    <string name="dashboard_min">分钟</string>
+    <string name="dashboard_minutes_unit">%1$d 分钟</string>
+    <string name="dashboard_minutes_per_day_last_days">每日分钟数，最近 %1$d 天</string>
+    <string name="dashboard_none">无</string>
+    <string name="dashboard_records">条记录</string>
+    <string name="dashboard_steps_last_days">步数，最近 %1$d 天</string>
+    <string name="dashboard_today">今天</string>
+    <string name="dashboard_top_app">最常用应用</string>
+
+    <!-- MQTT settings card -->
+    <string name="mqtt_base_topic">基础主题</string>
+    <string name="mqtt_sync_failed">MQTT 代理服务器：%1$s</string>
+    <string name="mqtt_broker_host">代理服务器主机</string>
+    <string name="mqtt_broker_host_placeholder">代理服务器主机，例如 192.168.1.10</string>
+    <string name="mqtt_broker_host_shared">代理服务器主机（共享）</string>
+    <string name="mqtt_disabled">已停用</string>
+    <string name="mqtt_enable_publishing">启用 MQTT 发布</string>
+    <string name="mqtt_enabled_no_broker">已启用：未设置代理服务器</string>
+    <string name="mqtt_enabled_own_broker">已启用：%1$s（独立代理服务器）</string>
+    <string name="mqtt_enabled_shared_broker">已启用：%1$s（共享代理服务器）</string>
+    <string name="mqtt_password">密码（可选）</string>
+    <plurals name="mqtt_status_published">
+        <item quantity="other">已于 %2$s 发布 %1$d 个传感器</item>
+    </plurals>
+    <string name="mqtt_port">端口</string>
+    <string name="mqtt_host_missing">请输入代理服务器的主机名或 IP 地址</string>
+    <string name="mqtt_host_invalid">只需输入主机名或 IP 地址，不含空格、mqtt:// 或端口</string>
+    <string name="mqtt_port_invalid">请输入 1 到 65535 之间的端口</string>
+    <string name="mqtt_title">MQTT</string>
+    <string name="mqtt_tls">TLS</string>
+    <string name="mqtt_plaintext_public_host">如果不使用 TLS，您的数据和代理服务器密码将以未加密形式通过互联网传输。请开启 TLS，通常使用端口 8883。</string>
+    <string name="mqtt_use_shared_broker">使用共享代理服务器</string>
+    <string name="mqtt_use_shared_broker_off">此部分连接到独立的代理服务器；%1$s 继续使用共享代理服务器</string>
+    <string name="mqtt_use_shared_broker_on">“健康数据共享”和屏幕使用时间共用一个连接；下方字段的修改对两者均生效</string>
+    <string name="mqtt_username">用户名（可选）</string>
+
+    <!-- Why a connection failed, for the MQTT status line and the sync line (ConnectionProblem) -->
+    <string name="connection_problem_host_not_found">找不到主机。请检查主机名和手机的互联网连接。</string>
+    <string name="connection_problem_unreachable">无法从此网络访问主机。请检查地址，以及手机是否需要连接 WLAN 或 VPN 才能访问。</string>
+    <string name="connection_problem_refused">连接被拒绝。请检查端口以及服务器是否正在运行。</string>
+    <string name="connection_problem_no_answer">未及时收到响应。请检查主机、端口和网络。</string>
+    <string name="connection_problem_tls">安全连接失败。请检查 TLS 设置、端口和服务器证书。</string>
+    <string name="connection_problem_login_refused">登录被拒绝。请检查用户名和密码。</string>
+    <string name="connection_problem_turned_down">服务器拒绝了此连接。具体原因请查看服务器日志。</string>
+    <string name="connection_problem_lost">连接过早关闭。请检查端口、TLS 设置和网络。</string>
+    <string name="connection_problem_other">发送失败。详细信息请查看“日志”标签页。</string>
+    <string name="webhook_sync_failed">Webhook：%1$s</string>
+
+    <!-- Logs screen -->
+    <string name="logs_clear_logs">清除日志</string>
+    <string name="logs_clear_title">要清除日志吗？</string>
+    <plurals name="logs_clear_body">
+        <item quantity="other">此操作会从这部手机中移除显示的 %1$d 条日志，且无法撤消。</item>
+    </plurals>
+    <string name="logs_clear_confirm">清除</string>
+    <plurals name="logs_export_dialog_description">
+        <item quantity="other">通过分享面板将 %1$d 条日志导出为 JSON 或 CSV 格式。</item>
+    </plurals>
+    <string name="logs_export_logs">导出日志</string>
+    <string name="logs_export_title">导出日志</string>
+    <string name="logs_empty">暂无日志</string>
+    <string name="logs_error">错误</string>
+    <string name="logs_failure_line">%1$s：%2$s</string>
+    <string name="logs_filter_all">全部</string>
+    <string name="logs_filter_health">健康</string>
+    <string name="logs_filter_screen_time">屏幕使用时间</string>
+    <string name="logs_filter_unknown">未知</string>
+    <string name="logs_keep_full_payloads">保留完整数据包</string>
+    <string name="logs_keep_full_payloads_off">数据包会被截断，以减少存储空间占用</string>
+    <string name="logs_keep_full_payloads_on">存储完整数据包，总大小有上限</string>
+    <string name="logs_last_success">上次成功：%1$s</string>
+    <string name="logs_ok">正常</string>
+    <string name="logs_payload">数据包</string>
+    <string name="logs_payload_stored_part">此数据包仅存储了一部分。开启“保留完整数据包”后，从下次同步起将存储完整数据包。</string>
+    <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
+    <string name="payload_preview_a11y">数据包，%1$s 个字符</string>
+    <string name="payload_preview_shown_part">显示前 %1$s 个字符，共 %2$s 个字符。</string>
+    <!-- Copy JSON and Share in the data preview dialog (S-01) -->
+    <string name="payload_copy_json">复制 JSON</string>
+    <string name="payload_copy_json_a11y">复制完整数据包的 JSON</string>
+    <string name="payload_share">分享</string>
+    <string name="payload_share_a11y">以文件形式分享完整数据包</string>
+    <string name="payload_copied">已复制完整数据包</string>
+    <string name="payload_too_large_to_copy">此数据包太大，无法复制到剪贴板。使用“分享”可将其完整保存为文件。</string>
+    <string name="logs_record_count">%1$s：%2$d</string>
+    <string name="logs_recent_failures">最近的失败记录：</string>
+    <string name="logs_stat_records">记录</string>
+    <string name="logs_stat_success">成功</string>
+    <string name="logs_stat_success_rate">%1$d%%</string>
+    <string name="logs_stat_total">总计</string>
+    <string name="logs_status_failure">✗ %1$s</string>
+    <string name="logs_status_success">✓ %1$s</string>
+    <string name="logs_sync_overview">同步概览</string>
+    <string name="logs_type_ratio">%1$d / %2$d</string>
+    <string name="logs_unknown_error">未知错误</string>
+
+    <!-- Main activity: top bar and bottom navigation -->
+    <string name="main_about">关于</string>
+    <string name="main_tab_health">健康</string>
+    <string name="main_tab_logs">日志</string>
+    <string name="main_title_health_connect">健康数据共享</string>
+    <string name="main_title_screen_time">屏幕使用时间</string>
+    <string name="main_title_webhook_logs">日志</string>
+
+    <!-- Screen Time screen -->
+    <plurals name="screentime_apps_queued">
+        <item quantity="other">无法连接服务器 - %1$d 个应用已加入重试队列</item>
+    </plurals>
+    <plurals name="screentime_apps_synced">
+        <item quantity="other">已同步 %1$d 个应用</item>
+    </plurals>
+    <string name="screentime_day_boundary_description">此时间之前的活动计入前一天</string>
+    <string name="screentime_day_boundary_disabled">已停用</string>
+    <string name="screentime_day_boundary_enable">启用日期分界点</string>
+    <string name="screentime_day_boundary_enabled">已启用 · %1$s</string>
+    <string name="screentime_day_boundary_hour_invalid">小时必须介于 0-23 之间</string>
+    <string name="screentime_day_boundary_title">日期分界点</string>
+    <string name="screentime_header">跟踪您的应用使用情况</string>
+    <string name="screentime_mqtt_description">通过 Home Assistant Discovery 将今天和昨天的屏幕使用时间以及今天最常用的应用发布到您的 MQTT 代理服务器，与“健康数据共享”归在同一设备下。</string>
+    <string name="screentime_permission_not_granted">未授予权限</string>
+
+    <!-- Onboarding wizard -->
+    <string name="onboarding_destination_body">对于 Home Assistant，建议扫描集成提供的二维码。您随时可以在“健康”和“屏幕使用时间”标签页中添加或更改目标地址。</string>
+    <string name="onboarding_destination_title">您的数据要发送到哪里？</string>
+    <string name="onboarding_done_body">还剩两件事，都在主界面上完成：授予“健康数据共享”权限，以及为屏幕使用时间开启使用情况访问权限。然后点按“立即同步”。</string>
+    <string name="onboarding_done_short">剩余步骤都在主界面上完成，然后点按“立即同步”。</string>
+    <string name="onboarding_done_title">设置完成</string>
+    <string name="onboarding_feature_health">健康数据共享</string>
+    <string name="onboarding_feature_health_desc">来自“健康数据共享”的步数、睡眠、心率以及另外 31 种数据类型</string>
+    <string name="onboarding_feature_screen">屏幕使用时间</string>
+    <string name="onboarding_feature_screen_desc">来自 Android 使用情况统计信息的每日及各应用使用时长</string>
+    <string name="onboarding_features_body">可选择其中一项或两项。每项都有自己的标签页、权限和设置。</string>
+    <string name="onboarding_features_title">您想同步哪些内容？</string>
+    <string name="onboarding_get_started">开始使用</string>
+    <string name="onboarding_mqtt_desc">已经在运行代理服务器？传感器会通过 MQTT Discovery 显示在 Home Assistant 中。每种类型只发送最新值，因此不会补全之前几天的数据。</string>
+    <string name="onboarding_mqtt_option">MQTT 代理服务器</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_open_app">打开应用</string>
+    <string name="onboarding_skip">跳过设置</string>
+    <string name="onboarding_skip_destination">稍后再设置</string>
+    <string name="onboarding_step_of">第 %1$d 步，共 %2$d 步</string>
+    <string name="onboarding_summary_all">全部 34 种</string>
+    <string name="onboarding_summary_dest">目标地址</string>
+    <string name="onboarding_summary_essentials">8 种基本类型</string>
+    <string name="onboarding_summary_later">暂无</string>
+    <string name="onboarding_summary_none">尚未设置</string>
+    <string name="onboarding_summary_sync">同步内容</string>
+    <string name="onboarding_summary_types">数据类型</string>
+    <string name="onboarding_task_health">授予“健康数据共享”权限</string>
+    <string name="onboarding_task_health_sub">“健康”标签页顶部的卡片</string>
+    <string name="onboarding_task_screen">为屏幕使用时间开启使用情况访问权限</string>
+    <string name="onboarding_task_screen_sub">“屏幕使用时间”标签页，会打开 Android 设置</string>
+    <string name="onboarding_types_all">全部 34 种数据类型</string>
+    <string name="onboarding_types_all_desc">“健康数据共享”提供的所有数据，从步数到经期跟踪</string>
+    <string name="onboarding_types_body">只会读取和发送已启用的类型。您可以先多选，也可以先少选；每种类型都可以在“健康”标签页中单独开关。</string>
+    <string name="onboarding_types_essentials">基本类型</string>
+    <string name="onboarding_types_essentials_desc">步数、睡眠、心率、距离、卡路里和体重</string>
+    <string name="onboarding_types_later">稍后决定</string>
+    <string name="onboarding_types_later_desc">先不启用任何类型</string>
+    <string name="onboarding_types_title">您关注哪些健康数据？</string>
+    <string name="onboarding_webhook_applied">同时用于“健康数据共享”和屏幕使用时间；之后您可以在各标签页中分别设置</string>
+    <string name="onboarding_webhook_applied_health">用于“健康数据共享”</string>
+    <string name="onboarding_webhook_applied_screen">用于屏幕使用时间</string>
+    <string name="onboarding_webhook_desc">以 POST 方式将 JSON 发送到您自己的服务器或仪表板后端</string>
+    <string name="onboarding_webhook_option">Webhook</string>
+    <string name="onboarding_welcome_body">Life Dashboard Companion 会将您的“健康数据共享”数据和屏幕使用时间数据发送到由您掌控的地方：通过 Life Dashboard 集成发送到 Home Assistant、发送到您自己的 Webhook 后端，或发送到 MQTT 代理服务器。该集成会将历史数据保存在 Home Assistant 的长期统计信息中，而且也支持反向传输：连接到 Home Assistant 的体重秤或血压计的数据会写入“健康数据共享”。中间不经过任何云服务。只需回答三个简单问题即可开始使用。</string>
+    <string name="onboarding_welcome_title">您的健康数据，您的服务器</string>
+
+    <!-- Redesigned main screens -->
+    <string name="health_access_not_granted">尚未授予访问权限</string>
+    <string name="screentime_access_granted">已授予使用情况访问权限</string>
+    <string name="screentime_access_needed">需要使用情况访问权限</string>
+    <string name="screentime_allow">允许</string>
+    <string name="screentime_settings">设置</string>
+    <string name="webhook_title">Webhook</string>
+    <string name="sync_action_preview">查看</string>
+    <string name="sync_action_ping">测试 Ping</string>
+    <string name="sync_action_export">导出</string>
+    <string name="sync_action_backfill">补全历史数据</string>
+    <string name="sync_no_destination">请先添加 Webhook 网址或启用 MQTT</string>
+    <string name="logs_delivered">已送达</string>
+    <string name="logs_published">已发布</string>
+    <string name="logs_failed">失败</string>
+    <string name="logs_row_records">%1$s · %2$d 条记录</string>
+    <string name="logs_row_sensors">%1$s · %2$d 个传感器</string>
+    <string name="logs_destination_webhook">Webhook</string>
+    <string name="logs_destination_mqtt">MQTT</string>
+
+    <!-- About screen -->
+    <string name="about_title">关于</string>
+    <string name="about_back">返回</string>
+    <string name="about_description">通过 Life Dashboard 集成将您的“健康数据共享”数据和屏幕使用时间数据发送到 Home Assistant、您自己的 Webhook 后端或 MQTT 代理服务器，还可以将您自己的 Home Assistant 中的测量数据写回“健康数据共享”。中间不经过任何云服务。</string>
+    <string name="about_privacy_title">隐私和安全</string>
+    <string name="about_backup_title">备份和恢复</string>
+    <string name="about_appearance_title">外观</string>
+    <string name="about_appearance_description">跟随手机的深色主题，或者无论手机如何设置，都让此应用保持浅色或深色。</string>
+    <string name="about_theme_system">跟随系统</string>
+    <string name="about_theme_light">浅色</string>
+    <string name="about_theme_dark">深色</string>
+    <string name="backup_intro">设置不包含在 Android 云备份中，因为其中的密钥绝不会离开此设备。如需迁移到新手机，请在此处导出设置。</string>
+    <string name="backup_export">导出</string>
+    <string name="backup_import">导入</string>
+    <string name="backup_export_title">导出设置</string>
+    <string name="backup_include_secrets">包含密钥</string>
+    <string name="backup_include_secrets_detail">身份验证请求头、签名密钥和 MQTT 密码</string>
+    <string name="backup_password">密码</string>
+    <string name="backup_password_repeat">再次输入密码</string>
+    <string name="backup_password_too_short">至少 %1$d 个字符</string>
+    <string name="backup_password_mismatch">两次输入的密码不一致</string>
+    <string name="backup_password_hint">该文件会使用此密码加密。没有此密码就无法恢复导出的设置，因此请妥善保存。请使用较长的密码，例如四个随机单词。</string>
+    <string name="backup_no_secrets_hint">导出内容将包含您的 Webhook 网址、MQTT 主机和选项，但不包含任何凭据。</string>
+    <string name="backup_read_failed">无法读取该文件</string>
+    <string name="backup_invalid_file">不是有效的设置文件</string>
+    <string name="backup_encrypted_title">已加密的导出文件</string>
+    <string name="backup_encrypted_body">此文件受密码保护。</string>
+    <string name="backup_unlock">解锁</string>
+    <string name="backup_wrong_password">密码错误，或文件已损坏</string>
+    <string name="backup_unsupported_file">此文件要求的加密设置不受此应用支持</string>
+    <string name="backup_import_title">要导入设置吗？</string>
+    <string name="backup_import_replaces">这将替换您当前的配置：</string>
+    <string name="backup_bullet">• %1$s</string>
+    <string name="backup_summary_health_webhooks">健康 Webhook：%1$d</string>
+    <string name="backup_summary_screen_time_webhooks">屏幕使用时间 Webhook：%1$d</string>
+    <string name="backup_summary_data_types">已启用的数据类型：%1$d</string>
+    <string name="backup_summary_brokers">MQTT 代理服务器：%1$d</string>
+    <string name="backup_summary_secrets">包含密钥</string>
+    <string name="backup_summary_no_secrets">不包含密钥</string>
+    <string name="backup_from_iphone">由 iPhone 应用创建</string>
+    <string name="backup_exported_at">导出时间：%1$s</string>
+    <string name="backup_note_screen_time_kept">此文件不含屏幕使用时间设置，因此将保留此手机上的相应设置，包括日期分界点。</string>
+    <string name="backup_note_iphone_types_kept">iPhone 应用没有骨质密度、身体含水量、基础代谢率和体表温度，因此这些类型在此手机上的开关状态保持不变。</string>
+    <string name="backup_note_iphone_topic_kept">不会沿用 iPhone 的 MQTT 主题 lifedashboard-ios。此手机会保留自己的主题，因此两部手机不会共用传感器。</string>
+    <string name="backup_note_iphone_name_kept">不会沿用 iPhone 的手机名称。此手机会保留自己的名称。</string>
+    <string name="backup_note_unsendable_headers_skipped">无法发送的请求头（例如名称中含有空格的请求头）已被忽略。请在 Webhook 下重新添加。</string>
+    <string name="backup_note_broker_host_unusable">无法使用此文件中的 MQTT 代理服务器：其主机不是有效的主机名或 IP 地址，例如其中含有空格、mqtt:// 或端口号。此手机会保留自己的代理服务器。</string>
+    <string name="backup_note_broker_port_unusable">无法使用此文件中的 MQTT 代理服务器：其端口不是 1 到 65535 之间的数字。此手机会保留自己的代理服务器。</string>
+    <string name="backup_keeps_credentials">此文件不含凭据，因此将保留此设备上已有的凭据。</string>
+    <string name="backup_history_unaffected">同步历史记录和日志不受影响。</string>
+    <string name="backup_imported">设置已导入，请重新打开应用以查看</string>
+    <string name="backup_import_failed">导入失败：%1$s</string>
+    <string name="about_f_steps">步数、距离、卡路里</string>
+    <string name="about_f_sleep">分阶段睡眠跟踪</string>
+    <string name="about_f_meditation">冥想时段</string>
+    <string name="about_f_heart">心率等更多数据</string>
+    <string name="about_f_apps">应用使用情况统计信息</string>
+    <string name="about_f_boundary">可配置的日期分界点</string>
+    <string name="about_f_lookback">回溯 7 天的数据</string>
+    <string name="about_f_no_sharing">不与第三方共享数据</string>
+    <string name="about_f_on_device">数据保留在您的设备上</string>
+    <string name="about_f_control">完全掌控同步设置</string>
+    <string name="about_website">网站</string>
+    <string name="about_website_sub">设置指南和 Life Dashboard 的其他组件</string>
+    <string name="about_docs">文档</string>
+    <string name="about_docs_sub">设置、Webhook 架构、MQTT、数据源</string>
+    <string name="about_whats_new">新增功能</string>
+    <string name="about_whats_new_sub">%1$s 的更新日志</string>
+    <string name="about_report">报告问题</string>
+    <string name="about_report_sub">GitHub issues</string>
+    <string name="about_github">在 GitHub 上查看</string>
+    <string name="about_play">Google Play 上也有</string>
+    <string name="about_play_sub">同一款应用；在那里购买可以支持开发</string>
+    <string name="about_rate">为应用评分</string>
+    <string name="about_rate_sub">在 Google Play 上评分可以帮助更多人发现它</string>
+    <string name="about_coffee">请我喝杯咖啡</string>
+    <string name="about_coffee_sub">应用会一直免费开源；一杯咖啡能让新版本发布得更快</string>
+    <string name="about_privacy_policy">隐私权政策</string>
+    <string name="about_privacy_policy_sub">应用会读取、写入、存储和发送哪些内容</string>
+    <string name="about_licence">许可</string>
+    <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
+    <string name="about_version">版本 %1$s</string>
+    <string name="about_bpm">%1$d BPM</string>
+
+    <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
+    <string name="privacy_title">隐私权政策</string>
+    <string name="privacy_intro">Life Dashboard Companion 是一款自托管工具。它会读取这部手机上的健康数据和屏幕使用时间数据，并且只发送到您自己设置的服务器。开发者绝不会接收、存储或查看您的任何数据。</string>
+    <string name="privacy_reads_title">应用会读取什么</string>
+    <string name="privacy_reads_body">“健康数据共享”中的记录，仅限您开启的类型，并且仅在您授予权限之后。通过使用情况访问权限读取应用使用统计信息，用于屏幕使用时间。如果有历史数据权限，还会读取 30 天前的记录，用于一次性补全历史数据。相机仅在配对扫描界面打开时供扫描器使用：画面在手机上解码，绝不会被存储或发送。</string>
+    <string name="privacy_writes_title">应用会写入什么</string>
+    <string name="privacy_writes_body">不会写入任何内容，除非您开启“接收”。开启后，应用会将您自己的 Home Assistant 发送的测量值写入“健康数据共享”：体重、身高、体脂、净体重、骨质密度、身体含水量和血压，每一项都有单独的开关和单独的权限。应用只能更改它自己写入的记录。</string>
+    <string name="privacy_where_title">数据会发送到哪里</string>
+    <string name="privacy_where_body">只会发送到您输入的目标地址：您自己的 Webhook 网址和您自己的 MQTT 代理服务器。应用不会联系任何其他服务器。没有分析工具，没有崩溃报告服务，也没有广告 SDK。除了您开启的类型之外，每个数据包还包含应用版本，屏幕使用时间数据包还包含手机的制造商和型号。每条“健康数据共享”记录都包含它在“健康数据共享”中的 ID（uuid）以及写入该记录的应用的软件包名称（source），您的服务器可以由此得知您使用了哪些应用。如果开启了“数据包中包含记录元数据”（默认关闭），每条记录还会包含上次更改时间、写入应用自己为该记录设置的 ID 和版本、记录方式、设备的制造商、型号和类型，以及时区偏移。除非您开启 TLS，否则 MQTT 不加密。状态以保留消息（retained）方式发布，因此即使您在应用中关闭了 MQTT，代理服务器仍会保留每个传感器的最新值，屏幕使用时间还包括最常用的应用：如果您不再使用，请在代理服务器上清除这些主题。</string>
+    <string name="privacy_device_title">哪些内容保留在这部手机上</string>
+    <string name="privacy_device_body">您的设置，其中的密钥保存在加密存储中，不会包含在云端备份里。同步进度，以确保每条记录只发送一次。最近 100 次传送的日志（您可以清除），以及尚未能传送的数据包。卸载应用会删除以上所有内容。导出文件由您自己创建：应用会在缓存中保留一份副本，直到您下次导出，或直到它在一天后启动，并将文件交给分享面板，您选择的应用会保留自己的副本。不含密钥的设置导出文件仍包含您的 Webhook 网址，这些网址可以起到密码的作用，因此请谨慎分享。</string>
+    <string name="privacy_control_title">由您掌控</string>
+    <string name="privacy_control_body">所有功能都需要您主动开启，并且可以随时撤销：读取哪些类型、发送到哪里、多久发送一次，以及写入什么内容。在 Android 中撤消某项权限后，相应的读取和写入会立即停止。</string>
+    <string name="privacy_contact_title">联系方式</string>
+    <string name="privacy_contact_body">如有隐私方面的问题，请在 GitHub 上提交 issue，或发送电子邮件至开发者 GitHub 个人资料中的地址。</string>
+    <string name="privacy_full">阅读完整的隐私权政策</string>
+    <string name="privacy_full_sub">GitHub 上的 PRIVACY.md</string>
+    <string name="nerd_title">极客统计</string>
+    <string name="nerd_secret">您发现了这个秘密</string>
+    <string name="nerd_empty">尚未同步。等您的数据开始传输后再来看看吧。</string>
+    <string name="nerd_records">已传送的记录</string>
+    <string name="nerd_deliveries">成功传送次数</string>
+    <string name="nerd_largest">最大数据包</string>
+    <string name="nerd_since">开始同步于</string>
+    <string name="nerd_that_is">相当于</string>
+    <plurals name="nerd_days">
+        <item quantity="other">%1$d 天的量化自我</item>
+    </plurals>
+    <string name="health_backfill_needs_webhook">补全历史数据需要 Webhook 网址：MQTT 只传送每种类型的最新值</string>
+    <string name="schedule_title">同步计划</string>
+    <string name="schedule_mode_interval">每隔 X 分钟</string>
+    <string name="schedule_mode_times">在固定时间</string>
+    <string name="schedule_times_title">同步时间</string>
+    <string name="schedule_add_time">添加时间</string>
+    <string name="schedule_remove_time">移除 %1$s</string>
+    <string name="schedule_no_times">尚未添加时间。添加一个时间即可开始同步。</string>
+    <string name="schedule_days_title">日期</string>
+    <string name="schedule_days_all">每天</string>
+    <string name="schedule_quiet_title">免打扰时段</string>
+    <string name="schedule_quiet_subtitle">在这些时间之间绝不同步</string>
+    <string name="schedule_quiet_from">开始</string>
+    <string name="schedule_quiet_to">结束</string>
+    <string name="schedule_never_runs">按这些设置永远不会同步。请添加时间或日期，或缩短免打扰时段。</string>
+    <string name="schedule_summary_interval">每 %1$d 分钟</string>
+    <string name="schedule_summary_times">在 %1$s</string>
+    <string name="schedule_summary_days">%1$s</string>
+    <string name="schedule_summary_quiet">免打扰 %1$s 至 %2$s</string>
+    <string name="schedule_no_sync_times">请至少添加一个同步时间</string>
+    <string name="schedule_day_mon">周一</string>
+    <string name="schedule_day_tue">周二</string>
+    <string name="schedule_day_wed">周三</string>
+    <string name="schedule_day_thu">周四</string>
+    <string name="schedule_day_fri">周五</string>
+    <string name="schedule_day_sat">周六</string>
+    <string name="schedule_day_sun">周日</string>
+    <string name="schedule_status_to_webhooks">%1$s，发送到 %2$d 个 Webhook</string>
+    <string name="schedule_status_to_webhooks_plural">%1$s，发送到 %2$d 个 Webhook</string>
+    <string name="schedule_status_to_mqtt">%1$s，发送到 MQTT</string>
+    <string name="schedule_status_to_both">%1$s，发送到 %2$d 个 Webhook 和 MQTT</string>
+    <string name="schedule_status_to_both_plural">%1$s，发送到 %2$d 个 Webhook 和 MQTT</string>
+    <string name="schedule_status_nowhere">%1$s，尚无目标地址</string>
+    <string name="schedule_summary_no_times">尚无同步时间</string>
+    <string name="resolution_title">数据精度</string>
+    <string name="resolution_subtitle_raw">每条记录</string>
+    <string name="resolution_subtitle_count">%1$d 项已汇总</string>
+    <string name="resolution_explainer">心率等密集数据序列可以按时间窗口发送平均值，而不是发送每一条记录。数据包更小，细节更少。</string>
+    <string name="resolution_raw">每条记录</string>
+    <string name="resolution_1m">1 分钟</string>
+    <string name="resolution_5m">5 分钟</string>
+    <string name="resolution_15m">15 分钟</string>
+    <string name="resolution_1h">1 小时</string>
+    <string name="resolution_group_sampled">按时间窗口取平均值</string>
+    <string name="resolution_group_accumulated">按时间窗口求和</string>
+    <string name="activity_about_label">关于</string>
+    <string name="tile_sync_label">同步 Life Dashboard</string>
+    <string name="tile_sync_wait">请过一分钟再试</string>
+    <string name="common_set">设置</string>
+    <string name="screentime_day_boundary_time_label">一天的开始时间</string>
+    <string name="webhook_secret_generate">生成</string>
+    <string name="webhook_secret_generated">密钥已生成。请保存，然后在您的服务器上配置相同的值；只有双方都持有该密钥时，签名才有意义。</string>
+    <string name="webhook_secret_copy">复制</string>
+    <string name="webhook_secret_copied">已复制到剪贴板</string>
+
+    <!-- QR pairing -->
+    <string name="pairing_title">与接收端配对</string>
+    <string name="pairing_intro">%1$s 想在以下地址接收您的数据：</string>
+    <string name="pairing_intro_unnamed">有接收端想在以下地址接收您的数据：</string>
+    <string name="pairing_sections_label">发送来源</string>
+    <string name="pairing_section_health">健康</string>
+    <string name="pairing_section_screen_time">屏幕使用时间</string>
+    <string name="pairing_replaces_secret">将替换此地址当前使用的签名密钥。</string>
+    <string name="pairing_others_keep_secret">其他地址会保留各自的签名密钥和请求头：%1$s。</string>
+    <string name="pairing_already_paired">此部分已在发送到这里，不会有任何变化。</string>
+    <string name="pairing_types_note">发送哪些数据类型以及何时发送，仍由您在各个标签页中决定。配对只会填写地址和密钥。</string>
+    <string name="pairing_confirm">配对</string>
+    <string name="pairing_ping_sending">已与 %1$s 配对。正在发送测试 Ping…</string>
+    <string name="pairing_ping_delivered">已与 %1$s 配对，测试 Ping 已送达</string>
+    <string name="pairing_ping_failed">已与 %1$s 配对，但测试 Ping 失败：%2$s</string>
+    <string name="pairing_nothing_selected">请至少选择一个部分。</string>
+    <string name="pairing_error_version">此代码由较新版本生成。请更新应用后重新扫描。</string>
+    <string name="pairing_error_incomplete">此代码缺少地址或密钥。</string>
+    <string name="pairing_error_no_source">此接收端不接受本应用可发送的任何内容。</string>
+
+    <!-- QR scanner -->
+    <string name="scan_title">扫描配对码</string>
+    <string name="scan_hint">请让接收端显示的配对码（例如 Home Assistant 中的 Life Dashboard 集成）填满取景框。距离越近越好。</string>
+    <string name="scan_close">关闭</string>
+    <string name="scan_not_a_code">这不是 Life Dashboard 配对码。</string>
+    <string name="scan_permission_needed">需要相机访问权限才能扫描代码。您也可以手动粘贴地址和密钥。</string>
+    <string name="scan_permission_open_settings">打开设置</string>
+    <string name="scan_no_camera">此设备没有相机。请改为手动粘贴地址和密钥。</string>
+    <string name="scan_camera_failed">无法启动相机。</string>
+    <string name="webhook_scan_lead">扫描配对码</string>
+    <string name="webhook_scan_button">扫描</string>
+    <string name="onboarding_scan_option">扫描配对码</string>
+    <string name="onboarding_scan_desc">推荐用于 Home Assistant：从 HACS 安装 Life Dashboard 集成，然后扫描它显示的二维码，Home Assistant 会将历史数据保存在其长期统计信息中。其他任何显示配对码的接收端也都可以这样操作。地址和签名密钥会自动为您填写。</string>
+    <string name="onboarding_scan_paired">已读取代码。地址和密钥已填写。</string>
+    <!-- Home screen widget -->
+    <plurals name="widget_records_today">
+        <item quantity="other">条今日记录</item>
+    </plurals>
+    <string name="widget_synced_at">同步于 %1$s</string>
+    <string name="widget_no_syncs">尚未同步</string>
+    <string name="widget_last_sync_succeeded">上次同步成功</string>
+    <string name="widget_last_sync_failed">上次同步失败</string>
+    <!-- Screen Time: which apps are sent (issue #63) -->
+    <string name="screentime_apps_title">要发送的应用</string>
+    <string name="screentime_apps_all">所有应用</string>
+    <plurals name="screentime_apps_all_except">
+        <item quantity="other">所有应用，%d 个除外</item>
+    </plurals>
+    <plurals name="screentime_apps_only">
+        <item quantity="other">仅 %d 个应用</item>
+    </plurals>
+    <string name="screentime_apps_mode_all">全部</string>
+    <string name="screentime_apps_mode_except">全部，以下除外</string>
+    <string name="screentime_apps_mode_only">仅限</string>
+    <string name="screentime_apps_description_all">与之前一样，发送所有应用。系统界面和启动器始终不会发送。</string>
+    <string name="screentime_apps_description_except">您勾选的应用绝不会被发送：既不会发送到您的 Webhook，也不会发送到 Home Assistant。每天的 total_screen_time_minutes 仍会计入所有应用；已发送应用的时间合计为 filtered_screen_time_minutes。</string>
+    <string name="screentime_apps_description_only">只有您勾选的应用会被发送到您的 Webhook 和 Home Assistant。每天的 total_screen_time_minutes 仍会计入所有应用；已发送应用的时间合计为 filtered_screen_time_minutes。</string>
+    <string name="screentime_apps_history_warning">每次同步都会重新发送最近七天的数据，因此此处的更改也会改变您的服务器上和 Home Assistant 中的这些天的数据。</string>
+    <string name="screentime_apps_none_chosen">未勾选任何应用：只会发送每日总计。</string>
+    <string name="screentime_apps_loading">正在查找您使用过的应用…</string>
+    <string name="screentime_apps_none_used">过去 30 天内没有使用超过一分钟的应用。</string>
+    <string name="screentime_apps_search">搜索应用</string>
+    <string name="screentime_apps_not_used">过去 30 天内未使用</string>
+    <plurals name="screentime_apps_minutes_month">
+        <item quantity="other">过去 30 天内 %d 分钟</item>
+    </plurals>
+    <!-- Record metadata (P2-7) -->
+    <string name="health_record_metadata">记录元数据</string>
+    <string name="health_record_metadata_title">数据包中包含记录元数据</string>
+    <string name="health_record_metadata_description">在“健康数据共享”提供这些信息时，为每条记录添加上次更改时间、写入应用自己的 ID 和版本、记录方式、设备以及时区偏移。会使数据包变大，心率数据尤为明显。</string>
+    <!-- The secret store lost its secrets -->
+    <string name="secrets_lost_banner">已保存的身份验证请求头、签名密钥和 MQTT 密码无法恢复，需要重新输入。在此之前，会校验这些信息的 Webhook 将拒收数据。</string>
+    <string name="secrets_not_ready">未保存任何内容：安全存储尚未就绪，暂时无法存储身份验证请求头和签名密钥。请稍后重试；如果问题持续出现，请解锁设备并重新打开应用。</string>
+    <string name="battery_hint_title">电池优化已开启</string>
+    <string name="battery_hint_body">Android 可能会将计划同步延迟数小时或直接跳过。请允许应用在后台不受限制地运行。</string>
+    <string name="battery_hint_fix">修复</string>
+    <string name="battery_hint_xiaomi">省电策略</string>
+    <string name="battery_hint_huawei">手机管家</string>
+    <string name="battery_hint_device_care">设备维护</string>
+    <string name="battery_hint_help">针对您手机的帮助</string>
+    <string name="battery_hint_dismiss">不再显示</string>
+</resources>

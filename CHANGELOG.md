@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- The app in Simplified Chinese, asked for by @jHbO2Ortz in
+  [#198](https://github.com/owen282000/life-dashboard-companion-app/issues/198). The names of the
+  data types and Health Connect's own terms are the ones Android uses in Chinese.
+
 ## [1.29.0] - 2026-10-27
 
 ### Highlights
