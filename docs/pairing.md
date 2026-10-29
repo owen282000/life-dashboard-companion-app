@@ -29,6 +29,7 @@ A code carries an address and a secret, and nothing else that changes what the p
 - **It fills in one webhook address and the secret to sign with**, in the sections you allow (Health, Screen Time, or both). The user can still switch a section off in the dialog.
 - **It never picks data types or a schedule.** Which data is sent, and how often, stays the user's choice on the app's tabs. A code cannot quietly start sending someone's heart rate anywhere.
 - **It never touches other receivers.** Every other address keeps its own secret and headers, and the dialog lists them. An address added by pairing starts without custom headers, so an API key typed for another receiver never follows a scanned code.
+- **It does not change the payload.** Every receiver gets the same signed JSON, described by the [JSON Schema](webhook-schema.json). There are no templates per receiver on purpose: one documented format, which your receiver maps to its own model.
 - **Nothing is saved until the user taps Pair.**
 
 ## The link
