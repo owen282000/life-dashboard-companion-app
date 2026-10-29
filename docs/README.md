@@ -12,6 +12,7 @@ Everything about Life Dashboard Companion beyond the [project README](../README.
 
 - [Features](features.md): everything the app does, every sensor and statistic, and how it compares to the Home Assistant companion app
 - [Payload reference](webhook.md): the JSON your server receives, signing, retries and example receivers
+- [Pairing your own receiver](pairing.md): let your users connect with one QR code, the link format and code to build it
 - [JSON Schema](webhook-schema.json): the payload as a machine-readable schema
 - [What source apps write](DATA_SOURCES.md): quirks of the apps that feed Health Connect, from field reports
 - [Settings backup](settings-backup.md): moving your configuration to another phone
