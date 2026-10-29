@@ -1,6 +1,6 @@
 # Webhook payload reference
 
-Life Dashboard Companion sends Health Connect data and screen time to any URL that accepts a JSON POST. This page is what you need to build a receiver for it: the request and how to verify it, a working receiver in Node.js and in Python, every field per data type, and the rules for deletions, buckets, backfills and ordering. A machine-readable [JSON Schema](webhook-schema.json) (Draft 7) covers every body the app sends; validate your receiver against it. The [setup guide](usage.md#your-own-webhook) shows where to enter the URL, headers and secret in the app. To see a real payload before you write any code, run [webhook-receiver.py](../scripts/webhook-receiver.py) on a laptop, as described there.
+Life Dashboard Companion sends Health Connect data and screen time to any URL that accepts a JSON POST. This page is what you need to build a receiver for it: the request and how to verify it, a working receiver in Node.js and in Python, every field per data type, and the rules for deletions, buckets, backfills and ordering. A machine-readable [JSON Schema](webhook-schema.json) (Draft 7) covers every body the app sends; validate your receiver against it. The [setup guide](usage.md#your-own-webhook) shows where to enter the URL, headers and secret in the app. To let your users connect by scanning one QR code instead of typing the URL and secret, see [Pairing your own receiver](pairing.md). To see a real payload before you write any code, run [webhook-receiver.py](../scripts/webhook-receiver.py) on a laptop, as described there.
 
 If you would rather start from a working backend, [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is a Docker Compose setup with an HMAC-verifying receiver, Postgres and a provisioned Grafana dashboard.
 
@@ -15,6 +15,7 @@ If you would rather start from a working backend, [life-dashboard-stack](https:/
   - [Nutrition](#nutrition) - [Mindfulness](#mindfulness) - [Cycle tracking](#cycle-tracking) - [Metabolic and fitness](#metabolic-and-fitness)
 - [Screen Time payload](#screen-time-payload)
 - [Test ping](#test-ping)
+- [Pairing your own receiver](pairing.md) (separate page)
 - [Advanced semantics](#advanced-semantics)
   - [Daily totals](#daily-totals) - [Data resolution](#data-resolution) - [Deletions](#deletions) - [Records outside the read window](#records-outside-the-read-window) - [Backfill windows](#backfill-windows)
   - [Outbox and sequence](#outbox-and-sequence) - [Record metadata](#record-metadata) - [Diagnostics](#diagnostics) - [Inbound: what the integration may send back](#inbound-what-the-integration-may-send-back)
@@ -554,7 +555,7 @@ The Home Assistant sensors follow the filter. The MQTT sensors and the [Life Das
 }
 ```
 
-`source` is the section the address belongs to, `health_connect` or `screen_time`, so a receiver can tell which of its last-sync times the ping answers for (the iOS app sends `healthkit_ios`). It is signed like any other request. A ping is retried like a sync but never queued in the outbox, and the pairing stays in place when it fails: the toast names the reason.
+`source` is the section the address belongs to, `health_connect` or `screen_time`, so a receiver can tell which of its last-sync times the ping answers for (the iOS app sends `healthkit_ios`). It is signed like any other request. A ping is retried like a sync but never queued in the outbox, and the pairing stays in place when it fails: the toast names the reason. [Pairing your own receiver](pairing.md#after-pair-the-test-ping) shows what a receiver that hands out its own QR code should answer.
 
 ## Advanced semantics
 

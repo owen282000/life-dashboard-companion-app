@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<!--
+  Source for docs/pairing-flow.png, the picture at the top of docs/pairing.md: a receiver shows
+  one QR code, the phone opens it into the pairing sheet, and after Pair the app posts a signed
+  test ping. Drawn at twice the size it is shown at (900 px wide), with transparent corners so it
+  sits on GitHub's light and dark theme alike. Same identity as how-it-works.html. The QR is
+  pairing-example-qr.svg (a made-up address and secret), the phone is pairing-sheet.png
+  (the app on the ldc-store emulator, opened with that same link).
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+      --headless=new --screenshot=docs/pairing-flow.png --window-size=1800,900 \
+      --hide-scrollbars --force-device-scale-factor=1 \
+      --default-background-color=00000000 docs/brand/pairing-flow.html
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1800px; height: 900px; overflow: hidden; background: transparent; }
+  .card {
+    position: absolute; inset: 0; border-radius: 40px; overflow: hidden;
+    background: radial-gradient(130% 130% at 25% 20%, #171D21 0%, #14181C 45%, #101C1C 100%);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #E8EDEF;
+  }
+  .grid {
+    position: absolute; inset: 0; opacity: 0.5;
+    background-image:
+      linear-gradient(rgba(48,183,126,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(48,183,126,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .col-title {
+    position: absolute; top: 52px; font-size: 25px; font-weight: 700;
+    letter-spacing: 2.5px; text-transform: uppercase; color: #7E8B91;
+  }
+  .box {
+    position: absolute; border-radius: 28px; padding: 34px;
+    background: rgba(255,255,255,0.045); border: 2px solid rgba(255,255,255,0.1);
+  }
+  .box h3 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15; }
+  .box p { margin-top: 12px; font-size: 25px; line-height: 1.35; color: #AEB8BC; }
+  .qrbox { left: 70px; top: 110px; width: 470px; height: 720px; }
+  .qr {
+    display: block; width: 360px; height: 360px; margin: 34px auto 26px;
+    border-radius: 18px; background: #fff; padding: 8px;
+  }
+  .phone {
+    position: absolute; left: 705px; top: 110px; width: 340px; height: 721px;
+    border-radius: 48px; padding: 14px; background: #05080A;
+    border: 3px solid rgba(48,183,126,0.75); box-shadow: 0 0 60px rgba(48,183,126,0.18);
+  }
+  .phone img { width: 100%; height: 100%; border-radius: 36px; display: block; object-fit: cover; }
+  .pingbox { left: 1210px; top: 110px; width: 520px; height: 720px; }
+  pre {
+    margin-top: 26px; padding: 26px 28px; border-radius: 18px; background: #0B1114;
+    border: 2px solid rgba(48,183,126,0.35);
+    font: 21px/1.5 "SF Mono", Menlo, Consolas, monospace; color: #CFE9DD; white-space: pre;
+  }
+  pre .k { color: #7E8B91; }
+  pre .g { color: #30B77E; }
+  .arrow { position: absolute; top: 430px; width: 120px; height: 40px; }
+  .arrow svg { width: 120px; height: 40px; display: block; }
+  .arrow span {
+    position: absolute; top: -44px; left: 0; width: 120px; text-align: center;
+    font-size: 23px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #30B77E;
+  }
+  .a1 { left: 563px; }
+  .a2 { left: 1068px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid"></div>
+
+  <div class="col-title" style="left:70px">Your service</div>
+  <div class="box qrbox">
+    <h3>Shows one QR code</h3>
+    <p>The address and a secret for this user, in the part of the link after the&nbsp;#.</p>
+    <img class="qr" src="pairing-example-qr.svg" alt="">
+    <p>Scanned in the app, or with the phone's camera.</p>
+  </div>
+
+  <div class="arrow a1"><span>Scan</span><svg viewBox="0 0 120 40"><path d="M6 20 H104" stroke="#30B77E" stroke-width="5" stroke-linecap="round"/><path d="M92 8 L110 20 L92 32" fill="none" stroke="#30B77E" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+  <div class="col-title" style="left:705px">The phone</div>
+  <div class="phone"><img src="pairing-sheet.png" alt=""></div>
+
+  <div class="arrow a2"><span>Pair</span><svg viewBox="0 0 120 40"><path d="M6 20 H104" stroke="#30B77E" stroke-width="5" stroke-linecap="round"/><path d="M92 8 L110 20 L92 32" fill="none" stroke="#30B77E" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+  <div class="col-title" style="left:1210px">Your service</div>
+  <div class="box pingbox">
+    <h3>Gets a signed test ping</h3>
+    <p>Right after Pair, then every sync with the same secret.</p>
+<pre><span class="k">POST</span> /webhook/u/42
+<span class="k">X-Signature:</span> <span class="g">sha256=9f2c…</span>
+
+{
+  "test": true,
+  "message": "Test ping from
+     Life Dashboard Companion",
+  "source": "health_connect"
+}</pre>
+    <p>Which data types go, and when, the user picks on the phone.</p>
+  </div>
+</div>
+</body>
+</html>

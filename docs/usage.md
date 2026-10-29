@@ -81,6 +81,8 @@ A header name can only use the characters HTTP allows in one (letters, digits an
 
 Without the app installed, the code opens a web page that explains where to get it. The secret sits in the part of the link after the `#`, which a browser never sends to any server.
 
+Any receiver can show such a code, not only Home Assistant. [Pairing your own receiver](pairing.md) describes the format for developers.
+
 <a id="install"></a>
 
 ## Install the app
