@@ -45,7 +45,7 @@ Your watch, ring or scale already writes to Health Connect. This app sends that 
 
 - In Home Assistant every day lands on its own date, up to a year back, paired with one QR code. The Home Assistant companion app shows the latest value.
 - Edits and deletions go out too, not only new records, so your server stays in step with Health Connect.
-- Samsung Health, Fitbit, Garmin, Oura, Withings: if it writes to Health Connect, it arrives. That includes Fitbit after Google switches off the Fitbit Web API on 30 October 2026.
+- Samsung Health, Fitbit, Garmin, Oura, Withings: if it writes to Health Connect, it arrives. That includes Fitbit after Google switches off the Fitbit Web API on 2 November 2026.
 - Open source (MIT), with the same signing key on GitHub, F-Droid and Google Play.
 - Want to ask Claude or a local model in Ollama about your own history? The [Grafana stack](https://github.com/owen282000/life-dashboard-stack#ask-your-own-ai-mcp) adds an MCP server with eight read-only tools. The app itself contains no AI.
 
