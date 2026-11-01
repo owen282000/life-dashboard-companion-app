@@ -39,6 +39,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -73,6 +74,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -403,7 +405,10 @@ fun FilledField(
         value = value,
         onValueChange = onValueChange,
         label = label?.let { { Text(it) } },
-        placeholder = placeholder?.let { { Text(it) } },
+        // The direction follows what is typed, not the layout: a URL, host or secret in an
+        // Arabic layout stays left to right instead of reading "...//:https".
+        placeholder = placeholder?.let { { Text(it, style = LocalTextStyle.current.copy(textDirection = TextDirection.Content)) } },
+        textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
         trailingIcon = if (password) {
             { PasswordToggle(revealed) { revealed = !revealed } }
         } else {
