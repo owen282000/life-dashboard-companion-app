@@ -8,8 +8,8 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
- * The names of the data types and the texts of the failure notification are in Dutch, German and
- * Simplified Chinese too: a missing one would show English in the middle of a translated screen or notification.
+ * The names of the data types and the texts of the failure notification are in every language the
+ * app speaks: a missing one would show English in the middle of a translated screen or notification.
  */
 class TranslatedNamesTest {
 
@@ -26,7 +26,10 @@ class TranslatedNamesTest {
             .associate { it.getAttribute("name") to it.textContent.trim() }
     }
 
-    private val locales = listOf("values", "values-nl", "values-de", "values-zh-rCN")
+    private val locales = listOf(
+        "values", "values-nl", "values-de", "values-fr", "values-es", "values-it", "values-pt-rBR",
+        "values-ja", "values-ar", "values-hi", "values-zh-rCN"
+    )
 
     @Test
     fun everyDataTypeHasItsOwnNameInEveryLocale() {
@@ -98,7 +101,12 @@ class TranslatedNamesTest {
      */
     @Test
     fun theScannerAndThePairingResultFitAnyReceiver() {
-        val receiver = mapOf("values" to "receiver", "values-nl" to "ontvanger", "values-de" to "Empfänger", "values-zh-rCN" to "接收端")
+        val receiver = mapOf(
+            "values" to "receiver", "values-nl" to "ontvanger", "values-de" to "Empfänger",
+            "values-fr" to "récepteur", "values-es" to "receptor", "values-it" to "destinatario",
+            "values-pt-rBR" to "receptor", "values-ja" to "受信側", "values-ar" to "جهة الاستقبال",
+            "values-hi" to "रिसीवर", "values-zh-rCN" to "接收端"
+        )
         for (folder in locales) {
             val strings = strings(folder)
             fun text(name: String) = strings[name].also { assertTrue("$name is missing in $folder", !it.isNullOrBlank()) }!!
