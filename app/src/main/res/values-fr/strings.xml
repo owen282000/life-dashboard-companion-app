@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Shared / common -->
     <string name="common_add">Ajouter</string>
@@ -744,7 +744,9 @@
     <string name="onboarding_scan_desc">Recommandé pour Home Assistant : installez l’intégration Life Dashboard depuis HACS et scannez le code QR qu’elle affiche. Home Assistant conserve alors l’historique dans ses statistiques à long terme. Tout autre récepteur qui affiche un code d’association fonctionne de la même façon. L’adresse et le secret de signature sont remplis pour vous.</string>
     <string name="onboarding_scan_paired">Code lu. L’adresse et le secret sont remplis.</string>
     <!-- Home screen widget -->
-    <plurals name="widget_records_today">
+    <!-- The widget shows the count in its own large text and this label beside it, so the label
+         has no %d; "one" also covers 0 in this language, which lint flags. -->
+    <plurals name="widget_records_today" tools:ignore="ImpliedQuantity">
         <item quantity="one">enregistrement aujourd’hui</item>
         <item quantity="many">enregistrements aujourd’hui</item>
         <item quantity="other">enregistrements aujourd’hui</item>

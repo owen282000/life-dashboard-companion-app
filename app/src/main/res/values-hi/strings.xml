@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Shared / common -->
     <string name="common_add">जोड़ें</string>
@@ -719,7 +719,9 @@
     <string name="onboarding_scan_desc">Home Assistant के लिए सुझाया गया: HACS से Life Dashboard इंटीग्रेशन इंस्टॉल करें और वह जो QR कोड दिखाता है उसे स्कैन करें। Home Assistant इतिहास को अपने लंबी अवधि के आंकड़ों में रखता है। पेयरिंग कोड दिखाने वाला कोई भी दूसरा रिसीवर भी इसी तरह काम करता है। पता और साइनिंग सीक्रेट आपके लिए भर दिए जाते हैं।</string>
     <string name="onboarding_scan_paired">कोड पढ़ लिया गया। पता और सीक्रेट भर दिए गए हैं।</string>
     <!-- Home screen widget -->
-    <plurals name="widget_records_today">
+    <!-- The widget shows the count in its own large text and this label beside it, so the label
+         has no %d; "one" also covers 0 in this language, which lint flags. -->
+    <plurals name="widget_records_today" tools:ignore="ImpliedQuantity">
         <item quantity="one">आज का रिकॉर्ड</item>
         <item quantity="other">आज के रिकॉर्ड</item>
     </plurals>
