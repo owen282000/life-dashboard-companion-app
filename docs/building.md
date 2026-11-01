@@ -100,7 +100,7 @@ Pure sync logic lives in small, dependency-free types (`ResilientReadLogic`, `We
 
 ## Translations
 
-UI text lives in `app/src/main/res/values/strings.xml` and is referenced with `stringResource(R.string.…)`; counts use `<plurals>` and `pluralStringResource`. Translations sit in `values-<locale>/strings.xml`, currently Dutch (`values-nl`) and German (`values-de`). Translators work on [Weblate](https://hosted.weblate.org/engage/life-dashboard-companion/), which opens a pull request from its `weblate` branch for their changes; a translation by hand in a pull request works too, but Weblate keeps it in step with new English text.
+UI text lives in `app/src/main/res/values/strings.xml` and is referenced with `stringResource(R.string.…)`; counts use `<plurals>` and `pluralStringResource`. Translations sit in `values-<locale>/strings.xml`, currently Dutch (`values-nl`), German (`values-de`), French (`values-fr`), Spanish (`values-es`), Italian (`values-it`), Portuguese for Brazil (`values-pt-rBR`), Japanese (`values-ja`), Arabic (`values-ar`), Hindi (`values-hi`) and Simplified Chinese (`values-zh-rCN`). Translators work on [Weblate](https://hosted.weblate.org/engage/life-dashboard-companion/), which opens a pull request from its `weblate` branch for their changes; a translation by hand in a pull request works too, but Weblate keeps it in step with new English text.
 
 Two rules keep translation possible:
 

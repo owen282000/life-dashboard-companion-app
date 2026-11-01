@@ -9,6 +9,14 @@ All notable changes to this project are documented in this file. The format is b
 - The app in Simplified Chinese, asked for by @jHbO2Ortz in
   [#198](https://github.com/owen282000/life-dashboard-companion-app/issues/198). The names of the
   data types and Health Connect's own terms are the ones Android uses in Chinese.
+- The app in French, Spanish, Italian, Portuguese (Brazil), Japanese, Arabic and Hindi, so it now
+  speaks eleven languages. Each uses the words Health Connect and Android use in that language,
+  and the same words as the iPhone app. Arabic runs right to left. Native speakers are welcome to
+  improve any of them on [Weblate](https://hosted.weblate.org/engage/life-dashboard-companion/).
+
+### Changed
+
+- In Simplified Chinese, a backfill chunk is called 批 everywhere, where some screens said 分块.
 
 ## [1.29.0] - 2026-10-27
 

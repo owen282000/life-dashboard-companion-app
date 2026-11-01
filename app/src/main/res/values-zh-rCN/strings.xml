@@ -178,17 +178,17 @@
     <string name="sync_syncing">正在同步…</string>
 
     <!-- Health Connect screen -->
-    <string name="health_backfill_dialog_description">以 3 天为一个分块，从最早的数据开始，将所有已启用类型的历史数据发送到您的 Webhook。常规同步不受影响；重叠的记录会根据其 uuid 去重。此过程可能需要一段时间，并可能消耗移动数据流量。</string>
+    <string name="health_backfill_dialog_description">以 3 天为一批，从最早的数据开始，将所有已启用类型的历史数据发送到您的 Webhook。常规同步不受影响；重叠的记录会根据其 uuid 去重。此过程可能需要一段时间，并可能消耗移动数据流量。</string>
     <plurals name="health_backfill_complete">
         <item quantity="other">补全历史数据完成：已发送 %1$d 条记录</item>
     </plurals>
     <string name="health_backfill_already_running">补全历史数据已在进行中</string>
     <string name="health_backfill_no_records">“健康数据共享”中没有可发送的已开启类型的记录</string>
-    <string name="health_backfill_continues">上次补全 %1$s 的历史数据时在 %3$d 个分块中的第 %2$d 个后停止。再次选择 %1$s 可从该处继续；选择其他时长则会重新开始。</string>
-    <string name="health_backfill_failed_delivery">在 %2$d 个分块中的第 %1$d 个后发送失败。再次启动相同的补全即可从该处继续。</string>
-    <string name="health_backfill_failed_no_progress">补全历史数据在第 %1$d 个分块（共 %2$d 个）处停止：连续多次运行均未发送任何数据（可能是“健康数据共享”的读取配额已用完，或 Android 停止了该进程）。再次启动相同的补全即可从该处继续。</string>
+    <string name="health_backfill_continues">上次补全 %1$s 的历史数据时在第 %2$d 批（共 %3$d 批）后停止。再次选择 %1$s 可从该处继续；选择其他时长则会重新开始。</string>
+    <string name="health_backfill_failed_delivery">在第 %1$d 批（共 %2$d 批）后发送失败。再次启动相同的补全即可从该处继续。</string>
+    <string name="health_backfill_failed_no_progress">补全历史数据在第 %1$d 批（共 %2$d 批）处停止：连续多次运行均未发送任何数据（可能是“健康数据共享”的读取配额已用完，或 Android 停止了该进程）。再次启动相同的补全即可从该处继续。</string>
     <string name="health_backfill_failed_no_types">补全历史数据需要至少开启一种数据类型</string>
-    <string name="health_backfill_failed_not_returned">在 %2$d 个分块中的第 %1$d 个后停止：“健康数据共享”未返回%3$s。再次启动相同的补全即可从该处继续。</string>
+    <string name="health_backfill_failed_not_returned">在第 %1$d 批（共 %2$d 批）后停止：“健康数据共享”未返回%3$s。再次启动相同的补全即可从该处继续。</string>
     <string name="health_backfill_failed_read">补全历史数据已停止：无法读取“健康数据共享”（%1$s）。请重新开始以继续。</string>
     <string name="health_backfill_failed_too_many_chunks">已在第 %1$d 批（共 %2$d 批）后停止：下一批需要超过 %3$d 个数据包。</string>
     <string name="health_backfill_failed_unexpected">补全历史数据已停止：%1$s</string>
