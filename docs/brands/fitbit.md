@@ -53,11 +53,11 @@ Google Health also reads from Health Connect, including weight and body fat. A s
 
 ### The old Fitbit integration
 
-Home Assistant's Fitbit integration uses the legacy Fitbit Web API. Google ended support for that API on September 30, 2026 and turns it off on November 2, 2026, a few days after the October 30 it first named. From then on it no longer works or syncs ([Google's release notes](https://developers.google.com/health/release-notes)). Health Connect doesn't depend on that API.
+Home Assistant's Fitbit integration uses the legacy Fitbit Web API. Google ended support for that API on September 30, 2026 and turned it off on November 2, 2026, so the integration no longer syncs. Its log shows `Server error response: 410, message='Gone'` for `https://api.fitbit.com/oauth2/token`, and signing in again doesn't help ([Google's status page](https://status.healthapp.google.com/)). Health Connect doesn't depend on that API.
 
 ## Compared with the Google Health integration
 
-The [Google Health integration](https://www.home-assistant.io/integrations/google_health/), new in Home Assistant 2026.8, reads Google's cloud with the new Google Health API, the API that keeps working after the old Fitbit one is turned off.
+The [Google Health integration](https://www.home-assistant.io/integrations/google_health/), new in Home Assistant 2026.8, reads Google's cloud with the new Google Health API, the API that replaced the old Fitbit one.
 
 | | Google Health integration | This app |
 |---|---|---|
