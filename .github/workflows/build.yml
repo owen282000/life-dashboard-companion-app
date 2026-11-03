@@ -1,10 +1,21 @@
 name: Build APK
 
+# Not for changes to text alone. Unit tests read docs/webhook-schema.json, so that one still builds.
 on:
   push:
     branches: [main]
+    paths:
+      - '**'
+      - '!**.md'
+      - '!docs/**'
+      - 'docs/webhook-schema.json'
   pull_request:
     branches: [main]
+    paths:
+      - '**'
+      - '!**.md'
+      - '!docs/**'
+      - 'docs/webhook-schema.json'
   workflow_dispatch:
 
 permissions:
