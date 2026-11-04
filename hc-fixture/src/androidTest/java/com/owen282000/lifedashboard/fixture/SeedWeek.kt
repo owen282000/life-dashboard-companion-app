@@ -123,8 +123,8 @@ class SeedWeek {
                 )
             }
 
-            // Sleep from 23:15 the night before to 06:50, with stages.
-            val sleepStart = at(date.minusDays(1), LocalTime.of(23, 15))
+            // Sleep from around 23:15 the night before to 06:50, with stages.
+            val sleepStart = at(date.minusDays(1), LocalTime.of(22, 40).plusMinutes(random.nextLong(0, 70)))
             val sleepEnd = at(date, LocalTime.of(6, 50))
             val stages = mutableListOf<SleepSessionRecord.Stage>()
             var cursor = sleepStart

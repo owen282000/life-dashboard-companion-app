@@ -1,0 +1,1 @@
+ヘルスコネクトとスクリーンタイムを、自分のHome Assistant、MQTT、Webhookへ送信します。

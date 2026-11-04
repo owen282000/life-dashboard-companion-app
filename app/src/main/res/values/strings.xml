@@ -8,27 +8,20 @@
     <string name="common_back">Back</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_close">Close</string>
-    <string name="common_collapse">Collapse</string>
     <string name="common_csv">CSV</string>
-    <string name="common_expand">Expand</string>
     <string name="common_grant">Grant</string>
     <string name="common_json">JSON</string>
     <string name="common_never">never</string>
-    <string name="common_none_configured">None configured</string>
-    <string name="common_permissions_required">Permissions required</string>
     <string name="common_remove">Remove</string>
     <string name="common_show_password">Show password</string>
     <string name="common_hide_password">Hide password</string>
-    <string name="common_saved">Saved!</string>
 
     <!-- Shared webhook / sync settings, used by Health Connect and Screen Time -->
-    <string name="webhook_add_a_url">Add a webhook URL</string>
     <string name="webhook_allow_plain_http">Allow plain HTTP webhooks</string>
     <string name="webhook_allow_plain_http_description">For a webhook on your own LAN or VPN that has no certificate. HTTPS stays the default, and this one switch covers both Health Connect and Screen Time, including the measurements Home Assistant sends to this phone. MQTT is unaffected.</string>
     <string name="client_cert_title">Client certificate (mTLS)</string>
     <string name="client_cert_none">None</string>
     <string name="client_cert_description">For a server that requires a client certificate. Install it first in Android settings (Security, Encryption &amp; credentials, Install a certificate). Chosen once and used for every webhook, also in the background. MQTT is unaffected.</string>
-    <string name="client_cert_choose">Choose</string>
     <string name="server_trust_title">Server certificates</string>
     <string name="server_trust_description">Only for a server whose certificate Android does not trust, such as one from your own CA or a self-signed one. Each setting applies to that host alone. MQTT is unaffected.</string>
     <string name="server_trust_user_cas">Trust certificates installed on this phone</string>
@@ -57,31 +50,17 @@
     <string name="webhook_header_value_invalid">A header value can only hold plain ASCII characters, without line breaks or letters such as é</string>
     <string name="webhook_header_name_blocks_delivery">Nothing was sent: header %1$s has a name that cannot be sent. Remove it under Webhook and add it again with a name without spaces.</string>
     <string name="webhook_header_value_blocks_delivery">Nothing was sent: the value of header %1$s holds a line break or a character a header cannot carry. Remove it under Webhook and add it again.</string>
-    <string name="webhook_headers_title">Webhook headers (optional)</string>
     <string name="webhook_hmac_secret_description">When set, every POST gets an X-Signature header (sha256=&lt;hex&gt;) computed as HMAC-SHA256 over the body, so your server can verify the sender.</string>
     <string name="webhook_hmac_secret_title">HMAC signing secret (optional)</string>
-    <plurals name="webhook_headers_count">
-        <item quantity="one">%1$d header</item>
-        <item quantity="other">%1$d headers</item>
-    </plurals>
     <string name="webhook_min_interval">Min 15 minutes</string>
     <string name="webhook_shared_secret">Shared secret</string>
-    <string name="webhook_url_placeholder">https://...</string>
-    <string name="webhook_urls_configured">%1$d configured</string>
-    <string name="webhook_destinations_hint">Tap an address for its own headers and signing secret. Neither goes to any other address.</string>
-    <string name="webhook_destination_summary">%1$s, %2$s</string>
-    <string name="webhook_destination_signed">Signed</string>
-    <string name="webhook_destination_unsigned">Not signed</string>
-    <string name="webhook_destination_no_headers">no headers</string>
     <string name="webhook_destination_url">Address</string>
-    <string name="webhook_destination_open">show headers and secret</string>
     <string name="webhook_destination_moved">Another host than %1$s: the headers were cleared and the secret reset, so nothing set for %1$s goes here.</string>
     <string name="webhook_copy_headers_from">Copy headers from %1$s</string>
     <string name="webhook_use_secret_of">Use the same secret as %1$s</string>
     <string name="webhook_url_duplicate">This address is in the list already</string>
     <string name="webhook_url_user_info">Remove the user name or password from the address. Addresses are kept as plain text, in backups and in the logs; put the credential in a header of this address instead.</string>
     <string name="webhook_url_credential_parameter">Remove %1$s= from the address. Addresses are kept as plain text, in backups and in the logs; put the credential in a header of this address instead.</string>
-    <string name="webhook_urls_title">Webhook URLs</string>
 
     <!-- Shared sync section, used by Health Connect and Screen Time -->
     <string name="sync_advanced_client_cert">Client certificate</string>
@@ -99,20 +78,16 @@
     <string name="receive_title">Receive</string>
     <string name="receive_subtitle">From Home Assistant into Health Connect</string>
     <string name="receive_off">Off</string>
-    <string name="receive_summary_written">%1$s · %2$s</string>
     <plurals name="receive_written_today">
         <item quantity="one">%1$d written today</item>
         <item quantity="other">%1$d written today</item>
     </plurals>
-    <string name="receive_enable">Receive measurements from Home Assistant</string>
     <string name="receive_enable_description">The Life Dashboard integration sends the entities you chose there; each type below needs its own Health Connect write permission.</string>
     <string name="receive_needs_integration">Needs the Life Dashboard integration: pair with Home Assistant first, so there is a webhook address and a signing secret.</string>
-    <string name="receive_source">Source: %1$s</string>
     <string name="receive_update_integration">Update the Life Dashboard integration to receive measurements, or check that this webhook is the integration\'s: its last answer carried no measurements protocol.</string>
     <string name="receive_no_types_yet">The next sync asks Home Assistant which types it offers.</string>
     <string name="receive_choose_type">Switch on a type below to receive it.</string>
     <string name="receive_permission_missing">Write permission missing: %1$s</string>
-    <string name="receive_type_permission_missing_a11y">%1$s, write permission missing</string>
     <string name="receive_summary_needs_pairing">Needs pairing with Home Assistant</string>
     <string name="receive_summary_update_integration">Update the integration</string>
     <string name="receive_summary_nothing_mapped">No types mapped in Home Assistant</string>
@@ -128,11 +103,6 @@
     <plurals name="receive_written_count">
         <item quantity="one">%1$d written to Health Connect</item>
         <item quantity="other">%1$d written to Health Connect</item>
-    </plurals>
-    <string name="logs_row_receive_title">Health · from Home Assistant</string>
-    <plurals name="logs_row_written">
-        <item quantity="one">%1$s · %2$d written</item>
-        <item quantity="other">%1$s · %2$d written</item>
     </plurals>
     <string name="logs_written">Written</string>
     <string name="logs_skipped">Skipped</string>
@@ -165,29 +135,20 @@
     <string name="outbox_dropped_log">Dropped from the outbox: it was full (%1$d undelivered syncs), so its records are lost</string>
     <string name="outbox_replaced_log">Replaced in the outbox by a newer snapshot, which no longer covers its oldest undelivered days, so those are lost</string>
     <string name="sync_advanced_title">Advanced</string>
-    <string name="sync_data_preview_title">Data Preview</string>
     <string name="sync_export_failed">Export failed</string>
     <string name="sync_export_failed_with_reason">Export failed: %1$s</string>
     <string name="sync_failed_with_reason">Failed: %1$s</string>
-    <string name="sync_failed_prefix">Failed</string>
     <string name="sync_interval_subtitle">Minutes between syncs</string>
-    <string name="sync_interval_title">Sync Interval</string>
-    <string name="sync_loading">Loading...</string>
-    <string name="sync_manual_subtitle">Sync now</string>
-    <string name="sync_manual_title">Manual Sync</string>
+    <string name="sync_interval_title">Sync interval</string>
     <string name="sync_no_new_data">No new data</string>
     <string name="sync_now">Sync Now</string>
-    <string name="sync_preview_data">Preview Data</string>
     <string name="sync_preview_failed">Preview failed</string>
     <string name="sync_preview_failed_with_reason">Preview failed: %1$s</string>
-    <string name="sync_preview_payload_description">This is the JSON payload that will be sent:</string>
     <string name="sync_preview_full_in_copy_share">Copy JSON or Share gives the full payload.</string>
     <string name="sync_preview_full_in_share">Share gives the full payload.</string>
-    <string name="sync_save_changes">Save Changes</string>
     <string name="sync_syncing">Syncing...</string>
 
     <!-- Health Connect screen -->
-    <string name="health_backfill_dialog_description">Sends historical data for all enabled types to your webhooks in 3-day chunks, oldest first. Regular syncing is unaffected; overlapping records deduplicate on their uuid. This can take a while and use mobile data.</string>
     <plurals name="health_backfill_complete">
         <item quantity="one">Backfill complete: %1$d record sent</item>
         <item quantity="other">Backfill complete: %1$d records sent</item>
@@ -210,17 +171,12 @@
     <string name="health_backfill_log_restarted">The data types changed since this backfill started, so it started over at the first chunk.</string>
     <string name="health_backfill_log_stopped">Stopped at chunk %1$d of %2$d</string>
     <string name="health_backfill_grant_history">Grant history access</string>
-    <string name="health_backfill_history">Backfill History</string>
     <string name="health_backfill_history_permission_warning">Health Connect limits reads to the last 30 days until you grant history access.</string>
     <string name="health_backfill_length_all">All history</string>
     <string name="health_backfill_length_all_any">Everything Health Connect has, from your oldest record</string>
     <plurals name="health_backfill_length_all_since">
         <item quantity="one">Everything since %1$s, %2$d chunk of 3 days</item>
         <item quantity="other">Everything since %1$s, %2$d chunks of 3 days</item>
-    </plurals>
-    <plurals name="health_backfill_length_chunks">
-        <item quantity="one">%1$d chunk of 3 days</item>
-        <item quantity="other">%1$d chunks of 3 days</item>
     </plurals>
     <plurals name="health_backfill_length_days">
         <item quantity="one">%1$d day</item>
@@ -245,13 +201,7 @@
     <string name="health_connect_not_installed">Health Connect is not installed</string>
     <string name="health_connect_needs_update">Health Connect needs to be updated</string>
     <string name="health_could_not_open">Could not open Health Connect</string>
-    <plurals name="health_data_types_selected">
-        <item quantity="one">%1$d data type selected</item>
-        <item quantity="other">%1$d data types selected</item>
-    </plurals>
     <string name="health_data_types_selected_of">%1$d of %2$d selected</string>
-    <string name="health_type_permission_missing_a11y">%1$s, permission missing</string>
-    <string name="health_data_types_title">Data Types</string>
     <!-- The names of the data types, as shown on screen. The payload, MQTT and the stored settings use the enum name, never these. -->
     <string name="data_type_steps">Steps</string>
     <string name="data_type_sleep">Sleep</string>
@@ -301,7 +251,7 @@
         <item quantity="other">On, after %1$d failed syncs</item>
     </plurals>
     <string name="health_notifications_title">Notifications</string>
-    <string name="health_open_app">Open App</string>
+    <string name="health_open_app">Open app</string>
     <string name="health_permission_needed">Grant permission to sync %1$s.</string>
     <string name="health_permission_required_title">Permission Required</string>
     <string name="health_mqtt_description">Publishes the latest value of each synced data type to your MQTT broker with Home Assistant Discovery: sensors appear in Home Assistant automatically, no server-side setup needed.</string>
@@ -324,13 +274,9 @@
     <string name="dashboard_last_sync">Last sync</string>
     <string name="dashboard_last_sync_succeeded">Succeeded</string>
     <string name="dashboard_last_sync_failed">Failed</string>
-    <string name="dashboard_lifetime">Lifetime</string>
-    <string name="dashboard_min">min</string>
-    <string name="dashboard_minutes_unit">%1$d min</string>
     <string name="dashboard_minutes_per_day_last_days">Minutes per day, last %1$d days</string>
     <string name="dashboard_none">none</string>
     <string name="dashboard_records">records</string>
-    <string name="dashboard_steps_last_days">Steps, last %1$d days</string>
     <string name="dashboard_today">Today</string>
     <string name="dashboard_top_app">Top app</string>
 
@@ -340,11 +286,8 @@
     <string name="mqtt_broker_host">Broker host</string>
     <string name="mqtt_broker_host_placeholder">Broker host, e.g. 192.168.1.10</string>
     <string name="mqtt_broker_host_shared">Broker host (shared)</string>
-    <string name="mqtt_disabled">Disabled</string>
     <string name="mqtt_enable_publishing">Enable MQTT publishing</string>
     <string name="mqtt_enabled_no_broker">Enabled: no broker set</string>
-    <string name="mqtt_enabled_own_broker">Enabled: %1$s (own broker)</string>
-    <string name="mqtt_enabled_shared_broker">Enabled: %1$s (shared broker)</string>
     <string name="mqtt_password">Password (optional)</string>
     <plurals name="mqtt_status_published">
         <item quantity="one">%1$d sensor published at %2$s</item>
@@ -375,7 +318,6 @@
     <string name="webhook_sync_failed">Webhook: %1$s</string>
 
     <!-- Logs screen -->
-    <string name="logs_clear_logs">Clear logs</string>
     <string name="logs_clear_title">Clear logs?</string>
     <plurals name="logs_clear_body">
         <item quantity="one">This removes %1$d log from this phone. It cannot be undone.</item>
@@ -388,9 +330,7 @@
     </plurals>
     <string name="logs_export_logs">Export logs</string>
     <string name="logs_export_title">Export Logs</string>
-    <string name="logs_empty">No logs yet</string>
     <string name="logs_error">Error</string>
-    <string name="logs_failure_line">%1$s: %2$s</string>
     <string name="logs_filter_all">All</string>
     <string name="logs_filter_health">Health</string>
     <string name="logs_filter_screen_time">Screen Time</string>
@@ -399,7 +339,6 @@
     <string name="logs_keep_full_payloads_off">Payloads are truncated to keep storage small</string>
     <string name="logs_keep_full_payloads_on">Whole payloads are stored, capped by total size</string>
     <string name="logs_last_success">Last success: %1$s</string>
-    <string name="logs_ok">OK</string>
     <string name="logs_payload">Payload</string>
     <string name="logs_payload_stored_part">Only part of this payload was stored. Switch on Keep full payloads to store whole payloads from the next sync on.</string>
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
@@ -412,17 +351,7 @@
     <string name="payload_share_a11y">Share the full payload as a file</string>
     <string name="payload_copied">Full payload copied</string>
     <string name="payload_too_large_to_copy">This payload is too large for the clipboard. Share gives you all of it as a file.</string>
-    <string name="logs_record_count">%1$s: %2$d</string>
-    <string name="logs_recent_failures">Recent failures:</string>
     <string name="logs_stat_records">Records</string>
-    <string name="logs_stat_success">Success</string>
-    <string name="logs_stat_success_rate">%1$d%%</string>
-    <string name="logs_stat_total">Total</string>
-    <string name="logs_status_failure">✗ %1$s</string>
-    <string name="logs_status_success">✓ %1$s</string>
-    <string name="logs_sync_overview">Sync Overview</string>
-    <string name="logs_type_ratio">%1$d / %2$d</string>
-    <string name="logs_unknown_error">Unknown error</string>
 
     <!-- Main activity: top bar and bottom navigation -->
     <string name="main_about">About</string>
@@ -430,7 +359,6 @@
     <string name="main_tab_logs">Logs</string>
     <string name="main_title_health_connect">Health Connect</string>
     <string name="main_title_screen_time">Screen Time</string>
-    <string name="main_title_webhook_logs">Logs</string>
 
     <!-- Screen Time screen -->
     <plurals name="screentime_apps_queued">
@@ -441,30 +369,19 @@
         <item quantity="one">Synced %1$d app</item>
         <item quantity="other">Synced %1$d apps</item>
     </plurals>
-    <string name="screentime_day_boundary_description">Activity before this hour counts as previous day</string>
     <string name="screentime_day_boundary_disabled">Disabled</string>
     <string name="screentime_day_boundary_enable">Enable day boundary</string>
-    <string name="screentime_day_boundary_enabled">Enabled · %1$s</string>
     <string name="screentime_day_boundary_hour_invalid">Hour must be 0-23</string>
-    <string name="screentime_day_boundary_title">Day Boundary</string>
-    <string name="screentime_header">Track your app usage</string>
     <string name="screentime_mqtt_description">Publishes today\'s and yesterday\'s screen time and today\'s most used app to your MQTT broker with Home Assistant Discovery, under the same device as Health Connect.</string>
     <string name="screentime_permission_not_granted">Permission not granted</string>
 
     <!-- Onboarding wizard -->
-    <string name="onboarding_destination_body">For Home Assistant, scanning the integration\'s code is the recommended route. You can add or change destinations any time in the Health and Screen Time tabs.</string>
     <string name="onboarding_destination_title">Where should your data go?</string>
-    <string name="onboarding_done_body">Two things remain, both on the main screens: grant Health Connect permissions, and allow usage access for screen time. Then tap Sync Now.</string>
-    <string name="onboarding_done_short">What remains lives on the main screens; then tap Sync Now.</string>
     <string name="onboarding_done_title">You are set</string>
     <string name="onboarding_feature_health">Health Connect</string>
-    <string name="onboarding_feature_health_desc">Steps, sleep, heart rate and 31 more types from Health Connect</string>
     <string name="onboarding_feature_screen">Screen Time</string>
-    <string name="onboarding_feature_screen_desc">Daily and per-app usage from Android\'s usage stats</string>
-    <string name="onboarding_features_body">Pick one or both. Each has its own tab, permissions and settings.</string>
     <string name="onboarding_features_title">What do you want to sync?</string>
     <string name="onboarding_get_started">Get started</string>
-    <string name="onboarding_mqtt_desc">Already running a broker? Sensors appear in Home Assistant via MQTT Discovery. Only the latest value of each type is sent, so earlier days are not filled in.</string>
     <string name="onboarding_mqtt_option">MQTT broker</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_open_app">Open the app</string>
@@ -472,30 +389,22 @@
     <string name="onboarding_skip_destination">I will set this up later</string>
     <string name="onboarding_step_of">Step %1$d of %2$d</string>
     <string name="onboarding_summary_all">all 34</string>
-    <string name="onboarding_summary_dest">Destination</string>
     <string name="onboarding_summary_essentials">8 essentials</string>
     <string name="onboarding_summary_later">none yet</string>
     <string name="onboarding_summary_none">not yet</string>
     <string name="onboarding_summary_sync">Syncing</string>
     <string name="onboarding_summary_types">Data types</string>
     <string name="onboarding_task_health">Grant Health Connect permissions</string>
-    <string name="onboarding_task_health_sub">Health tab, the card at the top</string>
     <string name="onboarding_task_screen">Allow usage access for screen time</string>
-    <string name="onboarding_task_screen_sub">Screen Time tab, opens Android settings</string>
     <string name="onboarding_types_all">All 34 data types</string>
     <string name="onboarding_types_all_desc">Everything Health Connect offers, from steps to cycle tracking</string>
-    <string name="onboarding_types_body">Only enabled types are read and sent. Start broad or start small; every type keeps its own toggle in the Health tab.</string>
     <string name="onboarding_types_essentials">The essentials</string>
     <string name="onboarding_types_essentials_desc">Steps, sleep, heart rate, distance, calories and weight</string>
     <string name="onboarding_types_later">Decide later</string>
-    <string name="onboarding_types_later_desc">Start with nothing enabled</string>
     <string name="onboarding_types_title">Which health data matters to you?</string>
     <string name="onboarding_webhook_applied">Used for both Health Connect and Screen Time; you can split them per tab later</string>
     <string name="onboarding_webhook_applied_health">Used for Health Connect</string>
     <string name="onboarding_webhook_applied_screen">Used for Screen Time</string>
-    <string name="onboarding_webhook_desc">POST JSON to your own server or dashboard backend</string>
-    <string name="onboarding_webhook_option">Webhook</string>
-    <string name="onboarding_welcome_body">Life Dashboard Companion sends your Health Connect and screen time data to a place you control: Home Assistant through the Life Dashboard integration, your own webhook backend, or an MQTT broker. The integration keeps the history in Home Assistant\'s long-term statistics, and it also works the other way: a scale or blood pressure monitor that talks to Home Assistant lands in Health Connect. No cloud in between. Three quick questions and you are running.</string>
     <string name="onboarding_welcome_title">Your health data, your server</string>
 
     <!-- Redesigned main screens -->
@@ -505,31 +414,21 @@
     <string name="screentime_allow">Allow</string>
     <string name="screentime_settings">Settings</string>
     <string name="webhook_title">Webhook</string>
-    <string name="sync_action_preview">View</string>
     <string name="sync_action_ping">Test ping</string>
     <string name="sync_action_export">Export</string>
     <string name="sync_action_backfill">Backfill</string>
-    <string name="sync_no_destination">Add a webhook URL or enable MQTT first</string>
     <string name="logs_delivered">Delivered</string>
     <string name="logs_published">Published</string>
     <string name="logs_failed">Failed</string>
-    <string name="logs_row_records">%1$s · %2$d records</string>
-    <string name="logs_row_sensors">%1$s · %2$d sensors</string>
     <string name="logs_destination_webhook">Webhook</string>
     <string name="logs_destination_mqtt">MQTT</string>
 
     <!-- About screen -->
     <string name="about_title">About</string>
-    <string name="about_back">Back</string>
-    <string name="about_description">Sends your Health Connect and screen time data to Home Assistant through the Life Dashboard integration, to your own webhook backend or to an MQTT broker, and can bring measurements from your own Home Assistant back into Health Connect. No cloud in between.</string>
-    <string name="about_privacy_title">Privacy &amp; Security</string>
-    <string name="about_backup_title">Backup &amp; restore</string>
     <string name="about_appearance_title">Appearance</string>
-    <string name="about_appearance_description">Follow the phone\'s dark theme, or keep this app light or dark whatever the phone does.</string>
     <string name="about_theme_system">System</string>
     <string name="about_theme_light">Light</string>
     <string name="about_theme_dark">Dark</string>
-    <string name="backup_intro">Settings are not part of Android\'s cloud backup, because the secrets they contain never leave this device. Export them here to move to a new phone.</string>
     <string name="backup_export">Export</string>
     <string name="backup_import">Import</string>
     <string name="backup_export_title">Export settings</string>
@@ -568,38 +467,19 @@
     <string name="backup_note_broker_port_unusable">The MQTT broker in this file cannot be used: its port is not a number from 1 to 65535. This phone keeps its own broker.</string>
     <string name="backup_keeps_credentials">This file has no credentials, so the ones already on this device are kept.</string>
     <string name="backup_history_unaffected">Sync history and logs are not affected.</string>
-    <string name="backup_imported">Settings imported, reopen the app to see them</string>
     <string name="backup_import_failed">Import failed: %1$s</string>
-    <string name="about_f_steps">Steps, distance, calories</string>
-    <string name="about_f_sleep">Sleep tracking with phases</string>
-    <string name="about_f_meditation">Meditation sessions</string>
-    <string name="about_f_heart">Heart rate &amp; more</string>
-    <string name="about_f_apps">App usage statistics</string>
-    <string name="about_f_boundary">Configurable day boundary</string>
-    <string name="about_f_lookback">7-day lookback window</string>
-    <string name="about_f_no_sharing">No third-party data sharing</string>
-    <string name="about_f_on_device">Data stays on your device</string>
-    <string name="about_f_control">Full control over sync settings</string>
     <string name="about_website">Website</string>
-    <string name="about_website_sub">Setup guides and the other Life Dashboard parts</string>
     <string name="about_docs">Documentation</string>
-    <string name="about_docs_sub">Setup, webhook schema, MQTT, data sources</string>
     <string name="about_whats_new">What\'s new</string>
-    <string name="about_whats_new_sub">Changelog for %1$s</string>
     <string name="about_report">Report a problem</string>
-    <string name="about_report_sub">GitHub issues</string>
     <string name="about_github">View on GitHub</string>
     <string name="about_play">Also on Google Play</string>
     <string name="about_play_sub">The same app; buying it there supports development</string>
     <string name="about_rate">Rate the app</string>
-    <string name="about_rate_sub">A rating on Google Play helps others find it</string>
     <string name="about_coffee">Buy me a coffee</string>
     <string name="about_coffee_sub">The app stays free and open source; a coffee keeps releases quick</string>
-    <string name="about_privacy_policy">Privacy policy</string>
-    <string name="about_privacy_policy_sub">What the app reads, writes, stores and sends</string>
     <string name="about_licence">Licence</string>
     <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
-    <string name="about_version">Version %1$s</string>
     <string name="about_bpm">%1$d BPM</string>
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
@@ -618,7 +498,6 @@
     <string name="privacy_contact_title">Contact</string>
     <string name="privacy_contact_body">Questions about privacy: open an issue on GitHub or email the developer at the address on the GitHub profile.</string>
     <string name="privacy_full">Read the full privacy policy</string>
-    <string name="privacy_full_sub">PRIVACY.md on GitHub</string>
     <string name="nerd_title">Nerd Stats</string>
     <string name="nerd_secret">You found the secret</string>
     <string name="nerd_empty">No syncs yet. Come back when your data has started flowing.</string>
@@ -627,6 +506,10 @@
     <string name="nerd_largest">Largest payload</string>
     <string name="nerd_since">Syncing since</string>
     <string name="nerd_that_is">That is</string>
+    <string name="ld_nerd_records_health">Health records</string>
+    <string name="ld_nerd_records_screen_time">Screen Time records</string>
+    <string name="ld_nerd_records_today">Health records today</string>
+    <string name="ld_nerd_last_sync_outcome">%1$s, %2$s</string>
     <plurals name="nerd_days">
         <item quantity="one">%1$d day of quantified you</item>
         <item quantity="other">%1$d days of quantified you</item>
@@ -634,13 +517,10 @@
     <string name="health_backfill_needs_webhook">Backfill needs a webhook URL: MQTT only carries the latest value of each type</string>
     <string name="schedule_title">Sync Schedule</string>
     <string name="schedule_mode_interval">Every X minutes</string>
-    <string name="schedule_mode_times">At fixed times</string>
     <string name="schedule_times_title">Sync times</string>
     <string name="schedule_add_time">Add a time</string>
-    <string name="schedule_remove_time">Remove %1$s</string>
     <string name="schedule_no_times">No times yet. Add one to start syncing.</string>
     <string name="schedule_days_title">Days</string>
-    <string name="schedule_days_all">Every day</string>
     <string name="schedule_quiet_title">Quiet hours</string>
     <string name="schedule_quiet_subtitle">Never sync between these times</string>
     <string name="schedule_quiet_from">From</string>
@@ -648,9 +528,7 @@
     <string name="schedule_never_runs">These settings never sync. Add a time, a day, or shorten the quiet hours.</string>
     <string name="schedule_summary_interval">Every %1$d min</string>
     <string name="schedule_summary_times">At %1$s</string>
-    <string name="schedule_summary_days">%1$s</string>
     <string name="schedule_summary_quiet">quiet %1$s to %2$s</string>
-    <string name="schedule_no_sync_times">Add at least one sync time</string>
     <string name="schedule_day_mon">Mon</string>
     <string name="schedule_day_tue">Tue</string>
     <string name="schedule_day_wed">Wed</string>
@@ -665,7 +543,7 @@
     <string name="schedule_status_to_both_plural">%1$s to %2$d webhooks and MQTT</string>
     <string name="schedule_status_nowhere">%1$s, no destination yet</string>
     <string name="schedule_summary_no_times">No sync times yet</string>
-    <string name="resolution_title">Data Resolution</string>
+    <string name="resolution_title">Data resolution</string>
     <string name="resolution_subtitle_raw">Every record</string>
     <string name="resolution_subtitle_count">%1$d bucketed</string>
     <string name="resolution_explainer">Dense series like heart rate can be sent as averages per time window instead of every single record. Smaller payloads, less detail.</string>
@@ -676,18 +554,15 @@
     <string name="resolution_1h">1 hour</string>
     <string name="resolution_group_sampled">Averaged per window</string>
     <string name="resolution_group_accumulated">Summed per window</string>
-    <string name="activity_about_label">About</string>
     <string name="tile_sync_label">Sync Life Dashboard</string>
     <string name="tile_sync_wait">Try again in a minute</string>
     <string name="common_set">Set</string>
     <string name="screentime_day_boundary_time_label">Day starts at</string>
     <string name="webhook_secret_generate">Generate</string>
     <string name="webhook_secret_generated">Secret generated. Save, then configure the same value on your server; a signature only proves anything when both sides hold it.</string>
-    <string name="webhook_secret_copy">Copy</string>
     <string name="webhook_secret_copied">Copied to clipboard</string>
 
     <!-- QR pairing -->
-    <string name="pairing_title">Pair with a receiver</string>
     <string name="pairing_intro">%1$s wants to receive your data at:</string>
     <string name="pairing_intro_unnamed">A receiver wants your data at:</string>
     <string name="pairing_sections_label">Send from</string>
@@ -707,7 +582,6 @@
     <string name="pairing_error_no_source">This receiver does not accept anything this app can send.</string>
 
     <!-- QR scanner -->
-    <string name="scan_title">Scan a pairing code</string>
     <string name="scan_hint">Fill the frame with the pairing code your receiver shows, such as the Life Dashboard integration in Home Assistant. Closer is better.</string>
     <string name="scan_close">Close</string>
     <string name="scan_not_a_code">That is not a Life Dashboard pairing code.</string>
@@ -718,7 +592,6 @@
     <string name="webhook_scan_lead">Scan a pairing code</string>
     <string name="webhook_scan_button">Scan</string>
     <string name="onboarding_scan_option">Scan a pairing code</string>
-    <string name="onboarding_scan_desc">Recommended for Home Assistant: install the Life Dashboard integration from HACS and scan the QR code it shows, and Home Assistant keeps the history in its long-term statistics. Any other receiver that shows a pairing code works the same way. The address and the signing secret are filled in for you.</string>
     <string name="onboarding_scan_paired">Code read. The address and the secret are filled in.</string>
     <!-- Home screen widget -->
     <plurals name="widget_records_today">
@@ -726,6 +599,11 @@
         <item quantity="other">records today</item>
     </plurals>
     <string name="widget_synced_at">Synced %1$s</string>
+    <string name="widget_name">Sync Status</string>
+    <string name="widget_synced_on">Synced on %1$s</string>
+    <string name="widget_description">Last sync result and records delivered today, with a button that syncs now.</string>
+    <string name="widget_preview_records">records today</string>
+    <string name="widget_preview_count" translatable="false">0</string>
     <string name="widget_no_syncs">No syncs yet</string>
     <string name="widget_last_sync_succeeded">Last sync succeeded</string>
     <string name="widget_last_sync_failed">Last sync failed</string>
@@ -743,21 +621,12 @@
     <string name="screentime_apps_mode_all">All</string>
     <string name="screentime_apps_mode_except">All except</string>
     <string name="screentime_apps_mode_only">Only</string>
-    <string name="screentime_apps_description_all">Every app goes out, as before. System UI and the launcher are always left out.</string>
-    <string name="screentime_apps_description_except">The apps you tick are never sent: not to your webhook and not to Home Assistant. Each day still counts every app in total_screen_time_minutes; the apps that are sent add up to filtered_screen_time_minutes.</string>
-    <string name="screentime_apps_description_only">Only the apps you tick are sent, to your webhook and to Home Assistant. Each day still counts every app in total_screen_time_minutes; the apps that are sent add up to filtered_screen_time_minutes.</string>
-    <string name="screentime_apps_history_warning">Every sync sends the last seven days again, so a change here also changes those days on your server and in Home Assistant.</string>
     <string name="screentime_apps_none_chosen">No app ticked: only the day totals go out.</string>
     <string name="screentime_apps_loading">Looking up the apps you used…</string>
     <string name="screentime_apps_none_used">No apps used for more than a minute in the last 30 days.</string>
     <string name="screentime_apps_search">Search apps</string>
     <string name="screentime_apps_not_used">Not used in the last 30 days</string>
-    <plurals name="screentime_apps_minutes_month">
-        <item quantity="one">%d minute in the last 30 days</item>
-        <item quantity="other">%d minutes in the last 30 days</item>
-    </plurals>
     <!-- Record metadata (P2-7) -->
-    <string name="health_record_metadata">Record metadata</string>
     <string name="health_record_metadata_title">Record metadata in payload</string>
     <string name="health_record_metadata_description">Adds to every record when it was last changed, the writing app\'s own id and version, how it was recorded, the device and the time zone offset, where Health Connect has them. Makes payloads larger, most for heart rate.</string>
     <!-- The secret store lost its secrets -->
@@ -771,4 +640,373 @@
     <string name="battery_hint_device_care">Device Care</string>
     <string name="battery_hint_help">Help for your phone</string>
     <string name="battery_hint_dismiss">Don\'t show again</string>
+
+    <!-- The redesign: shell and kit -->
+    <string name="ld_save">Save</string>
+    <string name="ld_key_value">%1$s: %2$s</string>
+    <string name="ld_remove_named">Remove %1$s</string>
+    <string name="ld_try_again">Try again</string>
+    <string name="ld_not_saved">Not saved</string>
+    <string name="ld_type_locked">No permission yet</string>
+    <string name="ld_title_add_destination">Add destination</string>
+    <string name="ld_title_destination">Destination</string>
+    <string name="ld_title_paired">Paired</string>
+    <string name="ld_title_what_to_send">What to send</string>
+    <string name="ld_title_backfill">Backfill</string>
+    <string name="ld_title_preview">Preview</string>
+    <string name="ld_title_when_to_send">When to send</string>
+    <string name="ld_title_more">More</string>
+    <string name="ld_title_server_certificates">Server certificates</string>
+    <string name="ld_title_export_data">Export data</string>
+    <string name="ld_title_backup_restore">Backup and restore</string>
+    <string name="ld_title_delivery">Delivery</string>
+    <string name="ld_title_apps_to_send">Apps to send</string>
+    <string name="ld_title_day_starts_at">Day starts at</string>
+    <string name="ld_title_help">Help</string>
+    <string name="ld_title_support">Support</string>
+    <string name="ld_title_privacy">Privacy</string>
+    <string name="ld_title_open_source">Open source</string>
+    <string name="ld_category_activity">Activity</string>
+    <string name="ld_category_body">Body</string>
+    <string name="ld_category_heart">Heart and vitals</string>
+    <string name="ld_category_sleep">Sleep and mind</string>
+    <string name="ld_category_food">Food and drink</string>
+    <string name="ld_category_cycle">Cycle tracking</string>
+
+    <!-- The redesign: Home and destinations. Each group below appends under its own heading, so parallel work merges without a conflict. -->
+    <string name="ld_home_assistant" translatable="false">Home Assistant</string>
+    <string name="ld_just_now">just now</string>
+    <string name="ld_home_heading_nothing_selected">Connected. Now pick your data.</string>
+    <string name="ld_home_heading_problem_one">%1$s needs you.</string>
+    <plurals name="ld_home_heading_problem_many">
+        <item quantity="one">%1$d destination needs you.</item>
+        <item quantity="other">%1$d destinations need you.</item>
+    </plurals>
+    <string name="ld_home_heading_overdue">Nothing has arrived lately.</string>
+    <string name="ld_home_heading_waiting">Ready for the first sync.</string>
+    <string name="ld_home_heading_arriving">Your data is arriving.</string>
+    <string name="ld_home_hc_install_note">Life Dashboard reads your health data through Health Connect. Install it to start.</string>
+    <string name="ld_home_hc_update_note">This version of Health Connect is too old for Life Dashboard. Update it to start.</string>
+    <string name="ld_home_hc_unavailable_note">Health Connect does not run on this device or in this profile. Screen Time still works.</string>
+    <string name="ld_home_access_note">Health Connect has not given Life Dashboard access yet, so nothing can be read or sent.</string>
+    <string name="ld_home_own_server">Use your own server</string>
+    <string name="ld_home_pair_note">Any receiver can show a pairing code, such as Home Assistant, the Life Dashboard Stack or your own server.</string>
+    <string name="ld_home_broker">Broker %1$s</string>
+    <string name="ld_home_connected">Connected</string>
+    <string name="ld_home_no_deliveries">No deliveries yet</string>
+    <string name="ld_home_failed_http">HTTP %1$d, %2$s</string>
+    <string name="ld_home_failed_time">Failed, %1$s</string>
+    <string name="ld_home_nothing_since">Nothing delivered since %1$s.</string>
+    <string name="ld_home_overdue_battery">Nothing delivered since %1$s. Battery optimization may be holding the syncs.</string>
+    <string name="ld_home_overdue_logs">Nothing delivered since %1$s. The Logs tab shows what happened.</string>
+    <string name="ld_home_hold_never">Automatic syncs are off. Sync Now still works.</string>
+    <string name="ld_home_hold_quiet">Quiet hours until %1$s. Sync Now still works.</string>
+    <string name="ld_home_hold_day_off">No automatic syncs today. Sync Now still works.</string>
+    <string name="ld_home_types_of">%1$d of %2$d types</string>
+    <string name="ld_home_none_yet">None yet</string>
+    <string name="ld_home_once_a_day">Once a day</string>
+    <plurals name="ld_home_times_a_day">
+        <item quantity="one">%1$d time a day</item>
+        <item quantity="other">%1$d times a day</item>
+    </plurals>
+    <string name="ld_home_more_subtitle">Backup, about</string>
+    <string name="ld_home_receive_waiting">Waiting for the next sync</string>
+    <string name="ld_home_receive_choose">Pick the types</string>
+    <string name="ld_home_receive_permission">Permission missing</string>
+    <plurals name="ld_home_receive_types">
+        <item quantity="one">%1$d type</item>
+        <item quantity="other">%1$d types</item>
+    </plurals>
+    <string name="ld_secrets_unavailable_title">Secure storage is unavailable</string>
+    <string name="ld_secrets_unavailable_body">Saved auth headers, signing secrets and MQTT passwords cannot be read or changed right now. Unlock the device and reopen the app. Nothing is stored unencrypted.</string>
+    <string name="ld_secrets_lost_title">Secrets have to be entered again</string>
+    <string name="ld_today_pick">Pick what to send</string>
+    <string name="ld_today_lines">Lines show 7 days</string>
+    <string name="ld_today_rest_bpm">Rest bpm</string>
+    <string name="ld_today_kg">kg</string>
+    <string name="ld_today_lb">lb</string>
+    <string name="ld_today_sleep_value">%1$sh %2$s</string>
+    <string name="ld_today_weight_value">%1$s %2$s</string>
+    <string name="ld_today_spoken">%1$s: %2$s, %3$s</string>
+    <string name="ld_today_trend">Lowest %1$s, highest %2$s, latest %3$s</string>
+    <string name="ld_today_record">record</string>
+    <string name="ld_add_heading">Add a destination.</string>
+    <string name="ld_add_pair_note">For any receiver that shows one, such as Home Assistant, the Life Dashboard Stack or your own server.</string>
+    <string name="ld_add_own_server">Your own server</string>
+    <string name="ld_add_webhook_url">Webhook URL</string>
+    <string name="ld_add_webhook_example">https://your-webhook.com/health</string>
+    <string name="ld_add_webhook">Add webhook</string>
+    <string name="ld_add_mqtt_subtitle">With Home Assistant Discovery</string>
+    <string name="ld_add_mqtt_on">On: %1$s</string>
+    <string name="ld_dest_url">URL</string>
+    <string name="ld_dest_signing">Signing</string>
+    <string name="ld_dest_copy_secret">Copy secret</string>
+    <string name="ld_dest_headers">Headers</string>
+    <string name="ld_dest_add_header">Add a header</string>
+    <string name="ld_dest_headers_note">Sent to this address only.</string>
+    <string name="ld_dest_header_invalid">Not a valid header, so nothing is sent. Remove it and add it again.</string>
+    <string name="ld_dest_delivered">Delivered %1$s.</string>
+    <plurals name="ld_dest_delivered_records">
+        <item quantity="one">Delivered %1$s, %2$d record.</item>
+        <item quantity="other">Delivered %1$s, %2$d records.</item>
+    </plurals>
+    <string name="ld_dest_last_failed">Last try failed %1$s.</string>
+    <string name="ld_dest_last_failed_reason">Last try failed %1$s: %2$s</string>
+    <string name="ld_dest_plain_http">Plain HTTP is off</string>
+    <string name="ld_dest_plain_http_body">Nothing reaches an http address until it is allowed under Advanced. Use an https address if you can.</string>
+    <string name="ld_dest_send_test">Send test</string>
+    <string name="ld_dest_sending">Sending...</string>
+    <string name="ld_dest_test_uses_saved">The test uses what is saved. Save first to test your changes.</string>
+    <string name="ld_dest_remove">Remove destination</string>
+    <string name="ld_dest_remove_body">This address stops receiving data, and its signing secret and headers are deleted.</string>
+    <string name="ld_dest_remove_receive_body">This address stops receiving data, and its signing secret and headers are deleted. Receive stops too, because its measurements come from this address.</string>
+    <string name="ld_mqtt_remove_body">MQTT publishing stops here, and the address and login of a broker nothing else uses are deleted from this phone.</string>
+    <string name="ld_paired_connected">Connected.</string>
+    <string name="ld_paired_not_connected">Not connected yet.</string>
+    <string name="ld_paired_checking">Checking the connection...</string>
+    <string name="ld_paired_delivered">Delivered: the receiver accepted the test ping.</string>
+    <string name="ld_paired_next_sync">Tap Sync Now to send your data.</string>
+    <string name="ld_paired_next_types">Next, switch on the data types you want to send.</string>
+    <string name="ld_paired_done">Done</string>
+    <string name="ld_pairing_title">Pairing</string>
+    <string name="ld_pairing_heading">Pair with this receiver?</string>
+
+    <!-- The redesign: What to send, When to send, Receive -->
+    <string name="ld_what_heading">%1$d of %2$d types.</string>
+    <string name="ld_what_start_from">Start from</string>
+    <string name="ld_what_essentials">Essentials</string>
+    <string name="ld_what_all_types">All types</string>
+    <string name="ld_what_none">None</string>
+    <string name="ld_what_by_category">By category</string>
+    <string name="ld_what_count_of">%1$d of %2$d</string>
+    <string name="ld_what_how_it_goes_out">How it goes out</string>
+    <string name="ld_what_send_history">Send history</string>
+    <string name="ld_what_preview_payload">Preview payload</string>
+    <string name="ld_what_access">Health Connect access</string>
+    <string name="ld_what_access_granted">Granted for what you selected</string>
+    <string name="ld_what_access_allowed_count">Allowed for %1$d of %2$d types</string>
+    <string name="ld_access_blocked_not_installed">Health Connect is not installed, so this cannot be switched on. Your selection stays as it is.</string>
+    <string name="ld_access_blocked_needs_update">Health Connect needs an update, so this cannot be switched on. Your selection stays as it is.</string>
+    <string name="ld_access_blocked_unavailable">Health Connect is not available on this phone, so this cannot be switched on. Your selection stays as it is.</string>
+    <string name="ld_category_cycle_note">This stays off until you switch it on. It only goes to your own destinations.</string>
+    <string name="ld_category_lock_note">The lock means no permission yet. Switching on asks for it.</string>
+    <string name="ld_resolution_footnote">Choose every record, 1 min, 5 min, 15 min or 1 hour. Only selected types show here.</string>
+    <string name="ld_resolution_empty">Switch on a type such as heart rate or steps to choose its resolution.</string>
+    <string name="ld_backfill_heading">Send your history.</string>
+    <string name="ld_backfill_intro">Sent in 3-day chunks, oldest first. Records are never counted twice.</string>
+    <plurals name="ld_backfill_chunks">
+        <item quantity="one">%1$d chunk</item>
+        <item quantity="other">%1$d chunks</item>
+    </plurals>
+    <string name="ld_backfill_everything">Everything</string>
+    <string name="ld_backfill_goes_to">Goes to %1$s.</string>
+    <string name="ld_backfill_mobile_data">This can take a while and use mobile data.</string>
+    <string name="ld_backfill_integration_note">Home Assistant takes in about the last year for now. A webhook or the Life Dashboard stack gets everything.</string>
+    <string name="ld_backfill_start">Start, %1$s</string>
+    <string name="ld_backfill_view">View</string>
+    <string name="ld_backfill_short_waiting">Waiting</string>
+    <string name="ld_backfill_short_paused">Paused at %1$d/%2$d</string>
+    <string name="ld_backfill_running_heading">Backfilling %1$d of %2$d.</string>
+    <string name="ld_backfill_paused_heading">Paused at %1$d of %2$d.</string>
+    <string name="ld_backfill_waiting_heading">Waiting for the sync.</string>
+    <string name="ld_backfill_starting_heading">Starting the backfill.</string>
+    <string name="ld_backfill_failed_heading">Backfill stopped.</string>
+    <string name="ld_backfill_done_heading">Backfill complete.</string>
+    <string name="ld_backfill_progress_a11y">Backfill progress, %1$d of %2$d chunks</string>
+    <plurals name="ld_backfill_records_leave">
+        <item quantity="one">%1$s record sent. You can leave this screen.</item>
+        <item quantity="other">%1$s records sent. You can leave this screen.</item>
+    </plurals>
+    <string name="ld_backfill_can_leave">You can leave this screen.</string>
+    <plurals name="ld_backfill_records_sent">
+        <item quantity="one">%1$s record sent</item>
+        <item quantity="other">%1$s records sent</item>
+    </plurals>
+    <string name="ld_backfill_stop_discard">Stop and discard</string>
+    <string name="ld_backfill_stop_hint">Forgets the progress. Data already sent stays on your server.</string>
+    <string name="ld_backfill_continue">Continue</string>
+    <string name="ld_backfill_choose_length">Choose a length</string>
+    <string name="ld_preview_intro">This is what your server receives.</string>
+    <string name="ld_preview_no_types">No data types selected</string>
+    <string name="ld_preview_nothing_new">No new data since the last sync, so a sync would send nothing right now. Send history sends older records again.</string>
+    <string name="ld_when_every">Every %1$d minutes.</string>
+    <plurals name="ld_when_times">
+        <item quantity="one">Once a day.</item>
+        <item quantity="other">%1$d times a day.</item>
+    </plurals>
+    <string name="ld_when_never">Never syncs</string>
+    <string name="ld_when_fixed_times">Fixed times</string>
+    <string name="ld_when_mode">Sync mode</string>
+    <string name="ld_when_minimum">The minimum is %1$d minutes.</string>
+    <string name="ld_when_limits">Limits</string>
+    <string name="ld_receive_heading_off">Receive is off.</string>
+    <string name="ld_receive_heading_on">From Home Assistant.</string>
+    <string name="ld_receive_heading_waiting">Waiting for the next sync.</string>
+    <string name="ld_receive_heading_choose">Choose what to receive.</string>
+    <string name="ld_receive_heading_permission">Permission missing.</string>
+    <string name="ld_receive_intro">Measurements come back with each sync and go into Health Connect.</string>
+    <string name="ld_receive_measurements">Receive measurements</string>
+    <string name="ld_receive_source">Source</string>
+    <string name="ld_receive_types">Types</string>
+
+    <!-- The redesign: More, Advanced, Notifications, Export, Backup -->
+    <string name="ld_advanced_connection">Connection</string>
+    <string name="ld_advanced_client_cert_used">Used for every webhook</string>
+    <plurals name="ld_advanced_hosts">
+        <item quantity="one">%1$d host</item>
+        <item quantity="other">%1$d hosts</item>
+    </plurals>
+    <string name="ld_certificates_empty">No https webhooks yet. Add one to choose here what its server is trusted with.</string>
+    <string name="ld_notifications_note">You also hear about it when not every destination gets your data, and when data was lost.</string>
+    <string name="ld_notifications_blocked_title">Android is not showing these notifications</string>
+    <string name="ld_notifications_blocked_body">They are off for this app in Android settings, so a failed sync stays silent until you allow them there.</string>
+    <string name="ld_export_heading">Export your data.</string>
+    <string name="ld_export_intro_health">A file with the selected types from Health Connect.</string>
+    <string name="ld_export_intro_screen_time">A file with your screen time of the last seven days.</string>
+    <string name="ld_export_csv">Export CSV</string>
+    <string name="ld_export_json">Export JSON</string>
+    <string name="ld_export_opens_share">Opens the share sheet.</string>
+    <string name="ld_export_no_types">No data types selected</string>
+    <string name="ld_backup_intro">Move your settings to another phone. Logs and sync progress stay where they are.</string>
+    <string name="ld_backup_choose_file">Choose a backup file</string>
+    <string name="ld_backup_imported">Settings imported</string>
+
+    <!-- The redesign: Logs -->
+    <string name="ld_logs_state">%1$d failed, %2$d delivered.</string>
+    <string name="ld_logs_nothing_yet">Nothing sent yet.</string>
+    <string name="ld_logs_empty_note">Every delivery and MQTT publish shows up here. The list keeps the last %1$d.</string>
+    <string name="ld_logs_outbox_empty">Outbox empty</string>
+    <plurals name="ld_logs_pending">
+        <item quantity="one">%1$d pending</item>
+        <item quantity="other">%1$d pending</item>
+    </plurals>
+    <string name="ld_logs_success_rate">%1$d%% success</string>
+    <plurals name="ld_logs_deliveries">
+        <item quantity="one">%1$s delivery</item>
+        <item quantity="other">%1$s deliveries</item>
+    </plurals>
+    <plurals name="ld_logs_records">
+        <item quantity="one">%1$s record</item>
+        <item quantity="other">%1$s records</item>
+    </plurals>
+    <plurals name="ld_logs_sensors">
+        <item quantity="one">%1$s sensor</item>
+        <item quantity="other">%1$s sensors</item>
+    </plurals>
+    <plurals name="ld_logs_apps">
+        <item quantity="one">%1$s app</item>
+        <item quantity="other">%1$s apps</item>
+    </plurals>
+    <plurals name="ld_logs_written">
+        <item quantity="one">%1$s written</item>
+        <item quantity="other">%1$s written</item>
+    </plurals>
+    <string name="ld_logs_by_section">Health %1$d / %2$d · Screen Time %3$d / %4$d</string>
+    <string name="ld_logs_filter_failed">Failed %1$d</string>
+    <string name="ld_logs_no_match">No logs match this filter.</string>
+    <string name="ld_logs_send_test">Send test</string>
+    <string name="ld_logs_delete">Delete</string>
+    <string name="ld_logs_show_details">Show the details</string>
+    <string name="ld_logs_show_actions">Show the actions</string>
+    <string name="ld_logs_size_stored">%1$s stored</string>
+    <string name="ld_logs_headline">%1$s %2$s</string>
+    <string name="ld_logs_accepted">%1$s accepted this delivery.</string>
+    <string name="ld_logs_not_accepted">%1$s did not accept this delivery.</string>
+    <string name="ld_logs_broker_accepted">The broker accepted this publish.</string>
+    <string name="ld_logs_key_time">Time</string>
+    <string name="ld_logs_key_url">URL</string>
+    <string name="ld_logs_key_status">Status</string>
+    <string name="ld_logs_key_note">Note</string>
+    <string name="ld_logs_key_sensors">Sensors</string>
+    <string name="ld_logs_key_apps">Apps</string>
+    <string name="ld_logs_key_type">Type</string>
+    <string name="ld_logs_key_section">Section</string>
+    <string name="ld_logs_key_payload_size">Payload size</string>
+    <string name="ld_logs_gone">This delivery is no longer in the log.</string>
+    <string name="ld_logs_readings">Readings</string>
+    <string name="ld_logs_values_note">A reading only keeps its value while Keep full payloads is on.</string>
+
+    <!-- The redesign: Screen Time -->
+    <string name="ld_screen_heading_total">%1$s on your phone.</string>
+    <string name="ld_screen_heading_no_access">Allow usage access.</string>
+    <string name="ld_screen_no_access_body">Android asks you to switch this on in its settings. Without it the app cannot see how long you used an app.</string>
+    <string name="ld_screen_open_settings">Open Android settings</string>
+    <string name="ld_screen_most_used">Most used today</string>
+    <string name="ld_screen_nothing_today">No app used for more than a minute today.</string>
+    <string name="ld_screen_status_no_deliveries">No deliveries yet</string>
+    <string name="ld_screen_status_just_now">just now</string>
+    <string name="ld_screen_status_http">HTTP %1$d, %2$s</string>
+    <string name="ld_screen_status_failed">Failed, %1$s</string>
+    <string name="ld_screen_broker_named">Broker %1$s</string>
+    <string name="ld_screen_more_summary">Advanced, about</string>
+    <string name="ld_screen_secrets_unavailable">Secure storage is unavailable, so saved auth headers, signing secrets and MQTT passwords cannot be read or changed right now. Unlock the device and reopen the app. Nothing is stored unencrypted.</string>
+    <string name="ld_screen_preview_payload">Preview payload</string>
+    <string name="ld_screen_apps_description_all">Every app goes out. System UI and the launcher are always left out.</string>
+    <string name="ld_screen_apps_description_except">Everything except the apps you tick. Each day still counts every app in total_screen_time_minutes; the apps that are sent add up to filtered_screen_time_minutes.</string>
+    <string name="ld_screen_apps_description_only">Only the apps you tick. Each day still counts every app in total_screen_time_minutes; the apps that are sent add up to filtered_screen_time_minutes.</string>
+    <string name="ld_screen_apps_history_warning">Every sync sends the last seven days again, so a change here also changes those days at your destinations.</string>
+    <string name="ld_screen_apps_search_label">Search</string>
+    <string name="ld_screen_apps_used_label">Used in the last 30 days</string>
+    <string name="ld_screen_apps_no_match">No app matches this search.</string>
+    <string name="ld_screen_day_heading">Your day starts at %1$s.</string>
+    <string name="ld_screen_day_body">Activity before this hour counts as the previous day, so a late film stays with the evening it started.</string>
+    <string name="ld_screen_day_whole_hours">Whole hours only.</string>
+    <string name="ld_screen_when_never">Never syncs</string>
+    <string name="ld_screen_when_every_hour">Every hour.</string>
+    <plurals name="ld_screen_when_every_hours">
+        <item quantity="one">Every %1$d hour.</item>
+        <item quantity="other">Every %1$d hours.</item>
+    </plurals>
+    <plurals name="ld_screen_when_every_minutes">
+        <item quantity="one">Every %1$d minute.</item>
+        <item quantity="other">Every %1$d minutes.</item>
+    </plurals>
+    <plurals name="ld_screen_when_times_a_day">
+        <item quantity="one">%1$d time a day.</item>
+        <item quantity="other">%1$d times a day.</item>
+    </plurals>
+    <string name="ld_screen_when_note">Each sync sends the last 7 days. This schedule is separate from Health.</string>
+    <string name="ld_screen_when_limits">Limits</string>
+
+    <!-- The redesign: About -->
+    <string name="ld_about_heading">Your data goes where you send it.</string>
+    <string name="ld_about_connected">Connected</string>
+    <string name="ld_about_pair_code">Pair with a code</string>
+    <string name="ld_about_set_up_stack">Set up the stack</string>
+    <string name="ld_about_own_server">Your own server</string>
+    <string name="ld_about_own_server_sub">Pairing code, webhook or MQTT</string>
+    <string name="ld_about_no_cloud">No account and no cloud. Also on iPhone.</string>
+    <string name="ld_about_version_line">Life Dashboard Companion, version %1$s. Made by Owen Vogelaar.</string>
+    <string name="ld_about_show_nerd">Show Nerd Stats</string>
+    <string name="ld_about_help_sub">Guide, what\'s new</string>
+    <string name="ld_about_support_sub">Rate, star on GitHub</string>
+    <string name="ld_about_privacy_sub">No trackers</string>
+    <string name="ld_about_source_sub">MIT licence</string>
+    <string name="ld_about_setup_guide">Setup guide</string>
+    <string name="ld_about_questions">Questions</string>
+    <string name="ld_about_mail">Mail</string>
+    <string name="ld_about_support_intro">A rating or a star helps other people find the app.</string>
+    <string name="ld_about_star">Star on GitHub</string>
+    <string name="ld_about_source_intro">You can read every line this app runs.</string>
+    <string name="ld_about_receiver">Connect your own receiver</string>
+    <string name="ld_about_receiver_sub">Let your users pair by scanning one QR code</string>
+    <string name="ld_about_typefaces_title">Typefaces</string>
+    <string name="ld_about_no_app_for_link">No app on this phone can open this link</string>
+    <string name="ld_about_typefaces">The typefaces Space Grotesk and Space Mono are under the SIL Open Font License.</string>
+
+    <!-- The redesign: Onboarding -->
+    <string name="ld_onboarding_welcome_body">Send your health data and screen time to your own Home Assistant or server. No account, no cloud.</string>
+    <string name="ld_onboarding_pick_one_or_both">Pick one or both.</string>
+    <string name="ld_onboarding_health_desc">Steps, sleep, heart rate and more</string>
+    <string name="ld_onboarding_screen_desc">Time per app on this phone</string>
+    <string name="ld_onboarding_scan_note">For any receiver that shows one, such as Home Assistant, the Life Dashboard Stack or your own server.</string>
+    <string name="ld_onboarding_own_server">Or your own server</string>
+    <string name="ld_onboarding_webhook_url">Webhook URL</string>
+    <string name="ld_onboarding_set_up">Set up</string>
+    <string name="ld_onboarding_use">Use</string>
+    <string name="ld_onboarding_mqtt_note">Starts on port 1883 without TLS. Port, TLS and a login are on the MQTT page afterwards.</string>
+    <string name="ld_onboarding_later_desc">Pick from What to send</string>
+    <string name="ld_onboarding_sending_to">Sending to</string>
+    <string name="ld_onboarding_one_thing_left">One thing left</string>
+    <string name="ld_onboarding_two_things_left">Two things left</string>
 </resources>

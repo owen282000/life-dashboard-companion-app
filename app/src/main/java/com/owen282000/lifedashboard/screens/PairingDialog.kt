@@ -1,23 +1,19 @@
 package com.owen282000.lifedashboard.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.owen282000.lifedashboard.Destination
 import com.owen282000.lifedashboard.PairingApply
@@ -27,6 +23,20 @@ import com.owen282000.lifedashboard.PairingSource
 import com.owen282000.lifedashboard.PartialDelivery
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.SectionChange
+import com.owen282000.lifedashboard.ui.ld.LDButton
+import com.owen282000.lifedashboard.ui.ld.LDButtonKind
+import com.owen282000.lifedashboard.ui.ld.LDCard
+import com.owen282000.lifedashboard.ui.ld.LDCode
+import com.owen282000.lifedashboard.ui.ld.LDGap
+import com.owen282000.lifedashboard.ui.ld.LDHeading
+import com.owen282000.lifedashboard.ui.ld.LDNote
+import com.owen282000.lifedashboard.ui.ld.LDNoteSize
+import com.owen282000.lifedashboard.ui.ld.LDScreen
+import com.owen282000.lifedashboard.ui.ld.LDSectionLabel
+import com.owen282000.lifedashboard.ui.ld.LDTheme
+import com.owen282000.lifedashboard.ui.ld.LDToggleRow
+import com.owen282000.lifedashboard.ui.ld.LDType
+import com.owen282000.lifedashboard.ui.ld.ldCodeStyle
 
 /**
  * The one thing that stands between a scanned code and the app's settings.
@@ -34,11 +44,11 @@ import com.owen282000.lifedashboard.SectionChange
  * Whether the link arrived from the phone's camera, from the landing page or from the
  * in-app scanner, it lands here first: this is where the user sees which receiver is
  * asking, at which address, and what pairing would change. Nothing is written until Pair.
+ * An overlay over the tabs and the wizard, owned by MainActivity.
  */
 @Composable
 fun PairingDialog(
     link: PairingLink,
-    accent: Color,
     currentHealth: List<Destination>,
     currentScreenTime: List<Destination>,
     onDismiss: () -> Unit,
@@ -55,102 +65,80 @@ fun PairingDialog(
     val healthChange = PairingApply.preview(link, currentHealth)
     val screenTimeChange = PairingApply.preview(link, currentScreenTime)
     val nothingSelected = !health && !screenTime
+    val colors = LDTheme.colors
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.pairing_title)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    BackHandler(onBack = onDismiss)
+
+    // A Surface, which takes the touches and hides what is under it from TalkBack.
+    Surface(modifier = Modifier.fillMaxSize(), color = colors.ground) {
+        LDScreen(title = stringResource(R.string.ld_pairing_title), onBack = onDismiss) {
+            // A question without the link's name in it: the name reads as a claim, never as a title.
+            LDHeading(stringResource(R.string.ld_pairing_heading))
+            LDNote(
+                link.name?.let { stringResource(R.string.pairing_intro, it) }
+                    ?: stringResource(R.string.pairing_intro_unnamed),
+                top = 10.dp
+            )
+            // The host, so the user can tell their own machine from someone else's.
+            LDCode {
                 Text(
-                    link.name?.let { stringResource(R.string.pairing_intro, it) }
-                        ?: stringResource(R.string.pairing_intro_unnamed),
-                    style = MaterialTheme.typography.bodyMedium
+                    link.host,
+                    style = LDType.monoField.ldCodeStyle(),
+                    color = colors.accentTextSoft,
+                    modifier = Modifier.fillMaxWidth().padding(start = LDTheme.textInset, end = LDTheme.textInset, top = 4.dp)
                 )
-
-                // The host, so the user can tell their own machine from someone else's.
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        link.host,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
-                    )
-                }
-
+            }
+            LDCode {
                 Text(
-                    stringResource(R.string.pairing_sections_label),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    link.url,
+                    style = LDType.monoValue.ldCodeStyle(),
+                    color = colors.muted,
+                    maxLines = 1,
+                    overflow = TextOverflow.MiddleEllipsis,
+                    modifier = Modifier.fillMaxWidth().padding(start = LDTheme.textInset, end = LDTheme.textInset, top = 2.dp)
                 )
+            }
 
+            LDSectionLabel(stringResource(R.string.pairing_sections_label))
+            LDCard {
                 if (PairingSource.HEALTH in offered) {
-                    SwitchLine(
-                        title = stringResource(R.string.pairing_section_health),
-                        description = sectionNote(healthChange),
-                        checked = health,
-                        accent = accent,
-                        onCheckedChange = { health = it }
+                    LDToggleRow(
+                        stringResource(R.string.pairing_section_health),
+                        health,
+                        { health = it },
+                        subtitle = sectionNote(healthChange)
                     )
                 }
                 if (PairingSource.SCREEN_TIME in offered) {
-                    SwitchLine(
-                        title = stringResource(R.string.pairing_section_screen_time),
-                        description = sectionNote(screenTimeChange),
-                        checked = screenTime,
-                        accent = accent,
-                        onCheckedChange = { screenTime = it }
+                    LDToggleRow(
+                        stringResource(R.string.pairing_section_screen_time),
+                        screenTime,
+                        { screenTime = it },
+                        subtitle = sectionNote(screenTimeChange)
                     )
                 }
-
                 if (link.isPlainHttp) {
-                    SwitchLine(
-                        title = stringResource(R.string.webhook_allow_plain_http),
-                        description = stringResource(R.string.webhook_allow_plain_http_description),
-                        checked = allowPlainHttp,
-                        accent = accent,
-                        onCheckedChange = { allowPlainHttp = it }
-                    )
-                }
-
-                Text(
-                    stringResource(R.string.pairing_types_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                if (nothingSelected) {
-                    Text(
-                        stringResource(R.string.pairing_nothing_selected),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
+                    LDToggleRow(
+                        stringResource(R.string.webhook_allow_plain_http),
+                        allowPlainHttp,
+                        { allowPlainHttp = it },
+                        subtitle = stringResource(R.string.webhook_allow_plain_http_description)
                     )
                 }
             }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = !nothingSelected,
-                onClick = {
-                    onConfirm(
-                        PairingChoice(
-                            health = health,
-                            screenTime = screenTime,
-                            allowPlainHttp = allowPlainHttp
-                        )
-                    )
-                }
-            ) {
-                Text(stringResource(R.string.pairing_confirm))
+            if (nothingSelected) {
+                LDNote(stringResource(R.string.pairing_nothing_selected), color = colors.warning)
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+            LDNote(stringResource(R.string.pairing_types_note), size = LDNoteSize.Small)
+
+            LDGap(16.dp)
+            LDButton(stringResource(R.string.pairing_confirm), enabled = !nothingSelected) {
+                onConfirm(PairingChoice(health = health, screenTime = screenTime, allowPlainHttp = allowPlainHttp))
+            }
+            LDGap(8.dp)
+            LDButton(stringResource(R.string.common_cancel), kind = LDButtonKind.Ghost, onClick = onDismiss)
         }
-    )
+    }
 }
 
 /** What this section is in for, when there is anything worth saying. */

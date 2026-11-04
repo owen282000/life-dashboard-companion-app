@@ -36,75 +36,60 @@ class ScreenTimeViewModelTest {
     private fun vm(settings: FakeAppSettings = FakeAppSettings(), ops: FakeScreenTimeOps = FakeScreenTimeOps()) =
         ScreenTimeViewModel(settings, ops)
 
+    /** A destination as the Webhook screen stores it. */
+    private fun ScreenTimeViewModel.stored(url: String) {
+        assertNull(saveDestination(destinationDraft(null, url)))
+    }
+
     @Test
     fun `day boundary hour must be a real hour`() = runTest {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
-        vm.addUrl("https://example.org/hook")
-        vm.setDayBoundaryHour("24")
-        vm.save()
-        assertEquals(UiMessage.InvalidDayBoundaryHour, toasts.last())
-        assertEquals(0, settings.savedScreenTime)
+        assertEquals(UiMessage.InvalidDayBoundaryHour, vm.saveDayBoundaryHour("24"))
+        assertEquals("4", settings.screenTime.dayBoundaryHour)
 
-        vm.setDayBoundaryHour("5")
-        vm.save()
-        assertEquals(UiMessage.Saved, toasts.last())
+        assertNull(vm.saveDayBoundaryHour("5"))
         assertEquals("5", settings.screenTime.dayBoundaryHour)
-        assertFalse(vm.state.value.hasChanges)
-        job.cancel()
+        assertEquals("5", vm.state.value.saved.dayBoundaryHour)
     }
 
     @Test
-    fun `a header with a space in its name is refused, and a broken broker only stops a save while MQTT is on`() = runTest {
+    fun `a header with a space in its name is refused, and a broker that cannot work is never saved`() = runTest {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
-        vm.addUrl("https://example.org/hook")
-        vm.addHeader(vm.state.value.draft.webhook.destinations.single().id, "Bad Header", "value")
-        assertEquals(UiMessage.InvalidHeaderName, toasts.last())
-        assertTrue(vm.state.value.draft.webhook.destinations.single().headers.isEmpty())
+        assertEquals(UiMessage.InvalidHeaderName, SettingsRules.headerProblem("Bad Header", "value"))
 
-        val mqtt = vm.state.value.draft.mqtt
+        val mqtt = vm.mqttDraft()
         val enabled = mqtt.copy(section = mqtt.section.copy(enabled = true))
-        vm.setMqtt(enabled.withActiveBroker(enabled.activeBroker.copy(host = "bad host")))
-        vm.save()
-        assertEquals(UiMessage.MqttHostInvalid, toasts.last())
-        assertEquals(0, settings.savedScreenTime)
+        assertEquals(UiMessage.MqttHostInvalid, vm.saveMqtt(enabled.withActiveBroker(enabled.activeBroker.copy(host = "bad host"))))
 
-        // With MQTT off the host field keeps its error, and the webhook is saved all the same.
-        vm.setMqtt(mqtt.withActiveBroker(mqtt.activeBroker.copy(host = "bad host")))
-        vm.save()
-        assertEquals(UiMessage.Saved, toasts.last())
-        assertEquals(1, settings.savedScreenTime)
-        job.cancel()
+        // With MQTT off too: the field says what is wrong, and its Save stops on that. A webhook is another page's.
+        assertEquals(UiMessage.MqttHostInvalid, vm.saveMqtt(mqtt.withActiveBroker(mqtt.activeBroker.copy(host = "bad host"))))
+        assertEquals(0, settings.brokerWrites)
+        vm.stored("https://example.org/hook")
+        assertEquals(listOf("https://example.org/hook"), settings.screenTime.webhook.urls)
     }
 
     @Test
     fun `a sync stopped by a header names the header instead of an unreachable server`() = runTest {
         val problem = WebhookSupport.HeaderProblem("Bad Header", inValue = false)
         val vm = vm(ops = FakeScreenTimeOps(syncResult = Result.failure(InvalidHeaderException(problem))))
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         vm.syncNow()
         assertEquals(UiMessage.HeaderBlocksDelivery("Bad Header", inValue = false), vm.state.value.syncMessage)
         assertTrue(vm.state.value.syncMessage!!.isFailure)
     }
 
     @Test
-    fun `choosing apps to leave out is a change, and saving keeps the list`() = runTest {
+    fun `choosing apps to leave out is stored at once`() = runTest {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        vm.addUrl("https://example.org/hook")
         vm.setAppFilterMode(AppFilterMode.BLOCKLIST)
         vm.toggleFilteredApp("com.google.android.youtube")
         vm.toggleFilteredApp("com.whatsapp")
         vm.toggleFilteredApp("com.whatsapp")
-        assertTrue(vm.state.value.hasChanges)
-        vm.save()
         assertEquals(ScreenTimeAppFilter(AppFilterMode.BLOCKLIST, setOf("com.google.android.youtube")), settings.screenTime.appFilter)
-        assertFalse(vm.state.value.hasChanges)
+        assertEquals(settings.screenTime.appFilter, vm.state.value.saved.appFilter)
     }
 
     @Test
@@ -113,8 +98,8 @@ class ScreenTimeViewModelTest {
         vm.setAppFilterMode(AppFilterMode.ALLOWLIST)
         vm.toggleFilteredApp("com.whatsapp")
         vm.setAppFilterMode(AppFilterMode.ALL)
-        assertEquals(setOf("com.whatsapp"), vm.state.value.draft.appFilter.packages)
-        assertFalse(vm.state.value.draft.appFilter.active)
+        assertEquals(setOf("com.whatsapp"), vm.state.value.saved.appFilter.packages)
+        assertFalse(vm.state.value.saved.appFilter.active)
     }
 
     @Test
@@ -129,17 +114,24 @@ class ScreenTimeViewModelTest {
     }
 
     @Test
-    fun `toggling the day boundary is a change`() {
-        val vm = vm()
+    fun `toggling the day boundary is stored at once, and the hour waits for its Save`() {
+        val settings = FakeAppSettings()
+        val vm = vm(settings)
         vm.setUseDayBoundary(false)
-        assertTrue(vm.state.value.hasChanges)
+        assertFalse(settings.screenTime.useDayBoundary)
+
+        assertEquals(UiMessage.InvalidDayBoundaryHour, vm.saveDayBoundaryHour("24"))
+        assertEquals("4", settings.screenTime.dayBoundaryHour)
+        assertNull(vm.saveDayBoundaryHour("6"))
+        assertEquals("6", settings.screenTime.dayBoundaryHour)
+        assertEquals("6", vm.state.value.saved.dayBoundaryHour)
     }
 
     @Test
     fun `sync without usage access opens the settings instead of syncing`() = runTest {
         val ops = FakeScreenTimeOps(usageAccess = false)
         val vm = vm(ops = ops)
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         val opened = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.openUsageAccess.first() }
         vm.syncNow()
         opened.join()
@@ -152,7 +144,7 @@ class ScreenTimeViewModelTest {
     fun `sync reports the app count and bumps the refresh key`() = runTest {
         val ops = FakeScreenTimeOps()
         val vm = vm(ops = ops)
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         val before = vm.state.value.refreshKey
         vm.syncNow()
         assertEquals(1, ops.syncs)
@@ -161,48 +153,18 @@ class ScreenTimeViewModelTest {
     }
 
     @Test
-    fun `sync now saves the draft first, as on the Health tab`() = runTest {
+    fun `sync now reads what is stored and writes nothing, so it cannot put back older settings`() = runTest {
         val settings = FakeAppSettings()
         val ops = FakeScreenTimeOps()
         val vm = vm(settings, ops)
-        vm.addUrl("https://example.org/hook")
-        vm.setDayBoundaryHour("5")
+        vm.stored("https://example.org/hook")
+        val writes = settings.destinationWrites
         vm.syncNow()
-        assertEquals(1, settings.savedScreenTime)
-        assertEquals("5", settings.screenTime.dayBoundaryHour)
-        assertEquals(listOf("https://example.org/hook"), settings.screenTime.webhook.urls)
-        assertFalse(vm.state.value.hasChanges)
+        assertEquals(writes, settings.destinationWrites)
+        assertEquals(0, settings.brokerWrites)
+        assertEquals(emptyList<Any>(), settings.scheduleWrites)
+        assertEquals("4", settings.screenTime.dayBoundaryHour)
         assertEquals(1, ops.syncs)
-    }
-
-    @Test
-    fun `sync now without changes writes nothing, so it cannot put back older settings`() = runTest {
-        val settings = FakeAppSettings()
-        val ops = FakeScreenTimeOps()
-        val vm = vm(settings, ops)
-        vm.addUrl("https://example.org/hook")
-        vm.save()
-        assertEquals(1, settings.savedScreenTime)
-        vm.syncNow()
-        assertEquals(1, settings.savedScreenTime)
-        assertEquals(1, ops.syncs)
-    }
-
-    @Test
-    fun `sync now with a draft that cannot be saved says why and does not sync`() = runTest {
-        val settings = FakeAppSettings()
-        val ops = FakeScreenTimeOps()
-        val vm = vm(settings, ops)
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
-        vm.addUrl("https://example.org/hook")
-        vm.setDayBoundaryHour("24")
-        vm.syncNow()
-        assertEquals(UiMessage.InvalidDayBoundaryHour, toasts.last())
-        assertEquals(0, settings.savedScreenTime)
-        assertEquals(0, ops.syncs)
-        assertFalse(vm.state.value.isSyncing)
-        job.cancel()
     }
 
     @Test
@@ -220,7 +182,7 @@ class ScreenTimeViewModelTest {
         val vm = vm()
         val toasts = mutableListOf<UiMessage>()
         val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         vm.testPing()
         assertEquals(UiMessage.PingDelivered, toasts.last())
         assertFalse(vm.state.value.isPinging)
@@ -228,11 +190,9 @@ class ScreenTimeViewModelTest {
     }
 
     @Test
-    fun `shared settings changed on the other tab are picked up without touching the draft`() {
+    fun `shared settings changed on the other tab are picked up`() {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        vm.addUrl("https://example.org/hook")
-        assertTrue(vm.state.value.hasChanges)
 
         settings.certAlias = "home-cert"
         settings.allowHttp = true
@@ -240,8 +200,6 @@ class ScreenTimeViewModelTest {
 
         assertEquals("home-cert", vm.state.value.clientCertAlias)
         assertTrue(vm.state.value.allowHttpWebhooks)
-        assertTrue(vm.state.value.hasChanges)
-        assertEquals(listOf("https://example.org/hook"), vm.state.value.draft.webhook.urls)
     }
 
     @Test
@@ -253,10 +211,48 @@ class ScreenTimeViewModelTest {
         vm.setClientCertAlias(null)
         assertNull(settings.certAlias)
         assertNull(vm.state.value.clientCertAlias)
-        assertFalse(vm.state.value.hasChanges)
 
         settings.certAlias = "other-cert"
         vm.reloadFromSettings()
         assertEquals("other-cert", vm.state.value.clientCertAlias)
+    }
+
+    @Test
+    fun `what a sync in the worker wrote is read at once`() = runTest {
+        val settings = FakeAppSettings()
+        val ops = FakeScreenTimeOps()
+        val vm = vm(settings, ops)
+        val key = vm.state.value.refreshKey
+        settings.mqttStatus = "Failed: no route to host"
+        ops.dataChanged.emit(Unit)
+        assertEquals(key + 1, vm.state.value.refreshKey)
+        assertEquals("Failed: no route to host", vm.state.value.mqttLastStatus)
+    }
+
+    @Test
+    fun `Sync Now is busy while the worker syncs`() = runTest {
+        val ops = FakeScreenTimeOps()
+        val vm = vm(ops = ops)
+        vm.stored("https://example.org/hook")
+        assertFalse(vm.state.value.isSyncBusy)
+        ops.workerState.value = true
+        assertTrue(vm.state.value.isSyncBusy)
+        assertFalse(vm.state.value.canSync)
+        ops.workerState.value = false
+        assertFalse(vm.state.value.isSyncBusy)
+    }
+
+    @Test
+    fun `the line under Sync Now goes when the worker ends a later sync, and not before`() = runTest {
+        val ops = FakeScreenTimeOps()
+        val vm = vm(ops = ops)
+        vm.stored("https://example.org/hook")
+        vm.syncNow()
+        val line = vm.state.value.syncMessage
+        assertTrue(line != null)
+        ops.workerState.value = true
+        assertEquals(line, vm.state.value.syncMessage)
+        ops.workerState.value = false
+        assertNull(vm.state.value.syncMessage)
     }
 }

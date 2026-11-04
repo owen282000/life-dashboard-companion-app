@@ -6,27 +6,20 @@
     <string name="common_back">戻る</string>
     <string name="common_cancel">キャンセル</string>
     <string name="common_close">閉じる</string>
-    <string name="common_collapse">折りたたむ</string>
     <string name="common_csv">CSV</string>
-    <string name="common_expand">展開</string>
     <string name="common_grant">許可</string>
     <string name="common_json">JSON</string>
     <string name="common_never">なし</string>
-    <string name="common_none_configured">未設定</string>
-    <string name="common_permissions_required">権限が必要です</string>
     <string name="common_remove">削除</string>
     <string name="common_show_password">パスワードを表示</string>
     <string name="common_hide_password">パスワードを非表示</string>
-    <string name="common_saved">保存しました</string>
 
     <!-- Shared webhook / sync settings, used by Health Connect and Screen Time -->
-    <string name="webhook_add_a_url">Webhook URLを追加</string>
     <string name="webhook_allow_plain_http">暗号化されていないHTTPのWebhookを許可</string>
     <string name="webhook_allow_plain_http_description">証明書のない自宅のLANやVPN上のWebhook用です。標準はHTTPSのままです。このスイッチ1つでヘルスコネクトとスクリーンタイムの両方に適用され、Home Assistantからこのスマートフォンに送られる測定値も対象になります。MQTTには影響しません。</string>
     <string name="client_cert_title">クライアント証明書（mTLS）</string>
     <string name="client_cert_none">なし</string>
     <string name="client_cert_description">クライアント証明書が必要なサーバー用です。先にAndroidの設定（セキュリティ、暗号化と認証情報、証明書のインストール）でインストールしてください。一度選ぶと、バックグラウンドも含めてすべてのWebhookで使われます。MQTTには影響しません。</string>
-    <string name="client_cert_choose">選択</string>
     <string name="server_trust_title">サーバー証明書</string>
     <string name="server_trust_description">Androidが信頼しない証明書を使うサーバー用です。たとえば自分のCAが発行した証明書や自己署名証明書です。各設定はそのホストにだけ適用されます。MQTTには影響しません。</string>
     <string name="server_trust_user_cas">このスマートフォンにインストールされた証明書を信頼</string>
@@ -55,30 +48,17 @@
     <string name="webhook_header_value_invalid">ヘッダーの値に使えるのはASCII文字だけです。改行やéのような文字は使えません</string>
     <string name="webhook_header_name_blocks_delivery">何も送信されませんでした：ヘッダー%1$sの名前は送信できません。「Webhook」でこのヘッダーを削除し、スペースのない名前で追加し直してください。</string>
     <string name="webhook_header_value_blocks_delivery">何も送信されませんでした：ヘッダー%1$sの値に改行か、ヘッダーに使えない文字が含まれています。「Webhook」でこのヘッダーを削除し、追加し直してください。</string>
-    <string name="webhook_headers_title">Webhookヘッダー（任意）</string>
     <string name="webhook_hmac_secret_description">設定すると、すべてのPOSTに本文のHMAC-SHA256で計算したX-Signatureヘッダー（sha256=&lt;hex&gt;）が付き、サーバーで送信元を確認できます。</string>
     <string name="webhook_hmac_secret_title">HMAC署名シークレット（任意）</string>
-    <plurals name="webhook_headers_count">
-        <item quantity="other">%1$d個のヘッダー</item>
-    </plurals>
     <string name="webhook_min_interval">最短15分</string>
     <string name="webhook_shared_secret">共有シークレット</string>
-    <string name="webhook_url_placeholder">https://...</string>
-    <string name="webhook_urls_configured">%1$d件設定済み</string>
-    <string name="webhook_destinations_hint">アドレスをタップすると、そのアドレス専用のヘッダーと署名シークレットを設定できます。どちらもほかのアドレスには送信されません。</string>
-    <string name="webhook_destination_summary">%1$s、%2$s</string>
-    <string name="webhook_destination_signed">署名あり</string>
-    <string name="webhook_destination_unsigned">署名なし</string>
-    <string name="webhook_destination_no_headers">ヘッダーなし</string>
     <string name="webhook_destination_url">アドレス</string>
-    <string name="webhook_destination_open">ヘッダーとシークレットを表示</string>
     <string name="webhook_destination_moved">%1$sとは別のホストです。ヘッダーを消去し、シークレットをリセットしたので、%1$s用の設定がここに送られることはありません。</string>
     <string name="webhook_copy_headers_from">%1$sのヘッダーをコピー</string>
     <string name="webhook_use_secret_of">%1$sと同じシークレットを使用</string>
     <string name="webhook_url_duplicate">このアドレスはすでにリストにあります</string>
     <string name="webhook_url_user_info">アドレスからユーザー名またはパスワードを削除してください。アドレスはバックアップやログにそのまま保存されます。認証情報は、このアドレスのヘッダーに入れてください。</string>
     <string name="webhook_url_credential_parameter">アドレスから%1$s=を削除してください。アドレスはバックアップやログにそのまま保存されます。認証情報は、このアドレスのヘッダーに入れてください。</string>
-    <string name="webhook_urls_title">Webhook URL</string>
 
     <!-- Shared sync section, used by Health Connect and Screen Time -->
     <string name="sync_advanced_client_cert">クライアント証明書</string>
@@ -96,19 +76,15 @@
     <string name="receive_title">受信</string>
     <string name="receive_subtitle">Home Assistantからヘルスコネクトへ</string>
     <string name="receive_off">オフ</string>
-    <string name="receive_summary_written">%1$s · %2$s</string>
     <plurals name="receive_written_today">
         <item quantity="other">今日%1$d件書き込み</item>
     </plurals>
-    <string name="receive_enable">Home Assistantから測定値を受信</string>
     <string name="receive_enable_description">Life Dashboard統合は、そこで選んだエンティティを送信します。下の各タイプには、それぞれヘルスコネクトの書き込み権限が必要です。</string>
     <string name="receive_needs_integration">Life Dashboard統合が必要です。先にHome Assistantとペアリングして、Webhookのアドレスと署名シークレットを用意してください。</string>
-    <string name="receive_source">送信元：%1$s</string>
     <string name="receive_update_integration">測定値を受信するにはLife Dashboard統合を更新してください。または、このWebhookが統合のものか確認してください。最後の応答に測定値のプロトコルが含まれていませんでした。</string>
     <string name="receive_no_types_yet">次回の同期で、Home Assistantが提供するタイプを確認します。</string>
     <string name="receive_choose_type">受信するタイプを下でオンにしてください。</string>
     <string name="receive_permission_missing">書き込み権限がありません：%1$s</string>
-    <string name="receive_type_permission_missing_a11y">%1$s、書き込み権限なし</string>
     <string name="receive_summary_needs_pairing">Home Assistantとのペアリングが必要です</string>
     <string name="receive_summary_update_integration">統合を更新してください</string>
     <string name="receive_summary_nothing_mapped">Home Assistantで割り当てられたタイプはありません</string>
@@ -123,10 +99,6 @@
     <string name="receive_synced_and_written">%1$s · %2$s</string>
     <plurals name="receive_written_count">
         <item quantity="other">%1$d件をヘルスコネクトに書き込み</item>
-    </plurals>
-    <string name="logs_row_receive_title">健康 · Home Assistantから</string>
-    <plurals name="logs_row_written">
-        <item quantity="other">%1$s · %2$d件書き込み</item>
     </plurals>
     <string name="logs_written">書き込み済み</string>
     <string name="logs_skipped">スキップ</string>
@@ -155,29 +127,20 @@
     <string name="outbox_dropped_log">送信キューがいっぱい（未配信の同期%1$d件）だったため削除され、そのレコードは失われました</string>
     <string name="outbox_replaced_log">送信キュー内で新しいスナップショットに置き換えられました。新しいスナップショットには未配信の古い日が含まれないため、その日のデータは失われました</string>
     <string name="sync_advanced_title">詳細設定</string>
-    <string name="sync_data_preview_title">データのプレビュー</string>
     <string name="sync_export_failed">書き出しに失敗しました</string>
     <string name="sync_export_failed_with_reason">書き出しに失敗しました：%1$s</string>
     <string name="sync_failed_with_reason">失敗：%1$s</string>
-    <string name="sync_failed_prefix">失敗</string>
     <string name="sync_interval_subtitle">同期の間隔（分）</string>
     <string name="sync_interval_title">同期間隔</string>
-    <string name="sync_loading">読み込み中...</string>
-    <string name="sync_manual_subtitle">今すぐ同期</string>
-    <string name="sync_manual_title">手動同期</string>
     <string name="sync_no_new_data">新しいデータはありません</string>
     <string name="sync_now">今すぐ同期</string>
-    <string name="sync_preview_data">データをプレビュー</string>
     <string name="sync_preview_failed">プレビューに失敗しました</string>
     <string name="sync_preview_failed_with_reason">プレビューに失敗しました：%1$s</string>
-    <string name="sync_preview_payload_description">送信されるJSONペイロードは次のとおりです：</string>
     <string name="sync_preview_full_in_copy_share">「JSONをコピー」または「共有」で、ペイロード全体を取得できます。</string>
     <string name="sync_preview_full_in_share">「共有」で、ペイロード全体を取得できます。</string>
-    <string name="sync_save_changes">変更を保存</string>
     <string name="sync_syncing">同期中...</string>
 
     <!-- Health Connect screen -->
-    <string name="health_backfill_dialog_description">オンにしたすべてのタイプの過去データを、古い順に3日ずつのブロックでWebhookに送信します。通常の同期には影響しません。重複するレコードはuuidで1つにまとめられます。時間がかかり、モバイルデータ通信を使うことがあります。</string>
     <plurals name="health_backfill_complete">
         <item quantity="other">過去データ送信が完了しました：%1$d件のレコードを送信</item>
     </plurals>
@@ -198,15 +161,11 @@
     <string name="health_backfill_log_restarted">この過去データ送信の開始後にデータタイプが変わったため、最初のブロックからやり直しました。</string>
     <string name="health_backfill_log_stopped">%2$dブロック中%1$dブロック目で停止しました</string>
     <string name="health_backfill_grant_history">履歴へのアクセスを許可</string>
-    <string name="health_backfill_history">過去データ送信</string>
     <string name="health_backfill_history_permission_warning">履歴へのアクセスを許可するまで、ヘルスコネクトから読み取れるのは過去30日分だけです。</string>
     <string name="health_backfill_length_all">すべての履歴</string>
     <string name="health_backfill_length_all_any">ヘルスコネクトにあるすべてのデータ（最も古いレコードから）</string>
     <plurals name="health_backfill_length_all_since">
         <item quantity="other">%1$s以降のすべて、3日ごとに%2$dブロック</item>
-    </plurals>
-    <plurals name="health_backfill_length_chunks">
-        <item quantity="other">3日ごとに%1$dブロック</item>
     </plurals>
     <plurals name="health_backfill_length_days">
         <item quantity="other">%1$d日</item>
@@ -228,12 +187,7 @@
     <string name="health_connect_not_installed">ヘルスコネクトがインストールされていません</string>
     <string name="health_connect_needs_update">ヘルスコネクトのアップデートが必要です</string>
     <string name="health_could_not_open">ヘルスコネクトを開けませんでした</string>
-    <plurals name="health_data_types_selected">
-        <item quantity="other">%1$d個のデータタイプを選択中</item>
-    </plurals>
     <string name="health_data_types_selected_of">%2$d個中%1$d個を選択中</string>
-    <string name="health_type_permission_missing_a11y">%1$s、権限なし</string>
-    <string name="health_data_types_title">データタイプ</string>
     <!-- The names of the data types, as shown on screen. The payload, MQTT and the stored settings use the enum name, never these. -->
     <string name="data_type_steps">歩数</string>
     <string name="data_type_sleep">睡眠</string>
@@ -303,13 +257,9 @@
     <string name="dashboard_last_sync">最終同期</string>
     <string name="dashboard_last_sync_succeeded">成功</string>
     <string name="dashboard_last_sync_failed">失敗</string>
-    <string name="dashboard_lifetime">累計</string>
-    <string name="dashboard_min">分</string>
-    <string name="dashboard_minutes_unit">%1$d分</string>
     <string name="dashboard_minutes_per_day_last_days">1日あたりの分数、過去%1$d日間</string>
     <string name="dashboard_none">なし</string>
     <string name="dashboard_records">レコード</string>
-    <string name="dashboard_steps_last_days">歩数、過去%1$d日間</string>
     <string name="dashboard_today">今日</string>
     <string name="dashboard_top_app">最も使ったアプリ</string>
 
@@ -319,11 +269,8 @@
     <string name="mqtt_broker_host">ブローカーのホスト</string>
     <string name="mqtt_broker_host_placeholder">ブローカーのホスト（例：192.168.1.10）</string>
     <string name="mqtt_broker_host_shared">ブローカーのホスト（共有）</string>
-    <string name="mqtt_disabled">無効</string>
     <string name="mqtt_enable_publishing">MQTTでの公開を有効にする</string>
     <string name="mqtt_enabled_no_broker">有効：ブローカー未設定</string>
-    <string name="mqtt_enabled_own_broker">有効：%1$s（専用ブローカー）</string>
-    <string name="mqtt_enabled_shared_broker">有効：%1$s（共有ブローカー）</string>
     <string name="mqtt_password">パスワード（任意）</string>
     <plurals name="mqtt_status_published">
         <item quantity="other">%2$sに%1$d個のセンサーを公開しました</item>
@@ -353,7 +300,6 @@
     <string name="webhook_sync_failed">Webhook：%1$s</string>
 
     <!-- Logs screen -->
-    <string name="logs_clear_logs">ログを消去</string>
     <string name="logs_clear_title">ログを消去しますか？</string>
     <plurals name="logs_clear_body">
         <item quantity="other">表示中の%1$d件のログをこのスマートフォンから削除します。この操作は取り消せません。</item>
@@ -364,9 +310,7 @@
     </plurals>
     <string name="logs_export_logs">ログを書き出す</string>
     <string name="logs_export_title">ログの書き出し</string>
-    <string name="logs_empty">ログはまだありません</string>
     <string name="logs_error">エラー</string>
-    <string name="logs_failure_line">%1$s：%2$s</string>
     <string name="logs_filter_all">すべて</string>
     <string name="logs_filter_health">健康</string>
     <string name="logs_filter_screen_time">スクリーンタイム</string>
@@ -375,7 +319,6 @@
     <string name="logs_keep_full_payloads_off">保存容量を抑えるため、ペイロードは途中まで保存されます</string>
     <string name="logs_keep_full_payloads_on">ペイロード全体を保存します（合計サイズに上限あり）</string>
     <string name="logs_last_success">最後の成功：%1$s</string>
-    <string name="logs_ok">OK</string>
     <string name="logs_payload">ペイロード</string>
     <string name="logs_payload_stored_part">このペイロードは一部だけ保存されています。「ペイロード全体を保存」をオンにすると、次回の同期からペイロード全体が保存されます。</string>
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
@@ -388,17 +331,7 @@
     <string name="payload_share_a11y">ペイロード全体をファイルとして共有</string>
     <string name="payload_copied">ペイロード全体をコピーしました</string>
     <string name="payload_too_large_to_copy">このペイロードは大きすぎてクリップボードにコピーできません。「共有」でファイルとして全体を取得できます。</string>
-    <string name="logs_record_count">%1$s：%2$d</string>
-    <string name="logs_recent_failures">最近の失敗：</string>
     <string name="logs_stat_records">レコード</string>
-    <string name="logs_stat_success">成功</string>
-    <string name="logs_stat_success_rate">%1$d%%</string>
-    <string name="logs_stat_total">合計</string>
-    <string name="logs_status_failure">✗ %1$s</string>
-    <string name="logs_status_success">✓ %1$s</string>
-    <string name="logs_sync_overview">同期の概要</string>
-    <string name="logs_type_ratio">%1$d / %2$d</string>
-    <string name="logs_unknown_error">不明なエラー</string>
 
     <!-- Main activity: top bar and bottom navigation -->
     <string name="main_about">このアプリについて</string>
@@ -406,7 +339,6 @@
     <string name="main_tab_logs">ログ</string>
     <string name="main_title_health_connect">ヘルスコネクト</string>
     <string name="main_title_screen_time">スクリーンタイム</string>
-    <string name="main_title_webhook_logs">ログ</string>
 
     <!-- Screen Time screen -->
     <plurals name="screentime_apps_queued">
@@ -415,30 +347,19 @@
     <plurals name="screentime_apps_synced">
         <item quantity="other">%1$d個のアプリを同期しました</item>
     </plurals>
-    <string name="screentime_day_boundary_description">この時刻より前の利用は前日として数えます</string>
     <string name="screentime_day_boundary_disabled">無効</string>
     <string name="screentime_day_boundary_enable">日の区切りを有効にする</string>
-    <string name="screentime_day_boundary_enabled">有効 · %1$s</string>
     <string name="screentime_day_boundary_hour_invalid">時刻は0から23で指定してください</string>
-    <string name="screentime_day_boundary_title">日の区切り</string>
-    <string name="screentime_header">アプリの利用状況を記録</string>
     <string name="screentime_mqtt_description">今日と昨日のスクリーンタイム、今日最も使ったアプリを、Home Assistant DiscoveryでMQTTブローカーに公開します。デバイスはヘルスコネクトと同じです。</string>
     <string name="screentime_permission_not_granted">権限が許可されていません</string>
 
     <!-- Onboarding wizard -->
-    <string name="onboarding_destination_body">Home Assistantなら、統合のコードをスキャンする方法がおすすめです。送信先は「健康」タブと「スクリーンタイム」タブでいつでも追加や変更ができます。</string>
     <string name="onboarding_destination_title">データの送信先はどこですか？</string>
-    <string name="onboarding_done_body">残りは2つで、どちらもメイン画面で行います。ヘルスコネクトの権限を許可し、スクリーンタイム用に使用状況へのアクセスを許可してください。そのあと「今すぐ同期」をタップします。</string>
-    <string name="onboarding_done_short">残りの設定はメイン画面で行い、そのあと「今すぐ同期」をタップします。</string>
     <string name="onboarding_done_title">準備ができました</string>
     <string name="onboarding_feature_health">ヘルスコネクト</string>
-    <string name="onboarding_feature_health_desc">歩数、睡眠、心拍数など、ヘルスコネクトの34種類のデータ</string>
     <string name="onboarding_feature_screen">スクリーンタイム</string>
-    <string name="onboarding_feature_screen_desc">Androidの使用統計から、1日ごとおよびアプリごとの利用時間</string>
-    <string name="onboarding_features_body">1つまたは両方を選んでください。それぞれに専用のタブ、権限、設定があります。</string>
     <string name="onboarding_features_title">何を同期しますか？</string>
     <string name="onboarding_get_started">始める</string>
-    <string name="onboarding_mqtt_desc">ブローカーをすでに運用していますか？センサーはMQTT DiscoveryでHome Assistantに表示されます。送信されるのは各タイプの最新の値だけなので、過去の日は埋まりません。</string>
     <string name="onboarding_mqtt_option">MQTTブローカー</string>
     <string name="onboarding_next">次へ</string>
     <string name="onboarding_open_app">アプリを開く</string>
@@ -446,30 +367,22 @@
     <string name="onboarding_skip_destination">あとで設定する</string>
     <string name="onboarding_step_of">ステップ%1$d/%2$d</string>
     <string name="onboarding_summary_all">34種類すべて</string>
-    <string name="onboarding_summary_dest">送信先</string>
     <string name="onboarding_summary_essentials">基本の8種類</string>
     <string name="onboarding_summary_later">まだなし</string>
     <string name="onboarding_summary_none">まだ</string>
     <string name="onboarding_summary_sync">同期</string>
     <string name="onboarding_summary_types">データタイプ</string>
     <string name="onboarding_task_health">ヘルスコネクトの権限を許可</string>
-    <string name="onboarding_task_health_sub">「健康」タブの一番上のカード</string>
     <string name="onboarding_task_screen">スクリーンタイム用に使用状況へのアクセスを許可</string>
-    <string name="onboarding_task_screen_sub">「スクリーンタイム」タブからAndroidの設定を開きます</string>
     <string name="onboarding_types_all">34種類すべてのデータタイプ</string>
     <string name="onboarding_types_all_desc">歩数から生理周期の記録まで、ヘルスコネクトのすべてのデータ</string>
-    <string name="onboarding_types_body">読み取って送信するのは、オンにしたタイプだけです。多めでも少なめでも始められます。各タイプは「健康」タブでいつでも個別にオンとオフを切り替えられます。</string>
     <string name="onboarding_types_essentials">基本のデータ</string>
     <string name="onboarding_types_essentials_desc">歩数、睡眠、心拍数、距離、カロリー、体重</string>
     <string name="onboarding_types_later">あとで決める</string>
-    <string name="onboarding_types_later_desc">何もオンにせずに始める</string>
     <string name="onboarding_types_title">どの健康データが必要ですか？</string>
     <string name="onboarding_webhook_applied">ヘルスコネクトとスクリーンタイムの両方で使います。あとでタブごとに分けることもできます</string>
     <string name="onboarding_webhook_applied_health">ヘルスコネクトで使用</string>
     <string name="onboarding_webhook_applied_screen">スクリーンタイムで使用</string>
-    <string name="onboarding_webhook_desc">自分のサーバーやダッシュボードのバックエンドにJSONをPOSTします</string>
-    <string name="onboarding_webhook_option">Webhook</string>
-    <string name="onboarding_welcome_body">Life Dashboard Companionは、ヘルスコネクトとスクリーンタイムのデータを、自分で管理する場所に送信します。送信先は、Life Dashboard統合を使ったHome Assistant、自分のWebhookバックエンド、MQTTブローカーです。統合を使うと履歴がHome Assistantの長期統計に残ります。逆方向にも使えるので、Home Assistantにつながった体重計や血圧計の測定値をヘルスコネクトに取り込めます。途中にクラウドはありません。3つの質問に答えるだけで使い始められます。</string>
     <string name="onboarding_welcome_title">あなたの健康データを、あなたのサーバーへ</string>
 
     <!-- Redesigned main screens -->
@@ -479,31 +392,21 @@
     <string name="screentime_allow">許可</string>
     <string name="screentime_settings">設定</string>
     <string name="webhook_title">Webhook</string>
-    <string name="sync_action_preview">表示</string>
     <string name="sync_action_ping">テストPing</string>
     <string name="sync_action_export">書き出し</string>
     <string name="sync_action_backfill">過去データ送信</string>
-    <string name="sync_no_destination">先にWebhook URLを追加するか、MQTTを有効にしてください</string>
     <string name="logs_delivered">配信済み</string>
     <string name="logs_published">公開済み</string>
     <string name="logs_failed">失敗</string>
-    <string name="logs_row_records">%1$s · %2$d件のレコード</string>
-    <string name="logs_row_sensors">%1$s · %2$d個のセンサー</string>
     <string name="logs_destination_webhook">Webhook</string>
     <string name="logs_destination_mqtt">MQTT</string>
 
     <!-- About screen -->
     <string name="about_title">このアプリについて</string>
-    <string name="about_back">戻る</string>
-    <string name="about_description">ヘルスコネクトとスクリーンタイムのデータを、Life Dashboard統合を使ってHome Assistantに、または自分のWebhookバックエンドやMQTTブローカーに送信します。自分のHome Assistantの測定値をヘルスコネクトに取り込むこともできます。途中にクラウドはありません。</string>
-    <string name="about_privacy_title">プライバシーとセキュリティ</string>
-    <string name="about_backup_title">バックアップと復元</string>
     <string name="about_appearance_title">外観</string>
-    <string name="about_appearance_description">スマートフォンのダークモードに合わせるか、スマートフォンの設定に関係なくこのアプリをライトまたはダークに固定します。</string>
     <string name="about_theme_system">システム</string>
     <string name="about_theme_light">ライト</string>
     <string name="about_theme_dark">ダーク</string>
-    <string name="backup_intro">設定にはこのデバイスから出ることのないシークレットが含まれるため、Androidのクラウドバックアップには含まれません。新しいスマートフォンに移るときは、ここで書き出してください。</string>
     <string name="backup_export">書き出し</string>
     <string name="backup_import">読み込み</string>
     <string name="backup_export_title">設定を書き出す</string>
@@ -542,38 +445,19 @@
     <string name="backup_note_broker_port_unusable">このファイルのMQTTブローカーは使えません。ポートが1から65535までの数字ではありません。このスマートフォンのブローカーがそのまま残ります。</string>
     <string name="backup_keeps_credentials">このファイルには認証情報がないため、このデバイスにある認証情報がそのまま残ります。</string>
     <string name="backup_history_unaffected">同期の履歴とログには影響しません。</string>
-    <string name="backup_imported">設定を読み込みました。反映するにはアプリを開き直してください</string>
     <string name="backup_import_failed">読み込みに失敗しました：%1$s</string>
-    <string name="about_f_steps">歩数、距離、カロリー</string>
-    <string name="about_f_sleep">ステージ別の睡眠記録</string>
-    <string name="about_f_meditation">瞑想セッション</string>
-    <string name="about_f_heart">心拍数など</string>
-    <string name="about_f_apps">アプリの使用統計</string>
-    <string name="about_f_boundary">日の区切りを設定可能</string>
-    <string name="about_f_lookback">過去7日間をさかのぼって送信</string>
-    <string name="about_f_no_sharing">第三者とのデータ共有なし</string>
-    <string name="about_f_on_device">データはデバイスに保存</string>
-    <string name="about_f_control">同期の設定を自由に管理</string>
     <string name="about_website">Webサイト</string>
-    <string name="about_website_sub">設定ガイドとLife Dashboardのほかの構成要素</string>
     <string name="about_docs">ドキュメント</string>
-    <string name="about_docs_sub">設定、Webhookのスキーマ、MQTT、データソース</string>
     <string name="about_whats_new">新機能</string>
-    <string name="about_whats_new_sub">%1$sの変更履歴</string>
     <string name="about_report">問題を報告</string>
-    <string name="about_report_sub">GitHub Issues</string>
     <string name="about_github">GitHubで見る</string>
     <string name="about_play">Google Playでも公開中</string>
     <string name="about_play_sub">同じアプリです。Google Playで購入すると開発の支援になります</string>
     <string name="about_rate">アプリを評価</string>
-    <string name="about_rate_sub">Google Playで評価すると、ほかの人が見つけやすくなります</string>
     <string name="about_coffee">コーヒーをおごる</string>
     <string name="about_coffee_sub">アプリは無料のオープンソースのままです。コーヒー1杯が素早いリリースを支えます</string>
-    <string name="about_privacy_policy">プライバシーポリシー</string>
-    <string name="about_privacy_policy_sub">アプリが読み取り、書き込み、保存し、送信するもの</string>
     <string name="about_licence">ライセンス</string>
     <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
-    <string name="about_version">バージョン%1$s</string>
     <string name="about_bpm">%1$d BPM</string>
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
@@ -592,7 +476,6 @@
     <string name="privacy_contact_title">お問い合わせ</string>
     <string name="privacy_contact_body">プライバシーに関するご質問は、GitHubでIssueを作成するか、GitHubプロフィールに記載のアドレスに開発者宛てのメールをお送りください。</string>
     <string name="privacy_full">プライバシーポリシーの全文を読む</string>
-    <string name="privacy_full_sub">GitHubのPRIVACY.md</string>
     <string name="nerd_title">マニア向け統計</string>
     <string name="nerd_secret">隠し機能を見つけました</string>
     <string name="nerd_empty">同期はまだありません。データが流れ始めたらまた来てください。</string>
@@ -607,13 +490,10 @@
     <string name="health_backfill_needs_webhook">過去データ送信にはWebhook URLが必要です。MQTTで送れるのは各タイプの最新の値だけです</string>
     <string name="schedule_title">同期スケジュール</string>
     <string name="schedule_mode_interval">X分ごと</string>
-    <string name="schedule_mode_times">決まった時刻</string>
     <string name="schedule_times_title">同期時刻</string>
     <string name="schedule_add_time">時刻を追加</string>
-    <string name="schedule_remove_time">%1$sを削除</string>
     <string name="schedule_no_times">時刻はまだありません。追加すると同期が始まります。</string>
     <string name="schedule_days_title">曜日</string>
-    <string name="schedule_days_all">毎日</string>
     <string name="schedule_quiet_title">休止時間帯</string>
     <string name="schedule_quiet_subtitle">この時間帯は同期しません</string>
     <string name="schedule_quiet_from">開始</string>
@@ -621,9 +501,7 @@
     <string name="schedule_never_runs">この設定では同期が一度も行われません。時刻か曜日を追加するか、休止時間帯を短くしてください。</string>
     <string name="schedule_summary_interval">%1$d分ごと</string>
     <string name="schedule_summary_times">%1$s</string>
-    <string name="schedule_summary_days">%1$s</string>
     <string name="schedule_summary_quiet">休止 %1$s〜%2$s</string>
-    <string name="schedule_no_sync_times">同期時刻を1つ以上追加してください</string>
     <string name="schedule_day_mon">月</string>
     <string name="schedule_day_tue">火</string>
     <string name="schedule_day_wed">水</string>
@@ -649,18 +527,15 @@
     <string name="resolution_1h">1時間</string>
     <string name="resolution_group_sampled">時間枠ごとの平均</string>
     <string name="resolution_group_accumulated">時間枠ごとの合計</string>
-    <string name="activity_about_label">このアプリについて</string>
     <string name="tile_sync_label">Life Dashboardを同期</string>
     <string name="tile_sync_wait">1分後にもう一度お試しください</string>
     <string name="common_set">設定</string>
     <string name="screentime_day_boundary_time_label">1日の開始時刻</string>
     <string name="webhook_secret_generate">生成</string>
     <string name="webhook_secret_generated">シークレットを生成しました。保存してから、同じ値をサーバーにも設定してください。署名は両方が同じ値を持っていないと意味がありません。</string>
-    <string name="webhook_secret_copy">コピー</string>
     <string name="webhook_secret_copied">クリップボードにコピーしました</string>
 
     <!-- QR pairing -->
-    <string name="pairing_title">受信側とペアリング</string>
     <string name="pairing_intro">%1$sが次のアドレスでデータの受信を求めています：</string>
     <string name="pairing_intro_unnamed">受信側が次のアドレスでデータの受信を求めています：</string>
     <string name="pairing_sections_label">送信元</string>
@@ -680,7 +555,6 @@
     <string name="pairing_error_no_source">この受信側は、このアプリが送信できるデータを受け付けていません。</string>
 
     <!-- QR scanner -->
-    <string name="scan_title">ペアリングコードをスキャン</string>
     <string name="scan_hint">受信側に表示されたペアリングコード（Home AssistantのLife Dashboard統合など）を枠いっぱいに映してください。近づけるほど読み取りやすくなります。</string>
     <string name="scan_close">閉じる</string>
     <string name="scan_not_a_code">Life Dashboardのペアリングコードではありません。</string>
@@ -691,13 +565,16 @@
     <string name="webhook_scan_lead">ペアリングコードをスキャン</string>
     <string name="webhook_scan_button">スキャン</string>
     <string name="onboarding_scan_option">ペアリングコードをスキャン</string>
-    <string name="onboarding_scan_desc">Home Assistantにおすすめです。HACSからLife Dashboard統合をインストールし、表示されたQRコードをスキャンすると、Home Assistantが履歴を長期統計に残します。ペアリングコードを表示するほかの受信側でも同じように使えます。アドレスと署名シークレットは自動で入力されます。</string>
     <string name="onboarding_scan_paired">コードを読み取りました。アドレスとシークレットが入力されました。</string>
     <!-- Home screen widget -->
     <plurals name="widget_records_today">
         <item quantity="other">件（今日）</item>
     </plurals>
     <string name="widget_synced_at">%1$sに同期</string>
+    <string name="widget_name">同期の状態</string>
+    <string name="widget_synced_on">%1$sに同期</string>
+    <string name="widget_description">最終同期の結果と今日配信したレコード数を表示し、ボタンですぐに同期できます。</string>
+    <string name="widget_preview_records">件（今日）</string>
     <string name="widget_no_syncs">同期はまだありません</string>
     <string name="widget_last_sync_succeeded">最終同期は成功</string>
     <string name="widget_last_sync_failed">最終同期は失敗</string>
@@ -713,20 +590,12 @@
     <string name="screentime_apps_mode_all">すべて</string>
     <string name="screentime_apps_mode_except">除外</string>
     <string name="screentime_apps_mode_only">指定のみ</string>
-    <string name="screentime_apps_description_all">これまでどおり、すべてのアプリを送信します。システムUIとランチャーは常に除外されます。</string>
-    <string name="screentime_apps_description_except">チェックしたアプリは送信されません。Webhookにも、Home Assistantにも送られません。各日のtotal_screen_time_minutesには引き続きすべてのアプリが含まれ、送信されたアプリの合計はfiltered_screen_time_minutesになります。</string>
-    <string name="screentime_apps_description_only">チェックしたアプリだけを、WebhookとHome Assistantに送信します。各日のtotal_screen_time_minutesには引き続きすべてのアプリが含まれ、送信されたアプリの合計はfiltered_screen_time_minutesになります。</string>
-    <string name="screentime_apps_history_warning">同期のたびに過去7日分を送り直すため、ここで変更するとサーバーとHome Assistantのその7日分も変わります。</string>
     <string name="screentime_apps_none_chosen">チェックしたアプリがありません。1日の合計だけを送信します。</string>
     <string name="screentime_apps_loading">使用したアプリを調べています…</string>
     <string name="screentime_apps_none_used">過去30日間に1分以上使ったアプリはありません。</string>
     <string name="screentime_apps_search">アプリを検索</string>
     <string name="screentime_apps_not_used">過去30日間は未使用</string>
-    <plurals name="screentime_apps_minutes_month">
-        <item quantity="other">過去30日間で%d分</item>
-    </plurals>
     <!-- Record metadata (P2-7) -->
-    <string name="health_record_metadata">レコードのメタデータ</string>
     <string name="health_record_metadata_title">ペイロードにレコードのメタデータを含める</string>
     <string name="health_record_metadata_description">ヘルスコネクトに情報がある場合、各レコードに最終更新日時、書き込んだアプリ独自のIDとバージョン、記録方法、デバイス、タイムゾーンのオフセットを追加します。ペイロードが大きくなり、特に心拍数で増えます。</string>
     <!-- The secret store lost its secrets -->
@@ -740,4 +609,343 @@
     <string name="battery_hint_device_care">デバイスケア</string>
     <string name="battery_hint_help">お使いのスマートフォン向けのヘルプ</string>
     <string name="battery_hint_dismiss">今後表示しない</string>
+
+    <string name="ld_nerd_records_health">健康レコード</string>
+    <string name="ld_nerd_records_screen_time">スクリーンタイムのレコード</string>
+    <string name="ld_nerd_records_today">今日の健康レコード</string>
+    <string name="ld_nerd_last_sync_outcome">%1$s、%2$s</string>
+    <string name="ld_save">保存</string>
+    <string name="ld_key_value">%1$s：%2$s</string>
+    <string name="ld_remove_named">%1$sを削除</string>
+    <string name="ld_try_again">再試行</string>
+    <string name="ld_not_saved">保存されませんでした</string>
+    <string name="ld_type_locked">権限がまだありません</string>
+    <string name="ld_title_add_destination">送信先を追加</string>
+    <string name="ld_title_destination">送信先</string>
+    <string name="ld_title_paired">ペアリング済み</string>
+    <string name="ld_title_what_to_send">送信するデータ</string>
+    <string name="ld_title_backfill">過去データ送信</string>
+    <string name="ld_title_preview">プレビュー</string>
+    <string name="ld_title_when_to_send">送信タイミング</string>
+    <string name="ld_title_more">その他</string>
+    <string name="ld_title_server_certificates">サーバー証明書</string>
+    <string name="ld_title_export_data">データを書き出す</string>
+    <string name="ld_title_backup_restore">バックアップと復元</string>
+    <string name="ld_title_delivery">配信</string>
+    <string name="ld_title_apps_to_send">送信するアプリ</string>
+    <string name="ld_title_day_starts_at">1日の開始時刻</string>
+    <string name="ld_title_help">ヘルプ</string>
+    <string name="ld_title_support">サポート</string>
+    <string name="ld_title_privacy">プライバシー</string>
+    <string name="ld_title_open_source">オープンソース</string>
+    <string name="ld_category_activity">アクティビティ</string>
+    <string name="ld_category_body">身体</string>
+    <string name="ld_category_heart">心臓とバイタル</string>
+    <string name="ld_category_sleep">睡眠とこころ</string>
+    <string name="ld_category_food">飲食</string>
+    <string name="ld_category_cycle">周期記録</string>
+    <string name="ld_just_now">たった今</string>
+    <string name="ld_home_heading_nothing_selected">接続しました。次に送信するデータを選びましょう。</string>
+    <string name="ld_home_heading_problem_one">%1$sの確認が必要です。</string>
+    <plurals name="ld_home_heading_problem_many">
+        <item quantity="other">%1$d件の送信先の確認が必要です。</item>
+    </plurals>
+    <string name="ld_home_heading_overdue">最近は何も届いていません。</string>
+    <string name="ld_home_heading_waiting">最初の同期の準備ができました。</string>
+    <string name="ld_home_heading_arriving">データは届いています。</string>
+    <string name="ld_home_hc_install_note">Life Dashboardはヘルスコネクトを通じて健康データを読み取ります。使い始めるにはインストールしてください。</string>
+    <string name="ld_home_hc_update_note">このバージョンのヘルスコネクトはLife Dashboardで使うには古すぎます。使い始めるにはアップデートしてください。</string>
+    <string name="ld_home_hc_unavailable_note">ヘルスコネクトはこのデバイスまたはこのプロファイルでは動作しません。スクリーンタイムは引き続き使えます。</string>
+    <string name="ld_home_access_note">Life Dashboardにヘルスコネクトへのアクセスがまだ許可されていないため、読み取りも送信もできません。</string>
+    <string name="ld_home_own_server">自分のサーバーを使用</string>
+    <string name="ld_home_pair_note">Home Assistant、Life Dashboard Stack、自分のサーバーなど、どの受信側でもペアリングコードを表示できます。</string>
+    <string name="ld_home_broker">ブローカー：%1$s</string>
+    <string name="ld_home_connected">接続済み</string>
+    <string name="ld_home_no_deliveries">配信はまだありません</string>
+    <string name="ld_home_failed_http">HTTP %1$d、%2$s</string>
+    <string name="ld_home_failed_time">失敗、%1$s</string>
+    <string name="ld_home_nothing_since">%1$s以降、何も配信されていません。</string>
+    <string name="ld_home_overdue_battery">%1$s以降、何も配信されていません。電池の最適化が同期を止めている可能性があります。</string>
+    <string name="ld_home_overdue_logs">%1$s以降、何も配信されていません。「ログ」タブで状況を確認できます。</string>
+    <string name="ld_home_hold_never">自動同期はオフです。「今すぐ同期」は使えます。</string>
+    <string name="ld_home_hold_quiet">%1$sまで休止時間帯です。「今すぐ同期」は使えます。</string>
+    <string name="ld_home_hold_day_off">今日は自動同期がありません。「今すぐ同期」は使えます。</string>
+    <string name="ld_home_types_of">%2$d個中%1$d個のタイプ</string>
+    <string name="ld_home_none_yet">まだなし</string>
+    <string name="ld_home_once_a_day">1日1回</string>
+    <plurals name="ld_home_times_a_day">
+        <item quantity="other">1日%1$d回</item>
+    </plurals>
+    <string name="ld_home_more_subtitle">バックアップ、アプリ情報</string>
+    <string name="ld_home_receive_waiting">次回の同期を待っています</string>
+    <string name="ld_home_receive_choose">タイプを選択</string>
+    <string name="ld_home_receive_permission">権限がありません</string>
+    <plurals name="ld_home_receive_types">
+        <item quantity="other">%1$d個のタイプ</item>
+    </plurals>
+    <string name="ld_secrets_unavailable_title">安全なストレージを利用できません</string>
+    <string name="ld_secrets_unavailable_body">保存済みの認証ヘッダー、署名シークレット、MQTTのパスワードは、現在読み取りも変更もできません。デバイスのロックを解除してアプリを開き直してください。暗号化されずに保存されるものはありません。</string>
+    <string name="ld_secrets_lost_title">シークレットをもう一度入力してください</string>
+    <string name="ld_today_pick">送信するデータを選ぶ</string>
+    <string name="ld_today_lines">折れ線は7日間を表示</string>
+    <string name="ld_today_rest_bpm">安静時bpm</string>
+    <string name="ld_today_kg">kg</string>
+    <string name="ld_today_lb">lb</string>
+    <string name="ld_today_sleep_value">%1$s時間%2$s分</string>
+    <string name="ld_today_weight_value">%1$s %2$s</string>
+    <string name="ld_today_spoken">%1$s：%2$s、%3$s</string>
+    <string name="ld_today_trend">最低%1$s、最高%2$s、最新%3$s</string>
+    <string name="ld_today_record">件</string>
+    <string name="ld_add_heading">送信先を追加しましょう。</string>
+    <string name="ld_add_pair_note">Home Assistant、Life Dashboard Stack、自分のサーバーなど、ペアリングコードを表示できる受信側で使えます。</string>
+    <string name="ld_add_own_server">自分のサーバー</string>
+    <string name="ld_add_webhook_url">Webhook URL</string>
+    <string name="ld_add_webhook_example">https://your-webhook.com/health</string>
+    <string name="ld_add_webhook">Webhookを追加</string>
+    <string name="ld_add_mqtt_subtitle">Home Assistant Discovery対応</string>
+    <string name="ld_add_mqtt_on">有効：%1$s</string>
+    <string name="ld_dest_url">URL</string>
+    <string name="ld_dest_signing">署名</string>
+    <string name="ld_dest_copy_secret">シークレットをコピー</string>
+    <string name="ld_dest_headers">ヘッダー</string>
+    <string name="ld_dest_add_header">ヘッダーを追加</string>
+    <string name="ld_dest_headers_note">このアドレスにだけ送信されます。</string>
+    <string name="ld_dest_header_invalid">有効なヘッダーではないため、何も送信されません。削除して追加し直してください。</string>
+    <string name="ld_dest_delivered">配信しました（%1$s）。</string>
+    <plurals name="ld_dest_delivered_records">
+        <item quantity="other">%2$d件のレコードを配信しました（%1$s）。</item>
+    </plurals>
+    <string name="ld_dest_last_failed">前回の送信は失敗しました（%1$s）。</string>
+    <string name="ld_dest_last_failed_reason">前回の送信は失敗しました（%1$s）：%2$s</string>
+    <string name="ld_dest_plain_http">暗号化されていないHTTPはオフです</string>
+    <string name="ld_dest_plain_http_body">「詳細設定」で許可するまで、httpのアドレスには何も届きません。できればhttpsのアドレスを使ってください。</string>
+    <string name="ld_dest_send_test">テストを送信</string>
+    <string name="ld_dest_sending">送信しています...</string>
+    <string name="ld_dest_test_uses_saved">テストには保存済みの内容を使います。変更をテストするには、先に保存してください。</string>
+    <string name="ld_dest_remove">送信先を削除</string>
+    <string name="ld_dest_remove_body">このアドレスへのデータ送信を停止し、署名シークレットとヘッダーを削除します。</string>
+    <string name="ld_dest_remove_receive_body">このアドレスへのデータ送信を停止し、署名シークレットとヘッダーを削除します。測定値はこのアドレスから届いているため、受信も停止します。</string>
+    <string name="ld_mqtt_remove_body">ここでのMQTT公開を停止し、ほかで使われていないブローカーのアドレスとログイン情報をこのスマートフォンから削除します。</string>
+    <string name="ld_paired_connected">接続しました。</string>
+    <string name="ld_paired_not_connected">まだ接続されていません。</string>
+    <string name="ld_paired_checking">接続を確認しています...</string>
+    <string name="ld_paired_delivered">配信済み：受信側がテストPingを受け付けました。</string>
+    <string name="ld_paired_next_sync">「今すぐ同期」をタップしてデータを送信します。</string>
+    <string name="ld_paired_next_types">次に、送信したいデータタイプをオンにしてください。</string>
+    <string name="ld_paired_done">完了</string>
+    <string name="ld_pairing_title">ペアリング</string>
+    <string name="ld_pairing_heading">この受信側とペアリングしますか？</string>
+    <string name="ld_what_heading">%2$d個中%1$d個のタイプを選択中です。</string>
+    <string name="ld_what_start_from">ここから始める</string>
+    <string name="ld_what_essentials">基本のデータ</string>
+    <string name="ld_what_all_types">すべてのタイプ</string>
+    <string name="ld_what_none">なし</string>
+    <string name="ld_what_by_category">カテゴリ別</string>
+    <string name="ld_what_count_of">%1$d/%2$d</string>
+    <string name="ld_what_how_it_goes_out">送信方法</string>
+    <string name="ld_what_send_history">過去データを送信</string>
+    <string name="ld_what_preview_payload">ペイロードをプレビュー</string>
+    <string name="ld_what_access">ヘルスコネクトへのアクセス</string>
+    <string name="ld_what_access_granted">選択したタイプで許可済み</string>
+    <string name="ld_what_access_allowed_count">%2$d個中%1$d個のタイプで許可済み</string>
+    <string name="ld_access_blocked_not_installed">ヘルスコネクトがインストールされていないため、オンにできません。選択内容はそのままです。</string>
+    <string name="ld_access_blocked_needs_update">ヘルスコネクトのアップデートが必要なため、オンにできません。選択内容はそのままです。</string>
+    <string name="ld_access_blocked_unavailable">このスマートフォンではヘルスコネクトを利用できないため、オンにできません。選択内容はそのままです。</string>
+    <string name="ld_category_cycle_note">自分でオンにするまでオフのままです。送信されるのは自分の送信先だけです。</string>
+    <string name="ld_category_lock_note">鍵のマークは、権限がまだないことを示します。オンにすると権限を求めます。</string>
+    <string name="ld_resolution_footnote">すべてのレコード、1分、5分、15分、1時間から選べます。ここには選択したタイプだけが表示されます。</string>
+    <string name="ld_resolution_empty">心拍数や歩数などのタイプをオンにすると、解像度を選べます。</string>
+    <string name="ld_backfill_heading">過去データを送信しましょう。</string>
+    <string name="ld_backfill_intro">古い順に3日ずつのブロックで送信します。レコードが二重に数えられることはありません。</string>
+    <plurals name="ld_backfill_chunks">
+        <item quantity="other">%1$dブロック</item>
+    </plurals>
+    <string name="ld_backfill_everything">すべて</string>
+    <string name="ld_backfill_goes_to">%1$sに送信します。</string>
+    <string name="ld_backfill_mobile_data">時間がかかり、モバイルデータ通信を使うことがあります。</string>
+    <string name="ld_backfill_integration_note">Home Assistantが現在取り込めるのは直近の約1年分です。WebhookやLife Dashboard Stackにはすべて送信されます。</string>
+    <string name="ld_backfill_start">開始（%1$s）</string>
+    <string name="ld_backfill_view">表示</string>
+    <string name="ld_backfill_short_waiting">待機中</string>
+    <string name="ld_backfill_short_paused">%1$d/%2$dで一時停止</string>
+    <string name="ld_backfill_running_heading">過去データを送信中です：%1$d/%2$d。</string>
+    <string name="ld_backfill_paused_heading">%1$d/%2$dで一時停止しました。</string>
+    <string name="ld_backfill_waiting_heading">同期の完了を待っています。</string>
+    <string name="ld_backfill_starting_heading">過去データ送信を開始しています。</string>
+    <string name="ld_backfill_failed_heading">過去データ送信が止まりました。</string>
+    <string name="ld_backfill_done_heading">過去データ送信が完了しました。</string>
+    <string name="ld_backfill_progress_a11y">過去データ送信の進捗、%2$dブロック中%1$dブロック</string>
+    <plurals name="ld_backfill_records_leave">
+        <item quantity="other">%1$s件のレコードを送信しました。この画面を離れても大丈夫です。</item>
+    </plurals>
+    <string name="ld_backfill_can_leave">この画面を離れても大丈夫です。</string>
+    <plurals name="ld_backfill_records_sent">
+        <item quantity="other">%1$s件のレコードを送信済み</item>
+    </plurals>
+    <string name="ld_backfill_stop_discard">停止して破棄</string>
+    <string name="ld_backfill_stop_hint">進捗を破棄します。送信済みのデータはサーバーに残ります。</string>
+    <string name="ld_backfill_continue">続ける</string>
+    <string name="ld_backfill_choose_length">期間を選択</string>
+    <string name="ld_preview_intro">サーバーが受け取る内容です。</string>
+    <string name="ld_preview_no_types">データタイプが選択されていません</string>
+    <string name="ld_preview_nothing_new">前回の同期以降に新しいデータがないため、今同期しても何も送信されません。「過去データを送信」を使うと、古いレコードをもう一度送信します。</string>
+    <string name="ld_when_every">%1$d分ごとに同期します。</string>
+    <plurals name="ld_when_times">
+        <item quantity="other">1日%1$d回同期します。</item>
+    </plurals>
+    <string name="ld_when_never">同期しません</string>
+    <string name="ld_when_fixed_times">決まった時刻</string>
+    <string name="ld_when_mode">同期モード</string>
+    <string name="ld_when_minimum">最短%1$d分です。</string>
+    <string name="ld_when_limits">制限</string>
+    <string name="ld_receive_heading_off">受信はオフです。</string>
+    <string name="ld_receive_heading_on">Home Assistantから受信しています。</string>
+    <string name="ld_receive_heading_waiting">次回の同期を待っています。</string>
+    <string name="ld_receive_heading_choose">受信するタイプを選びましょう。</string>
+    <string name="ld_receive_heading_permission">権限がありません。</string>
+    <string name="ld_receive_intro">測定値は同期のたびに届き、ヘルスコネクトに書き込まれます。</string>
+    <string name="ld_receive_measurements">測定値を受信</string>
+    <string name="ld_receive_source">送信元</string>
+    <string name="ld_receive_types">タイプ</string>
+    <string name="ld_advanced_connection">接続</string>
+    <string name="ld_advanced_client_cert_used">すべてのWebhookで使用</string>
+    <plurals name="ld_advanced_hosts">
+        <item quantity="other">%1$d個のホスト</item>
+    </plurals>
+    <string name="ld_certificates_empty">httpsのWebhookはまだありません。追加すると、そのサーバーをどう信頼するかをここで選べます。</string>
+    <string name="ld_notifications_note">データが届いていない送信先があるときや、データが失われたときにも通知します。</string>
+    <string name="ld_notifications_blocked_title">Androidがこの通知を表示していません</string>
+    <string name="ld_notifications_blocked_body">Androidの設定でこのアプリの通知がオフになっているため、そこで許可するまで、同期に失敗しても通知されません。</string>
+    <string name="ld_export_heading">データを書き出しましょう。</string>
+    <string name="ld_export_intro_health">ヘルスコネクトの選択したタイプをまとめたファイルです。</string>
+    <string name="ld_export_intro_screen_time">過去7日間のスクリーンタイムをまとめたファイルです。</string>
+    <string name="ld_export_csv">CSVを書き出す</string>
+    <string name="ld_export_json">JSONを書き出す</string>
+    <string name="ld_export_opens_share">共有シートを開きます。</string>
+    <string name="ld_export_no_types">データタイプが選択されていません</string>
+    <string name="ld_backup_intro">設定をほかのスマートフォンに移せます。ログと同期の進捗はそのまま残ります。</string>
+    <string name="ld_backup_choose_file">バックアップファイルを選択</string>
+    <string name="ld_backup_imported">設定を読み込みました</string>
+    <string name="ld_logs_state">失敗%1$d件、配信済み%2$d件。</string>
+    <string name="ld_logs_nothing_yet">まだ何も送信されていません。</string>
+    <string name="ld_logs_empty_note">配信とMQTTの公開はすべてここに表示されます。リストには直近%1$d件が残ります。</string>
+    <string name="ld_logs_outbox_empty">送信待ちなし</string>
+    <plurals name="ld_logs_pending">
+        <item quantity="other">送信待ち%1$d件</item>
+    </plurals>
+    <string name="ld_logs_success_rate">成功率%1$d%%</string>
+    <plurals name="ld_logs_deliveries">
+        <item quantity="other">%1$s件の配信</item>
+    </plurals>
+    <plurals name="ld_logs_records">
+        <item quantity="other">%1$s件のレコード</item>
+    </plurals>
+    <plurals name="ld_logs_sensors">
+        <item quantity="other">%1$s個のセンサー</item>
+    </plurals>
+    <plurals name="ld_logs_apps">
+        <item quantity="other">%1$s個のアプリ</item>
+    </plurals>
+    <plurals name="ld_logs_written">
+        <item quantity="other">%1$s件書き込み</item>
+    </plurals>
+    <string name="ld_logs_by_section">健康 %1$d / %2$d · スクリーンタイム %3$d / %4$d</string>
+    <string name="ld_logs_filter_failed">失敗%1$d</string>
+    <string name="ld_logs_no_match">このフィルタに一致するログはありません。</string>
+    <string name="ld_logs_send_test">テストを送信</string>
+    <string name="ld_logs_delete">削除</string>
+    <string name="ld_logs_show_details">詳細を表示</string>
+    <string name="ld_logs_show_actions">操作を表示</string>
+    <string name="ld_logs_size_stored">%1$sを保存済み</string>
+    <string name="ld_logs_headline">%1$s %2$s</string>
+    <string name="ld_logs_accepted">%1$sがこの配信を受け付けました。</string>
+    <string name="ld_logs_not_accepted">%1$sはこの配信を受け付けませんでした。</string>
+    <string name="ld_logs_broker_accepted">ブローカーがこの公開を受け付けました。</string>
+    <string name="ld_logs_key_time">時刻</string>
+    <string name="ld_logs_key_url">URL</string>
+    <string name="ld_logs_key_status">状態</string>
+    <string name="ld_logs_key_note">メモ</string>
+    <string name="ld_logs_key_sensors">センサー</string>
+    <string name="ld_logs_key_apps">アプリ</string>
+    <string name="ld_logs_key_type">タイプ</string>
+    <string name="ld_logs_key_section">セクション</string>
+    <string name="ld_logs_key_payload_size">ペイロードのサイズ</string>
+    <string name="ld_logs_gone">この配信はログに残っていません。</string>
+    <string name="ld_logs_readings">測定値</string>
+    <string name="ld_logs_values_note">測定値の数値が保存されるのは、「ペイロード全体を保存」がオンの間だけです。</string>
+    <string name="ld_screen_heading_total">スマートフォンの利用時間は%1$sです。</string>
+    <string name="ld_screen_heading_no_access">使用状況へのアクセスを許可しましょう。</string>
+    <string name="ld_screen_no_access_body">Androidの設定でオンにする必要があります。オンにしないと、アプリの利用時間を確認できません。</string>
+    <string name="ld_screen_open_settings">Androidの設定を開く</string>
+    <string name="ld_screen_most_used">今日最も使ったアプリ</string>
+    <string name="ld_screen_nothing_today">今日、1分以上使ったアプリはありません。</string>
+    <string name="ld_screen_status_no_deliveries">配信はまだありません</string>
+    <string name="ld_screen_status_just_now">たった今</string>
+    <string name="ld_screen_status_http">HTTP %1$d、%2$s</string>
+    <string name="ld_screen_status_failed">失敗、%1$s</string>
+    <string name="ld_screen_broker_named">ブローカー：%1$s</string>
+    <string name="ld_screen_more_summary">詳細設定、アプリ情報</string>
+    <string name="ld_screen_secrets_unavailable">安全なストレージを利用できないため、保存済みの認証ヘッダー、署名シークレット、MQTTのパスワードは、現在読み取りも変更もできません。デバイスのロックを解除してアプリを開き直してください。暗号化されずに保存されるものはありません。</string>
+    <string name="ld_screen_preview_payload">ペイロードをプレビュー</string>
+    <string name="ld_screen_apps_description_all">すべてのアプリを送信します。システムUIとランチャーは常に除外されます。</string>
+    <string name="ld_screen_apps_description_except">チェックしたアプリ以外をすべて送信します。各日のtotal_screen_time_minutesには引き続きすべてのアプリが含まれ、送信されたアプリの合計はfiltered_screen_time_minutesになります。</string>
+    <string name="ld_screen_apps_description_only">チェックしたアプリだけを送信します。各日のtotal_screen_time_minutesには引き続きすべてのアプリが含まれ、送信されたアプリの合計はfiltered_screen_time_minutesになります。</string>
+    <string name="ld_screen_apps_history_warning">同期のたびに過去7日分を送り直すため、ここで変更すると送信先のその7日分も変わります。</string>
+    <string name="ld_screen_apps_search_label">検索</string>
+    <string name="ld_screen_apps_used_label">過去30日間に使用</string>
+    <string name="ld_screen_apps_no_match">この検索に一致するアプリはありません。</string>
+    <string name="ld_screen_day_heading">1日の開始は%1$sです。</string>
+    <string name="ld_screen_day_body">この時刻より前の利用は前日として数えるので、夜遅くに見た映画は見始めた日の夜に含まれます。</string>
+    <string name="ld_screen_day_whole_hours">1時間単位でのみ設定できます。</string>
+    <string name="ld_screen_when_never">同期しません</string>
+    <string name="ld_screen_when_every_hour">1時間ごとに同期します。</string>
+    <plurals name="ld_screen_when_every_hours">
+        <item quantity="other">%1$d時間ごとに同期します。</item>
+    </plurals>
+    <plurals name="ld_screen_when_every_minutes">
+        <item quantity="other">%1$d分ごとに同期します。</item>
+    </plurals>
+    <plurals name="ld_screen_when_times_a_day">
+        <item quantity="other">1日%1$d回同期します。</item>
+    </plurals>
+    <string name="ld_screen_when_note">同期のたびに過去7日分を送信します。このスケジュールは「健康」とは別です。</string>
+    <string name="ld_screen_when_limits">制限</string>
+    <string name="ld_about_heading">データの送信先は自分で決められます。</string>
+    <string name="ld_about_connected">接続済み</string>
+    <string name="ld_about_pair_code">コードでペアリング</string>
+    <string name="ld_about_set_up_stack">Stackを設定</string>
+    <string name="ld_about_own_server">自分のサーバー</string>
+    <string name="ld_about_own_server_sub">ペアリングコード、Webhook、MQTT</string>
+    <string name="ld_about_no_cloud">アカウントもクラウドも不要です。iPhone版もあります。</string>
+    <string name="ld_about_version_line">Life Dashboard Companion、バージョン%1$s。開発：Owen Vogelaar。</string>
+    <string name="ld_about_show_nerd">マニア向け統計を表示</string>
+    <string name="ld_about_help_sub">ガイド、新機能</string>
+    <string name="ld_about_support_sub">評価、GitHubでスター</string>
+    <string name="ld_about_privacy_sub">トラッカーなし</string>
+    <string name="ld_about_source_sub">MITライセンス</string>
+    <string name="ld_about_setup_guide">設定ガイド</string>
+    <string name="ld_about_questions">お問い合わせ</string>
+    <string name="ld_about_mail">メール</string>
+    <string name="ld_about_support_intro">評価やスターがあると、ほかの人がこのアプリを見つけやすくなります。</string>
+    <string name="ld_about_star">GitHubでスターを付ける</string>
+    <string name="ld_about_source_intro">このアプリが実行するコードは1行残らず読めます。</string>
+    <string name="ld_about_receiver">自分の受信側を接続</string>
+    <string name="ld_about_receiver_sub">QRコードを1つスキャンするだけでユーザーがペアリングできます</string>
+    <string name="ld_about_typefaces_title">書体</string>
+    <string name="ld_about_no_app_for_link">このリンクを開けるアプリがこのスマートフォンにありません</string>
+    <string name="ld_about_typefaces">書体Space GroteskとSpace Monoは、SIL Open Font Licenseのもとで提供されています。</string>
+    <string name="ld_onboarding_welcome_body">健康データとスクリーンタイムを、自分のHome Assistantやサーバーに送信します。アカウントもクラウドも不要です。</string>
+    <string name="ld_onboarding_pick_one_or_both">1つまたは両方を選んでください。</string>
+    <string name="ld_onboarding_health_desc">歩数、睡眠、心拍数など</string>
+    <string name="ld_onboarding_screen_desc">このスマートフォンのアプリごとの利用時間</string>
+    <string name="ld_onboarding_scan_note">Home Assistant、Life Dashboard Stack、自分のサーバーなど、ペアリングコードを表示できる受信側で使えます。</string>
+    <string name="ld_onboarding_own_server">または自分のサーバー</string>
+    <string name="ld_onboarding_webhook_url">Webhook URL</string>
+    <string name="ld_onboarding_set_up">設定</string>
+    <string name="ld_onboarding_use">使用</string>
+    <string name="ld_onboarding_mqtt_note">最初はポート1883、TLSなしで接続します。ポート、TLS、ログイン情報はあとでMQTTの画面で設定できます。</string>
+    <string name="ld_onboarding_later_desc">「送信するデータ」から選択</string>
+    <string name="ld_onboarding_sending_to">送信先</string>
+    <string name="ld_onboarding_one_thing_left">残り1つ</string>
+    <string name="ld_onboarding_two_things_left">残り2つ</string>
 </resources>

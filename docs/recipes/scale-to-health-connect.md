@@ -14,7 +14,7 @@ This page covers the common ways a scale gets into Home Assistant, which entity 
 
 ### Xiaomi: Xiaomi BLE and bodymiscale
 
-For the Mi Body Composition Scale 2 and the other Xiaomi scales Home Assistant finds over Bluetooth. The core [Xiaomi BLE](https://www.home-assistant.io/integrations/xiaomi_ble/) integration gives the weight and, on the body composition models, the impedance: the weak current through your feet that body composition is calculated from. [bodymiscale](https://github.com/dckiller51/bodymiscale) (in HACS) turns those into body fat, lean body mass and the rest, per person; it asks for your height, birthday and gender plus the weight and impedance sensors.
+For the Mi Body Composition Scale 2 and the other Xiaomi scales Home Assistant finds over Bluetooth. The core [Xiaomi BLE](https://www.home-assistant.io/integrations/xiaomi_ble/) integration gives the weight and, on the body composition models, the impedance: the weak current through your feet that body composition is calculated from. [bodymiscale](https://github.com/dckiller51/bodymiscale) (in the Marketplace or HACS) turns those into body fat, lean body mass and the rest, per person; it asks for your height, birthday and gender plus the weight and impedance sensors.
 
 - **Home Assistant 2026.10 or later.** On 2026.9.x Xiaomi BLE drops every scale update ([#181546](https://github.com/home-assistant/core/issues/181546), fixed by [#182328](https://github.com/home-assistant/core/pull/182328) in 2026.10). Until then, [ble-scale-sync](#renpho-eufy-yunmai-and-others-ble-scale-sync) also reads Xiaomi scales.
 - **The S400** still fails in the core integration, even on 2026.10 ([#183853](https://github.com/home-assistant/core/issues/183853); the fix, [#173260](https://github.com/home-assistant/core/pull/173260), is open). ble-scale-sync reads it with its bind key.
@@ -163,8 +163,8 @@ Lean body mass here is weight minus fat mass, which is what Health Connect's lea
 ## Map it and switch it on
 
 1. In Home Assistant, open **Settings > Devices & services > Life Dashboard**, choose **Configure** for the phone, and pick one entity per type. Each type also has an optional **Measured at** slot for a sensor that holds when the weighing happened.
-2. In the app, on the **Health** tab, open **Receive**, switch it on and switch on the types you mapped. Each type asks for its own Health Connect write permission.
-3. Step on the scale, and tap **Sync Now** or wait for the next sync. The **Logs** tab shows a row "Health · from Home Assistant" with every reading and whether it was written.
+2. In the app, on the **Health** tab, open **Receive**, switch on **Receive measurements** and, once the next sync has listed them, the types you mapped. Each type asks for its own Health Connect write permission.
+3. Step on the scale, and tap **Sync Now** or wait for the next sync. The **Logs** tab shows a row marked `IN`; tap it to see every reading and whether it was written.
 
 [Receiving measurements from Home Assistant](../usage.md#receiving-measurements-from-home-assistant) has the app side in full, and the integration's [Sending measurements to the phone](https://github.com/owen282000/life-dashboard-ha#sending-measurements-to-the-phone) covers the Home Assistant side.
 

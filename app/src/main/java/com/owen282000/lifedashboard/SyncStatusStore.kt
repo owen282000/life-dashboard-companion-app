@@ -2,6 +2,10 @@ package com.owen282000.lifedashboard
 
 import android.content.Context
 import androidx.core.content.edit
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /** Last-sync status shared with the home screen widget. */
 object SyncStatusStore {
@@ -13,6 +17,11 @@ object SyncStatusStore {
     private const val KEY_RECORDS_TODAY_DATE = "widget_records_today_date"
     private const val KEY_WRITTEN_TODAY = "receive_written_today"
     private const val KEY_WRITTEN_TODAY_DATE = "receive_written_today_date"
+
+    private val _changes = MutableStateFlow(0)
+
+    /** Moves on with every recorded outcome, so a widget on screen knows to read again. */
+    val changes: StateFlow<Int> = _changes.asStateFlow()
 
     data class Status(
         val lastSyncMillis: Long?,
@@ -54,6 +63,7 @@ object SyncStatusStore {
         }
         editor.apply()
 
+        _changes.update { it + 1 }
         SyncStatusWidget.updateAll(context)
     }
 

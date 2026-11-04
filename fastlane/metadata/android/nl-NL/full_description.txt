@@ -1,0 +1,48 @@
+Stuur Health Connect-gegevens en schermtijd van je Android-telefoon volgens schema naar Home Assistant, een MQTT-broker of je eigen webhook. Geen account; de ontwikkelaar ontvangt niets van je gegevens, de app stuurt ze alleen naar de adressen die jij invult. Geen advertenties, geen analytics. Je hebt een eigen server nodig.
+
+Werkt met elke app die naar Health Connect schrijft, zoals Samsung Health, Google Health (Fitbit en Pixel Watch), Garmin Connect, Oura en Withings.
+
+Wijzigingen en verwijderingen gaan ook mee, niet alleen nieuwe records. Kan een wijziging niet worden verstuurd, dan staat dat in de payload.
+
+Home Assistant
+- Installeer de Life Dashboard-integratie via de Marketplace of HACS en scan de QR-code die ze toont. Geen YAML, geen broker.
+- 26 van de 34 types en schermtijd worden sensoren. Elke dag van je geschiedenis komt op zijn eigen datum in de langetermijnstatistieken, voor ongeveer het laatste jaar.
+- Ontvangen, met de integratie: metingen van een weegschaal of bloeddrukmeter in Home Assistant kunnen in Health Connect worden geschreven, per type dat je aanzet.
+
+Webhooks en je eigen server
+- Elke server die een JSON POST accepteert: n8n, Node-RED, een eigen script, of de aparte, zelf gehoste Life Dashboard Stack met Postgres en Grafana-dashboards.
+- Elk record volledig naar een of meer URL's, elk met een eigen ondertekeningsgeheim (HMAC-SHA256) en eigen headers, en clientcertificaten (mTLS).
+- Nieuwe pogingen, en een wachtrij die niet-afgeleverde syncs bewaart tot je server weer bereikbaar is.
+
+MQTT
+- Met MQTT Discovery verschijnen 25 van de 34 types en schermtijd als sensoren onder één apparaat, met TLS en inloggen als optie.
+
+Wat versturen
+- 34 types, elk met een eigen schakelaar en een eigen toestemming: stappen, afstand, calorieën, slaap met fases, hartslag, HRV, gewicht en lichaamssamenstelling, bloeddruk, bloedsuikerspiegel, VO2max, work-outs, voeding, cyclus bijhouden en meer.
+- Elk record noemt de app die het schreef. Dagtotalen komen van Health Connect zelf, zodat een wandeling die je telefoon en je horloge allebei vastleggen maar één keer telt.
+- Aanvullen naar een webhook of de integratie: je geschiedenis, van 30 dagen tot 5 jaar of alles wat Health Connect heeft.
+
+Schermtijd
+- Tijd per app, naast je gezondheidsdata, met een daggrens die jij kiest.
+- Stuur elke app, alles behalve enkele, of alleen de apps die jij kiest. Een app die je weglaat, verlaat de telefoon nooit; alleen het dagtotaal telt zijn tijd nog mee.
+
+Wanneer versturen
+- Met een interval van 15 minuten of langer, of op vaste tijden op de dagen die je kiest, met stille uren.
+- Widget (Syncstatus), snelle instelling (Life Dashboard syncen) en een intent voor Tasker en MacroDroid.
+
+Zien wat er gebeurde
+- Logs van je laatste 100 afleveringen, te filteren op mislukt, webhook en MQTT.
+- Een voorbeeld van de JSON voordat die verstuurd wordt, en een test voor elk adres.
+- Een export van je data als CSV- of JSON-bestand.
+
+De alleen-lezen MCP-server van de Life Dashboard Stack laat een AI-model dat je zelf draait je geschiedenis lezen. De app zelf bevat geen AI.
+
+Geheimen staan versleuteld op de telefoon. Open source onder de MIT-licentie; de code staat openbaar op GitHub.
+
+De app spreekt elf talen: Nederlands, Engels, Duits, Frans, Spaans, Italiaans, Portugees (Brazilië), Japans, Arabisch, Hindi en Vereenvoudigd Chinees.
+
+Gezondheidsgegevens vereisen Android 9 of nieuwer met Health Connect (ingebouwd vanaf Android 14, een app uit Google Play op Android 9 tot en met 13). Schermtijd werkt vanaf Android 8.0.
+
+Home Assistant, Grafana en andere genoemde producten zijn merken van hun eigenaren. Ze zitten niet bij deze app en die eigenaren hebben er niets mee te maken.
+
+Life Dashboard Companion is geen medisch hulpmiddel en stelt geen diagnose, behandelt, geneest of voorkomt geen enkele medische aandoening. Vraag een zorgverlener om medisch advies, een diagnose of een behandeling.

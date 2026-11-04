@@ -1,0 +1,48 @@
+Invia i dati di Connessione Salute e il tempo di utilizzo dal tuo telefono Android a Home Assistant, a un broker MQTT o al tuo webhook, secondo una pianificazione. Nessun account; lo sviluppatore non riceve nessuno dei tuoi dati, l'app li invia solo agli indirizzi che inserisci. Niente pubblicità né analisi statistiche. Ti serve un server tuo.
+
+Funziona con qualsiasi app che scrive in Connessione Salute, come Samsung Health, Google Health (Fitbit e Pixel Watch), Garmin Connect, Oura e Withings.
+
+Anche modifiche ed eliminazioni vengono inviate, non solo i nuovi record. Se una modifica non può essere inviata, il payload lo indica.
+
+Home Assistant
+- Installa l'integrazione Life Dashboard dal Marketplace o da HACS e scansiona il suo codice QR. Niente YAML, niente broker.
+- 26 dei 34 tipi e il tempo di utilizzo diventano sensori. Ogni giorno del tuo storico arriva con la sua data nelle statistiche a lungo termine, per circa l'ultimo anno.
+- Ricezione, con l'integrazione: le misurazioni di bilancia o misuratore di pressione in Home Assistant possono essere scritte in Connessione Salute, per ogni tipo che attivi.
+
+Webhook e il tuo server
+- Qualsiasi server che accetti un POST JSON: n8n, Node-RED, un tuo script o lo stack Life Dashboard, separato e self-hosted, con Postgres e dashboard Grafana.
+- Ogni record completo a uno o più URL, ognuno con segreto di firma (HMAC-SHA256) e header propri, e certificati client (mTLS).
+- Nuovi tentativi e una coda che conserva le sincronizzazioni non consegnate finché il server non torna.
+
+MQTT
+- Con MQTT Discovery, 25 dei 34 tipi e il tempo di utilizzo appaiono come sensori di un solo dispositivo, TLS e accesso facoltativi.
+
+Cosa inviare
+- 34 tipi, ognuno con interruttore e autorizzazione propri: passi, distanza, calorie, sonno con fasi, frequenza cardiaca, HRV, peso e composizione corporea, pressione sanguigna, glicemia, VO2 max, sessioni di allenamento, alimentazione, monitoraggio del ciclo e altro.
+- I totali giornalieri vengono da Connessione Salute stessa, così una camminata registrata da telefono e orologio conta una volta sola.
+- Recupero dello storico verso un webhook o l'integrazione: da 30 giorni a 5 anni o tutto ciò che c'è in Connessione Salute.
+
+Tempo di utilizzo
+- Tempo per app, accanto ai tuoi dati sulla salute, con un inizio giornata che scegli tu.
+- Invia tutte le app, tutte tranne alcune o solo quelle che scegli. Un'app esclusa non lascia mai il telefono; solo il totale del giorno conta ancora il suo tempo.
+
+Quando inviare
+- Ogni 15 minuti o più, o a orari fissi nei giorni che scegli, con ore di silenzio.
+- Widget (Stato sincronizzazione), riquadro delle impostazioni rapide (Sincronizza Life Dashboard) e un intent per Tasker e MacroDroid.
+
+Vedere cosa è successo
+- Log delle tue ultime 100 consegne, con filtri per non riuscito, webhook e MQTT.
+- Un'anteprima del JSON prima dell'invio e una prova per ogni indirizzo.
+- Un'esportazione dei tuoi dati in CSV o JSON.
+
+Il server MCP in sola lettura dello stack Life Dashboard consente a un tuo modello di IA di leggere il tuo storico. L'app in sé non contiene IA.
+
+I segreti sono crittografati sul telefono. Open source con licenza MIT; il codice è pubblico su GitHub.
+
+L'app parla undici lingue: italiano, inglese, olandese, tedesco, francese, spagnolo, portoghese (Brasile), giapponese, arabo, hindi e cinese semplificato.
+
+I dati sulla salute richiedono Android 9 o successivi con Connessione Salute (integrata da Android 14, un'app di Google Play da Android 9 a 13). Il tempo di utilizzo funziona da Android 8.0.
+
+Home Assistant, Grafana e gli altri prodotti citati sono marchi dei rispettivi proprietari. Non sono inclusi in questa app, e i proprietari non hanno legami con essa.
+
+Life Dashboard Companion non è un dispositivo medico e non diagnostica, tratta, cura né previene alcuna condizione medica. Rivolgiti a un professionista sanitario per consigli medici, diagnosi o trattamenti.

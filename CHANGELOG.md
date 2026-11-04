@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Highlights
+
+- A new design, on every screen. The Health and Screen Time tabs open on whether your data arrives, per destination, with today's figures below it. The settings moved to their own pages, behind four tiles.
+- **Save Changes** is gone: switches and chips apply at once, and only what you type has a **Save** of its own. The Changed list below says where everything went.
+- The app speaks eleven languages, with French, Spanish, Italian, Portuguese (Brazil), Japanese, Arabic, Hindi and Simplified Chinese new.
+
 ### Added
 
 - The app in Simplified Chinese, asked for by @jHbO2Ortz in
@@ -13,10 +19,75 @@ All notable changes to this project are documented in this file. The format is b
   speaks eleven languages. Each uses the words Health Connect and Android use in that language,
   and the same words as the iPhone app. Arabic runs right to left. Native speakers are welcome to
   improve any of them on [Weblate](https://hosted.weblate.org/engage/life-dashboard-companion/).
+- **Today** on the Health tab: steps, sleep, resting heart rate and weight, only for what you send,
+  each with a line over the last seven days. With none of those it shows the records sent today.
+- Every destination has its own row on the tab, with the time of its last delivery or what went
+  wrong, and its own **Send test**, so you can check one address without the others.
+- Data export as CSV next to JSON, with a row per record, under **More > Export data**.
+- Logs can filter on **Failed**, **Webhook** and **MQTT**, next to **Health** and **Screen Time**.
+  Tap a row for a page with everything the log holds about that delivery. Press and hold a row to
+  delete just that one.
+- A **Paired** page after a pairing, which says whether the receiver took the test ping, with
+  **Try again** when it did not and **Pick what to send** when no data types are selected yet.
+- **Notifications** says so when Android blocks the app's notifications, with **Open settings** to
+  allow them.
+- A warning on the Health tab when nothing has been delivered for longer than the schedule explains.
 
 ### Changed
 
+- A new design, in all eleven languages. The tabs are still Health, Screen Time and Logs. Health
+  shows where your data goes and whether it arrives, with **Sync Now** and **Add destination** under
+  the destinations, and four tiles: **What to send**, **When to send**, **Receive** and **More**.
+  Screen Time has **Apps to send**, **When to send**, **Day starts at** and **More**. What used to
+  expand on the tab now opens as a page of its own, with Back to return. The typefaces are Space
+  Grotesk and Space Mono.
+- **Save Changes** is gone. Switches, chips and other choices apply the moment you change them. A
+  webhook, the MQTT broker, the interval and the day boundary have a **Save** of their own on their
+  page, and Back discards what you typed. **Sync Now** no longer saves anything first.
+- **Data Types** is now **What to send**, sorted into categories, with **Essentials**, **All types**
+  and **None**. **Data Resolution** and **Backfill** moved there too, as **Data resolution** and
+  **Send history**, and so did access to Health Connect, on the **Health Connect access** row that
+  used to be the card with **Open App**.
+- **Sync Schedule** is now **When to send**, and **Day Boundary** is **Day starts at**.
+- **Webhook** and **MQTT** are no longer rows on the tab that expand. A new destination starts at
+  **Add destination**, which is also where **Scan a pairing code** is, and each destination opens
+  from its row.
+- **Test ping** is now **Send test**, on a destination's page and on Logs. It uses what is saved.
+- **View** is now **Preview payload**, under **What to send** on Health and under **More** on Screen
+  Time. **Export** moved to **More > Export data**.
+- **Advanced** and **Notifications** moved to **More**, on both tabs. So did **Keep full payloads**,
+  which was at the top of Logs and is now under **Advanced**.
+- The info icon is gone: **About** is under **More**, with Help, Support, Privacy and Open source.
+  **Rate the app** is under Support. Press and hold the version line for Nerd Stats, which now has
+  the lifetime figures that were on the Health tab. **Backup and restore** and **Appearance** are
+  under **More** on the Health tab.
+- Logs is built for scanning: one row per delivery with its status code, destination and time, and
+  **Send test**, **Export** and **Clear** at the bottom. Export and Clear go by the rows the filter
+  shows.
+- The setup has five steps: welcome, what to sync, where it goes, which data, and done. The last one
+  lists what's left, with a button for each permission. Every step before it has **Skip setup**.
+- **None** under **What to send** sticks: with everything switched off, permissions you granted
+  earlier no longer switch types back on.
+- You can remove your last destination; the tab then asks where your data should go. Removing a
+  destination asks first and says what goes with it.
 - In Simplified Chinese, a backfill chunk is called 批 everywhere, where some screens said 分块.
+- The setup guide, the feature list, the payload reference, the pairing guide, the brand guides and
+  the recipes describe the new screens.
+- The install steps name **Settings > Marketplace**, part of Home Assistant from 2026.11, with HACS
+  for older versions.
+
+### Fixed
+
+- Screen Time's today showed yesterday's figures when nothing had been used yet today.
+- The launcher counted as screen time on Android 11 and later, in the app and in what it sends. The
+  launchers of the common phone makers are now left out, as the app always said, so your totals can
+  drop from this version on. Days already sent change the next time they are sent; a launcher the
+  app does not know still counts.
+- Changing MQTT on one tab no longer puts an older copy of the shared broker back from the other.
+- Health Connect's background access alone no longer counts as access, so a phone with only that
+  permission is asked for the rest.
+- The check whether to show weight in pounds also works on Android 8, where the call it used does
+  not exist.
 
 ## [1.29.0] - 2026-10-27
 

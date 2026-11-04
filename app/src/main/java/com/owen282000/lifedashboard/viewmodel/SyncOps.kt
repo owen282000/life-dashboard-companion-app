@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.health.connect.client.HealthConnectClient
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.owen282000.lifedashboard.AppChoice
 import com.owen282000.lifedashboard.BackfillJob
 import com.owen282000.lifedashboard.BackfillStart
@@ -13,16 +15,23 @@ import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncManager
 import com.owen282000.lifedashboard.HealthSyncResult
+import com.owen282000.lifedashboard.HealthSyncWorker
 import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.ScreenTimeManager
 import com.owen282000.lifedashboard.ScreenTimeSyncManager
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
+import com.owen282000.lifedashboard.ScreenTimeSyncWorker
 import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.TestPing
+import com.owen282000.lifedashboard.TodayDay
+import com.owen282000.lifedashboard.TodayKind
 import com.owen282000.lifedashboard.WriteBackType
+import com.owen282000.lifedashboard.syncDataChanges
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 /*
@@ -59,6 +68,15 @@ interface HealthOps {
 
     /** Package names of other apps that wrote [type] to Health Connect in the last week (Receive, issue #62). */
     suspend fun otherSourcesWriting(type: WriteBackType): List<String>
+
+    /** Today's figures of [kinds], see HealthConnectManager.readTodaySeries; null for one that cannot be read right now. */
+    suspend fun todaySeries(kinds: Set<TodayKind>): Map<TodayKind, List<TodayDay>?>
+
+    /** See [syncDataChanges]. */
+    fun dataChanges(): Flow<Unit>
+
+    /** Whether this section's worker is at work: a schedule, the widget, the tile or a broadcast started it. */
+    fun workerRunning(): Flow<Boolean>
 }
 
 interface ScreenTimeOps {
@@ -73,7 +91,19 @@ interface ScreenTimeOps {
      * visible and can be taken off the list again.
      */
     suspend fun appChoices(listed: Set<String>): List<AppChoice>
+
+    /** See [syncDataChanges]. */
+    fun dataChanges(): Flow<Unit>
+
+    /** See [HealthOps.workerRunning]. */
+    fun workerRunning(): Flow<Boolean>
 }
+
+/** WorkManager tags every request with its worker's class name. */
+private fun Context.workerRunning(worker: Class<*>): Flow<Boolean> =
+    WorkManager.getInstance(this).getWorkInfosByTagFlow(worker.name)
+        .map { infos -> infos.any { it.state == WorkInfo.State.RUNNING } }
+        .distinctUntilChanged()
 
 /** The Health Connect app on Android 9 to 13; from Android 14 it is part of the system. */
 private const val HEALTH_CONNECT_PROVIDER = "com.google.android.apps.healthdata"
@@ -128,6 +158,7 @@ class RealHealthOps(private val context: Context) : HealthOps {
     override suspend fun preview(types: Set<HealthDataType>, resolutions: Map<HealthDataType, SeriesResolution>) =
         HealthSyncManager(context).previewData(types, resolutions)
     override suspend fun otherSourcesWriting(type: WriteBackType) = HealthConnectManager(context).otherSourcesWriting(type)
+    override suspend fun todaySeries(kinds: Set<TodayKind>) = HealthConnectManager(context).readTodaySeries(kinds)
     override fun backfillStatus() = BackfillWork.status(context)
     override suspend fun startBackfill(days: Int) = BackfillWork.start(context, days)
     override fun cancelBackfill() = BackfillWork.cancel(context)
@@ -142,6 +173,9 @@ class RealHealthOps(private val context: Context) : HealthOps {
 
     override suspend fun testPing(webhook: WebhookDraft): Result<Unit> =
         TestPing.send(context, webhook.trimmed().destinations, LogType.HEALTH_CONNECT)
+
+    override fun dataChanges() = syncDataChanges()
+    override fun workerRunning() = context.workerRunning(HealthSyncWorker::class.java)
 }
 
 class RealScreenTimeOps(private val context: Context, private val prefs: PreferencesManager) : ScreenTimeOps {
@@ -158,4 +192,7 @@ class RealScreenTimeOps(private val context: Context, private val prefs: Prefere
         val known = used.map { it.packageName }.toSet()
         used + (listed - known).map { AppChoice(it, manager.appName(it), 0) }.sortedBy { it.name.lowercase() }
     }
+
+    override fun dataChanges() = syncDataChanges()
+    override fun workerRunning() = context.workerRunning(ScreenTimeSyncWorker::class.java)
 }

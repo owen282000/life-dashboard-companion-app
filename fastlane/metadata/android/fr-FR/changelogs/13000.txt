@@ -1,0 +1,6 @@
+Un nouveau design. Vos destinations et vos réglages restent tels quels.
+
+- Santé et Temps d’écran s’ouvrent sur l’arrivée de vos données, avec les chiffres du jour en dessous
+- Les réglages ont leurs pages, derrière des tuiles : Données à envoyer, Quand envoyer, Recevoir et Plus
+- Enregistrer les modifications disparaît : les boutons agissent aussitôt, seule la saisie a son Enregistrer
+- Onze langues : français, espagnol, italien, portugais, japonais, arabe, hindi et chinois sont nouveaux

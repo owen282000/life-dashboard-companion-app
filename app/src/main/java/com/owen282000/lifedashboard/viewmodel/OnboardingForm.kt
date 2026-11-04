@@ -12,9 +12,8 @@ import com.owen282000.lifedashboard.OnboardingSupport
  * the MQTT password in it, and survive the process as well. Losing the answers when Android ends
  * the process is fine for a wizard that takes a minute.
  *
- * The scanned code is kept with the fields it filled in. Without it, a scanned address that
- * outlived a rotation would look typed, and finishing would write it into sections the pairing
- * dialog left out.
+ * The scanned code is kept as well: an address equal to it is where the pairing dialog wrote it,
+ * and finishing must not write it into sections the dialog left out.
  */
 class OnboardingForm : ViewModel() {
     var healthConnect by mutableStateOf(true)
@@ -23,8 +22,8 @@ class OnboardingForm : ViewModel() {
     var useWebhook by mutableStateOf(false)
     var webhookUrl by mutableStateOf("")
 
-    // Typed in, or filled in by the pairing dialog after a scan. The wizard wrote URLs
-    // only until now, which left a scanned secret behind on a fresh install.
+    // What goes with webhookUrl at the end. A scan does not fill it: the pairing stores its
+    // address and secret itself, and the flow shows what is stored.
     var webhookSecret by mutableStateOf("")
     var allowHttp by mutableStateOf(false)
 

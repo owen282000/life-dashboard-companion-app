@@ -1,0 +1,1 @@
+Health Connect और स्क्रीन टाइम आपके अपने Home Assistant, MQTT या वेबहुक पर।

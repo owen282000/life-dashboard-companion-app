@@ -55,3 +55,6 @@
 -dontwarn sun.security.**
 -dontwarn io.reactivex.**
 -dontwarn org.reactivestreams.**
+
+# Glance builds the widget's button action by class name.
+-keep class * extends androidx.glance.appwidget.action.ActionCallback { <init>(); }

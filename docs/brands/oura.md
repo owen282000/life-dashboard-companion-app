@@ -35,7 +35,7 @@ Oura lists the Health Connect integration for Android only, for Gen2 rings, and 
 2. Under **Data Sharing**, tap **Health Connect**.
 3. Use the toggles to choose which data to share, and allow them in Health Connect.
 
-For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install Life Dashboard Companion](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **Data Types** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
+For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install Life Dashboard Companion](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
 
 ## Good to know
 
@@ -53,7 +53,7 @@ Oura's own fix is to switch all the toggles under **Health Connect** off and on 
 
 ## Compared with the Oura integration
 
-The [Oura Ring integration](https://github.com/louispires/Oura-Home-Assistant-Integration) in HACS reads Oura's cloud through the Oura API.
+The [Oura Ring integration](https://github.com/louispires/Oura-Home-Assistant-Integration) in the Marketplace (HACS) reads Oura's cloud through the Oura API.
 
 | | Oura Ring integration | This app |
 |---|---|---|

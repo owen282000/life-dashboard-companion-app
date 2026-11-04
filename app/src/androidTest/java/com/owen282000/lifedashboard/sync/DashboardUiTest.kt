@@ -30,7 +30,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 
 /**
- * The dashboard after Sync now (T52): the card reloads with the sync's result without a tab
+ * Home after Sync now (T52): the heading and the row reload with the sync's result without a tab
  * switch (the refreshKey of 1.20.0). Texts come from the app's resources, so the test holds in
  * any locale.
  */
@@ -53,15 +53,15 @@ class DashboardUiTest {
         fixture.assertNoForeignRecords(StepsRecord::class)
         fixture.insert(fixture.steps(64, ago(2), ago(1)))
         context.appPreferences().setOnboardingCompleted()
-        val never = context.getString(R.string.common_never)
+        val waiting = context.getString(R.string.ld_home_heading_waiting)
+        val arriving = context.getString(R.string.ld_home_heading_arriving)
         val syncNow = context.getString(R.string.sync_now)
 
         ActivityScenario.launch(MainActivity::class.java).use {
-            compose.waitUntil(15_000) { compose.onAllNodes(hasText(never)).fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(15_000) { compose.onAllNodes(hasText(waiting)).fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText(syncNow).performScrollTo().performClick()
 
-            compose.waitUntil(30_000) { compose.onAllNodes(hasText(never)).fetchSemanticsNodes().isEmpty() }
-            compose.waitUntil(10_000) { compose.onAllNodes(hasText("1")).fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(30_000) { compose.onAllNodes(hasText(arriving)).fetchSemanticsNodes().isNotEmpty() }
             assertEquals("the sync went out", 1, receiver.exchanges.size)
         }
     }
@@ -81,7 +81,6 @@ class DashboardUiTest {
             compose.onNodeWithText(text(R.string.onboarding_get_started)).performClick()
             compose.onNodeWithText(text(R.string.onboarding_feature_screen)).performClick() // health only
             compose.onNodeWithText(text(R.string.onboarding_next)).performClick()
-            compose.onNodeWithText(text(R.string.onboarding_webhook_option)).performScrollTo().performClick()
             compose.onNode(hasSetTextAction()).performScrollTo().performTextInput(url)
             compose.onNodeWithText(text(R.string.onboarding_next)).performClick()
             compose.onNodeWithText(text(R.string.onboarding_types_essentials)).performClick()

@@ -1,0 +1,6 @@
+Un diseño nuevo. Tus destinos y tu configuración siguen como estaban.
+
+- Salud y Tiempo de pantalla abren mostrando si llegan tus datos, con las cifras de hoy debajo
+- La configuración tiene sus propias páginas, tras mosaicos: Qué enviar, Cuándo enviar, Recibir y Más
+- Guardar cambios ya no existe: los interruptores se aplican al instante, solo lo que escribes tiene su propio Guardar
+- Once idiomas: francés, español, italiano, portugués, japonés, árabe, hindi y chino simplificado son nuevos

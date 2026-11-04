@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The A2b tokens the widget uses, here because a launcher resolves a widget's colours itself and cannot reach LDTheme. Same values as LDTheme, and values-night holds the dark ones. -->
+<resources>
+    <color name="widget_ground">#F3F6F4</color>
+    <color name="widget_border">#D5DED9</color>
+    <color name="widget_text">#101A15</color>
+    <color name="widget_muted">#56645D</color>
+    <color name="widget_accent">#1E9665</color>
+    <color name="widget_accent_text">#176B49</color>
+    <color name="widget_on_accent">#06130D</color>
+    <color name="widget_warning">#955A00</color>
+    <color name="widget_flat">#7A8E83</color>
+</resources>

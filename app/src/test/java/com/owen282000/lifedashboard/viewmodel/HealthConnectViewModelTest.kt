@@ -7,6 +7,7 @@ import com.owen282000.lifedashboard.Destination
 import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
+import com.owen282000.lifedashboard.NoNewDataToPreview
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.ServerTrust
@@ -44,106 +45,72 @@ class HealthConnectViewModelTest {
     private fun vm(settings: FakeAppSettings = FakeAppSettings(), ops: FakeHealthOps = FakeHealthOps()) =
         HealthConnectViewModel(settings, ops)
 
-    @Test
-    fun `starts clean and marks changes as the draft diverges`() {
-        val vm = vm()
-        assertFalse(vm.state.value.hasChanges)
-        vm.setSyncInterval("90")
-        assertTrue(vm.state.value.hasChanges)
-        vm.setSyncInterval("60")
-        assertFalse(vm.state.value.hasChanges)
+    /** A destination as the Webhook screen stores it. */
+    private fun HealthConnectViewModel.stored(url: String) {
+        assertNull(saveDestination(destinationDraft(null, url)))
     }
 
-    @Test
-    fun `an unparseable interval does not count as a change`() {
-        val vm = vm()
-        vm.setSyncInterval("")
-        assertFalse(vm.state.value.hasChanges)
-    }
+    private fun HealthConnectViewModel.draftOf(id: String) = destinationDraft(id)
 
     @Test
-    fun `save refuses intervals under fifteen minutes and destinations that are missing`() = runTest {
+    fun `an interval under fifteen minutes or no number at all is refused, and no destination at all is fine`() = runTest {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
+        vm.stored("https://example.org/hook")
 
-        vm.setSyncInterval("10")
-        vm.addUrl("https://example.org/hook")
-        vm.save()
-        assertEquals(UiMessage.IntervalTooShort, toasts.last())
+        assertEquals(UiMessage.IntervalTooShort, vm.saveInterval("10"))
+        assertEquals(UiMessage.IntervalTooShort, vm.saveInterval(""))
+        assertEquals("60", settings.health.schedule.intervalText)
 
-        vm.setSyncInterval("30")
-        vm.removeDestination(vm.state.value.draft.webhook.destinations.single().id)
-        vm.save()
-        assertEquals(UiMessage.NoDestination, toasts.last())
-        assertEquals(0, settings.savedHealth)
-        job.cancel()
+        assertNull(vm.saveInterval("30"))
+        vm.removeDestination(vm.state.value.saved.webhook.destinations.single().id)
+        assertEquals("30", settings.health.schedule.intervalText)
+        assertTrue(settings.health.webhook.destinations.isEmpty())
     }
 
     @Test
     fun `MQTT alone is a valid destination`() = runTest {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        vm.setMqtt(vm.state.value.draft.mqtt.let { it.withActiveBroker(it.activeBroker.copy(host = "192.168.1.10")).copy(section = it.section.copy(enabled = true)) })
-        vm.save()
-        assertEquals(1, settings.savedHealth)
-        assertFalse(vm.state.value.hasChanges)
+        assertNull(vm.saveMqtt(vm.mqttDraft().let { it.withActiveBroker(it.activeBroker.copy(host = "192.168.1.10")).copy(section = it.section.copy(enabled = true)) }))
+        assertTrue(settings.health.mqtt.section.enabled)
+        assertTrue(vm.state.value.saved.hasDestination)
     }
 
     @Test
     fun `a broker host with a space or port 0 is not saved, and the message says which field`() = runTest {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
-        val enabled = vm.state.value.draft.mqtt.let { it.copy(section = it.section.copy(enabled = true)) }
+        val enabled = vm.mqttDraft().let { it.copy(section = it.section.copy(enabled = true)) }
 
-        vm.setMqtt(enabled.withActiveBroker(enabled.activeBroker.copy(host = "bad host")))
-        vm.save()
-        assertEquals(UiMessage.MqttHostInvalid, toasts.last())
-
-        vm.setMqtt(enabled.withActiveBroker(enabled.activeBroker.copy(host = "broker.local")).copy(portText = "0"))
-        vm.save()
-        assertEquals(UiMessage.MqttPortInvalid, toasts.last())
-
-        vm.setMqtt(enabled)
-        vm.save()
-        assertEquals(UiMessage.MqttHostMissing, toasts.last())
-        assertEquals(0, settings.savedHealth)
-        assertTrue(vm.state.value.hasChanges)
-        job.cancel()
+        assertEquals(UiMessage.MqttHostInvalid, vm.saveMqtt(enabled.withActiveBroker(enabled.activeBroker.copy(host = "bad host"))))
+        assertEquals(UiMessage.MqttPortInvalid, vm.saveMqtt(enabled.withActiveBroker(enabled.activeBroker.copy(host = "broker.local")).copy(portText = "0")))
+        assertEquals(UiMessage.MqttHostMissing, vm.saveMqtt(enabled))
+        assertFalse(settings.health.mqtt.section.enabled)
     }
 
     @Test
     fun `a header name with a space is refused when it is added`() = runTest {
-        val vm = vm()
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
-        vm.addUrl("https://example.org/hook")
-        val id = vm.state.value.draft.webhook.destinations.single().id
-        vm.addHeader(id, "Bad Header", "value")
-        assertEquals(UiMessage.InvalidHeaderName, toasts.last())
-        vm.addHeader(id, "X-Api-Key", "line\nbreak")
-        assertEquals(UiMessage.InvalidHeaderValue, toasts.last())
-        assertTrue(vm.state.value.draft.webhook.destinations.single().headers.isEmpty())
+        assertEquals(UiMessage.InvalidHeaderName, SettingsRules.headerProblem("Bad Header", "value"))
+        assertEquals(UiMessage.InvalidHeaderValue, SettingsRules.headerProblem("X-Api-Key", "line\nbreak"))
+        assertEquals(UiMessage.HeaderNeedsNameAndValue, SettingsRules.headerProblem(" ", "value"))
+        assertNull(SettingsRules.headerProblem(" X-Api-Key ", " k "))
 
-        vm.addHeader(id, " X-Api-Key ", " k ")
-        assertEquals(mapOf("X-Api-Key" to "k"), vm.state.value.draft.webhook.destinations.single().headers)
-        job.cancel()
+        val settings = FakeAppSettings()
+        val vm = vm(settings)
+        val draft = vm.destinationDraft(null, "https://example.org/hook").withHeader(" X-Api-Key ", " k ")
+        assertEquals(mapOf("X-Api-Key" to "k"), draft.headers)
+        assertNull(vm.saveDestination(draft))
+        assertEquals(mapOf("X-Api-Key" to "k"), settings.health.webhook.destinations.single().headers)
     }
 
     @Test
-    fun `save persists the draft and folds the port text into the broker`() = runTest {
+    fun `saving MQTT folds the port text into the broker`() = runTest {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        vm.addUrl("https://example.org/hook")
-        vm.setMqtt(vm.state.value.draft.mqtt.copy(portText = "8883"))
-        vm.save()
-        assertEquals(1, settings.savedHealth)
-        assertEquals(listOf("https://example.org/hook"), settings.health.webhook.urls)
+        assertNull(vm.saveMqtt(vm.mqttDraft().copy(portText = "8883")))
+        assertEquals(8883, settings.broker.port)
         assertEquals(8883, vm.state.value.saved.mqtt.sharedBroker.port)
-        assertFalse(vm.state.value.hasChanges)
     }
 
     private val stack = Destination(id = "stack", url = "https://stack.example/health", secret = "stack-secret", headers = mapOf("X-Api-Key" to "k"))
@@ -158,10 +125,8 @@ class HealthConnectViewModelTest {
         val settings = twoReceivers()
         val vm = vm(settings)
 
-        vm.setSecret(ha.id, "rotated")
-        vm.addHeader(ha.id, "Authorization", "Bearer t")
-        vm.removeHeader(stack.id, "X-Api-Key")
-        vm.save()
+        assertNull(vm.saveDestination(vm.draftOf(ha.id).withSecret("rotated").withHeader("Authorization", "Bearer t")))
+        assertNull(vm.saveDestination(vm.draftOf(stack.id).withoutHeader("X-Api-Key")))
 
         assertEquals(listOf(stack.copy(headers = emptyMap()), ha.copy(secret = "rotated", headers = mapOf("Authorization" to "Bearer t"))), settings.health.webhook.destinations)
     }
@@ -171,8 +136,7 @@ class HealthConnectViewModelTest {
         val settings = twoReceivers()
         val vm = vm(settings)
 
-        vm.setDestinationUrl(stack.id, " https://stack.example:8443/health ")
-        vm.save()
+        assertNull(vm.saveDestination(vm.draftOf(stack.id).withUrl(" https://stack.example:8443/health ")))
 
         // Trimmed on save, and still the same destination: its id, secret and headers stay.
         assertEquals(listOf(stack.copy(url = "https://stack.example:8443/health"), ha), settings.health.webhook.destinations)
@@ -183,84 +147,71 @@ class HealthConnectViewModelTest {
         val shared = FakeAppSettings(
             health = HealthDraft(WebhookDraft(destinations = listOf(stack)), emptySet(), emptyMqtt())
         )
-        val vm = vm(shared)
-        vm.addUrl("https://third.example/hook")
-        val added = vm.state.value.draft.webhook.destinations.last()
+        val added = vm(shared).destinationDraft(null, "https://third.example/hook").destination
         assertEquals("stack-secret", added.secret)
         assertTrue(added.headers.isEmpty())
 
         // Two different secrets: the section's own one is the default.
         val vm2 = vm(twoReceivers())
-        vm2.addUrl("https://third.example/hook")
-        assertEquals("stack-secret", vm2.state.value.draft.webhook.destinations.last().secret)
+        assertEquals("stack-secret", vm2.destinationDraft(null, "https://third.example/hook").destination.secret)
 
         // The same address twice is one destination.
-        vm2.addUrl(ha.url)
-        assertEquals(3, vm2.state.value.draft.webhook.destinations.size)
+        assertEquals(UiMessage.DuplicateUrl, vm2.destinationDraft(null, ha.url).urlProblem)
+        assertEquals(UiMessage.DuplicateUrl, vm2.saveDestination(vm2.destinationDraft(null, ha.url)))
+        assertEquals(2, vm2.state.value.saved.webhook.destinations.size)
     }
 
     @Test
     fun `an address moved to another host leaves its headers and secret behind, and gets them back on its own host`() = runTest {
-        val settings = twoReceivers()
-        val vm = vm(settings)
+        val vm = vm(twoReceivers())
+        var draft = vm.draftOf(stack.id)
 
         // A new port or scheme is the same receiver.
-        vm.setDestinationUrl(stack.id, "http://stack.example:8080/health")
-        assertEquals(stack.copy(url = "http://stack.example:8080/health"), vm.state.value.draft.webhook.destinations.first())
+        draft = draft.withUrl("http://stack.example:8080/health")
+        assertEquals(stack.copy(url = "http://stack.example:8080/health"), draft.destination)
 
         // Another host starts like a new address: no headers, and the secret a new one would get.
-        vm.setDestinationUrl(stack.id, "https://elsewhere.example/health")
-        val moved = vm.state.value.draft.webhook.destinations.first()
-        assertTrue(moved.headers.isEmpty())
-        assertEquals("the one the other destinations share", ha.secret, moved.secret)
+        draft = draft.withUrl("https://elsewhere.example/health")
+        assertTrue(draft.headers.isEmpty())
+        assertEquals("the one the other destinations share", ha.secret, draft.destination.secret)
 
         // Typed back to its own host, as happens mid-edit, it has its own again.
-        vm.setDestinationUrl(stack.id, stack.url)
-        assertEquals(stack, vm.state.value.draft.webhook.destinations.first())
+        draft = draft.withUrl(stack.url)
+        assertEquals(stack, draft.destination)
     }
 
     @Test
     fun `an address listed twice is refused, added or edited`() = runTest {
         val settings = twoReceivers()
         val vm = vm(settings)
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
 
-        vm.addUrl(" ${ha.url} ")
-        assertEquals(UiMessage.DuplicateUrl, toasts.last())
+        assertEquals(UiMessage.DuplicateUrl, vm.destinationDraft(null, " ${ha.url} ").urlProblem)
 
-        vm.setDestinationUrl(stack.id, ha.url)
-        vm.save()
-        assertEquals(UiMessage.DuplicateUrl, toasts.last())
-        assertEquals(0, settings.savedHealth)
-        job.cancel()
+        assertEquals(UiMessage.DuplicateUrl, vm.draftOf(stack.id).withUrl(ha.url).urlProblem)
+        assertEquals(UiMessage.DuplicateUrl, vm.saveDestination(vm.draftOf(stack.id).withUrl(ha.url)))
+        assertEquals(0, settings.destinationWrites)
     }
 
     @Test
     fun `headers and a secret can be copied from another destination`() = runTest {
         val vm = vm(twoReceivers())
 
-        vm.copyHeaders(ha.id, stack.id)
-        vm.copySecret(ha.id, stack.id)
+        val draft = vm.draftOf(ha.id).withHeadersOf(stack.id).withSecretOf(stack.id)
 
-        assertEquals(ha.copy(headers = stack.headers, secret = stack.secret), vm.state.value.draft.webhook.destinations.last())
-        assertEquals("the source keeps its own", stack, vm.state.value.draft.webhook.destinations.first())
+        assertEquals(ha.copy(headers = stack.headers, secret = stack.secret), draft.destination)
+        assertEquals("the source keeps its own", stack, draft.others.single())
     }
 
     @Test
     fun `a save the secure storage cannot keep is refused and stays unsaved`() = runTest {
         val settings = FakeAppSettings().apply { refuseSaves = true }
         val vm = vm(settings)
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
 
-        vm.addUrl("https://example.org/hook")
-        vm.save()
+        val problem = vm.saveDestination(vm.destinationDraft(null, "https://example.org/hook"))
 
-        assertEquals(UiMessage.SecretsNotReady, toasts.last())
-        assertTrue(toasts.last().isFailure)
-        assertTrue("the user can try again", vm.state.value.hasChanges)
-        job.cancel()
+        assertEquals(UiMessage.SecretsNotReady, problem)
+        assertTrue(problem!!.isFailure)
+        assertTrue("the user can try again", settings.health.webhook.destinations.isEmpty())
     }
 
     @Test
@@ -268,42 +219,30 @@ class HealthConnectViewModelTest {
         val legacy = Destination(id = "old", url = "https://old.example/hook?token=abc")
         val settings = FakeAppSettings(health = HealthDraft(WebhookDraft(destinations = listOf(legacy)), emptySet(), emptyMqtt()))
         val vm = vm(settings)
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
 
-        vm.addUrl("https://user:pass@example.org/hook")
-        assertEquals(UiMessage.UrlHasCredentials(null), toasts.last())
-        vm.addUrl("https://example.org/hook?apiKey=k")
-        assertEquals(UiMessage.UrlHasCredentials("apiKey"), toasts.last())
-        assertEquals(listOf(legacy), vm.state.value.draft.webhook.destinations)
+        assertEquals(UiMessage.UrlHasCredentials(null), vm.saveDestination(vm.destinationDraft(null, "https://user:pass@example.org/hook")))
+        assertEquals(UiMessage.UrlHasCredentials("apiKey"), vm.saveDestination(vm.destinationDraft(null, "https://example.org/hook?apiKey=k")))
+        assertEquals(listOf(legacy), settings.health.webhook.destinations)
 
-        // Saved before the check existed: saving the tab keeps it.
-        vm.addUrl("https://example.org/hook")
-        vm.save()
-        assertEquals(UiMessage.Saved, toasts.last())
+        // Saved before the check existed: saving a new one beside it keeps it.
+        assertNull(vm.saveDestination(vm.destinationDraft(null, "https://example.org/hook")))
 
         // Edited, it is checked like a new one.
-        vm.setDestinationUrl(legacy.id, "https://old.example/hook?password=x")
-        vm.save()
-        assertEquals(UiMessage.UrlHasCredentials("password"), toasts.last())
-        assertEquals(1, settings.savedHealth)
+        val writes = settings.destinationWrites
+        assertEquals(UiMessage.UrlHasCredentials("password"), vm.saveDestination(vm.draftOf(legacy.id).withUrl("https://old.example/hook?password=x")))
+        assertEquals(writes, settings.destinationWrites)
 
         // An Apps Script web app can only check a token in its URL.
-        vm.setDestinationUrl(legacy.id, "https://script.google.com/macros/s/abc/exec?token=t")
-        vm.save()
-        assertEquals(UiMessage.Saved, toasts.last())
-        job.cancel()
+        assertNull(vm.saveDestination(vm.draftOf(legacy.id).withUrl("https://script.google.com/macros/s/abc/exec?token=t")))
     }
 
     @Test
     fun `invalid URLs are rejected with a message instead of being added`() = runTest {
-        val vm = vm()
-        val toasts = mutableListOf<UiMessage>()
-        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.toasts.collect { toasts += it } }
-        vm.addUrl("example.org")
-        assertEquals(UiMessage.InvalidUrl, toasts.last())
-        assertTrue(vm.state.value.draft.webhook.urls.isEmpty())
-        job.cancel()
+        val settings = FakeAppSettings()
+        val vm = vm(settings)
+        assertEquals(UiMessage.InvalidUrl, vm.destinationDraft(null, "example.org").urlProblem)
+        assertEquals(UiMessage.InvalidUrl, vm.saveDestination(vm.destinationDraft(null, "example.org")))
+        assertTrue(settings.health.webhook.urls.isEmpty())
     }
 
     @Test
@@ -312,7 +251,7 @@ class HealthConnectViewModelTest {
         vm.refreshPermissions()
         vm.toggleType(HealthDataType.STEPS, true)
         assertEquals(HealthDataType.STEPS, vm.state.value.permissionPrompt)
-        assertTrue(vm.state.value.draft.enabledTypes.isEmpty())
+        assertTrue(vm.state.value.saved.enabledTypes.isEmpty())
         vm.dismissPermissionPrompt()
         assertNull(vm.state.value.permissionPrompt)
     }
@@ -322,43 +261,64 @@ class HealthConnectViewModelTest {
         val vm = vm(ops = FakeHealthOps(granted = setOf("android.permission.health.READ_STEPS")))
         vm.refreshPermissions()
         assertEquals(true, vm.state.value.hasPermissions)
-        assertEquals(setOf(HealthDataType.STEPS), vm.state.value.draft.enabledTypes)
-        assertFalse(vm.state.value.hasChanges)
+        assertEquals(setOf(HealthDataType.STEPS), vm.state.value.saved.enabledTypes)
     }
 
     @Test
-    fun `sync now saves first and reports the record count`() = runTest {
+    fun `access that reads nothing does not count as having permissions, and selects nothing`() = runTest {
+        val vm = vm(ops = FakeHealthOps(granted = setOf(HealthConnectManager.BACKGROUND_PERMISSION, WriteBackType.WEIGHT.writePermission)))
+        vm.refreshPermissions()
+        assertEquals(false, vm.state.value.hasPermissions)
+        assertTrue(vm.state.value.saved.enabledTypes.isEmpty())
+    }
+
+    @Test
+    fun `without Health Connect a shortcut keeps the selection and says why, and asks nothing`() = runTest {
+        val settings = FakeAppSettings(health = HealthDraft(WebhookDraft(), setOf(HealthDataType.STEPS), emptyMqtt()))
+        val ops = FakeHealthOps(availability = HcAvailability.NOT_INSTALLED)
+        val vm = vm(settings, ops)
+        vm.refreshPermissions()
+        val requests = mutableListOf<Set<String>>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.permissionRequests.collect { requests += it } }
+
+        vm.applyTypes(setOf(HealthDataType.WEIGHT))
+        assertEquals(setOf(HealthDataType.STEPS), settings.health.enabledTypes)
+        assertEquals(HcAvailability.NOT_INSTALLED, vm.state.value.accessBlocked)
+
+        vm.toggleType(HealthDataType.WEIGHT, true)
+        assertNull("no dialog that can only lead to nothing", vm.state.value.permissionPrompt)
+        vm.requestAccess()
+        assertTrue(requests.isEmpty())
+
+        // None needs nothing from Health Connect, and switching off neither.
+        vm.applyTypes(emptySet())
+        assertTrue(settings.health.enabledTypes.isEmpty())
+        assertNull(vm.state.value.accessBlocked)
+        job.cancel()
+    }
+
+    @Test
+    fun `sync now reads what is stored, writes nothing and reports the record count`() = runTest {
         val settings = FakeAppSettings()
         val ops = FakeHealthOps()
         val vm = vm(settings, ops)
         vm.refreshPermissions()
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
+        val writes = settings.destinationWrites
         vm.syncNow()
-        assertEquals(1, settings.savedHealth)
+        assertEquals("so it cannot put back older settings", writes, settings.destinationWrites)
+        assertEquals(0, settings.brokerWrites)
+        assertEquals(emptyList<Any>(), settings.scheduleWrites)
         assertEquals(1, ops.syncs)
         assertEquals(UiMessage.SyncedRecords(12), vm.state.value.syncMessage)
         assertFalse(vm.state.value.isSyncing)
     }
 
     @Test
-    fun `sync now without changes writes nothing, so it cannot put back older settings`() = runTest {
-        val settings = FakeAppSettings()
-        val ops = FakeHealthOps()
-        val vm = vm(settings, ops)
-        vm.refreshPermissions()
-        vm.addUrl("https://example.org/hook")
-        vm.save()
-        assertEquals(1, settings.savedHealth)
-        vm.syncNow()
-        assertEquals(1, settings.savedHealth)
-        assertEquals(1, ops.syncs)
-    }
-
-    @Test
     fun `a manual sync reloads the dashboard card`() = runTest {
         val vm = vm()
         vm.refreshPermissions()
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         val before = vm.state.value.refreshKey
         vm.syncNow()
         assertEquals(before + 1, vm.state.value.refreshKey)
@@ -368,7 +328,7 @@ class HealthConnectViewModelTest {
     fun `sync now without permissions asks the launcher instead of syncing`() = runTest {
         val ops = FakeHealthOps(granted = emptySet())
         val vm = vm(ops = ops)
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         val request = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.permissionRequests.first() }
         vm.syncNow()
         request.join()
@@ -379,7 +339,7 @@ class HealthConnectViewModelTest {
     fun `sync failure lands in the sync line as a failure`() = runTest {
         val ops = FakeHealthOps(syncResult = Result.failure(IllegalStateException("boom")))
         val vm = vm(ops = ops)
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         vm.syncNow()
         val message = vm.state.value.syncMessage
         assertEquals(UiMessage.SyncFailed("boom"), message)
@@ -390,7 +350,7 @@ class HealthConnectViewModelTest {
     fun `no data and queued results map to their messages`() = runTest {
         val ops = FakeHealthOps(syncResult = Result.success(HealthSyncResult.Queued(7)))
         val vm = vm(ops = ops)
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         vm.syncNow()
         assertEquals(UiMessage.QueuedRecords(7), vm.state.value.syncMessage)
     }
@@ -438,7 +398,7 @@ class HealthConnectViewModelTest {
         val ops = FakeHealthOps()
         val vm = vm(ops = ops)
         vm.refreshPermissions()
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         vm.backfill(30)
         assertFalse(vm.state.value.canSync)
         ops.backfill = BackfillStatus.Running(3, 10, paused = true)
@@ -499,7 +459,7 @@ class HealthConnectViewModelTest {
         val ops = FakeHealthOps().apply { earliest = 1_600_000_000_000L }
         val vm = vm(ops = ops)
         vm.refreshPermissions()
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         vm.openBackfillDialog()
         assertEquals("without history access the answer would be cut off", 0, ops.earliestLookups)
         assertNull(vm.state.value.backfillEarliest)
@@ -530,7 +490,7 @@ class HealthConnectViewModelTest {
     fun `the dialog names the stopped backfill that its length continues`() = runTest {
         val stopped = BackfillJob.start(days = 90, types = listOf("STEPS"), now = 1_000_000L).copy(nextWindow = 12)
         val vm = vm(ops = FakeHealthOps().apply { this.stopped = stopped })
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         vm.openBackfillDialog()
         assertEquals(stopped, vm.state.value.stoppedBackfill)
     }
@@ -540,7 +500,7 @@ class HealthConnectViewModelTest {
         val ops = FakeHealthOps()
         val vm = vm(ops = ops)
         vm.refreshPermissions()
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         assertTrue(vm.state.value.canSync)
 
         vm.backfill(90)
@@ -585,7 +545,7 @@ class HealthConnectViewModelTest {
 
         vm.toggleType(HealthDataType.WEIGHT, true)
         assertEquals(HealthDataType.WEIGHT, vm.state.value.permissionPrompt)
-        assertFalse(HealthDataType.WEIGHT in vm.state.value.draft.enabledTypes)
+        assertFalse(HealthDataType.WEIGHT in vm.state.value.saved.enabledTypes)
 
         val request = async(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.permissionRequests.first() }
         vm.requestTypePermission()
@@ -594,14 +554,14 @@ class HealthConnectViewModelTest {
 
         ops.granted = ops.granted + "android.permission.health.READ_WEIGHT"
         vm.refreshPermissions()
-        assertTrue(HealthDataType.WEIGHT in vm.state.value.draft.enabledTypes)
+        assertTrue(HealthDataType.WEIGHT in vm.state.value.saved.enabledTypes)
 
         // A type whose permission is already there goes on without asking.
         vm.toggleType(HealthDataType.STEPS, false)
-        assertFalse(HealthDataType.STEPS in vm.state.value.draft.enabledTypes)
+        assertFalse(HealthDataType.STEPS in vm.state.value.saved.enabledTypes)
         vm.toggleType(HealthDataType.STEPS, true)
         assertNull(vm.state.value.permissionPrompt)
-        assertTrue(HealthDataType.STEPS in vm.state.value.draft.enabledTypes)
+        assertTrue(HealthDataType.STEPS in vm.state.value.saved.enabledTypes)
     }
 
     @Test
@@ -614,7 +574,21 @@ class HealthConnectViewModelTest {
     }
 
     @Test
-    fun `view and export use the data types and resolution on screen without saving them`() = runTest {
+    fun `a preview says why there is none, and nothing new is no failure`() = runTest {
+        val ops = FakeHealthOps(previewResult = Result.failure(NoNewDataToPreview()))
+        val vm = vm(ops = ops)
+        vm.preview()
+        assertEquals(UiMessage.NoNewData, vm.state.value.previewProblem)
+
+        ops.previewResult = Result.failure(IllegalStateException("boom"))
+        vm.preview()
+        assertEquals(UiMessage.PreviewFailed("boom"), vm.state.value.previewProblem)
+        vm.dismissPreview()
+        assertNull(vm.state.value.previewProblem)
+    }
+
+    @Test
+    fun `a switch and a resolution are stored at once, and view and export use what is stored`() = runTest {
         val savedResolutions = mapOf(HealthDataType.STEPS to SeriesResolution.HOURLY)
         val settings = FakeAppSettings(
             health = HealthDraft(WebhookDraft(), setOf(HealthDataType.STEPS), emptyMqtt(), resolutions = savedResolutions)
@@ -626,18 +600,16 @@ class HealthConnectViewModelTest {
         vm.setResolution(HealthDataType.STEPS, SeriesResolution.FIFTEEN_MINUTES)
         val onScreen = setOf(HealthDataType.STEPS, HealthDataType.WEIGHT)
         val resolutionsOnScreen = mapOf(HealthDataType.STEPS to SeriesResolution.FIFTEEN_MINUTES)
-        assertEquals(onScreen, vm.state.value.draft.enabledTypes)
-        assertEquals(resolutionsOnScreen, vm.state.value.draft.resolutions)
+        assertEquals(onScreen, vm.state.value.saved.enabledTypes)
+        assertEquals(resolutionsOnScreen, vm.state.value.saved.resolutions)
 
         vm.preview()
         vm.export()
 
         assertEquals(listOf(onScreen, onScreen), ops.previewTypes)
         assertEquals(listOf(resolutionsOnScreen, resolutionsOnScreen), ops.previewResolutions)
-        assertEquals(setOf(HealthDataType.STEPS), settings.health.enabledTypes)
-        assertEquals(savedResolutions, settings.health.resolutions)
-        assertEquals(0, settings.savedHealth)
-        assertTrue(vm.state.value.hasChanges)
+        assertEquals(onScreen, settings.health.enabledTypes)
+        assertEquals(resolutionsOnScreen, settings.health.resolutions)
     }
 
     @Test
@@ -649,7 +621,7 @@ class HealthConnectViewModelTest {
         assertEquals(UiMessage.BackfillNeedsWebhook, toasts.last())
         assertFalse(vm.state.value.backfillDialog)
 
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         vm.openBackfillDialog()
         assertTrue(vm.state.value.backfillDialog)
         vm.backfill(30)
@@ -659,7 +631,7 @@ class HealthConnectViewModelTest {
     }
 
     @Test
-    fun `the client certificate applies at once and is not an unsaved change`() {
+    fun `the client certificate applies at once`() {
         val settings = FakeAppSettings().apply { certAlias = "home-cert" }
         val vm = vm(settings)
         assertEquals("home-cert", vm.state.value.clientCertAlias)
@@ -667,7 +639,6 @@ class HealthConnectViewModelTest {
         vm.setClientCertAlias("other-cert")
         assertEquals("other-cert", settings.certAlias)
         assertEquals("other-cert", vm.state.value.clientCertAlias)
-        assertFalse(vm.state.value.hasChanges)
 
         vm.setClientCertAlias(null)
         assertNull(settings.certAlias)
@@ -675,11 +646,9 @@ class HealthConnectViewModelTest {
     }
 
     @Test
-    fun `shared settings changed on the other tab are picked up without touching the draft`() {
+    fun `shared settings changed on the other tab are picked up`() {
         val settings = FakeAppSettings()
         val vm = vm(settings)
-        vm.addUrl("https://example.org/hook")
-        assertTrue(vm.state.value.hasChanges)
 
         settings.certAlias = "home-cert"
         settings.allowHttp = true
@@ -687,12 +656,10 @@ class HealthConnectViewModelTest {
 
         assertEquals("home-cert", vm.state.value.clientCertAlias)
         assertTrue(vm.state.value.allowHttpWebhooks)
-        assertTrue(vm.state.value.hasChanges)
-        assertEquals(listOf("https://example.org/hook"), vm.state.value.draft.webhook.urls)
     }
 
     @Test
-    fun `the phone name applies at once, is shared with the other tab and is not an unsaved change`() {
+    fun `the phone name applies at once and is shared with the other tab`() {
         val settings = FakeAppSettings()
         val vm = vm(settings)
         assertNull(vm.state.value.phoneName)
@@ -700,7 +667,6 @@ class HealthConnectViewModelTest {
         vm.setPhoneName("Pixel 8")
         assertEquals("Pixel 8", settings.storedPhoneName)
         assertEquals("Pixel 8", vm.state.value.phoneName)
-        assertFalse(vm.state.value.hasChanges)
 
         // Cleared on this tab, then set on the other one: the reload picks it up.
         vm.setPhoneName("")
@@ -754,7 +720,6 @@ class HealthConnectViewModelTest {
         assertTrue(settings.receive.enabled)
         assertEquals(haUrl, settings.receive.sourceUrl)
         assertEquals(haUrl, vm.state.value.receive.sourceUrl)
-        assertFalse("not an unsaved change", vm.state.value.hasChanges)
 
         vm.setReceiveEnabled(false)
         assertFalse(settings.receive.enabled)
@@ -833,12 +798,12 @@ class HealthConnectViewModelTest {
     fun `the sync line says what was written to Health Connect`() = runTest {
         val ops = FakeHealthOps(syncResult = Result.success(HealthSyncResult.Success(mapOf(HealthDataType.STEPS to 12), written = 2)))
         val vm = vm(ops = ops)
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         vm.syncNow()
         assertEquals(UiMessage.SyncedRecordsWritten(12, 2), vm.state.value.syncMessage)
 
         val nothingWritten = vm(ops = FakeHealthOps(syncResult = Result.success(HealthSyncResult.Success(mapOf(HealthDataType.STEPS to 12)))))
-        nothingWritten.addUrl("https://example.org/hook")
+        nothingWritten.stored("https://example.org/hook")
         nothingWritten.syncNow()
         assertEquals(UiMessage.SyncedRecords(12), nothingWritten.state.value.syncMessage)
     }
@@ -847,7 +812,7 @@ class HealthConnectViewModelTest {
     fun `what the integration reported is re-read after a sync and a reload`() = runTest {
         val settings = pairedSettings(haUrl)
         val vm = vm(settings)
-        vm.addUrl("https://example.org/hook")
+        vm.stored("https://example.org/hook")
         settings.status = ReceiveStatus(configured = listOf("weight", "blood_pressure"), integrationOutdated = false, writtenToday = 3)
         vm.syncNow()
         assertEquals(listOf("weight", "blood_pressure"), vm.state.value.receiveStatus.configured)
@@ -876,10 +841,47 @@ class HealthConnectViewModelTest {
         vm.setServerTrust("ha.lan:8123", ServerTrust(pinSha256 = "AB:CD"))
         assertEquals(mapOf("nas.lan:443" to ServerTrust(userCas = true), "ha.lan:8123" to ServerTrust(pinSha256 = "AB:CD")), settings.trust)
         assertEquals(settings.trust, vm.state.value.serverTrust)
-        // Applied like the other Advanced settings: nothing waits for Save.
-        assertFalse(vm.state.value.hasChanges)
 
         vm.setServerTrust("nas.lan:443", ServerTrust())
         assertEquals(mapOf("ha.lan:8123" to ServerTrust(pinSha256 = "AB:CD")), settings.trust)
+    }
+
+    @Test
+    fun `what a sync in the worker wrote is read at once`() = runTest {
+        val settings = FakeAppSettings()
+        val ops = FakeHealthOps()
+        val vm = vm(settings, ops)
+        val key = vm.state.value.refreshKey
+        settings.mqttStatus = "Failed: no route to host"
+        ops.dataChanged.emit(Unit)
+        assertEquals(key + 1, vm.state.value.refreshKey)
+        assertEquals("Failed: no route to host", vm.state.value.mqttLastStatus)
+    }
+
+    @Test
+    fun `Sync Now is busy while the worker syncs`() = runTest {
+        val ops = FakeHealthOps()
+        val vm = vm(ops = ops)
+        vm.stored("https://example.org/hook")
+        assertFalse(vm.state.value.isSyncBusy)
+        ops.workerState.value = true
+        assertTrue(vm.state.value.isSyncBusy)
+        assertFalse(vm.state.value.canSync)
+        ops.workerState.value = false
+        assertFalse(vm.state.value.isSyncBusy)
+    }
+
+    @Test
+    fun `the line under Sync Now goes when the worker ends a later sync, and not before`() = runTest {
+        val ops = FakeHealthOps()
+        val vm = vm(ops = ops)
+        vm.stored("https://example.org/hook")
+        vm.syncNow()
+        val line = vm.state.value.syncMessage
+        assertTrue(line != null)
+        ops.workerState.value = true
+        assertEquals(line, vm.state.value.syncMessage)
+        ops.workerState.value = false
+        assertNull(vm.state.value.syncMessage)
     }
 }

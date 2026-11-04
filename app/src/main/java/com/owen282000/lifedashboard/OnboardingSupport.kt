@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard
 
+import com.owen282000.lifedashboard.viewmodel.HcAvailability
 import com.owen282000.lifedashboard.viewmodel.SettingsRules
 
 /**
@@ -90,6 +91,41 @@ object OnboardingSupport {
             if (healthConnect) add(PairingSource.HEALTH)
             if (screenTime) add(PairingSource.SCREEN_TIME)
         }
+    }
+
+    /**
+     * A section's destinations with the wizard's address. Appended, as a pairing does, so a code
+     * scanned earlier in the wizard stays; on a fresh install it is the section's one destination.
+     */
+    fun withWebhook(
+        current: List<Destination>,
+        url: String,
+        secret: String,
+        newId: () -> String = Destinations::newId
+    ): List<Destination> =
+        if (current.any { it.url == url }) current else current + Destination(id = newId(), url = url, secret = secret.ifBlank { null })
+
+    /** What the last step offers: a permission the setup needs and the phone does not have yet. */
+    enum class Task { HEALTH_ACCESS, USAGE_ACCESS }
+
+    /**
+     * The real tasks left. Health access only with types to read, and not on a phone that cannot
+     * have Health Connect at all, where neither Grant nor Install would help. A missing or outdated
+     * Health Connect counts: installing it is the first part of this task.
+     */
+    fun tasksLeft(
+        healthConnect: Boolean,
+        screenTime: Boolean,
+        preset: TypePreset,
+        availability: HcAvailability,
+        granted: Set<String>,
+        usageAccess: Boolean
+    ): List<Task> = buildList {
+        val needed = HealthPermissionRequests.readPermissions(typesFor(preset))
+        if (healthConnect && needed.isNotEmpty() && availability != HcAvailability.UNAVAILABLE && !granted.containsAll(needed)) {
+            add(Task.HEALTH_ACCESS)
+        }
+        if (screenTime && !usageAccess) add(Task.USAGE_ACCESS)
     }
 
     private fun isPaired(url: String, secret: String, paired: PairingLink): Boolean =

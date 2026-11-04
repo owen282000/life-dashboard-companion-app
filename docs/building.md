@@ -32,7 +32,7 @@ cd life-dashboard-companion-app
 
 Health Connect features need a real device, or an emulator with a Google APIs system image of API 34 or newer, where Health Connect is built in.
 
-**A debug build replaces the released app, or fails to.** Debug and release builds share the application ID `com.owen282000.lifedashboard`; there is no suffix for debug. A phone with the released APK installed refuses to install a debug build over it, because the two are signed with different keys (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Uninstall the released app first, which deletes its settings: export them under **About > Backup & restore** before you do. Health Connect keeps the data that other apps wrote.
+**A debug build replaces the released app, or fails to.** Debug and release builds share the application ID `com.owen282000.lifedashboard`; there is no suffix for debug. A phone with the released APK installed refuses to install a debug build over it, because the two are signed with different keys (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Uninstall the released app first, which deletes its settings: export them under **More > Backup and restore** on the **Health** tab before you do. Health Connect keeps the data that other apps wrote.
 
 ## Versions come from git tags
 
@@ -82,13 +82,15 @@ EOF
 
 ## Tech stack
 
-Kotlin, with the UI in Jetpack Compose and Material 3. Health data comes from the Jetpack Health Connect client, screen time from Android's `UsageStatsManager`. Background syncs are WorkManager jobs. Webhooks go out through OkHttp, MQTT through the HiveMQ MQTT client, and JSON is kotlinx.serialization. The home screen widget is built with Glance, and the pairing scanner uses CameraX with ZXing for decoding. The versions are in `gradle/libs.versions.toml`.
+Kotlin, with the UI in Jetpack Compose: a design kit of its own in `ui/ld/`, on top of Material 3, with the typefaces Space Grotesk and Space Mono. Health data comes from the Jetpack Health Connect client, screen time from Android's `UsageStatsManager`. Background syncs are WorkManager jobs. Webhooks go out through OkHttp, MQTT through the HiveMQ MQTT client, and JSON is kotlinx.serialization. The home screen widget is built with Glance, and the pairing scanner uses CameraX with ZXing for decoding. The versions are in `gradle/libs.versions.toml`.
 
 ## Project layout
 
 | Path | Contents |
 |---|---|
 | `app/` | The Android app module: Compose UI, sync workers, webhook and MQTT delivery |
+| `app/src/main/java/com/owen282000/lifedashboard/screens/ld/` | Every screen, in a file of its own. `LDRouteTable.kt` is the one file that knows them all |
+| `app/src/main/java/com/owen282000/lifedashboard/ui/ld/` | The design kit, the routes and the shell. Its [README](../app/src/main/java/com/owen282000/lifedashboard/ui/ld/README.md) has how to build a screen, what applies at once and what waits for **Save**, and every component |
 | `hc-fixture/` | A debug-only second Health Connect app: the week seeder and a foreign data source for the tests |
 | `docs/` | Documentation, screenshots and the payload JSON Schema |
 | `fastlane/metadata/` | Store listing text, screenshots and per-version release notes |
@@ -97,6 +99,23 @@ Kotlin, with the UI in Jetpack Compose and Material 3. Health data comes from th
 | `.githooks/` | Optional hook enforcing strict, increasing semver tags |
 
 Pure sync logic lives in small, dependency-free types (`ResilientReadLogic`, `WebhookSupport`), so it stays unit-testable on the JVM, separate from the Health Connect and Android APIs.
+
+A debug build can open any page directly, for a screenshot or a quick look. The `ld.route` extra names the page, `LDDebugRoute.kt` has the names, and a release build ignores it:
+
+```bash
+adb shell am start -S -n com.owen282000.lifedashboard/.MainActivity --es ld.route whatToSend
+```
+
+## Store images
+
+The Google Play screenshots and feature graphic are generated, in all eleven languages, into `store-assets/`, which is not in git. Only their sources are: `scripts/store-screenshots.sh` and `docs/brand/play-panorama/`. `scripts/store-screenshots.sh` needs the emulator AVD `ldc-store`, refuses any other device, and sets up a phone in use by itself:
+
+```bash
+emulator -avd ldc-store -port 5558 -no-snapshot-save -no-boot-anim -no-window -no-audio -gpu swiftshader_indirect
+LANG_CODE=en scripts/store-screenshots.sh      # raw captures, store-assets/raw/<lang>/, for each language
+docs/brand/play-panorama/render.sh             # store-assets/<lang>-1.png to 8.png, feature-<lang>.png, contact sheets
+docs/brand/render-store.sh                     # en, nl and de into fastlane, the only ones in git, for F-Droid
+```
 
 ## Translations
 
@@ -163,7 +182,7 @@ APKs are installed with `adb install -r -t` and the tests started with `am instr
 
 ### What the suite covers
 
-One class per part of the sync path: delivery and the conservation law (every record Health Connect holds arrives exactly once, nothing else), the outbox, deletions, backfill, Receive against a stand-in for the Home Assistant integration that checks and signs with code of its own, MQTT against the suite's Mosquitto, Screen Time, the logs, the settings backup, the scheduling chain, cancellation, two Compose screens, and `ForeignSourceTest`, which lets the `:hc-fixture` app write as another source during the test and removes its records again. A test that shows a bug the app still has is committed with `@Ignore("F<n>: ...")` and the behavior it should have; the fix removes the `@Ignore`. Tests that take real time (the 20 second budgets, calls that hang) carry `@LargeTest`: pull requests leave them out, a push to main runs everything.
+One class per part of the sync path: delivery and the conservation law (every record Health Connect holds arrives exactly once, nothing else), the outbox, deletions, backfill, Receive against a stand-in for the Home Assistant integration that checks and signs with code of its own, MQTT against the suite's Mosquitto, Screen Time, the logs, the settings backup, the scheduling chain, cancellation, Home after a sync, the design kit's TalkBack semantics, and `ForeignSourceTest`, which lets the `:hc-fixture` app write as another source during the test and removes its records again. A test that shows a bug the app still has is committed with `@Ignore("F<n>: ...")` and the behavior it should have; the fix removes the `@Ignore`. Tests that take real time (the 20 second budgets, calls that hang) carry `@LargeTest`: pull requests leave them out, a push to main runs everything.
 
 ### The background smoke run
 

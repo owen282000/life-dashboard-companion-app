@@ -1,5 +1,6 @@
 package com.owen282000.lifedashboard
 
+import com.owen282000.lifedashboard.viewmodel.HcAvailability
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -155,5 +156,67 @@ class OnboardingSupportTest {
     @Test
     fun `pairing the same code again is a new event for the wizard`() {
         assertNotEquals(pairedHealthOnly, pairedHealthOnly.copy(seq = 2))
+    }
+
+    @Test
+    fun `a webhook is the section's one destination on a fresh install`() {
+        val list = OnboardingSupport.withWebhook(emptyList(), "https://a.example/hook", "", newId = { "new" })
+        assertEquals(listOf(Destination(id = "new", url = "https://a.example/hook")), list)
+    }
+
+    @Test
+    fun `a webhook goes next to a scanned address and not twice`() {
+        val paired = Destination(id = "paired", url = "https://ha.example/hook", secret = "s3cret")
+        val added = OnboardingSupport.withWebhook(listOf(paired), "https://a.example/hook", "", newId = { "new" })
+        assertEquals(listOf(paired, Destination(id = "new", url = "https://a.example/hook")), added)
+        assertEquals(listOf(paired), OnboardingSupport.withWebhook(listOf(paired), paired.url, ""))
+    }
+
+    private val essentialReads = HealthPermissionRequests.readPermissions(OnboardingSupport.ESSENTIAL_TYPES)
+
+    private fun tasks(
+        healthConnect: Boolean = true,
+        screenTime: Boolean = true,
+        preset: OnboardingSupport.TypePreset = OnboardingSupport.TypePreset.ESSENTIALS,
+        availability: HcAvailability = HcAvailability.AVAILABLE,
+        granted: Set<String> = emptySet(),
+        usageAccess: Boolean = false
+    ) = OnboardingSupport.tasksLeft(healthConnect, screenTime, preset, availability, granted, usageAccess)
+
+    @Test
+    fun `both tasks are left on a new phone`() {
+        assertEquals(listOf(OnboardingSupport.Task.HEALTH_ACCESS, OnboardingSupport.Task.USAGE_ACCESS), tasks())
+    }
+
+    @Test
+    fun `a task goes once it is done`() {
+        assertEquals(listOf(OnboardingSupport.Task.USAGE_ACCESS), tasks(granted = essentialReads))
+        assertEquals(listOf(OnboardingSupport.Task.HEALTH_ACCESS), tasks(usageAccess = true))
+        assertTrue(tasks(granted = essentialReads, usageAccess = true).isEmpty())
+    }
+
+    @Test
+    fun `one refused type keeps the health task`() {
+        assertEquals(
+            listOf(OnboardingSupport.Task.HEALTH_ACCESS),
+            tasks(granted = essentialReads - essentialReads.first(), usageAccess = true)
+        )
+    }
+
+    @Test
+    fun `a section that is off has no task`() {
+        assertEquals(listOf(OnboardingSupport.Task.USAGE_ACCESS), tasks(healthConnect = false))
+        assertEquals(listOf(OnboardingSupport.Task.HEALTH_ACCESS), tasks(screenTime = false))
+    }
+
+    @Test
+    fun `no health task without types or on a phone that cannot have Health Connect`() {
+        assertTrue(tasks(preset = OnboardingSupport.TypePreset.LATER, usageAccess = true).isEmpty())
+        assertTrue(tasks(availability = HcAvailability.UNAVAILABLE, usageAccess = true).isEmpty())
+    }
+
+    @Test
+    fun `a missing Health Connect is still the health task`() {
+        assertEquals(listOf(OnboardingSupport.Task.HEALTH_ACCESS), tasks(availability = HcAvailability.NOT_INSTALLED, usageAccess = true))
     }
 }

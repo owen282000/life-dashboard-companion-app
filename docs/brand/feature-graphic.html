@@ -1,105 +1,94 @@
 <!DOCTYPE html>
 <!--
-  Source for the store feature graphic (fastlane/metadata/android/en-US/images/featureGraphic.png),
-  1024x500, rendered by docs/brand/render-store.sh with headless Chrome. ?lang=nl and ?lang=de
-  give the Dutch and German line (nl-NL, de-DE); the labels are names and stay as they are.
+  Source for the Play feature graphic, 1024x500, rendered per language by
+  docs/brand/play-panorama/render.sh into store-assets/feature-<lang>.png; docs/brand/render-store.sh
+  copies en, nl and de into fastlane. ?lang= picks the line; the labels are names and stay as they
+  are, also in Arabic, where the row runs right to left.
 
-  Generic outlines of a watch, a ring and a scale (no real product) feed a small Health Connect
-  node, which feeds the three destinations: Home Assistant, MQTT and Webhook. One line of text.
-  The opaque body gives an RGB PNG without alpha, as Play asks. Same identity as the icon and
-  the store screenshots: heartbeat green #30B77E on a dark green-tinted gradient. Everything
-  that matters stays inside the central 924x400; no logos.
+  The panorama's look: ground #0A0F0D, accent #30B77E, Space Grotesk, the app's heartbeat line, which
+  splits into its three kinds of receiver, side by side. An opaque body, so render.sh can give an
+  RGB PNG without alpha, as Play asks. Everything that matters stays inside the central 924x400;
+  no logos. Scripts Space Grotesk has no glyphs for use a system font of this Mac, as in the panorama.
 -->
 <html>
 <head>
 <meta charset="utf-8">
 <style>
+  @font-face { font-family: "Space Grotesk"; font-weight: 500; src: url(../../app/src/main/res/font/space_grotesk_medium.ttf); }
+  @font-face { font-family: "Space Grotesk"; font-weight: 700; src: url(../../app/src/main/res/font/space_grotesk_bold.ttf); }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1024px; height: 500px; overflow: hidden; }
-  body {
-    background: radial-gradient(120% 140% at 20% 20%, #15402F 0%, #0F2A21 45%, #0A1A16 100%);
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; position: relative; color: #fff;
-  }
-  .grid {
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(to right, rgba(48,183,126,0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(48,183,126,0.07) 1px, transparent 1px);
-    background-size: 40px 40px;
-    -webkit-mask-image: radial-gradient(80% 90% at 60% 60%, black 20%, transparent 80%);
-  }
-  .glow { position: absolute; left: 380px; top: 120px; width: 420px; height: 360px;
-    background: radial-gradient(closest-side, rgba(48,183,126,0.18), transparent); }
-
-  h1 { position: absolute; left: 70px; right: 70px; top: 58px; text-align: center;
-    font-size: 50px; font-weight: 800; letter-spacing: -0.8px; }
+  :root { --script: sans-serif; }
+  :lang(ja) { --script: "Hiragino Sans"; }
+  :lang(zh-CN) { --script: "PingFang SC"; }
+  :lang(ar) { --script: "SF Arabic"; }
+  :lang(hi) { --script: "Kohinoor Devanagari"; }
+  html, body { width: 1024px; height: 500px; overflow: hidden; background: #0A0F0D; }
+  body { position: relative; color: #EEF4F0; font-family: "Space Grotesk", var(--script), sans-serif; }
+  .glow { position: absolute; left: 330px; top: 60px; width: 620px; height: 440px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(48,183,126,0.18), rgba(48,183,126,0)); }
+  h1 { position: absolute; left: 56px; top: 48px; width: 912px; font-weight: 700; line-height: 1.1; letter-spacing: -0.017em; white-space: nowrap; }
+  h1 span { display: block; width: max-content; }
   h1 em { font-style: normal; color: #30B77E; }
-
-  svg.flow { position: absolute; left: 0; top: 0; }
-  .node {
-    position: absolute; left: 404px; top: 268px; width: 200px; height: 64px; border-radius: 20px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 23px; font-weight: 700; color: #E8EDEF;
-    background: rgba(16,30,26,0.95); border: 2px solid rgba(48,183,126,0.75);
-    box-shadow: 0 0 34px rgba(48,183,126,0.28);
-  }
+  [dir=rtl] h1 span { margin-inline-start: 0; }
+  :lang(ar) h1, :lang(hi) h1 { letter-spacing: 0; line-height: 1.25; }
+  :lang(ja) h1, :lang(zh-CN) h1 { letter-spacing: 0; line-height: 1.2; }
+  svg { position: absolute; left: 0; top: 0; }
   .card {
-    position: absolute; left: 700px; width: 230px; height: 66px; border-radius: 18px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 25px; font-weight: 700; color: #E8EDEF; white-space: nowrap;
-    background: rgba(16,30,26,0.92); border: 2px solid rgba(255,255,255,0.16);
+    position: absolute; width: 268px; height: 64px; border-radius: 18px; display: flex; align-items: center; padding: 0 24px;
+    font-size: 27px; font-weight: 500; white-space: nowrap; direction: ltr;
+    background: #141C18; border: 2px solid #27332D;
   }
-  .card.ha { border-color: rgba(48,183,126,0.75); box-shadow: 0 0 26px rgba(48,183,126,0.22); }
 </style>
 </head>
 <body>
-  <div class="grid"></div>
   <div class="glow"></div>
-
-  <h1 id="line">Your health data, on <em>your own server.</em></h1>
-
-  <svg class="flow" width="1024" height="500" viewBox="0 0 1024 500">
-    <g fill="none" stroke="#C9D3D6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-      <!-- A generic watch -->
-      <rect x="136" y="170" width="62" height="70" rx="16"/>
-      <path d="M150 170 L154 148 L180 148 L184 170 M150 240 L154 262 L180 262 L184 240"/>
-      <path d="M167 190 L167 206 L178 214" stroke="#30B77E"/>
-      <!-- A generic ring -->
-      <ellipse cx="167" cy="320" rx="32" ry="24"/>
-      <ellipse cx="167" cy="320" rx="22" ry="15"/>
-      <!-- A generic scale -->
-      <rect x="128" y="372" width="78" height="62" rx="14"/>
-      <rect x="148" y="384" width="38" height="16" rx="4"/>
+  <h1 id="line"></h1>
+  <svg id="flow" width="1024" height="500" viewBox="0 0 1024 500">
+    <g id="lines" fill="none" stroke="#30B77E" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-10 330 H250 l14 -33 l22 66 l19 -48 l9 15 H420"/>
+      <path d="M420 330 C 520 330, 500 254, 620 254 H690"/>
+      <path d="M420 330 H690"/>
+      <path d="M420 330 C 520 330, 500 406, 620 406 H690"/>
     </g>
-    <g fill="none" stroke="#30B77E" stroke-width="3.5" stroke-linecap="round" opacity="0.9">
-      <path d="M220 205 C 320 205, 320 300, 404 300"/>
-      <path d="M220 320 C 300 320, 320 300, 404 300"/>
-      <path d="M220 403 C 320 403, 320 300, 404 300"/>
-      <path d="M604 300 C 650 300, 650 215, 700 215"/>
-      <path d="M604 300 L 700 300"/>
-      <path d="M604 300 C 650 300, 650 385, 700 385"/>
-    </g>
-    <circle cx="404" cy="300" r="5" fill="#30B77E"/>
-    <circle cx="604" cy="300" r="5" fill="#30B77E"/>
+    <circle id="dot" cx="420" cy="330" r="10" fill="#30B77E"/>
   </svg>
-
-  <div class="node">Health Connect</div>
-  <div class="card ha" style="top:182px">Home Assistant</div>
-  <div class="card" style="top:267px">MQTT</div>
-  <div class="card" style="top:352px">Webhook</div>
+  <div id="cards"></div>
 <script>
-// The one line per language, Dutch with "je", German with "du"; a smaller size where it is longer.
+// The line per language, as panel 1 of the panorama.
 const LINES = {
-  nl: [`Je gezondheidsdata, op <em>je eigen server.</em>`, 46],
-  de: [`Deine Gesundheitsdaten, auf <em>deinem Server.</em>`, 40],
+  en: ["Your health data,", "on your own server"],
+  nl: ["Je gezondheidsdata,", "op je eigen server"],
+  de: ["Deine Gesundheitsdaten,", "auf deinem Server"],
+  fr: ["Vos données de santé,", "sur votre serveur"],
+  es: ["Tus datos de salud,", "en tu propio servidor"],
+  it: ["I tuoi dati sulla salute,", "sul tuo server"],
+  "pt-BR": ["Seus dados de saúde,", "no seu próprio servidor"],
+  ja: ["健康データを、", "あなたのサーバーへ"],
+  ar: ["بياناتك الصحية،", "على خادمك الخاص"],
+  hi: ["आपका स्वास्थ्य डेटा,", "आपके अपने सर्वर पर"],
+  "zh-CN": ["您的健康数据，", "发送到您自己的服务器"],
 };
-const lang = new URLSearchParams(location.search).get("lang");
-if (LINES[lang]) {
-  document.documentElement.lang = lang;
-  const h1 = document.getElementById("line");
-  h1.innerHTML = LINES[lang][0];
-  h1.style.fontSize = LINES[lang][1] + "px";
+const WEBHOOK = { hi: "वेबहुक" };
+const lang = new URLSearchParams(location.search).get("lang") || "en";
+const rtl = lang === "ar";
+document.documentElement.lang = lang;
+if (rtl) {
+  document.documentElement.dir = "rtl";
+  document.getElementById("lines").setAttribute("transform", "translate(1024 0) scale(-1 1)");
+  document.getElementById("dot").setAttribute("cx", 1024 - 420);
 }
+const h1 = document.getElementById("line");
+const [a, b] = LINES[lang] || LINES.en;
+h1.innerHTML = `<span>${a}</span><span><em>${b}</em></span>`;
+const left = rtl ? 1024 - 690 - 268 : 690;
+document.getElementById("cards").innerHTML = ["Home Assistant", WEBHOOK[lang] || "Webhook", "MQTT"]
+  .map((name, n) => `<div class="card" style="left:${left}px;top:${222 + n * 76}px">${name}</div>`).join("");
+document.fonts.ready.then(() => {
+  const max = 64;
+  h1.style.fontSize = max + "px";
+  const widest = Math.max(...[...h1.children].map((line) => line.getBoundingClientRect().width));
+  h1.style.fontSize = Math.floor(Math.min(max, max * 900 / widest)) + "px";
+});
 </script>
 </body>
 </html>

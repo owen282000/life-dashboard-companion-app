@@ -1,0 +1,6 @@
+Een nieuw ontwerp. Je bestemmingen en instellingen blijven zoals ze waren.
+
+- Gezondheid en Schermtijd openen met of je data aankomt, met de cijfers van vandaag eronder
+- Instellingen hebben eigen pagina's, achter tegels: Wat versturen, Wanneer versturen, Ontvangen en Meer
+- Wijzigingen opslaan is weg: schakelaars werken meteen, alleen wat je typt heeft een eigen Bewaren
+- Elf talen: Frans, Spaans, Italiaans, Portugees (Brazilië), Japans, Arabisch, Hindi en Vereenvoudigd Chinees zijn nieuw

@@ -1,0 +1,1 @@
+أرسل Health Connect ومدة استخدام الشاشة إلى Home Assistant أو MQTT أو webhook.

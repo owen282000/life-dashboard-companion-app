@@ -1,0 +1,6 @@
+Ein neues Design. Ziele und Einstellungen bleiben, wie sie waren.
+
+- Gesundheit und Bildschirmzeit zeigen zuerst, ob deine Daten ankommen, darunter die Zahlen von heute
+- Einstellungen haben eigene Seiten, hinter Kacheln: Was senden, Wann senden, Empfangen und Mehr
+- Änderungen speichern ist weg: Schalter gelten sofort, nur Getipptes hat ein eigenes Sichern
+- Elf Sprachen: Französisch, Spanisch, Italienisch, Portugiesisch, Japanisch, Arabisch, Hindi und vereinfachtes Chinesisch sind neu

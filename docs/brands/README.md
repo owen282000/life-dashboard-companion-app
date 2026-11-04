@@ -27,7 +27,7 @@ Polar, Whoop, Zepp and Xiaomi Mi Fitness also write to Health Connect; what each
 
 ## Other ways into Home Assistant
 
-The Home Assistant companion app also reads Health Connect. Some brands can be read from the vendor's cloud as well: Google Health and Withings through Home Assistant's own integrations, Garmin Connect and Oura through HACS. The Fitbit, Garmin, Oura and Withings pages compare this app with the brand's cloud integration; the comparison with the companion app is in [features.md](../features.md#how-this-compares-to-the-home-assistant-companion-app). You can also use them together: this app runs next to the companion app, and next to a cloud integration if you want the vendor-only numbers too.
+The Home Assistant companion app also reads Health Connect. Some brands can be read from the vendor's cloud as well: Google Health and Withings through Home Assistant's own integrations, Garmin Connect and Oura through the Marketplace (HACS). The Fitbit, Garmin, Oura and Withings pages compare this app with the brand's cloud integration; the comparison with the companion app is in [features.md](../features.md#how-this-compares-to-the-home-assistant-companion-app). You can also use them together: this app runs next to the companion app, and next to a cloud integration if you want the vendor-only numbers too.
 
 ## Setting up the Home Assistant side
 

@@ -20,10 +20,6 @@ open class LifeDashboardApplication : Application() {
 
         ExportManager.removeStaleExports(this)
     }
-
-    fun scheduleHealthSyncWork() = SyncScheduler.reschedule(this, LogType.HEALTH_CONNECT)
-
-    fun scheduleScreenTimeSyncWork() = SyncScheduler.reschedule(this, LogType.SCREEN_TIME)
 }
 
 /** The process-wide [PreferencesManager], or a fresh one when not running inside the app (tests, previews). */

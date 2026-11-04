@@ -6,27 +6,20 @@
     <string name="common_back">Terug</string>
     <string name="common_cancel">Annuleren</string>
     <string name="common_close">Sluiten</string>
-    <string name="common_collapse">Inklappen</string>
     <string name="common_csv">CSV</string>
-    <string name="common_expand">Uitklappen</string>
     <string name="common_grant">Toestaan</string>
     <string name="common_json">JSON</string>
     <string name="common_never">nooit</string>
-    <string name="common_none_configured">Niets ingesteld</string>
-    <string name="common_permissions_required">Rechten vereist</string>
     <string name="common_remove">Verwijderen</string>
     <string name="common_show_password">Wachtwoord tonen</string>
     <string name="common_hide_password">Wachtwoord verbergen</string>
-    <string name="common_saved">Opgeslagen!</string>
 
     <!-- Gedeelde webhook- en synchronisatie-instellingen, gebruikt door Health Connect en Schermtijd -->
-    <string name="webhook_add_a_url">Voeg een webhook-URL toe</string>
-    <string name="webhook_allow_plain_http">Gewone HTTP-webhooks toestaan</string>
-    <string name="webhook_allow_plain_http_description">Voor een webhook op je eigen netwerk of VPN zonder certificaat. HTTPS blijft de standaard, en deze ene schakelaar geldt voor zowel Health Connect als Screen Time, ook voor de metingen die Home Assistant naar deze telefoon stuurt. MQTT staat hier los van.</string>
+    <string name="webhook_allow_plain_http">Onversleutelde HTTP-webhooks toestaan</string>
+    <string name="webhook_allow_plain_http_description">Voor een webhook op je eigen netwerk of VPN zonder certificaat. HTTPS blijft de standaard, en deze ene schakelaar geldt voor zowel Health Connect als Schermtijd, ook voor de metingen die Home Assistant naar deze telefoon stuurt. MQTT staat hier los van.</string>
     <string name="client_cert_title">Clientcertificaat (mTLS)</string>
     <string name="client_cert_none">Geen</string>
     <string name="client_cert_description">Voor een server die een clientcertificaat vereist. Installeer het eerst in de Android-instellingen (Beveiliging, Versleuteling en inloggegevens, Certificaat installeren). Eén keer kiezen, daarna geldt het voor alle webhooks, ook op de achtergrond. MQTT staat hier los van.</string>
-    <string name="client_cert_choose">Kiezen</string>
     <string name="server_trust_title">Servercertificaten</string>
     <string name="server_trust_description">Alleen voor een server waarvan Android het certificaat niet vertrouwt, zoals een van je eigen CA of een zelfondertekend certificaat. Elke instelling geldt alleen voor die host. MQTT valt hier niet onder.</string>
     <string name="server_trust_user_cas">Certificaten vertrouwen die op deze telefoon zijn geïnstalleerd</string>
@@ -55,37 +48,23 @@
     <string name="webhook_header_value_invalid">Een headerwaarde mag alleen gewone ASCII-tekens bevatten, zonder regeleinden of letters zoals é</string>
     <string name="webhook_header_name_blocks_delivery">Er is niets verstuurd: header %1$s heeft een naam die niet verstuurd kan worden. Verwijder hem onder Webhook en voeg hem opnieuw toe met een naam zonder spaties.</string>
     <string name="webhook_header_value_blocks_delivery">Er is niets verstuurd: de waarde van header %1$s bevat een regeleinde of een teken dat niet in een header kan. Verwijder hem onder Webhook en voeg hem opnieuw toe.</string>
-    <string name="webhook_headers_title">Webhook-headers (optioneel)</string>
     <string name="webhook_hmac_secret_description">Als dit is ingesteld, krijgt elke POST een X-Signature header (sha256=&lt;hex&gt;) die als HMAC-SHA256 over de body wordt berekend, zodat je server de afzender kan verifiëren.</string>
     <string name="webhook_hmac_secret_title">HMAC-ondertekeningssleutel (optioneel)</string>
-    <plurals name="webhook_headers_count">
-        <item quantity="one">%1$d header</item>
-        <item quantity="other">%1$d headers</item>
-    </plurals>
     <string name="webhook_min_interval">Minimaal 15 minuten</string>
     <string name="webhook_shared_secret">Gedeeld geheim</string>
-    <string name="webhook_url_placeholder">https://...</string>
-    <string name="webhook_urls_configured">%1$d ingesteld</string>
-    <string name="webhook_destinations_hint">Tik op een adres voor zijn eigen headers en ondertekeningsgeheim. Geen van beide gaat naar een ander adres.</string>
-    <string name="webhook_destination_summary">%1$s, %2$s</string>
-    <string name="webhook_destination_signed">Ondertekend</string>
-    <string name="webhook_destination_unsigned">Niet ondertekend</string>
-    <string name="webhook_destination_no_headers">geen headers</string>
     <string name="webhook_destination_url">Adres</string>
-    <string name="webhook_destination_open">headers en geheim tonen</string>
     <string name="webhook_destination_moved">Een andere host dan %1$s: de headers zijn gewist en het geheim teruggezet, zodat niets wat voor %1$s was ingesteld hierheen gaat.</string>
     <string name="webhook_copy_headers_from">Headers kopiëren van %1$s</string>
     <string name="webhook_use_secret_of">Hetzelfde geheim gebruiken als %1$s</string>
     <string name="webhook_url_duplicate">Dit adres staat al in de lijst</string>
     <string name="webhook_url_user_info">Haal de gebruikersnaam of het wachtwoord uit het adres. Adressen staan als gewone tekst in de instellingen, in back-ups en in de logs; zet de inloggegevens in een header van dit adres.</string>
     <string name="webhook_url_credential_parameter">Haal %1$s= uit het adres. Adressen staan als gewone tekst in de instellingen, in back-ups en in de logs; zet de inloggegevens in een header van dit adres.</string>
-    <string name="webhook_urls_title">Webhook-URL\'s</string>
 
     <!-- Gedeelde synchronisatiesectie, gebruikt door Health Connect en Schermtijd -->
     <string name="sync_advanced_client_cert">Clientcertificaat</string>
     <string name="sync_advanced_server_trust">servercertificaten</string>
     <string name="sync_advanced_https_only">Alleen HTTPS</string>
-    <string name="sync_advanced_plain_http_allowed">Plain HTTP toegestaan</string>
+    <string name="sync_advanced_plain_http_allowed">Onversleutelde HTTP toegestaan</string>
     <string name="sync_advanced_phone_name">Telefoon %1$s</string>
     <string name="phone_name_title">Telefoonnaam</string>
     <string name="phone_name_description">Voor een tweede telefoon op dezelfde MQTT-broker. Leeg laat het apparaat en de topics zoals ze zijn; een naam geeft deze telefoon een eigen apparaat en eigen topics onder het basistopic.</string>
@@ -97,20 +76,16 @@
     <string name="receive_title">Ontvangen</string>
     <string name="receive_subtitle">Uit Home Assistant naar Health Connect</string>
     <string name="receive_off">Uit</string>
-    <string name="receive_summary_written">%1$s · %2$s</string>
     <plurals name="receive_written_today">
         <item quantity="one">%1$d vandaag geschreven</item>
         <item quantity="other">%1$d vandaag geschreven</item>
     </plurals>
-    <string name="receive_enable">Metingen uit Home Assistant ontvangen</string>
     <string name="receive_enable_description">De Life Dashboard-integratie stuurt de entiteiten die je daar hebt gekozen; elk type hieronder heeft zijn eigen schrijftoestemming van Health Connect nodig.</string>
     <string name="receive_needs_integration">Vereist de Life Dashboard-integratie: koppel eerst met Home Assistant, zodat er een webhook-adres en een ondertekeningsgeheim zijn.</string>
-    <string name="receive_source">Bron: %1$s</string>
     <string name="receive_update_integration">Werk de Life Dashboard-integratie bij om metingen te ontvangen, of controleer of deze webhook wel van de integratie is: het laatste antwoord bevatte geen metingenprotocol.</string>
     <string name="receive_no_types_yet">De volgende synchronisatie vraagt Home Assistant welke types het aanbiedt.</string>
     <string name="receive_choose_type">Zet hieronder een type aan om het te ontvangen.</string>
     <string name="receive_permission_missing">Schrijftoestemming ontbreekt: %1$s</string>
-    <string name="receive_type_permission_missing_a11y">%1$s, schrijftoestemming ontbreekt</string>
     <string name="receive_summary_needs_pairing">Koppeling met Home Assistant nodig</string>
     <string name="receive_summary_update_integration">Werk de integratie bij</string>
     <string name="receive_summary_nothing_mapped">Geen types gekoppeld in Home Assistant</string>
@@ -126,11 +101,6 @@
     <plurals name="receive_written_count">
         <item quantity="one">%1$d naar Health Connect geschreven</item>
         <item quantity="other">%1$d naar Health Connect geschreven</item>
-    </plurals>
-    <string name="logs_row_receive_title">Gezondheid · uit Home Assistant</string>
-    <plurals name="logs_row_written">
-        <item quantity="one">%1$s · %2$d geschreven</item>
-        <item quantity="other">%1$s · %2$d geschreven</item>
     </plurals>
     <string name="logs_written">Geschreven</string>
     <string name="logs_skipped">Overgeslagen</string>
@@ -163,29 +133,20 @@
     <string name="outbox_dropped_log">Uit de wachtrij verwijderd: die was vol (%1$d niet-afgeleverde syncs), dus deze records zijn verloren</string>
     <string name="outbox_replaced_log">In de wachtrij vervangen door een nieuwere snapshot, die de oudste niet-afgeleverde dagen niet meer bevat, dus die zijn verloren</string>
     <string name="sync_advanced_title">Geavanceerd</string>
-    <string name="sync_data_preview_title">Voorbeeld van data</string>
     <string name="sync_export_failed">Export mislukt</string>
     <string name="sync_export_failed_with_reason">Export mislukt: %1$s</string>
     <string name="sync_failed_with_reason">Mislukt: %1$s</string>
-    <string name="sync_failed_prefix">Mislukt</string>
     <string name="sync_interval_subtitle">Minuten tussen synchronisaties</string>
     <string name="sync_interval_title">Synchronisatie-interval</string>
-    <string name="sync_loading">Laden...</string>
-    <string name="sync_manual_subtitle">Nu synchroniseren</string>
-    <string name="sync_manual_title">Handmatige synchronisatie</string>
     <string name="sync_no_new_data">Geen nieuwe data</string>
     <string name="sync_now">Nu synchroniseren</string>
-    <string name="sync_preview_data">Voorbeeld bekijken</string>
     <string name="sync_preview_failed">Voorbeeld mislukt</string>
     <string name="sync_preview_failed_with_reason">Voorbeeld mislukt: %1$s</string>
-    <string name="sync_preview_payload_description">Dit is de JSON-payload die wordt verstuurd:</string>
     <string name="sync_preview_full_in_copy_share">JSON kopiëren of Delen geeft de volledige payload.</string>
     <string name="sync_preview_full_in_share">Delen geeft de volledige payload.</string>
-    <string name="sync_save_changes">Wijzigingen opslaan</string>
     <string name="sync_syncing">Synchroniseren...</string>
 
     <!-- Health Connect-scherm -->
-    <string name="health_backfill_dialog_description">Verstuurt historische data van alle ingeschakelde types naar je webhooks in blokken van 3 dagen, oudste eerst. Gewone synchronisatie gaat gewoon door; overlappende records worden ontdubbeld op hun uuid. Dit kan even duren en mobiele data verbruiken.</string>
     <plurals name="health_backfill_complete">
         <item quantity="one">Aanvullen klaar: %1$d record verstuurd</item>
         <item quantity="other">Aanvullen klaar: %1$d records verstuurd</item>
@@ -208,17 +169,12 @@
     <string name="health_backfill_log_restarted">De datatypes zijn veranderd sinds dit aanvullen begon, dus het begon opnieuw bij het eerste blok.</string>
     <string name="health_backfill_log_stopped">Gestopt bij blok %1$d van %2$d</string>
     <string name="health_backfill_grant_history">Toegang tot geschiedenis geven</string>
-    <string name="health_backfill_history">Geschiedenis aanvullen</string>
     <string name="health_backfill_history_permission_warning">Health Connect leest alleen de laatste 30 dagen totdat je toegang tot de geschiedenis geeft.</string>
     <string name="health_backfill_length_all">Alles</string>
     <string name="health_backfill_length_all_any">Alles wat Health Connect heeft, vanaf je oudste record</string>
     <plurals name="health_backfill_length_all_since">
         <item quantity="one">Alles sinds %1$s, %2$d blok van 3 dagen</item>
         <item quantity="other">Alles sinds %1$s, %2$d blokken van 3 dagen</item>
-    </plurals>
-    <plurals name="health_backfill_length_chunks">
-        <item quantity="one">%1$d blok van 3 dagen</item>
-        <item quantity="other">%1$d blokken van 3 dagen</item>
     </plurals>
     <plurals name="health_backfill_length_days">
         <item quantity="one">%1$d dag</item>
@@ -243,13 +199,7 @@
     <string name="health_connect_not_installed">Health Connect is niet geïnstalleerd</string>
     <string name="health_connect_needs_update">Health Connect moet worden bijgewerkt</string>
     <string name="health_could_not_open">Kon Health Connect niet openen</string>
-    <plurals name="health_data_types_selected">
-        <item quantity="one">%1$d datatype geselecteerd</item>
-        <item quantity="other">%1$d datatypes geselecteerd</item>
-    </plurals>
     <string name="health_data_types_selected_of">%1$d van %2$d geselecteerd</string>
-    <string name="health_type_permission_missing_a11y">%1$s, toestemming ontbreekt</string>
-    <string name="health_data_types_title">Datatypes</string>
     <string name="data_type_steps">Stappen</string>
     <string name="data_type_sleep">Slaap</string>
     <string name="data_type_heart_rate">Hartslag</string>
@@ -321,13 +271,9 @@
     <string name="dashboard_last_sync">Laatste synchronisatie</string>
     <string name="dashboard_last_sync_succeeded">Gelukt</string>
     <string name="dashboard_last_sync_failed">Mislukt</string>
-    <string name="dashboard_lifetime">Totaal</string>
-    <string name="dashboard_min">min</string>
-    <string name="dashboard_minutes_unit">%1$d min</string>
     <string name="dashboard_minutes_per_day_last_days">Minuten per dag, laatste %1$d dagen</string>
     <string name="dashboard_none">geen</string>
     <string name="dashboard_records">records</string>
-    <string name="dashboard_steps_last_days">Stappen, laatste %1$d dagen</string>
     <string name="dashboard_today">Vandaag</string>
     <string name="dashboard_top_app">Topapp</string>
 
@@ -337,11 +283,8 @@
     <string name="mqtt_broker_host">Brokerhost</string>
     <string name="mqtt_broker_host_placeholder">Brokerhost, bijv. 192.168.1.10</string>
     <string name="mqtt_broker_host_shared">Brokerhost (gedeeld)</string>
-    <string name="mqtt_disabled">Uitgeschakeld</string>
     <string name="mqtt_enable_publishing">MQTT-publicatie inschakelen</string>
     <string name="mqtt_enabled_no_broker">Ingeschakeld: geen broker ingesteld</string>
-    <string name="mqtt_enabled_own_broker">Ingeschakeld: %1$s (eigen broker)</string>
-    <string name="mqtt_enabled_shared_broker">Ingeschakeld: %1$s (gedeelde broker)</string>
     <string name="mqtt_password">Wachtwoord (optioneel)</string>
     <plurals name="mqtt_status_published">
         <item quantity="one">%1$d sensor gepubliceerd op %2$s</item>
@@ -372,7 +315,6 @@
     <string name="webhook_sync_failed">Webhook: %1$s</string>
 
     <!-- Logsscherm -->
-    <string name="logs_clear_logs">Logs wissen</string>
     <string name="logs_clear_title">Logs wissen?</string>
     <plurals name="logs_clear_body">
         <item quantity="one">Hiermee verwijder je %1$d log van deze telefoon. Dit kun je niet ongedaan maken.</item>
@@ -385,9 +327,7 @@
     </plurals>
     <string name="logs_export_logs">Logs exporteren</string>
     <string name="logs_export_title">Logs exporteren</string>
-    <string name="logs_empty">Nog geen logs</string>
     <string name="logs_error">Fout</string>
-    <string name="logs_failure_line">%1$s: %2$s</string>
     <string name="logs_filter_all">Alles</string>
     <string name="logs_filter_health">Gezondheid</string>
     <string name="logs_filter_screen_time">Schermtijd</string>
@@ -396,7 +336,6 @@
     <string name="logs_keep_full_payloads_off">Payloads worden ingekort om opslag klein te houden</string>
     <string name="logs_keep_full_payloads_on">Hele payloads worden bewaard, begrensd door totale grootte</string>
     <string name="logs_last_success">Laatst gelukt: %1$s</string>
-    <string name="logs_ok">OK</string>
     <string name="logs_payload">Payload</string>
     <string name="logs_payload_stored_part">Van deze payload is maar een deel bewaard. Zet Volledige payloads bewaren aan om vanaf de volgende synchronisatie hele payloads te bewaren.</string>
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
@@ -409,17 +348,7 @@
     <string name="payload_share_a11y">Delen, de volledige payload als bestand</string>
     <string name="payload_copied">Volledige payload gekopieerd</string>
     <string name="payload_too_large_to_copy">Deze payload is te groot voor het klembord. Met Delen krijg je hem helemaal als bestand.</string>
-    <string name="logs_record_count">%1$s: %2$d</string>
-    <string name="logs_recent_failures">Recente mislukkingen:</string>
     <string name="logs_stat_records">Records</string>
-    <string name="logs_stat_success">Gelukt</string>
-    <string name="logs_stat_success_rate">%1$d%%</string>
-    <string name="logs_stat_total">Totaal</string>
-    <string name="logs_status_failure">✗ %1$s</string>
-    <string name="logs_status_success">✓ %1$s</string>
-    <string name="logs_sync_overview">Synchronisatieoverzicht</string>
-    <string name="logs_type_ratio">%1$d / %2$d</string>
-    <string name="logs_unknown_error">Onbekende fout</string>
 
     <!-- Hoofdactivity: bovenbalk en onderste navigatie -->
     <string name="main_about">Over</string>
@@ -427,7 +356,6 @@
     <string name="main_tab_logs">Logs</string>
     <string name="main_title_health_connect">Health Connect</string>
     <string name="main_title_screen_time">Schermtijd</string>
-    <string name="main_title_webhook_logs">Logs</string>
 
     <!-- Schermtijd-scherm -->
     <plurals name="screentime_apps_queued">
@@ -438,30 +366,19 @@
         <item quantity="one">%1$d app gesynchroniseerd</item>
         <item quantity="other">%1$d apps gesynchroniseerd</item>
     </plurals>
-    <string name="screentime_day_boundary_description">Activiteit voor dit uur telt mee bij de vorige dag</string>
     <string name="screentime_day_boundary_disabled">Uitgeschakeld</string>
     <string name="screentime_day_boundary_enable">Daggrens inschakelen</string>
-    <string name="screentime_day_boundary_enabled">Ingeschakeld · %1$s</string>
     <string name="screentime_day_boundary_hour_invalid">Uur moet 0-23 zijn</string>
-    <string name="screentime_day_boundary_title">Daggrens</string>
-    <string name="screentime_header">Houd je app-gebruik bij</string>
     <string name="screentime_mqtt_description">Publiceert de schermtijd van vandaag en gisteren en de meest gebruikte app van vandaag naar je MQTT-broker met Home Assistant Discovery, onder hetzelfde apparaat als Health Connect.</string>
     <string name="screentime_permission_not_granted">Toestemming niet verleend</string>
 
     <!-- Onboarding-wizard -->
-    <string name="onboarding_destination_body">Voor Home Assistant is de code van de integratie scannen de aangeraden route. Je kunt bestemmingen altijd toevoegen of wijzigen in de tabs Gezondheid en Schermtijd.</string>
     <string name="onboarding_destination_title">Waar moet je data naartoe?</string>
-    <string name="onboarding_done_body">Er resten twee dingen, allebei op de hoofdschermen: geef Health Connect-toestemmingen, en sta toegang tot app-gebruik toe voor schermtijd. Tik daarna op Nu synchroniseren.</string>
-    <string name="onboarding_done_short">Wat nog rest staat op de hoofdschermen; tik daarna op Nu synchroniseren.</string>
     <string name="onboarding_done_title">Je bent klaar</string>
     <string name="onboarding_feature_health">Health Connect</string>
-    <string name="onboarding_feature_health_desc">Stappen, slaap, hartslag en 31 andere types uit Health Connect</string>
     <string name="onboarding_feature_screen">Schermtijd</string>
-    <string name="onboarding_feature_screen_desc">Dagelijks en per-app gebruik uit de Android-gebruiksstatistieken</string>
-    <string name="onboarding_features_body">Kies er een of allebei. Elk heeft een eigen tab, permissies en instellingen.</string>
     <string name="onboarding_features_title">Wat wil je synchroniseren?</string>
     <string name="onboarding_get_started">Aan de slag</string>
-    <string name="onboarding_mqtt_desc">Draai je al een broker? Sensors verschijnen automatisch in Home Assistant via MQTT Discovery. Alleen de laatste waarde per type gaat mee, dus eerdere dagen worden niet aangevuld.</string>
     <string name="onboarding_mqtt_option">MQTT-broker</string>
     <string name="onboarding_next">Volgende</string>
     <string name="onboarding_open_app">Open de app</string>
@@ -469,30 +386,22 @@
     <string name="onboarding_skip_destination">Dit stel ik later in</string>
     <string name="onboarding_step_of">Stap %1$d van %2$d</string>
     <string name="onboarding_summary_all">alle 34</string>
-    <string name="onboarding_summary_dest">Bestemming</string>
     <string name="onboarding_summary_essentials">8 basistypes</string>
     <string name="onboarding_summary_later">nog geen</string>
     <string name="onboarding_summary_none">nog niet</string>
     <string name="onboarding_summary_sync">Synchroniseert</string>
     <string name="onboarding_summary_types">Datatypes</string>
-    <string name="onboarding_task_health">Geef Health Connect-permissies</string>
-    <string name="onboarding_task_health_sub">Tab Gezondheid, de kaart bovenaan</string>
+    <string name="onboarding_task_health">Geef Health Connect toestemming</string>
     <string name="onboarding_task_screen">Sta gebruikstoegang toe voor schermtijd</string>
-    <string name="onboarding_task_screen_sub">Tab Schermtijd, opent de Android-instellingen</string>
     <string name="onboarding_types_all">Alle 34 datatypes</string>
     <string name="onboarding_types_all_desc">Alles wat Health Connect biedt, van stappen tot cyclustracking</string>
-    <string name="onboarding_types_body">Alleen ingeschakelde types worden gelezen en verstuurd. Begin breed of begin klein; elk type houdt zijn eigen schakelaar op het Gezondheid-tabblad.</string>
     <string name="onboarding_types_essentials">De basis</string>
     <string name="onboarding_types_essentials_desc">Stappen, slaap, hartslag, afstand, calorieën en gewicht</string>
     <string name="onboarding_types_later">Later beslissen</string>
-    <string name="onboarding_types_later_desc">Begin met niets ingeschakeld</string>
     <string name="onboarding_types_title">Welke gezondheidsdata is voor jou belangrijk?</string>
     <string name="onboarding_webhook_applied">Gebruikt voor zowel Health Connect als Schermtijd; later per tabblad te splitsen</string>
     <string name="onboarding_webhook_applied_health">Gebruikt voor Health Connect</string>
     <string name="onboarding_webhook_applied_screen">Gebruikt voor Schermtijd</string>
-    <string name="onboarding_webhook_desc">POST JSON naar je eigen server of dashboard-backend</string>
-    <string name="onboarding_webhook_option">Webhook</string>
-    <string name="onboarding_welcome_body">Life Dashboard Companion stuurt je Health Connect- en schermtijddata naar een plek die jij beheert: Home Assistant via de Life Dashboard-integratie, je eigen webhook-backend, of een MQTT-broker. De integratie bewaart de historie in de langetermijnstatistieken van Home Assistant, en werkt ook andersom: een weegschaal of bloeddrukmeter die met Home Assistant praat, komt in Health Connect terecht. Geen cloud ertussen. Drie korte vragen en je draait.</string>
     <string name="onboarding_welcome_title">Jouw gezondheidsdata, jouw server</string>
 
     <!-- Redesigned main screens -->
@@ -502,31 +411,21 @@
     <string name="screentime_allow">Toestaan</string>
     <string name="screentime_settings">Instellingen</string>
     <string name="webhook_title">Webhook</string>
-    <string name="sync_action_preview">Bekijken</string>
     <string name="sync_action_ping">Testping</string>
     <string name="sync_action_export">Exporteren</string>
     <string name="sync_action_backfill">Aanvullen</string>
-    <string name="sync_no_destination">Voeg eerst een webhook-URL toe of zet MQTT aan</string>
     <string name="logs_delivered">Afgeleverd</string>
     <string name="logs_published">Gepubliceerd</string>
     <string name="logs_failed">Mislukt</string>
-    <string name="logs_row_records">%1$s · %2$d records</string>
-    <string name="logs_row_sensors">%1$s · %2$d sensors</string>
     <string name="logs_destination_webhook">Webhook</string>
     <string name="logs_destination_mqtt">MQTT</string>
 
     <!-- About screen -->
     <string name="about_title">Over</string>
-    <string name="about_back">Terug</string>
-    <string name="about_description">Stuurt je Health Connect- en schermtijddata naar Home Assistant via de Life Dashboard-integratie, naar je eigen webhook-backend of naar een MQTT-broker, en kan metingen uit je eigen Home Assistant terug in Health Connect zetten. Geen cloud ertussen.</string>
-    <string name="about_privacy_title">Privacy en beveiliging</string>
-    <string name="about_backup_title">Back-up en herstel</string>
     <string name="about_appearance_title">Weergave</string>
-    <string name="about_appearance_description">Volg het donkere thema van je telefoon of houd deze app altijd licht of donker.</string>
     <string name="about_theme_system">Systeem</string>
     <string name="about_theme_light">Licht</string>
     <string name="about_theme_dark">Donker</string>
-    <string name="backup_intro">Instellingen gaan niet mee in de cloudback-up van Android, omdat de geheimen erin dit toestel nooit verlaten. Exporteer ze hier om naar een nieuwe telefoon over te stappen.</string>
     <string name="backup_export">Exporteren</string>
     <string name="backup_import">Importeren</string>
     <string name="backup_export_title">Instellingen exporteren</string>
@@ -548,9 +447,9 @@
     <string name="backup_import_title">Instellingen importeren?</string>
     <string name="backup_import_replaces">Dit vervangt je huidige configuratie:</string>
     <string name="backup_bullet">• %1$s</string>
-    <string name="backup_summary_health_webhooks">Health-webhooks: %1$d</string>
+    <string name="backup_summary_health_webhooks">Webhooks voor Health Connect: %1$d</string>
     <string name="backup_summary_screen_time_webhooks">Schermtijd-webhooks: %1$d</string>
-    <string name="backup_summary_data_types">Ingeschakelde gegevenstypen: %1$d</string>
+    <string name="backup_summary_data_types">Ingeschakelde datatypes: %1$d</string>
     <string name="backup_summary_brokers">MQTT-brokers: %1$d</string>
     <string name="backup_summary_secrets">Met geheimen</string>
     <string name="backup_summary_no_secrets">Zonder geheimen</string>
@@ -565,38 +464,19 @@
     <string name="backup_note_broker_port_unusable">De MQTT-broker in dit bestand is niet bruikbaar: de poort is geen getal van 1 tot en met 65535. Deze telefoon houdt zijn eigen broker.</string>
     <string name="backup_keeps_credentials">Dit bestand bevat geen inloggegevens, dus die op dit toestel blijven behouden.</string>
     <string name="backup_history_unaffected">Synchronisatiegeschiedenis en logs blijven zoals ze zijn.</string>
-    <string name="backup_imported">Instellingen geïmporteerd, open de app opnieuw om ze te zien</string>
     <string name="backup_import_failed">Importeren mislukt: %1$s</string>
-    <string name="about_f_steps">Stappen, afstand, calorieën</string>
-    <string name="about_f_sleep">Slaap met fases</string>
-    <string name="about_f_meditation">Meditatiesessies</string>
-    <string name="about_f_heart">Hartslag en meer</string>
-    <string name="about_f_apps">App-gebruiksstatistieken</string>
-    <string name="about_f_boundary">Instelbare daggrens</string>
-    <string name="about_f_lookback">7 dagen terugkijken</string>
-    <string name="about_f_no_sharing">Geen data naar derden</string>
-    <string name="about_f_on_device">Data blijft op je toestel</string>
-    <string name="about_f_control">Volledige controle over sync-instellingen</string>
     <string name="about_website">Website</string>
-    <string name="about_website_sub">Installatiegidsen en de andere onderdelen van Life Dashboard</string>
     <string name="about_docs">Documentatie</string>
-    <string name="about_docs_sub">Setup, webhook-schema, MQTT, databronnen</string>
     <string name="about_whats_new">Wat is nieuw</string>
-    <string name="about_whats_new_sub">Changelog van %1$s</string>
     <string name="about_report">Probleem melden</string>
-    <string name="about_report_sub">GitHub-issues</string>
     <string name="about_github">Bekijk op GitHub</string>
     <string name="about_play">Ook op Google Play</string>
     <string name="about_play_sub">Dezelfde app; wie hem daar koopt, steunt de ontwikkeling</string>
     <string name="about_rate">Beoordeel de app</string>
-    <string name="about_rate_sub">Een beoordeling op Google Play helpt anderen hem te vinden</string>
     <string name="about_coffee">Trakteer me op koffie</string>
     <string name="about_coffee_sub">De app blijft gratis en open source; een koffie houdt de releases snel</string>
-    <string name="about_privacy_policy">Privacybeleid</string>
-    <string name="about_privacy_policy_sub">Wat de app leest, schrijft, opslaat en verstuurt</string>
     <string name="about_licence">Licentie</string>
     <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
-    <string name="about_version">Versie %1$s</string>
     <string name="about_bpm">%1$d BPM</string>
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
@@ -615,7 +495,6 @@
     <string name="privacy_contact_title">Contact</string>
     <string name="privacy_contact_body">Vragen over privacy: open een issue op GitHub of mail de ontwikkelaar op het adres in het GitHub-profiel.</string>
     <string name="privacy_full">Lees het volledige privacybeleid</string>
-    <string name="privacy_full_sub">PRIVACY.md op GitHub</string>
     <string name="nerd_title">Nerd-stats</string>
     <string name="nerd_secret">Je hebt het geheim gevonden</string>
     <string name="nerd_empty">Nog geen syncs. Kom terug als je data is gaan stromen.</string>
@@ -631,13 +510,10 @@
     <string name="health_backfill_needs_webhook">Aanvullen vereist een webhook-URL: MQTT draagt alleen de laatste waarde per type</string>
     <string name="schedule_title">Syncschema</string>
     <string name="schedule_mode_interval">Elke X minuten</string>
-    <string name="schedule_mode_times">Op vaste tijden</string>
     <string name="schedule_times_title">Synctijden</string>
     <string name="schedule_add_time">Tijd toevoegen</string>
-    <string name="schedule_remove_time">%1$s verwijderen</string>
     <string name="schedule_no_times">Nog geen tijden. Voeg er een toe om te gaan syncen.</string>
     <string name="schedule_days_title">Dagen</string>
-    <string name="schedule_days_all">Elke dag</string>
     <string name="schedule_quiet_title">Stille uren</string>
     <string name="schedule_quiet_subtitle">Sync nooit tussen deze tijden</string>
     <string name="schedule_quiet_from">Van</string>
@@ -645,9 +521,7 @@
     <string name="schedule_never_runs">Met deze instellingen wordt er nooit gesynct. Voeg een tijd of dag toe, of verkort de stille uren.</string>
     <string name="schedule_summary_interval">Elke %1$d min</string>
     <string name="schedule_summary_times">Om %1$s</string>
-    <string name="schedule_summary_days">%1$s</string>
     <string name="schedule_summary_quiet">stil %1$s tot %2$s</string>
-    <string name="schedule_no_sync_times">Voeg minstens een synctijd toe</string>
     <string name="schedule_day_mon">ma</string>
     <string name="schedule_day_tue">di</string>
     <string name="schedule_day_wed">wo</string>
@@ -673,18 +547,15 @@
     <string name="resolution_1h">1 uur</string>
     <string name="resolution_group_sampled">Gemiddeld per venster</string>
     <string name="resolution_group_accumulated">Opgeteld per venster</string>
-    <string name="activity_about_label">Over</string>
     <string name="tile_sync_label">Life Dashboard syncen</string>
     <string name="tile_sync_wait">Probeer het over een minuut</string>
     <string name="common_set">Instellen</string>
     <string name="screentime_day_boundary_time_label">Dag begint om</string>
     <string name="webhook_secret_generate">Genereren</string>
     <string name="webhook_secret_generated">Geheim aangemaakt. Sla op en zet dezelfde waarde op je server; een handtekening bewijst pas iets als beide kanten hem hebben.</string>
-    <string name="webhook_secret_copy">Kopiëren</string>
     <string name="webhook_secret_copied">Gekopieerd naar klembord</string>
 
     <!-- QR pairing -->
-    <string name="pairing_title">Koppelen met een ontvanger</string>
     <string name="pairing_intro">%1$s wil je gegevens ontvangen op:</string>
     <string name="pairing_intro_unnamed">Een ontvanger wil je gegevens op:</string>
     <string name="pairing_sections_label">Versturen vanaf</string>
@@ -693,7 +564,7 @@
     <string name="pairing_replaces_secret">Vervangt het ondertekeningsgeheim dat dit adres nu gebruikt.</string>
     <string name="pairing_others_keep_secret">Andere adressen houden hun eigen ondertekeningsgeheim en headers: %1$s.</string>
     <string name="pairing_already_paired">Dit onderdeel verstuurt hier al naartoe. Er verandert niets.</string>
-    <string name="pairing_types_note">Welke gegevenstypen worden verstuurd, en wanneer, blijft jouw keuze op de tabbladen. Koppelen vult alleen het adres en het geheim in.</string>
+    <string name="pairing_types_note">Welke datatypes worden verstuurd, en wanneer, blijft jouw keuze op de tabbladen. Koppelen vult alleen het adres en het geheim in.</string>
     <string name="pairing_confirm">Koppelen</string>
     <string name="pairing_ping_sending">Gekoppeld met %1$s. Testping wordt verstuurd...</string>
     <string name="pairing_ping_delivered">Gekoppeld met %1$s, testping afgeleverd</string>
@@ -704,7 +575,6 @@
     <string name="pairing_error_no_source">Deze ontvanger accepteert niets wat deze app kan versturen.</string>
 
     <!-- QR scanner -->
-    <string name="scan_title">Koppelcode scannen</string>
     <string name="scan_hint">Vul het kader met de koppelcode die je ontvanger toont, zoals de Life Dashboard-integratie in Home Assistant. Dichterbij werkt beter.</string>
     <string name="scan_close">Sluiten</string>
     <string name="scan_not_a_code">Dit is geen Life Dashboard-koppelcode.</string>
@@ -715,7 +585,6 @@
     <string name="webhook_scan_lead">Koppelcode scannen</string>
     <string name="webhook_scan_button">Scannen</string>
     <string name="onboarding_scan_option">Koppelcode scannen</string>
-    <string name="onboarding_scan_desc">Aangeraden voor Home Assistant: installeer de Life Dashboard-integratie via HACS en scan de QR-code die ze toont, en Home Assistant bewaart de historie in zijn langetermijnstatistieken. Elke andere ontvanger die een koppelcode toont, werkt net zo. Het adres en het ondertekeningsgeheim worden voor je ingevuld.</string>
     <string name="onboarding_scan_paired">Code gelezen. Het adres en het geheim zijn ingevuld.</string>
     <!-- Widget op het startscherm -->
     <plurals name="widget_records_today">
@@ -723,6 +592,10 @@
         <item quantity="other">records vandaag</item>
     </plurals>
     <string name="widget_synced_at">Gesynct om %1$s</string>
+    <string name="widget_name">Syncstatus</string>
+    <string name="widget_synced_on">Gesynct op %1$s</string>
+    <string name="widget_description">Resultaat van de laatste synchronisatie en de records die vandaag zijn afgeleverd, met een knop om nu te synchroniseren.</string>
+    <string name="widget_preview_records">records vandaag</string>
     <string name="widget_no_syncs">Nog geen syncs</string>
     <string name="widget_last_sync_succeeded">Laatste sync gelukt</string>
     <string name="widget_last_sync_failed">Laatste sync mislukt</string>
@@ -740,21 +613,12 @@
     <string name="screentime_apps_mode_all">Alle</string>
     <string name="screentime_apps_mode_except">Alle behalve</string>
     <string name="screentime_apps_mode_only">Alleen</string>
-    <string name="screentime_apps_description_all">Elke app gaat mee, zoals altijd. Systeem-UI en het startscherm blijven altijd buiten.</string>
-    <string name="screentime_apps_description_except">De apps die je aanvinkt worden nooit verstuurd: niet naar je webhook en niet naar Home Assistant. Elke dag telt in total_screen_time_minutes nog steeds alle apps; de apps die wel meegaan tellen op tot filtered_screen_time_minutes.</string>
-    <string name="screentime_apps_description_only">Alleen de apps die je aanvinkt worden verstuurd, naar je webhook en naar Home Assistant. Elke dag telt in total_screen_time_minutes nog steeds alle apps; de apps die meegaan tellen op tot filtered_screen_time_minutes.</string>
-    <string name="screentime_apps_history_warning">Elke sync stuurt de laatste zeven dagen opnieuw, dus een wijziging hier verandert die dagen ook op je server en in Home Assistant.</string>
     <string name="screentime_apps_none_chosen">Geen app aangevinkt: alleen de dagtotalen gaan mee.</string>
     <string name="screentime_apps_loading">De apps die je gebruikte worden opgezocht…</string>
     <string name="screentime_apps_none_used">Geen apps langer dan een minuut gebruikt in de afgelopen 30 dagen.</string>
     <string name="screentime_apps_search">Apps zoeken</string>
     <string name="screentime_apps_not_used">Niet gebruikt in de afgelopen 30 dagen</string>
-    <plurals name="screentime_apps_minutes_month">
-        <item quantity="one">%d minuut in de afgelopen 30 dagen</item>
-        <item quantity="other">%d minuten in de afgelopen 30 dagen</item>
-    </plurals>
     <!-- Record metadata (P2-7) -->
-    <string name="health_record_metadata">Recordmetadata</string>
     <string name="health_record_metadata_title">Recordmetadata in payload</string>
     <string name="health_record_metadata_description">Voegt aan elk record toe wanneer het voor het laatst gewijzigd is, de eigen id en versie van de schrijvende app, hoe het is vastgelegd, het apparaat en de tijdzone, waar Health Connect die heeft. Maakt payloads groter, het meest bij hartslag.</string>
     <!-- The secret store lost its secrets -->
@@ -768,4 +632,361 @@
     <string name="battery_hint_device_care">Apparaatonderhoud</string>
     <string name="battery_hint_help">Hulp voor je telefoon</string>
     <string name="battery_hint_dismiss">Niet meer tonen</string>
+
+    <string name="ld_nerd_records_health">Gezondheidsrecords</string>
+    <string name="ld_nerd_records_screen_time">Schermtijdrecords</string>
+    <string name="ld_nerd_records_today">Gezondheidsrecords vandaag</string>
+    <string name="ld_nerd_last_sync_outcome">%1$s, %2$s</string>
+    <string name="ld_save">Bewaren</string>
+    <string name="ld_key_value">%1$s: %2$s</string>
+    <string name="ld_remove_named">%1$s verwijderen</string>
+    <string name="ld_try_again">Opnieuw proberen</string>
+    <string name="ld_not_saved">Niet bewaard</string>
+    <string name="ld_type_locked">Nog geen toestemming</string>
+    <string name="ld_title_add_destination">Bestemming toevoegen</string>
+    <string name="ld_title_destination">Bestemming</string>
+    <string name="ld_title_paired">Gekoppeld</string>
+    <string name="ld_title_what_to_send">Wat versturen</string>
+    <string name="ld_title_backfill">Aanvullen</string>
+    <string name="ld_title_preview">Voorbeeld</string>
+    <string name="ld_title_when_to_send">Wanneer versturen</string>
+    <string name="ld_title_more">Meer</string>
+    <string name="ld_title_server_certificates">Servercertificaten</string>
+    <string name="ld_title_export_data">Data exporteren</string>
+    <string name="ld_title_backup_restore">Back-up en herstel</string>
+    <string name="ld_title_delivery">Aflevering</string>
+    <string name="ld_title_apps_to_send">Welke apps</string>
+    <string name="ld_title_day_starts_at">Dag begint om</string>
+    <string name="ld_title_help">Hulp</string>
+    <string name="ld_title_support">Steun</string>
+    <string name="ld_title_privacy">Privacy</string>
+    <string name="ld_title_open_source">Open source</string>
+    <string name="ld_category_activity">Activiteit</string>
+    <string name="ld_category_body">Lichaam</string>
+    <string name="ld_category_heart">Hart en vitale functies</string>
+    <string name="ld_category_sleep">Slaap en mindfulness</string>
+    <string name="ld_category_food">Eten en drinken</string>
+    <string name="ld_category_cycle">Cyclus bijhouden</string>
+    <string name="ld_just_now">zojuist</string>
+    <string name="ld_home_heading_nothing_selected">Verbonden. Kies nu je data.</string>
+    <string name="ld_home_heading_problem_one">%1$s heeft je nodig.</string>
+    <plurals name="ld_home_heading_problem_many">
+        <item quantity="one">%1$d bestemming heeft je nodig.</item>
+        <item quantity="other">%1$d bestemmingen hebben je nodig.</item>
+    </plurals>
+    <string name="ld_home_heading_overdue">Er is de laatste tijd niets aangekomen.</string>
+    <string name="ld_home_heading_waiting">Klaar voor de eerste synchronisatie.</string>
+    <string name="ld_home_heading_arriving">Je data komt aan.</string>
+    <string name="ld_home_hc_install_note">Life Dashboard leest je gezondheidsdata via Health Connect. Installeer het om te beginnen.</string>
+    <string name="ld_home_hc_update_note">Deze versie van Health Connect is te oud voor Life Dashboard. Werk het bij om te beginnen.</string>
+    <string name="ld_home_hc_unavailable_note">Health Connect werkt niet op dit toestel of in dit profiel. Schermtijd werkt wel.</string>
+    <string name="ld_home_access_note">Health Connect heeft Life Dashboard nog geen toegang gegeven, dus er kan niets worden gelezen of verstuurd.</string>
+    <string name="ld_home_own_server">Je eigen server gebruiken</string>
+    <string name="ld_home_pair_note">Elke ontvanger kan een koppelcode tonen, zoals Home Assistant, de Life Dashboard Stack of je eigen server.</string>
+    <string name="ld_home_broker">Broker %1$s</string>
+    <string name="ld_home_connected">Verbonden</string>
+    <string name="ld_home_no_deliveries">Nog geen afleveringen</string>
+    <string name="ld_home_failed_http">HTTP %1$d, %2$s</string>
+    <string name="ld_home_failed_time">Mislukt, %1$s</string>
+    <string name="ld_home_nothing_since">Niets afgeleverd sinds %1$s.</string>
+    <string name="ld_home_overdue_battery">Niets afgeleverd sinds %1$s. Misschien houdt batterijoptimalisatie de synchronisaties tegen.</string>
+    <string name="ld_home_overdue_logs">Niets afgeleverd sinds %1$s. Het tabblad Logs laat zien wat er gebeurde.</string>
+    <string name="ld_home_hold_never">Automatische synchronisatie staat uit. Nu synchroniseren werkt nog steeds.</string>
+    <string name="ld_home_hold_quiet">Stille uren tot %1$s. Nu synchroniseren werkt nog steeds.</string>
+    <string name="ld_home_hold_day_off">Vandaag geen automatische synchronisatie. Nu synchroniseren werkt nog steeds.</string>
+    <string name="ld_home_types_of">%1$d van %2$d types</string>
+    <string name="ld_home_none_yet">Nog geen</string>
+    <string name="ld_home_once_a_day">Eén keer per dag</string>
+    <plurals name="ld_home_times_a_day">
+        <item quantity="one">%1$d keer per dag</item>
+        <item quantity="other">%1$d keer per dag</item>
+    </plurals>
+    <string name="ld_home_more_subtitle">Back-up, over de app</string>
+    <string name="ld_home_receive_waiting">Wacht op de volgende sync</string>
+    <string name="ld_home_receive_choose">Kies de types</string>
+    <string name="ld_home_receive_permission">Toestemming ontbreekt</string>
+    <plurals name="ld_home_receive_types">
+        <item quantity="one">%1$d type</item>
+        <item quantity="other">%1$d types</item>
+    </plurals>
+    <string name="ld_secrets_unavailable_title">Beveiligde opslag is niet beschikbaar</string>
+    <string name="ld_secrets_unavailable_body">Opgeslagen auth-headers, ondertekeningsgeheimen en MQTT-wachtwoorden kunnen nu niet worden gelezen of gewijzigd. Ontgrendel het toestel en open de app opnieuw. Er wordt niets onversleuteld opgeslagen.</string>
+    <string name="ld_secrets_lost_title">Geheimen moeten opnieuw worden ingevoerd</string>
+    <string name="ld_today_pick">Kies wat je wilt versturen</string>
+    <string name="ld_today_lines">Lijnen tonen 7 dagen</string>
+    <string name="ld_today_rest_bpm">Rust bpm</string>
+    <string name="ld_today_kg">kg</string>
+    <string name="ld_today_lb">lb</string>
+    <string name="ld_today_sleep_value">%1$su %2$s</string>
+    <string name="ld_today_weight_value">%1$s %2$s</string>
+    <string name="ld_today_spoken">%1$s: %2$s, %3$s</string>
+    <string name="ld_today_trend">Laagste %1$s, hoogste %2$s, laatste %3$s</string>
+    <string name="ld_today_record">record</string>
+    <string name="ld_add_heading">Voeg een bestemming toe.</string>
+    <string name="ld_add_pair_note">Voor elke ontvanger die er een toont, zoals Home Assistant, de Life Dashboard Stack of je eigen server.</string>
+    <string name="ld_add_own_server">Je eigen server</string>
+    <string name="ld_add_webhook_url">Webhook-URL</string>
+    <string name="ld_add_webhook_example">https://your-webhook.com/health</string>
+    <string name="ld_add_webhook">Webhook toevoegen</string>
+    <string name="ld_add_mqtt_subtitle">Met Home Assistant Discovery</string>
+    <string name="ld_add_mqtt_on">Aan: %1$s</string>
+    <string name="ld_dest_url">URL</string>
+    <string name="ld_dest_signing">Ondertekening</string>
+    <string name="ld_dest_copy_secret">Geheim kopiëren</string>
+    <string name="ld_dest_headers">Headers</string>
+    <string name="ld_dest_add_header">Header toevoegen</string>
+    <string name="ld_dest_headers_note">Alleen naar dit adres verstuurd.</string>
+    <string name="ld_dest_header_invalid">Geen geldige header, dus er wordt niets verstuurd. Verwijder hem en voeg hem opnieuw toe.</string>
+    <string name="ld_dest_delivered">Afgeleverd %1$s.</string>
+    <plurals name="ld_dest_delivered_records">
+        <item quantity="one">Afgeleverd %1$s, %2$d record.</item>
+        <item quantity="other">Afgeleverd %1$s, %2$d records.</item>
+    </plurals>
+    <string name="ld_dest_last_failed">Laatste poging %1$s mislukt.</string>
+    <string name="ld_dest_last_failed_reason">Laatste poging %1$s mislukt: %2$s</string>
+    <string name="ld_dest_plain_http">Onversleutelde HTTP staat uit</string>
+    <string name="ld_dest_plain_http_body">Er komt niets aan op een http-adres totdat je het toestaat onder Geavanceerd. Gebruik een https-adres als dat kan.</string>
+    <string name="ld_dest_send_test">Test versturen</string>
+    <string name="ld_dest_sending">Versturen...</string>
+    <string name="ld_dest_test_uses_saved">De test gebruikt wat is bewaard. Bewaar eerst om je wijzigingen te testen.</string>
+    <string name="ld_dest_remove">Bestemming verwijderen</string>
+    <string name="ld_dest_remove_body">Dit adres ontvangt geen data meer, en het ondertekeningsgeheim en de headers worden verwijderd.</string>
+    <string name="ld_dest_remove_receive_body">Dit adres ontvangt geen data meer, en het ondertekeningsgeheim en de headers worden verwijderd. Ontvangen stopt ook, omdat de metingen van dit adres komen.</string>
+    <string name="ld_mqtt_remove_body">MQTT-publicatie stopt hier, en het adres en de inloggegevens van een broker die verder nergens voor wordt gebruikt, worden van deze telefoon verwijderd.</string>
+    <string name="ld_paired_connected">Verbonden.</string>
+    <string name="ld_paired_not_connected">Nog niet verbonden.</string>
+    <string name="ld_paired_checking">Verbinding controleren...</string>
+    <string name="ld_paired_delivered">Afgeleverd: de ontvanger heeft de testping aangenomen.</string>
+    <string name="ld_paired_next_sync">Tik op Nu synchroniseren om je data te versturen.</string>
+    <string name="ld_paired_next_types">Zet nu de datatypes aan die je wilt versturen.</string>
+    <string name="ld_paired_done">Gereed</string>
+    <string name="ld_pairing_title">Koppeling</string>
+    <string name="ld_pairing_heading">Koppelen met deze ontvanger?</string>
+    <string name="ld_what_heading">%1$d van %2$d types.</string>
+    <string name="ld_what_start_from">Begin met</string>
+    <string name="ld_what_essentials">De basis</string>
+    <string name="ld_what_all_types">Alle types</string>
+    <string name="ld_what_none">Geen</string>
+    <string name="ld_what_by_category">Per categorie</string>
+    <string name="ld_what_count_of">%1$d van %2$d</string>
+    <string name="ld_what_how_it_goes_out">Hoe het verstuurd wordt</string>
+    <string name="ld_what_send_history">Geschiedenis versturen</string>
+    <string name="ld_what_preview_payload">Voorbeeld van payload</string>
+    <string name="ld_what_access">Toegang tot Health Connect</string>
+    <string name="ld_what_access_granted">Toegestaan voor wat je hebt geselecteerd</string>
+    <string name="ld_what_access_allowed_count">Toegestaan voor %1$d van %2$d types</string>
+    <string name="ld_access_blocked_not_installed">Health Connect is niet geïnstalleerd, dus je kunt dit niet aanzetten. Je selectie blijft zoals die is.</string>
+    <string name="ld_access_blocked_needs_update">Health Connect moet worden bijgewerkt, dus je kunt dit niet aanzetten. Je selectie blijft zoals die is.</string>
+    <string name="ld_access_blocked_unavailable">Health Connect is niet beschikbaar op deze telefoon, dus je kunt dit niet aanzetten. Je selectie blijft zoals die is.</string>
+    <string name="ld_category_cycle_note">Dit blijft uit tot je het aanzet. Het gaat alleen naar je eigen bestemmingen.</string>
+    <string name="ld_category_lock_note">Het slotje betekent: nog geen toestemming. Als je het aanzet, wordt erom gevraagd.</string>
+    <string name="ld_resolution_footnote">Kies elke meting, 1 min, 5 min, 15 min of 1 uur. Alleen geselecteerde types staan hier.</string>
+    <string name="ld_resolution_empty">Zet een type aan, zoals hartslag of stappen, om de resolutie te kiezen.</string>
+    <string name="ld_backfill_heading">Verstuur je geschiedenis.</string>
+    <string name="ld_backfill_intro">Verstuurd in blokken van 3 dagen, oudste eerst. Records worden nooit dubbel geteld.</string>
+    <plurals name="ld_backfill_chunks">
+        <item quantity="one">%1$d blok</item>
+        <item quantity="other">%1$d blokken</item>
+    </plurals>
+    <string name="ld_backfill_everything">Alles</string>
+    <string name="ld_backfill_goes_to">Gaat naar %1$s.</string>
+    <string name="ld_backfill_mobile_data">Dit kan even duren en mobiele data verbruiken.</string>
+    <string name="ld_backfill_integration_note">Home Assistant neemt voorlopig ongeveer het laatste jaar over. Een webhook of de Life Dashboard-stack krijgt alles.</string>
+    <string name="ld_backfill_start">Starten, %1$s</string>
+    <string name="ld_backfill_view">Bekijken</string>
+    <string name="ld_backfill_short_waiting">Wachten</string>
+    <string name="ld_backfill_short_paused">Gepauzeerd bij %1$d/%2$d</string>
+    <string name="ld_backfill_running_heading">Aanvullen: %1$d van %2$d.</string>
+    <string name="ld_backfill_paused_heading">Gepauzeerd bij %1$d van %2$d.</string>
+    <string name="ld_backfill_waiting_heading">Wachten op de synchronisatie.</string>
+    <string name="ld_backfill_starting_heading">Aanvullen wordt gestart.</string>
+    <string name="ld_backfill_failed_heading">Aanvullen gestopt.</string>
+    <string name="ld_backfill_done_heading">Aanvullen klaar.</string>
+    <string name="ld_backfill_progress_a11y">Voortgang van aanvullen, %1$d van %2$d blokken</string>
+    <plurals name="ld_backfill_records_leave">
+        <item quantity="one">%1$s record verstuurd. Je kunt dit scherm verlaten.</item>
+        <item quantity="other">%1$s records verstuurd. Je kunt dit scherm verlaten.</item>
+    </plurals>
+    <string name="ld_backfill_can_leave">Je kunt dit scherm verlaten.</string>
+    <plurals name="ld_backfill_records_sent">
+        <item quantity="one">%1$s record verstuurd</item>
+        <item quantity="other">%1$s records verstuurd</item>
+    </plurals>
+    <string name="ld_backfill_stop_discard">Stoppen en weggooien</string>
+    <string name="ld_backfill_stop_hint">Vergeet de voortgang. Data die al is verstuurd, blijft op je server.</string>
+    <string name="ld_backfill_continue">Doorgaan</string>
+    <string name="ld_backfill_choose_length">Lengte kiezen</string>
+    <string name="ld_preview_intro">Dit is wat je server ontvangt.</string>
+    <string name="ld_preview_no_types">Geen datatypes geselecteerd</string>
+    <string name="ld_preview_nothing_new">Geen nieuwe data sinds de laatste synchronisatie, dus een synchronisatie zou nu niets versturen. Geschiedenis versturen stuurt oudere records opnieuw.</string>
+    <string name="ld_when_every">Elke %1$d minuten.</string>
+    <plurals name="ld_when_times">
+        <item quantity="one">Eén keer per dag.</item>
+        <item quantity="other">%1$d keer per dag.</item>
+    </plurals>
+    <string name="ld_when_never">Synchroniseert nooit</string>
+    <string name="ld_when_fixed_times">Vaste tijden</string>
+    <string name="ld_when_mode">Syncmodus</string>
+    <string name="ld_when_minimum">Het minimum is %1$d minuten.</string>
+    <string name="ld_when_limits">Beperkingen</string>
+    <string name="ld_receive_heading_off">Ontvangen staat uit.</string>
+    <string name="ld_receive_heading_on">Uit Home Assistant.</string>
+    <string name="ld_receive_heading_waiting">Wachten op de volgende synchronisatie.</string>
+    <string name="ld_receive_heading_choose">Kies wat je wilt ontvangen.</string>
+    <string name="ld_receive_heading_permission">Toestemming ontbreekt.</string>
+    <string name="ld_receive_intro">Metingen komen bij elke synchronisatie binnen en gaan naar Health Connect.</string>
+    <string name="ld_receive_measurements">Metingen ontvangen</string>
+    <string name="ld_receive_source">Bron</string>
+    <string name="ld_receive_types">Types</string>
+    <string name="ld_advanced_connection">Verbinding</string>
+    <string name="ld_advanced_client_cert_used">Gebruikt voor elke webhook</string>
+    <plurals name="ld_advanced_hosts">
+        <item quantity="one">%1$d host</item>
+        <item quantity="other">%1$d hosts</item>
+    </plurals>
+    <string name="ld_certificates_empty">Nog geen https-webhooks. Voeg er een toe om hier te kiezen welke certificaten je voor die server vertrouwt.</string>
+    <string name="ld_notifications_note">Je hoort het ook als niet elke bestemming je data krijgt, en als er data verloren is gegaan.</string>
+    <string name="ld_notifications_blocked_title">Android toont deze meldingen niet</string>
+    <string name="ld_notifications_blocked_body">Ze staan uit voor deze app in de Android-instellingen, dus je hoort niets van een mislukte synchronisatie tot je ze daar toestaat.</string>
+    <string name="ld_export_heading">Exporteer je data.</string>
+    <string name="ld_export_intro_health">Een bestand met de geselecteerde types uit Health Connect.</string>
+    <string name="ld_export_intro_screen_time">Een bestand met je schermtijd van de laatste zeven dagen.</string>
+    <string name="ld_export_csv">Als CSV exporteren</string>
+    <string name="ld_export_json">Als JSON exporteren</string>
+    <string name="ld_export_opens_share">Opent het deelmenu.</string>
+    <string name="ld_export_no_types">Geen datatypes geselecteerd</string>
+    <string name="ld_backup_intro">Zet je instellingen over naar een andere telefoon. Logs en sync-voortgang blijven waar ze zijn.</string>
+    <string name="ld_backup_choose_file">Back-upbestand kiezen</string>
+    <string name="ld_backup_imported">Instellingen geïmporteerd</string>
+    <string name="ld_logs_state">%1$d mislukt, %2$d afgeleverd.</string>
+    <string name="ld_logs_nothing_yet">Nog niets verstuurd.</string>
+    <string name="ld_logs_empty_note">Elke aflevering en MQTT-publicatie verschijnt hier. De lijst bewaart de laatste %1$d.</string>
+    <string name="ld_logs_outbox_empty">Wachtrij leeg</string>
+    <plurals name="ld_logs_pending">
+        <item quantity="one">%1$d in de wachtrij</item>
+        <item quantity="other">%1$d in de wachtrij</item>
+    </plurals>
+    <string name="ld_logs_success_rate">%1$d%% gelukt</string>
+    <plurals name="ld_logs_deliveries">
+        <item quantity="one">%1$s aflevering</item>
+        <item quantity="other">%1$s afleveringen</item>
+    </plurals>
+    <plurals name="ld_logs_records">
+        <item quantity="one">%1$s record</item>
+        <item quantity="other">%1$s records</item>
+    </plurals>
+    <plurals name="ld_logs_sensors">
+        <item quantity="one">%1$s sensor</item>
+        <item quantity="other">%1$s sensors</item>
+    </plurals>
+    <plurals name="ld_logs_apps">
+        <item quantity="one">%1$s app</item>
+        <item quantity="other">%1$s apps</item>
+    </plurals>
+    <plurals name="ld_logs_written">
+        <item quantity="one">%1$s geschreven</item>
+        <item quantity="other">%1$s geschreven</item>
+    </plurals>
+    <string name="ld_logs_by_section">Gezondheid %1$d / %2$d · Schermtijd %3$d / %4$d</string>
+    <string name="ld_logs_filter_failed">Mislukt %1$d</string>
+    <string name="ld_logs_no_match">Geen logs die bij dit filter passen.</string>
+    <string name="ld_logs_send_test">Test versturen</string>
+    <string name="ld_logs_delete">Verwijderen</string>
+    <string name="ld_logs_show_details">Details tonen</string>
+    <string name="ld_logs_show_actions">Acties tonen</string>
+    <string name="ld_logs_size_stored">%1$s bewaard</string>
+    <string name="ld_logs_headline">%1$s %2$s</string>
+    <string name="ld_logs_accepted">%1$s heeft deze aflevering aangenomen.</string>
+    <string name="ld_logs_not_accepted">%1$s heeft deze aflevering niet aangenomen.</string>
+    <string name="ld_logs_broker_accepted">De broker heeft deze publicatie aangenomen.</string>
+    <string name="ld_logs_key_time">Tijd</string>
+    <string name="ld_logs_key_url">URL</string>
+    <string name="ld_logs_key_status">Status</string>
+    <string name="ld_logs_key_note">Opmerking</string>
+    <string name="ld_logs_key_sensors">Sensors</string>
+    <string name="ld_logs_key_apps">Apps</string>
+    <string name="ld_logs_key_type">Type</string>
+    <string name="ld_logs_key_section">Onderdeel</string>
+    <string name="ld_logs_key_payload_size">Payloadgrootte</string>
+    <string name="ld_logs_gone">Deze aflevering staat niet meer in het log.</string>
+    <string name="ld_logs_readings">Metingen</string>
+    <string name="ld_logs_values_note">De waarde van een meting blijft alleen bewaard zolang Volledige payloads bewaren aanstaat.</string>
+    <string name="ld_screen_heading_total">%1$s op je telefoon.</string>
+    <string name="ld_screen_heading_no_access">Sta gebruikstoegang toe.</string>
+    <string name="ld_screen_no_access_body">Android vraagt je dit in de instellingen aan te zetten. Zonder deze toegang kan de app niet zien hoe lang je een app hebt gebruikt.</string>
+    <string name="ld_screen_open_settings">Android-instellingen openen</string>
+    <string name="ld_screen_most_used">Meest gebruikt vandaag</string>
+    <string name="ld_screen_nothing_today">Vandaag geen app langer dan een minuut gebruikt.</string>
+    <string name="ld_screen_status_no_deliveries">Nog geen afleveringen</string>
+    <string name="ld_screen_status_just_now">zojuist</string>
+    <string name="ld_screen_status_http">HTTP %1$d, %2$s</string>
+    <string name="ld_screen_status_failed">Mislukt, %1$s</string>
+    <string name="ld_screen_broker_named">Broker %1$s</string>
+    <string name="ld_screen_more_summary">Geavanceerd, over de app</string>
+    <string name="ld_screen_secrets_unavailable">Beveiligde opslag is niet beschikbaar, dus opgeslagen auth-headers, ondertekeningsgeheimen en MQTT-wachtwoorden kunnen nu niet worden gelezen of gewijzigd. Ontgrendel het toestel en open de app opnieuw. Er wordt niets onversleuteld opgeslagen.</string>
+    <string name="ld_screen_preview_payload">Voorbeeld van payload</string>
+    <string name="ld_screen_apps_description_all">Elke app gaat mee. Systeem-UI en het startscherm gaan nooit mee.</string>
+    <string name="ld_screen_apps_description_except">Alles behalve de apps die je aanvinkt. Elke dag telt in total_screen_time_minutes nog steeds alle apps; de apps die meegaan tellen op tot filtered_screen_time_minutes.</string>
+    <string name="ld_screen_apps_description_only">Alleen de apps die je aanvinkt. Elke dag telt in total_screen_time_minutes nog steeds alle apps; de apps die meegaan tellen op tot filtered_screen_time_minutes.</string>
+    <string name="ld_screen_apps_history_warning">Elke synchronisatie stuurt de laatste zeven dagen opnieuw, dus een wijziging hier verandert die dagen ook bij je bestemmingen.</string>
+    <string name="ld_screen_apps_search_label">Zoeken</string>
+    <string name="ld_screen_apps_used_label">Gebruikt in de afgelopen 30 dagen</string>
+    <string name="ld_screen_apps_no_match">Geen app die bij deze zoekopdracht past.</string>
+    <string name="ld_screen_day_heading">Je dag begint om %1$s.</string>
+    <string name="ld_screen_day_body">Activiteit voor dit uur telt mee bij de vorige dag, dus een late film hoort bij de avond waarop hij begon.</string>
+    <string name="ld_screen_day_whole_hours">Alleen hele uren.</string>
+    <string name="ld_screen_when_never">Synchroniseert nooit</string>
+    <string name="ld_screen_when_every_hour">Elk uur.</string>
+    <plurals name="ld_screen_when_every_hours">
+        <item quantity="one">Elk uur.</item>
+        <item quantity="other">Elke %1$d uur.</item>
+    </plurals>
+    <plurals name="ld_screen_when_every_minutes">
+        <item quantity="one">Elke minuut.</item>
+        <item quantity="other">Elke %1$d minuten.</item>
+    </plurals>
+    <plurals name="ld_screen_when_times_a_day">
+        <item quantity="one">%1$d keer per dag.</item>
+        <item quantity="other">%1$d keer per dag.</item>
+    </plurals>
+    <string name="ld_screen_when_note">Elke synchronisatie stuurt de laatste 7 dagen. Dit schema staat los van Gezondheid.</string>
+    <string name="ld_screen_when_limits">Beperkingen</string>
+    <string name="ld_about_heading">Je data gaat waar jij die heen stuurt.</string>
+    <string name="ld_about_connected">Verbonden</string>
+    <string name="ld_about_pair_code">Koppelen met een code</string>
+    <string name="ld_about_set_up_stack">De stack instellen</string>
+    <string name="ld_about_own_server">Je eigen server</string>
+    <string name="ld_about_own_server_sub">Koppelcode, webhook of MQTT</string>
+    <string name="ld_about_no_cloud">Geen account en geen cloud. Ook voor iPhone.</string>
+    <string name="ld_about_version_line">Life Dashboard Companion, versie %1$s. Gemaakt door Owen Vogelaar.</string>
+    <string name="ld_about_show_nerd">Nerd-stats tonen</string>
+    <string name="ld_about_help_sub">Gids, wat is nieuw</string>
+    <string name="ld_about_support_sub">Beoordelen, ster op GitHub</string>
+    <string name="ld_about_privacy_sub">Geen trackers</string>
+    <string name="ld_about_source_sub">MIT-licentie</string>
+    <string name="ld_about_setup_guide">Installatiegids</string>
+    <string name="ld_about_questions">Vragen</string>
+    <string name="ld_about_mail">Mail</string>
+    <string name="ld_about_support_intro">Een beoordeling of een ster helpt anderen de app te vinden.</string>
+    <string name="ld_about_star">Ster geven op GitHub</string>
+    <string name="ld_about_source_intro">Je kunt elke regel lezen die deze app uitvoert.</string>
+    <string name="ld_about_receiver">Sluit je eigen ontvanger aan</string>
+    <string name="ld_about_receiver_sub">Laat je gebruikers koppelen door één QR-code te scannen</string>
+    <string name="ld_about_typefaces_title">Lettertypes</string>
+    <string name="ld_about_no_app_for_link">Geen app op deze telefoon kan deze link openen</string>
+    <string name="ld_about_typefaces">De lettertypes Space Grotesk en Space Mono vallen onder de SIL Open Font License.</string>
+    <string name="ld_onboarding_welcome_body">Stuur je gezondheidsdata en schermtijd naar je eigen Home Assistant of server. Geen account, geen cloud.</string>
+    <string name="ld_onboarding_pick_one_or_both">Kies er een of allebei.</string>
+    <string name="ld_onboarding_health_desc">Stappen, slaap, hartslag en meer</string>
+    <string name="ld_onboarding_screen_desc">Tijd per app op deze telefoon</string>
+    <string name="ld_onboarding_scan_note">Voor elke ontvanger die er een toont, zoals Home Assistant, de Life Dashboard Stack of je eigen server.</string>
+    <string name="ld_onboarding_own_server">Of je eigen server</string>
+    <string name="ld_onboarding_webhook_url">Webhook-URL</string>
+    <string name="ld_onboarding_set_up">Instellen</string>
+    <string name="ld_onboarding_use">Gebruiken</string>
+    <string name="ld_onboarding_mqtt_note">Begint op poort 1883 zonder TLS. Poort, TLS en inloggegevens stel je daarna in op de MQTT-pagina.</string>
+    <string name="ld_onboarding_later_desc">Kies bij Wat versturen</string>
+    <string name="ld_onboarding_sending_to">Verstuurt naar</string>
+    <string name="ld_onboarding_one_thing_left">Nog één ding te doen</string>
+    <string name="ld_onboarding_two_things_left">Nog twee dingen te doen</string>
 </resources>

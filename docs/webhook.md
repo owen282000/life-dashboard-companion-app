@@ -28,7 +28,7 @@ If you would rather start from a working backend, [life-dashboard-stack](https:/
 
 ### The request
 
-The **Health** tab and the **Screen Time** tab each have their own list of webhook addresses. Every payload of a section goes to every address of that section, and each address has its own **Webhook Headers** and **HMAC signing secret (optional)**: what you set for one address is never sent to another, so two receivers that check their own secret both accept the same payload.
+The **Health** tab and the **Screen Time** tab each have their own list of webhook addresses. Every payload of a section goes to every address of that section, and each address has its own **Headers** and **HMAC signing secret (optional)** on its page: what you set for one address is never sent to another, so two receivers that check their own secret both accept the same payload.
 
 | Part | Value |
 |---|---|
@@ -36,9 +36,9 @@ The **Health** tab and the **Screen Time** tab each have their own list of webho
 | `Content-Type` | `application/json; charset=utf-8` |
 | Body | One JSON object, UTF-8 |
 | `X-Signature` | `sha256=<lowercase hex>`, only when the address has a signing secret, computed with that address's secret |
-| Custom headers | The address's own **Webhook Headers**, for example an `Authorization` header. An address that QR pairing added starts with none, so an address from a pairing code never receives the API keys typed for the others. |
-| Client certificate | Optional mTLS. **Client certificate (mTLS)** under **Advanced** picks a certificate installed in Android's credential store; it is used for every webhook. |
-| Server certificates | Optional, per https host, under **Advanced > Server certificates**: trust the CA certificates installed on the phone for that host (a private CA), or one certificate whose SHA-256 fingerprint you confirmed (self-signed). Both off by default; there is no switch that accepts any certificate. |
+| Custom headers | The address's own **Headers**, for example an `Authorization` header. An address that QR pairing added starts with none, so an address from a pairing code never receives the API keys typed for the others. |
+| Client certificate | Optional mTLS. **Client certificate (mTLS)** under **More > Advanced** picks a certificate installed in Android's credential store; it is used for every webhook. |
+| Server certificates | Optional, per https host, under **More > Advanced > Server certificates**: trust the CA certificates installed on the phone for that host (a private CA), or one certificate whose SHA-256 fingerprint you confirmed (self-signed). Both off by default; there is no switch that accepts any certificate. |
 | Transport | HTTPS. Plain `http://` is refused unless **Allow plain HTTP webhooks** is on. |
 
 `source` in the body says what kind of payload it is: `health_connect` or `screen_time`. A body with `"test": true` is a [test ping](#test-ping) and carries no data. The iOS app posts the same shape from Apple Health with `"source": "healthkit_ios"`, so one receiver can take both; its [payload reference](https://github.com/owen282000/life-dashboard-companion-app-ios/blob/main/docs/webhook.md) documents where it differs.
@@ -156,11 +156,11 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)
 ```
 
-Both receivers expect a signing secret. Without one in the app the requests carry no `X-Signature`; then remove the check and protect the URL with a header under **Webhook Headers**, such as `Authorization`, instead.
+Both receivers expect a signing secret. Without one in the app the requests carry no `X-Signature`; then remove the check and protect the URL with a header under **Headers**, such as `Authorization`, instead.
 
 Flask sets no body limit of its own. Both receivers respond before they store, so a crash in between loses that payload; if that matters, write the raw body to disk or a durable queue first and respond after that.
 
-To try a receiver from the phone on your own network, turn on **Allow plain HTTP webhooks** under **Advanced** (on either tab, it applies to both) and enter `http://<computer's address>:3000/life-dashboard`. **Test ping** then sends one request without data to every address, each signed with its own secret when it has one. Use HTTPS for anything beyond your own network.
+To try a receiver from the phone on your own network, turn on **Allow plain HTTP webhooks** under **More > Advanced** (on either tab, it applies to both) and enter `http://<computer's address>:3000/life-dashboard`. **Send test** on the address's page then sends it one request without data, signed with its secret when it has one; **Send test** on the **Logs** tab does the same for every address. Use HTTPS for anything beyond your own network.
 
 ### n8n and Node-RED
 
@@ -504,7 +504,7 @@ Skin temperature is a delta from a baseline, as wearables write it to Health Con
 }
 ```
 
-`device` is the phone's manufacturer and model. `date` is the day as the app counts it: by default from 04:00 to 04:00 local time, so phone use after midnight still counts toward the day before. The hour can be changed, or the boundary switched off for midnight to midnight, under **Day Boundary** on the **Screen Time** tab. Minutes are whole minutes, rounded down.
+`device` is the phone's manufacturer and model. `date` is the day as the app counts it: by default from 04:00 to 04:00 local time, so phone use after midnight still counts toward the day before. The hour can be changed, or the boundary switched off for midnight to midnight, under **Day starts at** on the **Screen Time** tab. Minutes are whole minutes, rounded down.
 
 Minutes are foreground time per app, derived from Android's activity resume, pause and stop events; background time is not counted. A session also ends on screen off, keyguard and shutdown. System UI and the launcher are left out, and so are apps with one minute or less that day, so totals are comparable to Digital Wellbeing. Digital Wellbeing counts from midnight, so with the day boundary on (the default) the days will not match exactly.
 
@@ -543,7 +543,7 @@ The Home Assistant sensors follow the filter. The MQTT sensors and the [Life Das
 
 ## Test ping
 
-**Test ping** on either tab, **Send Test Ping** in the setup wizard, and every QR pairing (right after it is applied, to the paired address with the paired secret) send one small payload with no records in it:
+**Send test** on an address's page and on the **Logs** tab, **Send Test Ping** in the setup, and every QR pairing (right after it is applied, to the paired address with the paired secret) send one small payload with no records in it:
 
 ```json
 {
@@ -555,7 +555,7 @@ The Home Assistant sensors follow the filter. The MQTT sensors and the [Life Das
 }
 ```
 
-`source` is the section the address belongs to, `health_connect` or `screen_time`, so a receiver can tell which of its last-sync times the ping answers for (the iOS app sends `healthkit_ios`). It is signed like any other request. A ping is retried like a sync but never queued in the outbox, and the pairing stays in place when it fails: the toast names the reason. [Pairing your own receiver](pairing.md#after-pair-the-test-ping) shows what a receiver that hands out its own QR code should answer.
+`source` is the section the address belongs to, `health_connect` or `screen_time`, so a receiver can tell which of its last-sync times the ping answers for (the iOS app sends `healthkit_ios`). It is signed like any other request. A ping is retried like a sync but never queued in the outbox, and the pairing stays in place when it fails: the app names the reason. [Pairing your own receiver](pairing.md#after-pair-the-test-ping) shows what a receiver that hands out its own QR code should answer.
 
 ## Advanced semantics
 
@@ -574,7 +574,7 @@ When several apps write the same activity to Health Connect (phone and watch, or
 - Only enabled types appear: `steps`, `distance_meters` (meters), `active_calories` and `total_calories` (kcal). A day without any of them is left out.
 - Every payload of one sync carries the same `daily_totals`. Deletion payloads and heartbeats carry none.
 - A backfill carries a total for every day its window touches, in every payload of the window, so a receiver that keeps history gets the real total for each past day. A day cut by a window boundary appears in both windows with the same figures.
-- **Daily totals in payload** under **Advanced** on the **Health** tab switches them off.
+- **Daily totals in payload** under **More > Advanced** on the **Health** tab switches them off.
 
 Health Connect counts every stretch of time once. Where records of different apps overlap, the app highest in Health Connect's priority list for that category counts. Where records of one app overlap, the one written last counts. Records that do not overlap all count, so a copy that a source writes into the wrong minute is in the total too (see [DATA_SOURCES.md](DATA_SOURCES.md#gadgetbridge-nodomainfreeyourgadgetgadgetbridge)). An app that is not in that priority list does not count at all; Health Connect normally adds an app there when it is allowed to write.
 
@@ -582,7 +582,7 @@ Use `daily_totals` for the totals per day and the raw records for detail. They a
 
 ### Data resolution
 
-A chest strap writes a heart rate sample every second, which is 86,400 records a day that no dashboard reads one by one. Any of the bucketable types can be sent as one value per time window instead: 1, 5 or 15 minutes, or hourly, set per type under **Data Resolution** on the **Health** tab. Everything defaults to every record.
+A chest strap writes a heart rate sample every second, which is 86,400 records a day that no dashboard reads one by one. Any of the bucketable types can be sent as one value per time window instead: 1, 5 or 15 minutes, or hourly, set per type under **What to send > Data resolution** on the **Health** tab. Everything defaults to every record.
 
 A bucketed series replaces its raw array under the same key, and the objects inside have a different shape. They never carry the raw field name, so `"bucket_start" in obj` is a reliable test and a parser looking for `bpm` cannot mistake an average for a measurement.
 
@@ -658,7 +658,7 @@ Each sync reads a type starting a week before the last sync that read the whole 
 
 ### Backfill windows
 
-**Backfill** on the **Health** tab sends past data in 3-day windows, oldest first: a length from 30 days to 5 years, or all history from the oldest record of the enabled types. A backfill is also the fallback for deletions, and marks each window it has sent in full. Every backfill payload carries:
+**Send history** under **What to send** on the **Health** tab sends past data in 3-day windows, oldest first: a length from 30 days to 5 years, or all history from the oldest record of the enabled types. A backfill is also the fallback for deletions, and marks each window it has sent in full. Every backfill payload carries:
 
 ```json
 "backfill": true,
@@ -693,7 +693,7 @@ Deploy the script as a web app with **Execute as** set to yourself and **Who has
 
 ### Record metadata
 
-With **Record metadata in payload** on (**Health** tab, **Advanced**; off by default), every record carries Health Connect's metadata for it under `metadata`:
+With **Record metadata in payload** on (**Health** tab, **More > Advanced**; off by default), every record carries Health Connect's metadata for it under `metadata`:
 
 ```json
 "sleep": [
@@ -818,7 +818,7 @@ The response key is derived from the shared secret and is never the secret itsel
 5. `writeback.issued_at` is within 10 minutes of the phone's clock.
 6. There are at most 200 readings.
 
-A rejected response is one row in the **Logs** tab. A response without the protocol block at all, which is what an integration older than 0.7.0 sends, makes the **Receive** row ask to update the Life Dashboard integration, or to check that this webhook is the integration's; an app with Receive off never reads the body.
+A rejected response is one row in the **Logs** tab. A response without the protocol block at all, which is what an integration older than 0.7.0 sends, makes the **Receive** page ask to update the Life Dashboard integration, or to check that this webhook is the integration's; an app with Receive off never reads the body.
 
 ```json
 {

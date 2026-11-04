@@ -8,7 +8,7 @@ The [setup guide](../docs/usage.md) covers installation, permissions, and gettin
 
 ## Something is not working
 
-The [troubleshooting section](../docs/usage.md#troubleshooting) answers the questions that come up most: a sync that sends nothing, syncs stopping after a while (almost always the phone's battery optimization), where the sensors are in Home Assistant, plain HTTP being refused, and nightly metrics arriving hours late. The **Logs** tab in the app shows every delivery attempt with the server's response, which is usually enough to tell what went wrong.
+The [troubleshooting section](../docs/usage.md#troubleshooting) answers the questions that come up most: a sync that sends nothing, syncs stopping after a while (almost always the phone's battery optimization), where the sensors are in Home Assistant, plain HTTP being refused, and nightly metrics arriving hours late. The **Logs** tab in the app shows every delivery attempt with its status code or error, which is usually enough to tell what went wrong.
 
 ## Still stuck, or want to ask something
 

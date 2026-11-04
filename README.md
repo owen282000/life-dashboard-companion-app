@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK&color=30b77e" alt="Download the latest APK"></a>
-  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration"><img src="https://img.shields.io/badge/Home%20Assistant-HACS-41BDF5" alt="Home Assistant integration in HACS"></a>
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration"><img src="https://img.shields.io/badge/Home%20Assistant-Marketplace-41BDF5" alt="Home Assistant integration in the Marketplace"></a>
   <a href="#install"><img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84" alt="Android 8.0 or newer"></a>
   <a href="https://hosted.weblate.org/engage/life-dashboard-companion/"><img src="https://hosted.weblate.org/widget/life-dashboard-companion/app/svg-badge.svg" alt="Translation status on Weblate"></a>
   <a href="https://www.bestpractices.dev/projects/14258"><img src="https://www.bestpractices.dev/projects/14258/badge" alt="OpenSSF Best Practices"></a>
@@ -37,7 +37,7 @@
 <p align="center">
   <picture>
     <source media="(max-width: 600px)" srcset="docs/readme-screens-phone.png">
-    <img src="docs/readme-screens.png" alt="Four app screens: the Health Connect tab with all 33 data types selected and a week of steps, the Screen Time tab with a week of minutes per day and the top app, the sync schedule set to 9:00 AM, 11:00 AM and 2:00 PM on five days of the week, and data resolution with 4 of the 33 types bucketed" width="900">
+    <img src="docs/readme-screens.png" alt="Four app screens: the Health tab with where your data goes and today's figures, each with a seven-day line, the Screen Time tab with today's total and the most used apps, What to send with its categories and data resolution, and Logs with one line per delivery" width="900">
   </picture>
 </p>
 
@@ -120,10 +120,10 @@ Screen time works on Android 8.0 and newer. The health part needs Android 9 or n
 
 ## Quick start
 
-1. In Home Assistant (2026.3 or newer, with [HACS](https://hacs.xyz/docs/use/) installed), download the [Life Dashboard integration](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration) from HACS, restart, and add the integration. It shows a QR code. Skip this step if you use MQTT or a webhook.
+1. In Home Assistant 2026.3 or newer, go to **Settings > Marketplace** ([HACS](https://hacs.xyz/docs/use/) before 2026.11), search for the [Life Dashboard integration](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration) and install it. On HACS, restart Home Assistant. Add the integration if its setup doesn't open by itself. It shows a QR code. Skip this step if you use MQTT or a webhook.
 2. Install the app and open it. Its setup asks where your data should go: scan the code, or enter your broker or webhook URL.
 3. Grant the Health Connect permissions on the **Health** tab, and usage access on the **Screen Time** tab if you want screen time.
-4. Tap **Sync Now**. Tap **View** first if you want to preview the payload.
+4. Tap **Sync Now**. **Preview payload** under **What to send** shows what it would send.
 
 The [setup guide](docs/usage.md) walks through each step, including battery settings that keep Android from stopping the sync and what to do when nothing arrives.
 
@@ -133,7 +133,7 @@ There are two ways in. Neither needs YAML.
 
 | | Life Dashboard integration | MQTT |
 |---|---|---|
-| Setup | HACS, then scan a QR code | Enter your broker |
+| Setup | Marketplace (HACS before 2026.11), then scan a QR code | Enter your broker |
 | Sensors | 25 of 34 types, plus screen time in total and per app | The same, without the sensors per app |
 | History | Every day, up to a year back, through backfill | From the first sync on |
 | Workouts and mindfulness | Minutes per day | No |
@@ -142,7 +142,7 @@ There are two ways in. Neither needs YAML.
 
 Pick the integration unless you already run a broker and don't need the days before your first sync. Single meals, cycle tracking entries and workout details are events rather than values, so neither route turns them into sensors. A webhook of your own gets them in full. [Setup for both](docs/usage.md#phone-to-home-assistant) is in the guide, and [features.md](docs/features.md#home-assistant-and-mqtt) lists what each one creates.
 
-[![Open the Life Dashboard integration in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration)
+[![Open the Life Dashboard integration in the Marketplace](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration)
 
 <a id="why-is-this-not-part-of-the-companion-app"></a>
 
@@ -221,6 +221,7 @@ Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the checks 
 - [Health Connect](https://developer.android.com/health-and-fitness/health-connect) by Google, which this app reads from and writes to
 - [OkHttp](https://github.com/lysine-dev/okhttp) for webhook delivery and the [HiveMQ MQTT Client](https://github.com/hivemq/hivemq-mqtt-client) for MQTT
 - [Jetpack Compose, WorkManager and Glance](https://developer.android.com/jetpack) for the interface, background sync and the home screen widget
+- The typefaces [Space Grotesk](https://github.com/floriankarsten/space-grotesk) and [Space Mono](https://github.com/googlefonts/spacemono), under the SIL Open Font License ([licences](app/src/main/assets/licences))
 - The earlier open source apps that export Health Connect to a webhook, which showed the idea works and were an early inspiration for the integration patterns here
 - Everyone who filed an issue with a payload dump or a quirk of their source app. Most of [DATA_SOURCES.md](docs/DATA_SOURCES.md) comes from those reports.
 - [Claude Code](https://claude.com/claude-code), which drafted a large part of the code. Every change is reviewed and tested before it ships, and [AI_POLICY.md](AI_POLICY.md) explains how.
