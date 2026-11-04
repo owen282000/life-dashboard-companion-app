@@ -5,7 +5,7 @@ The app sends your screen time per app to Home Assistant, so Home Assistant can 
 ## What you need
 
 - **Life Dashboard Companion** with Screen Time set up (usage access granted) and sending to the [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) or to MQTT: [Phone to Home Assistant](../usage.md#phone-to-home-assistant).
-- **A short Screen Time interval.** The sensors only update when the app syncs, so Home Assistant notices a limit at the first sync after you cross it. On the **Screen Time** tab, set **Sync Schedule** to **Every X minutes** and pick 15, the shortest Android allows.
+- **A short Screen Time interval.** The sensors only update when the app syncs, so Home Assistant notices a limit at the first sync after you cross it. On the **Screen Time** tab, open **When to send**, choose **Every X minutes**, enter 15 under **Minutes between syncs**, the shortest Android allows, and tap **Save**.
 - **The companion app**, for the notifications. `notify.mobile_app_<phone>` below is its notification action for your phone.
 
 ## The sensors

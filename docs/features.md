@@ -76,11 +76,11 @@ Cycle tracking covers what cycle apps such as Clue and Flo write to Health Conne
 
 **Daily totals.** Next to the raw records, each payload carries `daily_totals` for steps, distance and calories, computed by Health Connect so that a walk recorded by both your phone and your watch counts once. On by default; see [webhook.md](webhook.md#daily-totals).
 
-**Record metadata.** Off by default. Under **Advanced** on the **Health** tab, **Record metadata in payload** adds Health Connect's metadata to every record: when the source last changed it, the source's own ID and version, the recording method, the device and the time zone offsets. See [webhook.md](webhook.md#record-metadata).
+**Record metadata.** Off by default. Under **More > Advanced** on the **Health** tab, **Record metadata in payload** adds Health Connect's metadata to every record: when the source last changed it, the source's own ID and version, the recording method, the device and the time zone offsets. See [webhook.md](webhook.md#record-metadata).
 
 ### Data resolution
 
-Dense series can make payloads large: a heart rate sample per second is 86,400 records a day. Under **Data Resolution** on the **Health** tab you choose, per type, whether to send every record or one value per 1, 5, 15 or 60 minutes.
+Dense series can make payloads large: a heart rate sample per second is 86,400 records a day. Under **What to send > Data resolution** on the **Health** tab you choose, per type you send, whether to send every record or one value per 1, 5, 15 or 60 minutes.
 
 - Measured values (heart rate, for example) are averaged, with the minimum and maximum kept, so you can still tell sleep from a sprint. Accumulated values (steps, distance, calories) are summed.
 - Windows align to the clock, and every window says how many samples went into it. A window still filling when a sync runs waits until it is complete.
@@ -92,7 +92,7 @@ Dense series can make payloads large: a heart rate sample per second is 86,400 r
 ## Screen time
 
 - Foreground time per app, read from Android's usage statistics. System UI and the launcher are left out, so the totals line up with Digital Wellbeing.
-- **A custom day boundary**, on by default at 04:00: phone use between midnight and 04:00 counts toward the day before. Under **Day Boundary** on the **Screen Time** tab, **Day starts at** sets the hour and **Enable day boundary** switches it off.
+- **A custom day boundary**, on by default at 04:00: phone use between midnight and 04:00 counts toward the day before. On the **Day starts at** page of the **Screen Time** tab, pick the hour and tap **Save**, or switch it off with **Enable day boundary**.
 - Every sync sends the last 7 days, so the next sync corrects a day that was still in progress at the last one.
 - App names are resolved from package names.
 - **Apps to send.** Send every app (**All**), every app except the ones you select (**All except**), or only the ones you select (**Only**). The list shows the apps you used in the last 30 days, with their minutes; when it's long, **Search apps** finds one by name. With **Only** and nothing selected, only the daily totals go out. An app that's filtered out never leaves the phone: it isn't in the payload, not on MQTT and not among the top apps. `total_screen_time_minutes` still counts the apps you left out, and `filtered_screen_time_minutes` holds the time of the apps that are sent. See [webhook.md](webhook.md#which-apps-are-sent).
@@ -107,11 +107,11 @@ A section (Health Connect or Screen Time) can send to the Life Dashboard integra
 
 There are two ways into Home Assistant. Use one, not both: with both you get two devices holding the same numbers.
 
-**The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha)** is the recommended one. You install it from HACS and pair the phone by scanning a QR code. It receives the webhook directly, needs no broker, keeps every day in long-term statistics (a backfill and screen time included), and comes with an example dashboard. It is also the only way to [receive measurements](#receiving-from-home-assistant) on the phone.
+**The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha)** is the recommended one. You install it from the Marketplace (HACS before Home Assistant 2026.11) and pair the phone by scanning a QR code. It receives the webhook directly, needs no broker, keeps every day in long-term statistics (a backfill and screen time included), and comes with an example dashboard. It is also the only way to [receive measurements](#receiving-from-home-assistant) on the phone.
 
 **MQTT with Home Assistant Discovery** suits a setup that already has a broker and only needs current values. Point the app at the broker, and sensors for 25 of the 34 types, plus screen time, appear under one device without any configuration in Home Assistant.
 
-<img src="screenshots/mqtt.png" alt="The MQTT section in the app: the shared broker mqtt.lan on port 1883, optional credentials, the base topic and the last publish of 11 sensors" width="300" align="right">
+<img src="screenshots/mqtt.png" alt="The MQTT page in the app: the shared broker, the port, optional credentials, the base topic and the last publish" width="300" align="right">
 
 <img src="screenshots/home-assistant.png" alt="The device Home Assistant creates from the app's MQTT discovery messages, with its sensors" width="560">
 
@@ -120,7 +120,7 @@ There are two ways into Home Assistant. Use one, not both: with both you get two
 Both routes create the same sensors, each one the first time its type arrives, so you only get the types you sync. Grouped by key:
 
 - **Today's totals:** `steps_today`, `distance_today`, `active_calories_today`, `total_calories_today`, each with the day as a `date` attribute.
-- **Latest value:** `heart_rate`, `speed`, `resting_heart_rate`, `heart_rate_variability`, `sleep_duration`, `weight`, `height`, `blood_pressure_systolic`, `blood_pressure_diastolic`, `blood_glucose`, `oxygen_saturation`, `body_temperature`, `skin_temperature_delta`, `basal_body_temperature`, `respiratory_rate`, `hydration`, `body_fat`, `lean_body_mass`, `bone_mass`, `body_water_mass`, `basal_metabolic_rate`, `vo2_max`. Each carries `measured_at`, `source` (the app that wrote the record) and `uuid` (the record's ID) as attributes. In the integration, a type you send per time window under **Data Resolution** shows the average of the newest window instead, with `sample_count`, `min`, `max` and `sources` as attributes.
+- **Latest value:** `heart_rate`, `speed`, `resting_heart_rate`, `heart_rate_variability`, `sleep_duration`, `weight`, `height`, `blood_pressure_systolic`, `blood_pressure_diastolic`, `blood_glucose`, `oxygen_saturation`, `body_temperature`, `skin_temperature_delta`, `basal_body_temperature`, `respiratory_rate`, `hydration`, `body_fat`, `lean_body_mass`, `bone_mass`, `body_water_mass`, `basal_metabolic_rate`, `vo2_max`. Each carries `measured_at`, `source` (the app that wrote the record) and `uuid` (the record's ID) as attributes. In the integration, a type you send per time window under **Data resolution** shows the average of the newest window instead, with `sample_count`, `min`, `max` and `sources` as attributes.
 - **Screen time:** `screen_time_today` and `screen_time_yesterday` in minutes, with `date`, `app_count` and `top_apps` (the top five with their minutes) as attributes, and `screen_time_top_app`, today's most used app, with `package`, `minutes` and `date`. The integration adds a sensor per app, described [below](#what-only-the-integration-adds). With an app filter on, the minutes are those of the apps that are sent and `all_apps_minutes` holds the real total (in the integration, 0.8.0 or newer).
 
 Over MQTT the key is part of the topic (`<base>/<key>/state`), and the sensors sit on a device called Life Dashboard Companion. With the integration, they sit on a device with the **Name** you gave when you added the integration, and the entity ID is that name plus the key: "Pixel 8" gives `sensor.pixel_8_steps_today`. Three sensors have a different name in the integration:
@@ -137,17 +137,17 @@ The other nine types (exercise, nutrition, mindfulness and the six cycle trackin
 
 - **Long-term statistics.** One value per day for steps, distance, active and total calories, sleep minutes, exercise minutes, mindfulness minutes, hydration and screen time, each on its own date, so a year of backfill shows up as a year of days. Heart rate, weight, blood pressure and the other measured values get an hourly mean, minimum and maximum. The IDs look like `life_dashboard:<entry id>_steps`; pick them by name in the **Statistics graph** card.
 - **A sensor per app.** Every app gets a sensor of its own with its minutes today, such as `sensor.<phone>_youtube_screen_time`, with `app`, `package`, `date` and `week_minutes` as attributes. They are created disabled: show the disabled entities on the phone's device and enable the apps you want. An app needs 5 minutes over the days a sync carries to get one, a phone gets 50 at most, and a sensor you delete stays deleted. An app missing from a newer day, or left out with the app filter since, reads 0 for that day. Requires integration 0.9.0 or newer.
-- **Diagnostics.** `last_health_sync` and `last_screen_time_sync` hold the time of the last payload of each kind. A **Test ping** updates them too, which is the quickest check that pairing worked.
+- **Diagnostics.** `last_health_sync` and `last_screen_time_sync` hold the time of the last payload of each kind. A test ping updates them too, which is the quickest check that pairing worked.
 - **History for the phone.** Once an entity is mapped for [receiving](#receiving-from-home-assistant), a **Send history to phone** button queues up to 30 days of its readings for the phone.
 
 #### How MQTT behaves
 
 - States and discovery configs are retained, so values survive a Home Assistant restart. Every publish carries every sensor the app has mapped so far, so a new broker or a fresh Home Assistant sees the whole device after one sync.
 - TLS and a username and password are optional. The credentials are stored encrypted. When the broker isn't on a private network and TLS is off, the settings warn you.
-- Health Connect and Screen Time each have their own switch and **Base topic**. They share one broker connection by default. Switch off **Use the shared broker** in a tab's **MQTT** row to give that section a broker of its own.
-- The broker host is a host name or an IP address, and the port 1 to 65535; while publishing is on, the app refuses anything else before it saves, and with it off the field only shows what is wrong. **Show password** reveals the password you typed. When the broker can't be reached, the **MQTT** row and the sync line say in plain words what failed (host not found, connection refused, no answer, TLS, login refused) and what to check; the **Logs** tab keeps the technical error.
+- Health Connect and Screen Time each have their own switch and **Base topic**. They share one broker connection by default. Switch off **Use the shared broker** on a tab's MQTT page to give that section a broker of its own.
+- The broker host is a host name or an IP address, and the port 1 to 65535; anything else shows under the field and keeps **Save** dim, and so does an empty host while publishing is on. The eye in the password field reveals what you typed. When the broker can't be reached, the MQTT page and the sync line say in plain words what failed (host not found, connection refused, no answer, TLS, login refused) and what to check; the **Logs** tab keeps the technical error.
 - **Topics.** The **Base topic** is `lifedashboard` unless you change it. Each sensor has a state topic `<base>/<key>/state` and a JSON attributes topic `<base>/<key>/attributes`, and its discovery config is at `homeassistant/sensor/life_dashboard_companion_<key>/config`.
-- **Two phones on one broker:** give each a name under **Advanced > Phone name**. A named phone publishes under its own device, such as `Life Dashboard Companion (Pixel 8)`, with its name as a slug in its topics (`<base>/<slug>/<key>/state`, `<base>/<slug>/<key>/attributes`) and in its discovery topic (`homeassistant/sensor/life_dashboard_companion_<slug>_<key>/config`). A phone without a name keeps the plain topics.
+- **Two phones on one broker:** give each a name under **More > Advanced > Phone name**. A named phone publishes under its own device, such as `Life Dashboard Companion (Pixel 8)`, with its name as a slug in its topics (`<base>/<slug>/<key>/state`, `<base>/<slug>/<key>/attributes`) and in its discovery topic (`homeassistant/sensor/life_dashboard_companion_<slug>_<key>/config`). A phone without a name keeps the plain topics.
 
 The step-by-step setup for both is in [usage.md](usage.md#phone-to-home-assistant).
 
@@ -161,7 +161,7 @@ Any server that accepts a JSON POST can receive the data: your own backend, Node
 - **Custom headers** for auth tokens or API keys, per address: they go to the address you set them for and nowhere else. A header that HTTP cannot carry (a space in the name, a line break in the value) is refused when you add it.
 - **HMAC signing.** With a signing secret set on an address, every request to it carries an `X-Signature` header (HMAC-SHA256 of the body), so your server can check the sender. **Generate** creates a secret of 32 random bytes as hex.
 - **No credentials in addresses.** An address with a user name, a password or a parameter such as `token=` is refused, since addresses are stored as plain text; a header carries those instead. A Google Apps Script URL keeps its token.
-- **Test ping** sends a small payload marked `test: true`, signed when a secret is set, so you can check an address and a secret before any data goes there.
+- **Send test** on an address's page sends a small payload marked `test: true`, signed when a secret is set, so you can check an address and a secret before any data goes there.
 - **Retries.** A request that fails for a temporary reason is tried three times with a growing wait in between; a permanent error fails at once.
 - **QR pairing** with the Home Assistant integration fills in the address and its secret after one confirmation; the other addresses keep their own. See [Pairing by QR code](usage.md#pairing-by-qr-code).
 
@@ -173,11 +173,11 @@ A section can have several webhooks and MQTT at the same time. When a sync reach
 
 ## Scheduling
 
-<img src="screenshots/sync-schedule.png" alt="Sync Schedule set to fixed times: 9:00 AM, 11:00 AM and 2:00 PM, on Monday, Wednesday, Thursday, Saturday and Sunday" width="300" align="right">
+<img src="screenshots/sync-schedule.png" alt="When to send set to fixed times, with the sync times, the days of the week and quiet hours" width="300" align="right">
 
-Health Connect and Screen Time each have their own **Sync Schedule**, so screen time can sync every hour while health data syncs at 08:00 and 21:00.
+Health Connect and Screen Time each have their own **When to send**, so screen time can sync every hour while health data syncs at 08:00 and 21:00.
 
-- **Every X minutes**, 15 minutes at the shortest (Android's limit for background work).
+- **Every X minutes**, 15 minutes at the shortest (Android's limit for background work). A new interval takes effect with **Save**; everything else on the page applies at once.
 - **At fixed times**, a list of times of day. This suits data that arrives in batches: a watch writes the night to Health Connect when it syncs in the morning, so a sync at 08:00 puts last night's sleep, resting heart rate and HRV in Home Assistant before you look.
 - **Days**: any set of weekdays.
 - **Quiet hours**: never sync between two times. An interval sync resumes at the end of the window; a fixed time inside the window is skipped, not moved.
@@ -190,16 +190,16 @@ A regular sync reads what changed since the last one, reaching back a week for r
 
 ### Backfill
 
-**Backfill** on the **Health** tab sends past data of every enabled type to your webhooks: 30 days, 90 days, 6 months, 1 year, 2 years, 5 years, or **All history**.
+**Send history** under **What to send** on the **Health** tab sends past data of every enabled type to your webhooks: 30 days, 90 days, 6 months, 1 year, 2 years, 5 years, or **All history**.
 
-- **All history** starts at the oldest record of the enabled types, so it sends everything Health Connect has, however many years that is. The dialog names the month it starts in. Lengths that reach back further than your oldest record are left out of the list, since they would send the same.
+- **All history** starts at the oldest record of the enabled types, so it sends everything Health Connect has, however many years that is. The page names the month it starts in. Lengths that reach back further than your oldest record are left out of the list, since they would send the same.
 - The Life Dashboard stack takes history of any age. The Home Assistant integration may take in only about the last year of it for now; older days follow in a later version of the integration.
 
 - It goes in 3-day chunks, oldest first, and doesn't touch what the regular sync keeps track of. A receiver can drop records sent twice by their `uuid`.
-- Data from more than 30 days before you first gave the app access needs Health Connect's history access, which the dialog asks for.
+- Data from more than 30 days before you first gave the app access needs Health Connect's history access, which the page asks for.
 - Backfill goes to webhooks, and the Life Dashboard integration counts as one. MQTT carries only the latest value of each type, so a backfill has nothing to add there.
-- As a background job, it keeps going when you leave the screen; the tab shows its progress when you come back, and **Stop** ends it.
-- When Android stops it, or Health Connect's read quota runs out, it continues by itself from the last payload that went through. After a failed delivery, start a backfill of the same length within a day and it continues from there.
+- As a background job, it keeps going when you leave the screen; the **Health** tab shows its progress when you come back, and **Stop** ends it.
+- When Android stops it, or Health Connect's read quota runs out, it continues by itself from the last payload that went through. After a failed delivery, **Continue** on its page, or a backfill of the same length within a day, continues from there.
 - After six runs in a row that sent nothing, it stops and says why.
 - Switching data types on or off while it runs starts it over at the first chunk, so every chunk carries the same types.
 - The **Logs** tab shows one row per run, with how far it got and how many records it sent.
@@ -212,21 +212,21 @@ The payload fields a receiver can use to reconcile a window (`backfill`, `window
 - **Deletions.** When a record is deleted in Health Connect, the next payload names it in `deleted_records`, so a receiver can drop it. See [webhook.md](webhook.md#deletions).
 - **Catch-up after a pause.** A phone that was off, asleep or force-stopped picks up where it left off, reaching back up to 30 days. When the pause was longer, the payload says which range it couldn't read, and a backfill fills it.
 - **Health Connect's read quota.** When Health Connect refuses reads because its quota is used up, the sync delivers what it has read so far and the next sync continues. It isn't counted as an outage.
-- **Pairing checks itself.** Right after a QR pairing, the app sends a test ping with the new secret and says "Paired with <host>, test ping delivered", or why the ping failed.
+- **Pairing checks itself.** Right after a QR pairing, the app sends a test ping with the new secret and says whether it was delivered, or why it failed.
 - **Failure notifications.** After a number of failed syncs in a row (3 by default; pick 3, 5 or 10 under **Notifications**), a local notification tells you, with the last error. [usage.md](usage.md#notifications-optional) lists every notification the app posts, including the one for data the outbox had to drop.
 
 Background work runs on Android's WorkManager. The app checks that Health Connect is installed and up to date, and says what to do when it isn't.
 
 ## Receiving from Home Assistant
 
-The other direction: readings from a scale or a blood pressure monitor that talks to Home Assistant, and not to the phone, go into Health Connect. The **Receive** row on the **Health** tab switches it on per type, and the [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) (0.7.0 or later) chooses which entities go to which phone. There is no second channel and no second secret. The measurements come back in the integration's signed response to the webhook call the app already makes, and that response is tied to its request. Nothing between the phone and Home Assistant can slip a reading in.
+The other direction: readings from a scale or a blood pressure monitor that talks to Home Assistant, and not to the phone, go into Health Connect. **Receive** on the **Health** tab switches it on per type, and the [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) (0.7.0 or later) chooses which entities go to which phone. There is no second channel and no second secret. The measurements come back in the integration's signed response to the webhook call the app already makes, and that response is tied to its request. Nothing between the phone and Home Assistant can slip a reading in.
 
 - **Seven types:** weight, height, body fat, lean body mass, bone mass, body water mass and blood pressure. Each has its own switch and its own Health Connect write permission, asked for when you switch it on. Refusing the permission leaves the type off.
 - Measurements keep the time they were taken. A repeat is an update, not a second record: the integration's ID and version become Health Connect's client record ID and version, so a resend changes nothing and a correction replaces the old value.
 - Readings older than 30 days are refused unless **Accept older measurements** is on. The integration's **Send history to phone** button sends up to 30 days, as far back as Home Assistant's recorder keeps states (10 days by default); its `life_dashboard.queue_history` action goes back up to 90.
 - What the app writes never goes back out: those records are left out of the outgoing payload and of `deleted_records`, and counted in `_diagnostics` as `own_records_skipped`.
 - If another app already writes the same type to Health Connect, the app warns you as you switch the type on: a scale's own app plus Home Assistant means two readings a day.
-- Each response from Home Assistant that carries readings gets a row in the **Logs** tab, and so does a response the app rejects. The row expands to show each reading and its outcome. The values show only when **Keep full payloads**, at the top of the **Logs** tab, is on.
+- Each response from Home Assistant that carries readings gets a row in the **Logs** tab, and so does a response the app rejects. Tap the row for each reading and its outcome. The values show only when **Keep full payloads**, under **More > Advanced**, is on.
 
 This app can only promise that a reading reaches Health Connect. Whether another app shows it is up to that app. Checked on September 26, 2026:
 
@@ -243,7 +243,7 @@ The protocol is in [webhook.md](webhook.md#inbound-what-the-integration-may-send
 - **No account, no cloud of its own, no analytics or crash reporting.** The app sends data only to the webhooks and brokers you set. [PRIVACY.md](../PRIVACY.md) has the full policy.
 - **Encrypted secrets.** Auth headers, signing secrets and MQTT passwords are encrypted with AES-256-GCM, using a key that the Android Keystore generates and holds. They are never stored unencrypted: when the Keystore can't be used, they are neither read nor saved until it can. If the key is lost for good, or an update from 1.22.0 or older skips 1.23.0 (which moved them out of the old store this version can no longer read), a banner says so and asks you to enter them again.
 - **HTTPS by default.** An `http://` URL is refused unless you switch on **Allow plain HTTP webhooks**, which is meant for a Home Assistant server or receiver you only reach on your LAN or over a VPN.
-- **Client certificates (mTLS).** The app can present a certificate from Android's credential store to every webhook, for servers behind a reverse proxy that requires one. Install it in Android's settings first, then pick it under **Advanced > Client certificate (mTLS)** with **Choose**. MQTT doesn't use it.
+- **Client certificates (mTLS).** The app can present a certificate from Android's credential store to every webhook, for servers behind a reverse proxy that requires one. Install it in Android's settings first, then pick it under **More > Advanced > Client certificate (mTLS)**. MQTT doesn't use it.
 - **Android backup leaves out** the secrets, the webhook logs (which hold raw health data) and the Receive ledger. Your other settings carry over to a new phone through Android's backup and device transfer; the secrets move only through an encrypted [settings backup](settings-backup.md).
 - **Exports are cleaned up.** An exported file waits in the app's cache until the next export replaces it, or until the app starts more than a day later. See [PRIVACY.md](../PRIVACY.md#what-stays-on-the-device).
 
@@ -251,14 +251,14 @@ The protocol is in [webhook.md](webhook.md#inbound-what-the-integration-may-send
 
 - **TalkBack.** Every switch row is one control that TalkBack reads with its name and state, such as "Allow plain HTTP webhooks, off, switch", and a tap anywhere on the row flips it. Selected tabs, filters and schedule days are announced, as is the result of a sync or a test ping. Status that was only a color is spoken too: the widget reads "Last sync succeeded" or "Last sync failed".
 - **Contrast.** Text in the accent and status colors reads at 4.5:1 or more, in both the light and dark themes.
-- **Material 3** with a light and a dark theme. **About > Appearance** follows the system, or keeps the app light or dark whatever the phone does; the widget always follows the system.
+- **A light and a dark theme.** **Appearance** under **More** on the **Health** tab follows the system, or keeps the app light or dark whatever the phone does; the widget always follows the system.
 - **Languages:** English, Dutch, German, French, Spanish, Italian, Portuguese (Brazil), Japanese, Arabic (right to left), Hindi and Simplified Chinese, following the system language or the one set for the app under Android's App languages.
 
 <a id="automation"></a>
 
 ## Widget, tile and automation apps
 
-- **Home screen widget** with the last sync result and the number of records delivered today, for both sections together.
+- **Home screen widget** with the last sync result and the number of records delivered today, for both sections together. A tap opens the app; its round button starts a sync, at the same limit as the tile and the broadcast.
 - **Quick Settings tile** (**Sync Life Dashboard**) that syncs Health Connect and Screen Time from the notification shade. Add it by editing the Quick Settings panel.
 - **Tasker and MacroDroid** can start a sync with a broadcast. The package is required: Android doesn't deliver the broadcast to the app without it.
   - In Tasker, add the **System > Send Intent** action with Action `com.owen282000.lifedashboard.ACTION_SYNC`, Package `com.owen282000.lifedashboard` and Target **Broadcast Receiver**.
@@ -270,17 +270,23 @@ The protocol is in [webhook.md](webhook.md#inbound-what-the-integration-may-send
 
 ## Status on the phone
 
-The top of the **Health** tab shows how many records went out **Today** and over the app's **Lifetime**, when the **Last sync** ran and whether it worked, and a small chart of your steps per day over the last week. The **Screen Time** tab shows today's minutes, the **Top app** of the day, the **Last sync**, and a chart of minutes per day over the last week.
+The **Health** tab opens on whether your data arrives: a heading that says so, and one row per destination with the time of its last delivery, or the status code or failure of the last try. **Sync Now** and **Add destination** sit under the rows. A warning says when nothing has been delivered for longer than the schedule explains, and a card when Android's battery optimization can hold syncs back.
+
+**Today** below that shows steps, sleep, resting heart rate and weight, as far as you send them and they have data, each with a line over the last 7 days. When none of them has data, it shows the records sent today. Four tiles lead to the settings: **What to send**, **When to send**, **Receive** and **More**.
+
+The **Screen Time** tab shows today's total, the same kind of destination rows, the **Top app** of the day, the **Last sync**, a line of minutes per day over the last week, and **Most used today**. Its tiles are **Apps to send**, **When to send**, **Day starts at** and **More**.
+
+The app's lifetime figures are in **Nerd Stats**: press and hold the version line under **More > About**.
 
 ## Preview, export and logs
 
-- **Preview:** **View** on the **Health** and **Screen Time** tabs shows the JSON payload the next sync would send, without sending it. A long payload is truncated on screen; **Copy JSON** (up to 100,000 characters, marked as sensitive on the clipboard), **Share** and **Export** have all of it.
-- **Export:** **Export** on the **Health** and **Screen Time** tabs shares the current data as a JSON file through the Android share sheet, without asking for a format. CSV is only for the logs, below.
-- **Logs:** the **Logs** tab lists up to the last 100 webhook deliveries, MQTT publishes, backfill runs and readings received from Home Assistant, with status, error and payload. Tap a row to see its details; a delivery's payload has **Copy JSON** (up to 100,000 characters, marked as sensitive on the clipboard) and **Share**, as in the preview. The switch at the top, **Keep full payloads**, stores whole payloads; otherwise they're shortened to save space. Below it, a summary shows the success rate, the number of deliveries and of records delivered, each section's successes, and the time of the last success. **All**, **Health** and **Screen Time** filter the list. **Export logs** shares the logs shown as CSV or JSON, and **Clear logs** deletes the logs shown from the phone, after asking.
+- **Preview:** **Preview payload**, under **What to send** on the **Health** tab and under **More** on the **Screen Time** tab, shows the JSON payload the next sync would send, without sending it. A long payload is truncated on screen; **Copy JSON** (up to 100,000 characters, marked as sensitive on the clipboard) and **Share** have all of it.
+- **Export:** **More > Export data**, on the **Health** and **Screen Time** tabs, shares the current data through the Android share sheet: **Export CSV** as a table with a row per record and a column per field, **Export JSON** as the payload.
+- **Logs:** the **Logs** tab lists up to the last 100 webhook deliveries, MQTT publishes, backfill runs and readings received from Home Assistant, one row each, with the status code, where it went, the time and, for a failure, the error. The top counts what failed and what was delivered, and shows the outbox, the success rate, the number of deliveries and of records delivered, each section's successes, and the time of the last success. **All**, **Failed**, **Webhook**, **MQTT**, **Health** and **Screen Time** filter the list. Tap a row for its page, with everything the log holds about it, the payload with **Copy JSON** (up to 100,000 characters, marked as sensitive on the clipboard) and **Share**, as in the preview, and **Delete**. Press and hold a row to share its payload or delete it. **Keep full payloads**, under **More > Advanced**, stores whole payloads; otherwise they're shortened to save space. **Send test** at the bottom pings every address of the sections the filter shows, **Export** shares the logs shown as CSV or JSON, and **Clear** deletes the logs shown from the phone, after asking.
 
 ## Settings backup
 
-Under **About > Backup & restore** you can export your webhooks, headers, secrets, MQTT brokers, schedules and options as a JSON file, and import it on another phone. With secrets included, the file is encrypted with a password. The same format moves between this app and the iOS app. See [settings-backup.md](settings-backup.md).
+Under **More > Backup and restore** on the **Health** tab you can export your webhooks, headers, secrets, MQTT brokers, schedules and options as a JSON file, and import it on another phone. With secrets included, the file is encrypted with a password. The same format moves between this app and the iOS app. See [settings-backup.md](settings-backup.md).
 
 ## How this compares to the Home Assistant companion app
 

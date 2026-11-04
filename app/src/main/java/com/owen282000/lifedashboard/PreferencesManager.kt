@@ -210,6 +210,7 @@ class PreferencesManager(context: Context) {
         private const val HEALTH_SCHEDULE_PREFIX = "health_schedule_"
         private const val SCREENTIME_SCHEDULE_PREFIX = "screentime_schedule_"
         private const val KEY_HEALTH_ENABLED_DATA_TYPES = "health_enabled_data_types"
+        private const val KEY_HEALTH_TYPES_CHOSEN = "health_types_chosen"
         private const val KEY_HEALTH_SERIES_RESOLUTIONS = "health_series_resolutions"
         private const val KEY_HEALTH_BUCKET_CARRY = "health_bucket_carry"
 
@@ -330,6 +331,11 @@ class PreferencesManager(context: Context) {
         val typesString = types.joinToString(",") { it.name }
         prefs.edit().putString(KEY_HEALTH_ENABLED_DATA_TYPES, typesString).apply()
     }
+
+    /** Set by the user's own choice of types, see AppSettings.healthTypesChosen. */
+    fun healthTypesChosen(): Boolean = prefs.getBoolean(KEY_HEALTH_TYPES_CHOSEN, false)
+
+    fun setHealthTypesChosen(chosen: Boolean) = prefs.edit { putBoolean(KEY_HEALTH_TYPES_CHOSEN, chosen) }
 
     /**
      * Resolution per data type, stored as "TYPE=RESOLUTION" pairs. Types that are absent, and
@@ -752,6 +758,9 @@ class PreferencesManager(context: Context) {
     fun getWebhookLogs(filterType: LogType? = null): List<WebhookLog> =
         logStore.getAll(filterType)
 
+    fun getWebhookLogsWithoutPayloads(filterType: LogType? = null): List<WebhookLog> =
+        logStore.getAllWithoutPayloads(filterType)
+
     fun addWebhookLog(log: WebhookLog) {
         // A Receive row's payload is the per-reading lines, already without values unless the
         // user keeps full payloads, so it is stored whole rather than cut at the size limit.
@@ -761,6 +770,12 @@ class PreferencesManager(context: Context) {
     fun clearWebhookLogs(filterType: LogType? = null) {
         logStore.clear(filterType)
     }
+
+    fun getWebhookLogRows(): List<WebhookLogRow> = logStore.rows()
+
+    fun getWebhookLog(id: String): WebhookLog? = logStore.get(id)
+
+    fun deleteWebhookLogs(ids: Set<String>) = logStore.delete(ids)
 
     /** Whether the first-run wizard has been completed or skipped. */
     fun onboardingCompleted(): Boolean = prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)

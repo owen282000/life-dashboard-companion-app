@@ -1,0 +1,1 @@
+Connessione Salute e tempo di utilizzo al tuo Home Assistant, MQTT o webhook.

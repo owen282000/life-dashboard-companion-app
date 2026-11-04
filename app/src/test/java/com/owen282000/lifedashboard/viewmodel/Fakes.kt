@@ -4,19 +4,26 @@ import com.owen282000.lifedashboard.AppChoice
 import com.owen282000.lifedashboard.BackfillJob
 import com.owen282000.lifedashboard.BackfillStart
 import com.owen282000.lifedashboard.BackfillStatus
+import com.owen282000.lifedashboard.Destination
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthSyncResult
+import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.MqttBroker
 import com.owen282000.lifedashboard.MqttSection
 import com.owen282000.lifedashboard.MqttSectionSettings
 import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
+import com.owen282000.lifedashboard.ScreenTimeAppFilter
 import com.owen282000.lifedashboard.ScreenTimeSyncResult
 import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.ServerTrust
+import com.owen282000.lifedashboard.SyncSchedule
+import com.owen282000.lifedashboard.TodayDay
+import com.owen282000.lifedashboard.TodayKind
 import com.owen282000.lifedashboard.WriteBackType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 internal fun emptyMqtt() = MqttDraft.from(
     MqttSectionSettings(enabled = false, useSharedBroker = true, ownBroker = MqttBroker("", 1883, false, null, null), baseTopic = "lifedashboard"),
@@ -27,9 +34,6 @@ internal class FakeAppSettings(
     var health: HealthDraft = HealthDraft(WebhookDraft(), emptySet(), emptyMqtt()),
     var screenTime: ScreenTimeDraft = ScreenTimeDraft(WebhookDraft(), "4", true, emptyMqtt())
 ) : AppSettings {
-    var savedHealth = 0
-    var savedScreenTime = 0
-
     /** The secure storage is not ready: every save is refused and stores nothing. */
     var refuseSaves = false
     var dailyTotals = true
@@ -44,21 +48,68 @@ internal class FakeAppSettings(
         secretsNeedReentry = false
     }
 
-    override fun loadHealth() = health
-    override fun saveHealth(draft: HealthDraft, interval: Int): Boolean {
+    /** The one shared broker both sections read, as in the real settings. */
+    var broker: MqttBroker = health.mqtt.sharedBroker
+    var brokerWrites = 0
+    var destinationWrites = 0
+    val reschedules = mutableListOf<LogType>()
+    val scheduleWrites = mutableListOf<LogType>()
+    var typesChosen = false
+    var fullPayloads = false
+    var recordsToday = 0
+    val clearedStatus = mutableListOf<MqttSection>()
+
+    override fun loadHealth() = health.copy(mqtt = MqttDraft.from(health.mqtt.section, broker))
+    override fun loadScreenTime() = screenTime.copy(mqtt = MqttDraft.from(screenTime.mqtt.section, broker))
+    override fun healthTypesChosen() = typesChosen
+    override fun setHealthTypesChosen(chosen: Boolean) { typesChosen = chosen }
+    override fun setSeriesResolutions(resolutions: Map<HealthDataType, SeriesResolution>) {
+        health = health.copy(resolutions = resolutions)
+    }
+
+    override fun setSchedule(source: LogType, schedule: SyncSchedule) {
+        scheduleWrites += source
+        val draft = ScheduleDraft.from(schedule)
+        if (source == LogType.HEALTH_CONNECT) health = health.copy(schedule = draft) else screenTime = screenTime.copy(schedule = draft)
+    }
+
+    override fun reschedule(source: LogType) { reschedules += source }
+
+    /** As PreferencesManager.setDestinations: Receive follows its source, and forgets one that is gone. */
+    override fun setDestinations(source: LogType, destinations: List<Destination>): Boolean {
         if (refuseSaves) return false
-        savedHealth++
-        health = draft.copy(schedule = draft.schedule.copy(intervalText = interval.toString()))
+        destinationWrites++
+        if (source == LogType.HEALTH_CONNECT) {
+            health = health.copy(webhook = health.webhook.copy(destinations = destinations))
+            if (destinations.none { it.url == receive.sourceUrl }) receive = receive.copy(sourceUrl = null)
+        } else {
+            screenTime = screenTime.copy(webhook = screenTime.webhook.copy(destinations = destinations))
+        }
         return true
     }
 
-    override fun loadScreenTime() = screenTime
-    override fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int): Boolean {
+    override fun sharedBroker() = broker
+    override fun setMqtt(section: MqttSection, settings: MqttSectionSettings, sharedBroker: MqttBroker?): Boolean {
         if (refuseSaves) return false
-        savedScreenTime++
-        screenTime = draft.copy(schedule = draft.schedule.copy(intervalText = interval.toString()), dayBoundaryHour = dayBoundaryHour.toString())
+        if (section == MqttSection.HEALTH) {
+            health = health.copy(mqtt = health.mqtt.copy(section = settings))
+        } else {
+            screenTime = screenTime.copy(mqtt = screenTime.mqtt.copy(section = settings))
+        }
+        if (sharedBroker != null) {
+            broker = sharedBroker
+            brokerWrites++
+        }
         return true
     }
+
+    override fun clearMqttStatus(section: MqttSection) { clearedStatus += section }
+    override fun setDayBoundaryHour(hour: Int) { screenTime = screenTime.copy(dayBoundaryHour = hour.toString()) }
+    override fun setUseDayBoundary(enabled: Boolean) { screenTime = screenTime.copy(useDayBoundary = enabled) }
+    override fun setScreenTimeAppFilter(filter: ScreenTimeAppFilter) { screenTime = screenTime.copy(appFilter = filter) }
+    override fun keepFullPayloads() = fullPayloads
+    override fun setKeepFullPayloads(enabled: Boolean) { fullPayloads = enabled }
+    override fun healthRecordsToday() = recordsToday
 
     override fun setHealthEnabledTypes(types: Set<HealthDataType>) {
         health = health.copy(enabledTypes = types)
@@ -90,7 +141,8 @@ internal class FakeAppSettings(
     override fun setFailureNotificationsEnabled(enabled: Boolean) { notifications = enabled }
     override fun failureThreshold() = threshold
     override fun setFailureThreshold(threshold: Int) { this.threshold = threshold }
-    override fun lastMqttStatus(section: MqttSection): String? = null
+    var mqttStatus: String? = null
+    override fun lastMqttStatus(section: MqttSection): String? = mqttStatus
 }
 
 internal class FakeHealthOps(
@@ -124,6 +176,12 @@ internal class FakeHealthOps(
     /** Stop cleared the job, so a start replaces the work that still reports itself running, as BackfillWork does. */
     private var cancelled = false
 
+    /** A sync in the worker, as the store and WorkManager report it. */
+    val dataChanged = MutableSharedFlow<Unit>(extraBufferCapacity = 8)
+    val workerState = MutableStateFlow(false)
+    override fun dataChanges(): Flow<Unit> = dataChanged
+    override fun workerRunning(): Flow<Boolean> = workerState
+
     override suspend fun availability() = availability
     override suspend fun grantedPermissions() = granted
     override suspend fun sync(): Result<HealthSyncResult> { syncs++; return syncResult }
@@ -151,8 +209,20 @@ internal class FakeHealthOps(
     }
     override fun stoppedBackfill() = stopped
     override suspend fun earliestRecord(): Long? { earliestLookups++; return earliest }
-    override suspend fun testPing(webhook: WebhookDraft) = pingResult
+    val pinged = mutableListOf<WebhookDraft>()
+    override suspend fun testPing(webhook: WebhookDraft): Result<Unit> {
+        pinged += webhook
+        return pingResult
+    }
     override suspend fun otherSourcesWriting(type: WriteBackType) = otherSources
+
+    /** What Health Connect answers for the Today panel; null is a figure that cannot be read now. */
+    var today: Map<TodayKind, List<TodayDay>?> = emptyMap()
+    val todayAsked = mutableListOf<Set<TodayKind>>()
+    override suspend fun todaySeries(kinds: Set<TodayKind>): Map<TodayKind, List<TodayDay>?> {
+        todayAsked += kinds
+        return today.filterKeys { it in kinds }
+    }
 }
 
 internal class FakeScreenTimeOps(
@@ -164,9 +234,20 @@ internal class FakeScreenTimeOps(
 ) : ScreenTimeOps {
     var syncs = 0
     var choiceLoads = 0
+
+    /** See FakeHealthOps. */
+    val dataChanged = MutableSharedFlow<Unit>(extraBufferCapacity = 8)
+    val workerState = MutableStateFlow(false)
+    override fun dataChanges(): Flow<Unit> = dataChanged
+    override fun workerRunning(): Flow<Boolean> = workerState
+
     override suspend fun appChoices(listed: Set<String>): List<AppChoice> { choiceLoads++; return choices }
     override fun hasUsageAccess() = usageAccess
     override suspend fun sync(): Result<ScreenTimeSyncResult> { syncs++; return syncResult }
     override suspend fun preview() = previewResult
-    override suspend fun testPing(webhook: WebhookDraft) = pingResult
+    val pinged = mutableListOf<WebhookDraft>()
+    override suspend fun testPing(webhook: WebhookDraft): Result<Unit> {
+        pinged += webhook
+        return pingResult
+    }
 }

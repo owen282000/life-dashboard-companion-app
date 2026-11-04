@@ -1,15 +1,22 @@
 package com.owen282000.lifedashboard.viewmodel
 
 import android.content.Context
+import com.owen282000.lifedashboard.Destination
 import com.owen282000.lifedashboard.HealthDataType
-import com.owen282000.lifedashboard.LifeDashboardApplication
 import com.owen282000.lifedashboard.LogType
+import com.owen282000.lifedashboard.MqttBroker
 import com.owen282000.lifedashboard.MqttSection
+import com.owen282000.lifedashboard.MqttSectionSettings
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
+import com.owen282000.lifedashboard.ScreenTimeAppFilter
+import com.owen282000.lifedashboard.SeriesResolution
 import com.owen282000.lifedashboard.ServerTrust
 import com.owen282000.lifedashboard.SyncFailureNotifier
+import com.owen282000.lifedashboard.SyncSchedule
+import com.owen282000.lifedashboard.SyncScheduler
+import com.owen282000.lifedashboard.SyncStatusStore
 import com.owen282000.lifedashboard.WriteBackType
 
 /**
@@ -19,16 +26,45 @@ import com.owen282000.lifedashboard.WriteBackType
  */
 interface AppSettings {
     fun loadHealth(): HealthDraft
-
-    /** False when nothing was saved because the secure storage is not ready yet; the draft stays unsaved. */
-    fun saveHealth(draft: HealthDraft, interval: Int): Boolean
     fun loadScreenTime(): ScreenTimeDraft
-
-    /** False when nothing was saved, see [saveHealth]. */
-    fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int): Boolean
 
     /** Written straight through when a fresh install pre-selects the types it already has permission for. */
     fun setHealthEnabledTypes(types: Set<HealthDataType>)
+
+    /**
+     * Whether the user made a choice of data types, an empty one included. Only without one do
+     * the granted types become the selection, so None stays None whatever Health Connect grants.
+     */
+    fun healthTypesChosen(): Boolean
+    fun setHealthTypesChosen(chosen: Boolean)
+    fun setSeriesResolutions(resolutions: Map<HealthDataType, SeriesResolution>)
+
+    /** Stores the schedule of [source]. WorkManager hears of it through [reschedule]. */
+    fun setSchedule(source: LogType, schedule: SyncSchedule)
+
+    /** Applies the stored schedule of [source]; replaces the queued work, so only after a real change. */
+    fun reschedule(source: LogType)
+
+    /** False when nothing was stored because the secure storage is not ready yet. */
+    fun setDestinations(source: LogType, destinations: List<Destination>): Boolean
+
+    /** The shared broker as it is stored now; either tab can have changed it. */
+    fun sharedBroker(): MqttBroker
+
+    /**
+     * Stores the settings of [section], and the shared broker unless that is null. False when
+     * nothing was stored: the login is a secret, under the same rule as a destination's.
+     */
+    fun setMqtt(section: MqttSection, settings: MqttSectionSettings, sharedBroker: MqttBroker?): Boolean
+    fun clearMqttStatus(section: MqttSection)
+    fun setDayBoundaryHour(hour: Int)
+    fun setUseDayBoundary(enabled: Boolean)
+    fun setScreenTimeAppFilter(filter: ScreenTimeAppFilter)
+    fun keepFullPayloads(): Boolean
+    fun setKeepFullPayloads(enabled: Boolean)
+
+    /** The records the Health section delivered today, for Today when no figure fits. */
+    fun healthRecordsToday(): Int
 
     fun includeDailyTotals(): Boolean
     fun setIncludeDailyTotals(enabled: Boolean)
@@ -84,19 +120,6 @@ class PreferencesAppSettings(
         mqtt = MqttDraft.from(prefs.getMqttSection(MqttSection.HEALTH), prefs.getSharedMqttBroker())
     )
 
-    override fun saveHealth(draft: HealthDraft, interval: Int): Boolean {
-        // First, so a refusal leaves every setting of the tab as it was.
-        if (!prefs.setDestinations(LogType.HEALTH_CONNECT, draft.webhook.destinations)) return false
-        prefs.setSyncSchedule(LogType.HEALTH_CONNECT, draft.schedule.toSchedule(fallbackInterval = interval))
-        prefs.setHealthEnabledDataTypes(draft.enabledTypes)
-        prefs.setSeriesResolutions(draft.resolutions)
-        val mqtt = draft.mqtt.withPort()
-        prefs.setMqttSection(MqttSection.HEALTH, mqtt.section)
-        prefs.setSharedMqttBroker(mqtt.sharedBroker)
-        (context.applicationContext as? LifeDashboardApplication)?.scheduleHealthSyncWork()
-        return true
-    }
-
     override fun loadScreenTime() = ScreenTimeDraft(
         schedule = ScheduleDraft.from(prefs.getSyncSchedule(LogType.SCREEN_TIME)),
         webhook = WebhookDraft(
@@ -109,20 +132,30 @@ class PreferencesAppSettings(
         appFilter = prefs.getScreenTimeAppFilter()
     )
 
-    override fun saveScreenTime(draft: ScreenTimeDraft, interval: Int, dayBoundaryHour: Int): Boolean {
-        if (!prefs.setDestinations(LogType.SCREEN_TIME, draft.webhook.destinations)) return false
-        prefs.setSyncSchedule(LogType.SCREEN_TIME, draft.schedule.toSchedule(fallbackInterval = interval))
-        prefs.setScreenTimeDayBoundaryHour(dayBoundaryHour)
-        prefs.setUseScreenTimeDayBoundary(draft.useDayBoundary)
-        prefs.setScreenTimeAppFilter(draft.appFilter)
-        val mqtt = draft.mqtt.withPort()
-        prefs.setMqttSection(MqttSection.SCREEN_TIME, mqtt.section)
-        prefs.setSharedMqttBroker(mqtt.sharedBroker)
-        (context.applicationContext as? LifeDashboardApplication)?.scheduleScreenTimeSyncWork()
+    override fun setHealthEnabledTypes(types: Set<HealthDataType>) = prefs.setHealthEnabledDataTypes(types)
+    override fun healthTypesChosen() = prefs.healthTypesChosen()
+    override fun setHealthTypesChosen(chosen: Boolean) = prefs.setHealthTypesChosen(chosen)
+    override fun setSeriesResolutions(resolutions: Map<HealthDataType, SeriesResolution>) = prefs.setSeriesResolutions(resolutions)
+    override fun setSchedule(source: LogType, schedule: SyncSchedule) = prefs.setSyncSchedule(source, schedule)
+    override fun reschedule(source: LogType) = SyncScheduler.reschedule(context, source)
+    override fun setDestinations(source: LogType, destinations: List<Destination>) = prefs.setDestinations(source, destinations)
+    override fun sharedBroker() = prefs.getSharedMqttBroker()
+
+    override fun setMqtt(section: MqttSection, settings: MqttSectionSettings, sharedBroker: MqttBroker?): Boolean {
+        val source = if (section == MqttSection.HEALTH) LogType.HEALTH_CONNECT else LogType.SCREEN_TIME
+        if (!prefs.canSetDestinations(source, prefs.getDestinations(source))) return false
+        prefs.setMqttSection(section, settings)
+        sharedBroker?.let { prefs.setSharedMqttBroker(it) }
         return true
     }
 
-    override fun setHealthEnabledTypes(types: Set<HealthDataType>) = prefs.setHealthEnabledDataTypes(types)
+    override fun clearMqttStatus(section: MqttSection) = prefs.setLastMqttStatus(section, "")
+    override fun setDayBoundaryHour(hour: Int) = prefs.setScreenTimeDayBoundaryHour(hour)
+    override fun setUseDayBoundary(enabled: Boolean) = prefs.setUseScreenTimeDayBoundary(enabled)
+    override fun setScreenTimeAppFilter(filter: ScreenTimeAppFilter) = prefs.setScreenTimeAppFilter(filter)
+    override fun keepFullPayloads() = prefs.keepFullPayloads()
+    override fun setKeepFullPayloads(enabled: Boolean) = prefs.setKeepFullPayloads(enabled)
+    override fun healthRecordsToday() = SyncStatusStore.read(context, LogType.HEALTH_CONNECT).recordsToday
 
     override fun includeDailyTotals() = prefs.includeDailyTotals()
     override fun setIncludeDailyTotals(enabled: Boolean) = prefs.setIncludeDailyTotals(enabled)
@@ -149,5 +182,5 @@ class PreferencesAppSettings(
     override val secretsUnavailable: Boolean get() = prefs.secretsUnavailable
     override val secretsNeedReentry: Boolean get() = prefs.secretsNeedReentry
     override fun dismissSecretsReentry() = prefs.dismissSecretsReentry()
-    override fun lastMqttStatus(section: MqttSection) = prefs.getLastMqttStatus(section)
+    override fun lastMqttStatus(section: MqttSection) = prefs.getLastMqttStatus(section)?.takeIf { it.isNotBlank() }
 }

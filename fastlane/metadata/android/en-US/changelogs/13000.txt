@@ -1,0 +1,6 @@
+A new design. Your destinations and settings stay as they were.
+
+- Health and Screen Time open on whether your data arrives, with today's figures below it
+- Settings moved to their own pages, behind tiles: What to send, When to send, Receive and More
+- Save Changes is gone: switches apply at once, and only what you type has its own Save
+- Eleven languages: French, Spanish, Italian, Portuguese (Brazil), Japanese, Arabic, Hindi and Simplified Chinese are new

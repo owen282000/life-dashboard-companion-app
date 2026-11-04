@@ -42,6 +42,8 @@ class ScreenTimeManager(
         context.packageManager
     }
 
+    private val demoDays: List<ScreenTimeDemo.Day>? by lazy { ScreenTimeDemo.read(context) }
+
     /** System UI and the launcher are hidden, as Digital Wellbeing does. */
     private val excludedPackages: Set<String> by lazy {
         val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
@@ -58,7 +60,8 @@ class ScreenTimeManager(
         } catch (e: Exception) {
             emptyList()
         }
-        ScreenTimeSessions.launcherPackages(launchers) + ScreenTimeSessions.SYSTEM_UI_PACKAGE
+        ScreenTimeSessions.launcherPackages(launchers) + ScreenTimeSessions.KNOWN_LAUNCHER_PACKAGES +
+            ScreenTimeSessions.SYSTEM_UI_PACKAGE
     }
 
     /**
@@ -138,6 +141,7 @@ class ScreenTimeManager(
             // Get logical "today" based on day boundary
             val now = System.currentTimeMillis()
             val today = getLogicalDate(now, zone)
+            demoDays?.let { return Result.success(ScreenTimeDemo.data(it, today, now)) }
 
             // Query each day separately using UsageEvents for accurate timing
             for (dayOffset in 0 until lookbackDays) {
@@ -239,6 +243,7 @@ class ScreenTimeManager(
      * ManifestPermissionsTest enforces this.
      */
     private fun getAppName(packageName: String): String {
+        demoDays?.flatMap { it.apps }?.firstOrNull { it.packageName == packageName }?.let { return it.name }
         return try {
             val appInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 packageManager.getApplicationInfo(

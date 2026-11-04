@@ -84,7 +84,7 @@ class HealthSyncManager(
 
             val healthData = healthDataResult.getOrThrow()
             if (isHealthDataEmpty(healthData)) {
-                return@withContext Result.failure(Exception("No new data to preview"))
+                return@withContext Result.failure(NoNewDataToPreview())
             }
 
             val json = Json { prettyPrint = true }

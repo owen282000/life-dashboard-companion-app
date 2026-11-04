@@ -1,0 +1,1 @@
+Health Connect en schermtijd naar je eigen Home Assistant, MQTT of webhook.

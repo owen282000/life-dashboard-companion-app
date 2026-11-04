@@ -63,22 +63,19 @@ class SettingsRulesTest {
 
     @Test
     fun `an enabled broker needs a usable host and a port from 1 to 65535`() {
-        assertNull(SettingsRules.mqttProblem(mqtt(true, "192.168.1.10", "1883")))
-        assertNull(SettingsRules.mqttProblem(mqtt(true, "core-mosquitto", "8883", shared = false)))
-        assertNull(SettingsRules.mqttProblem(mqtt(true, "[fd00::1]", "65535")))
-        assertEquals(UiMessage.MqttHostMissing, SettingsRules.mqttProblem(mqtt(true, " ", "1883")))
-        assertEquals(UiMessage.MqttHostInvalid, SettingsRules.mqttProblem(mqtt(true, "bad host", "1883")))
-        assertEquals(UiMessage.MqttPortInvalid, SettingsRules.mqttProblem(mqtt(true, "broker.local", "0")))
-        assertEquals(UiMessage.MqttPortInvalid, SettingsRules.mqttProblem(mqtt(true, "broker.local", "65536")))
-        assertEquals(UiMessage.MqttPortInvalid, SettingsRules.mqttProblem(mqtt(true, "broker.local", "")))
+        assertNull(SettingsRules.mqttFieldProblem(mqtt(true, "192.168.1.10", "1883")))
+        assertNull(SettingsRules.mqttFieldProblem(mqtt(true, "core-mosquitto", "8883", shared = false)))
+        assertNull(SettingsRules.mqttFieldProblem(mqtt(true, "[fd00::1]", "65535")))
+        assertEquals(UiMessage.MqttHostMissing, SettingsRules.mqttFieldProblem(mqtt(true, " ", "1883")))
+        assertEquals(UiMessage.MqttHostInvalid, SettingsRules.mqttFieldProblem(mqtt(true, "bad host", "1883")))
+        assertEquals(UiMessage.MqttPortInvalid, SettingsRules.mqttFieldProblem(mqtt(true, "broker.local", "0")))
+        assertEquals(UiMessage.MqttPortInvalid, SettingsRules.mqttFieldProblem(mqtt(true, "broker.local", "65536")))
+        assertEquals(UiMessage.MqttPortInvalid, SettingsRules.mqttFieldProblem(mqtt(true, "broker.local", "")))
     }
 
     @Test
-    fun `a switched off broker shows its errors but never stops a save`() {
-        assertNull(SettingsRules.mqttProblem(mqtt(false, "", "")))
-        assertNull(SettingsRules.mqttProblem(mqtt(false, "bad host", "1883")))
-        assertNull(SettingsRules.mqttProblem(mqtt(false, "broker.local", "0")))
-        // The fields still say what is wrong once a host is typed.
+    fun `a switched off broker with nothing typed has no problem, and one that is typed is checked`() {
+        assertNull(SettingsRules.mqttFieldProblem(mqtt(false, "", "")))
         assertNull(SettingsRules.mqttHostProblem(mqtt(false, "", "")))
         assertEquals(UiMessage.MqttHostInvalid, SettingsRules.mqttHostProblem(mqtt(false, "bad host", "1883")))
         assertEquals(UiMessage.MqttPortInvalid, SettingsRules.mqttPortProblem(mqtt(false, "broker.local", "0")))

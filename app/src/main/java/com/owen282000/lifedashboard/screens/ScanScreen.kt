@@ -8,6 +8,7 @@ import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import android.util.Size
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -18,22 +19,15 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -44,10 +38,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -56,14 +53,22 @@ import com.owen282000.lifedashboard.PairingLink
 import com.owen282000.lifedashboard.PairingLinks
 import com.owen282000.lifedashboard.PairingParse
 import com.owen282000.lifedashboard.R
+import com.owen282000.lifedashboard.ui.ld.LDButton
+import com.owen282000.lifedashboard.ui.ld.LDButtonKind
+import com.owen282000.lifedashboard.ui.ld.LDGap
+import com.owen282000.lifedashboard.ui.ld.LDIcons
+import com.owen282000.lifedashboard.ui.ld.LDNote
+import com.owen282000.lifedashboard.ui.ld.LDScreen
+import com.owen282000.lifedashboard.ui.ld.LDTheme
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * The camera, looking for a pairing code.
+ * The camera, looking for a pairing code. An overlay over the tabs and the wizard, owned by
+ * MainActivity.
  *
  * Opened only when the user taps scan, and closed as soon as a code is read: the link
- * goes to the confirmation dialog, which is where anything is actually decided. A code
+ * goes to the confirmation, which is where anything is actually decided. A code
  * that is not ours says so and scanning continues, because the user is probably pointing
  * at the wrong thing rather than at a broken code.
  */
@@ -72,6 +77,8 @@ fun ScanScreen(
     onScanned: (PairingLink) -> Unit,
     onClose: () -> Unit
 ) {
+    // Over the wizard and the shell, which have their own Back: this one goes first.
+    BackHandler(onBack = onClose)
     val context = LocalContext.current
     val hasCamera = remember {
         context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
@@ -99,73 +106,56 @@ fun ScanScreen(
         if (hasCamera && !granted) launcher.launch(Manifest.permission.CAMERA)
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            when {
-                !hasCamera -> Explanation(
-                    message = stringResource(R.string.scan_no_camera),
-                    onClose = onClose
+    BackHandler(onBack = onClose)
+
+    val running = hasCamera && !cameraFailed && granted
+    val denied = hasCamera && !cameraFailed && !granted && asked
+    val message = when {
+        !hasCamera -> stringResource(R.string.scan_no_camera)
+        cameraFailed -> stringResource(R.string.scan_camera_failed)
+        running -> stringResource(if (notACode) R.string.scan_not_a_code else R.string.scan_hint)
+        denied -> stringResource(R.string.scan_permission_needed)
+        // Between opening and the user answering the system dialog.
+        else -> null
+    }
+
+    // A Surface, which takes the touches and hides what is under it from TalkBack.
+    Surface(modifier = Modifier.fillMaxSize(), color = LDTheme.colors.ground) {
+        LDScreen(title = stringResource(R.string.webhook_scan_button), onBack = onClose) {
+            LDGap(90.dp)
+            ScanViewfinder(
+                running = running,
+                waiting = !running && hasCamera && !cameraFailed && !denied,
+                onText = { text ->
+                    // Only a usable link closes the scanner. An unreadable one, and
+                    // anything that is not ours, leaves the camera running: the user
+                    // is probably aiming at the wrong code rather than a broken one.
+                    val parsed = PairingLinks.parse(text)
+                    if (parsed is PairingParse.Ok) onScanned(parsed.link) else notACode = true
+                },
+                onFailed = { cameraFailed = true }
+            )
+            if (message != null) {
+                LDNote(
+                    message,
+                    Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    color = LDTheme.colors.text,
+                    top = 28.dp
                 )
-
-                cameraFailed -> Explanation(
-                    message = stringResource(R.string.scan_camera_failed),
-                    onClose = onClose
-                )
-
-                granted -> ScanViewfinder(
-                    onText = { text ->
-                        // Only a usable link closes the scanner. An unreadable one, and
-                        // anything that is not ours, leaves the camera running: the user
-                        // is probably aiming at the wrong code rather than a broken one.
-                        val parsed = PairingLinks.parse(text)
-                        if (parsed is PairingParse.Ok) onScanned(parsed.link) else notACode = true
-                    },
-                    onFailed = { cameraFailed = true }
-                )
-
-                asked -> PermissionRefused(onClose = onClose)
-
-                // Between opening and the user answering the system dialog.
-                else -> Unit
             }
-
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Only while the camera is running: every other state is an
-                // Explanation, which carries its own hint and Close button.
-                if (granted && hasCamera && !cameraFailed) {
-                    Text(
-                        stringResource(
-                            if (notACode) R.string.scan_not_a_code else R.string.scan_hint
-                        ),
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .background(
-                                Color.Black.copy(alpha = 0.6f),
-                                MaterialTheme.shapes.medium
-                            )
-                            .padding(horizontal = 16.dp, vertical = 12.dp)
-                    )
-                    TextButton(onClick = onClose) {
-                        Text(stringResource(R.string.scan_close), color = Color.White)
-                    }
-                }
+            LDGap(20.dp)
+            if (denied) {
+                LDButton(stringResource(R.string.scan_permission_open_settings)) { openAppSettings(context) }
+                LDGap(8.dp)
             }
+            LDButton(stringResource(R.string.scan_close), kind = LDButtonKind.Ghost, onClick = onClose)
         }
     }
 }
 
 /**
- * The preview with an outline around the area the code should fill.
+ * The outline around the area the code should fill, with the camera only inside it, so the text
+ * below stays on the ground.
  *
  * The outline is the whole point rather than decoration. Measured against softened
  * frames: a code covering a quarter of the viewfinder is unreadable at any resolution,
@@ -173,17 +163,24 @@ fun ScanScreen(
  * can make up for standing too far away, so the frame asks the user to come closer.
  */
 @Composable
-private fun ScanViewfinder(onText: (String) -> Unit, onFailed: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        CameraPreview(onText = onText, onFailed = onFailed)
-
+private fun ScanViewfinder(running: Boolean, waiting: Boolean, onText: (String) -> Unit, onFailed: () -> Unit) {
+    val colors = LDTheme.colors
+    val shape = RoundedCornerShape(28.dp)
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxWidth(0.78f)
-                .aspectRatio(1f)
-                .border(2.dp, Color.White.copy(alpha = 0.85f), MaterialTheme.shapes.medium)
-        )
+            Modifier
+                .size(270.dp)
+                .clip(shape)
+                .border(3.dp, if (running || waiting) colors.accent else colors.ghostBorder, shape)
+                .clearAndSetSemantics { },
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                running -> CameraPreview(onText = onText, onFailed = onFailed)
+                waiting -> CircularProgressIndicator(Modifier.size(24.dp), color = colors.accent, strokeWidth = 2.dp)
+                else -> Icon(LDIcons.qr, contentDescription = null, tint = colors.muted, modifier = Modifier.size(48.dp))
+            }
+        }
     }
 }
 
@@ -193,7 +190,8 @@ private fun CameraPreview(onText: (String) -> Unit, onFailed: () -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val latestOnText by rememberUpdatedState(onText)
-    val previewView = remember { PreviewView(context) }
+    // A TextureView: the default SurfaceView draws past the rounded corners of the frame.
+    val previewView = remember { PreviewView(context).apply { implementationMode = PreviewView.ImplementationMode.COMPATIBLE } }
     val executor = remember { Executors.newSingleThreadExecutor() }
 
     AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
@@ -263,50 +261,6 @@ private fun CameraPreview(onText: (String) -> Unit, onFailed: () -> Unit) {
         onDispose {
             runCatching { provider.get().unbindAll() }
             executor.shutdown()
-        }
-    }
-}
-
-@Composable
-private fun PermissionRefused(onClose: () -> Unit) {
-    val context = LocalContext.current
-    Explanation(
-        message = stringResource(R.string.scan_permission_needed),
-        onClose = onClose,
-        action = stringResource(R.string.scan_permission_open_settings) to { openAppSettings(context) }
-    )
-}
-
-@Composable
-private fun Explanation(
-    message: String,
-    onClose: () -> Unit,
-    action: Pair<String, () -> Unit>? = null
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            stringResource(R.string.scan_title),
-            color = Color.White,
-            style = MaterialTheme.typography.titleMedium
-        )
-        Text(
-            message,
-            color = Color.White,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
-        action?.let { (label, onAction) ->
-            Button(onClick = onAction) { Text(label) }
-        }
-        TextButton(onClick = onClose) {
-            Text(stringResource(R.string.scan_close), color = Color.White)
         }
     }
 }

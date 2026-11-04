@@ -1,9 +1,27 @@
 package com.owen282000.lifedashboard
 
 import android.content.Context
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.RandomAccessFile
+
+/**
+ * A log entry for the list: what a row shows, without its payload. Reading up to 5 MB of payloads
+ * back for every refresh, only to show their sizes, is what [WebhookLogStore.rows] is there to
+ * avoid. [payloadBytes] is what is left of the payload without the store's marker, null without a
+ * payload. [receiveTypes] are the types of a Receive row's readings.
+ */
+data class WebhookLogRow(
+    val log: WebhookLog,
+    val payloadBytes: Long? = null,
+    val cutInStorage: Boolean = false,
+    val receiveTypes: List<String> = emptyList()
+)
 
 /**
  * Storage for webhook logs.
@@ -66,6 +84,7 @@ class WebhookLogStore(private val context: Context) {
             addAll(readEntries())
         }
         writeEntries(evict(entries))
+        _changes.update { it + 1 }
     }
 
     /**
@@ -91,12 +110,57 @@ class WebhookLogStore(private val context: Context) {
         } else {
             entries
         }
-        return filtered.map { entry ->
-            val payload = runCatching {
-                payloadFile(entry.id).takeIf { it.exists() }?.readText()
-            }.getOrNull()
-            entry.copy(rawPayload = payload)
+        return filtered.map(::withPayload)
+    }
+
+    private fun withPayload(entry: WebhookLog): WebhookLog {
+        val payload = runCatching {
+            payloadFile(entry.id).takeIf { it.exists() }?.readText()
+        }.getOrNull()
+        return entry.copy(rawPayload = payload)
+    }
+
+    /** One log with its stored payload, null when it is no longer kept. */
+    fun get(id: String): WebhookLog? = readEntries().firstOrNull { it.id == id }?.let(::withPayload)
+
+    /** Logs newest first as the list shows them; see [WebhookLogRow]. */
+    fun rows(): List<WebhookLogRow> = readEntries().map { entry ->
+        val file = payloadFile(entry.id)
+        val length = file.length()
+        when {
+            length == 0L -> WebhookLogRow(entry)
+            entry.direction == LogDirection.IN.name -> WebhookLogRow(
+                entry,
+                payloadBytes = length,
+                receiveTypes = ReceiveLogLine.decode(withPayload(entry).rawPayload).orEmpty().mapNotNull { it.type }.distinct()
+            )
+            endsWithMarker(file, length) -> WebhookLogRow(entry, length - MARKER_BYTES.size, cutInStorage = true)
+            else -> WebhookLogRow(entry, length)
         }
+    }
+
+    /** A payload is only cut past the limit, so the many small ones need no second look. */
+    private fun endsWithMarker(file: File, length: Long): Boolean {
+        if (length < DEFAULT_PAYLOAD_LIMIT + MARKER_BYTES.size) return false
+        return runCatching {
+            RandomAccessFile(file, "r").use { tail ->
+                tail.seek(length - MARKER_BYTES.size)
+                ByteArray(MARKER_BYTES.size).also(tail::readFully).contentEquals(MARKER_BYTES)
+            }
+        }.getOrDefault(false)
+    }
+
+    /** Removes the logs in [ids], with their payloads. */
+    fun delete(ids: Set<String>) = synchronized(LOCK) {
+        writeEntries(readEntries().filterNot { it.id in ids })
+        ids.forEach { payloadFile(it).delete() }
+        _changes.update { it + 1 }
+    }
+
+    /** Logs newest first without their payloads, for what only needs to know how a delivery went. */
+    fun getAllWithoutPayloads(filterType: LogType? = null): List<WebhookLog> {
+        val entries = readEntries()
+        return if (filterType != null) entries.filter { it.logType == filterType.name } else entries
     }
 
     /** Clears every log, or only those of [filterType]. */
@@ -104,6 +168,7 @@ class WebhookLogStore(private val context: Context) {
         if (filterType == null) {
             prefs.edit().remove(KEY_ENTRIES).apply()
             payloadDir.listFiles()?.forEach { it.delete() }
+            _changes.update { it + 1 }
             return@synchronized
         }
         val remaining = readEntries().filterNot { it.logType == filterType.name }
@@ -112,6 +177,7 @@ class WebhookLogStore(private val context: Context) {
         payloadDir.listFiles()?.forEach { file ->
             if (file.nameWithoutExtension !in keptIds) file.delete()
         }
+        _changes.update { it + 1 }
     }
 
     /**
@@ -140,6 +206,11 @@ class WebhookLogStore(private val context: Context) {
          */
         private val LOCK = Any()
 
+        private val _changes = MutableStateFlow(0)
+
+        /** Moves on with every row added or removed, so what is on screen knows to read again. */
+        val changes: StateFlow<Int> = _changes.asStateFlow()
+
         private const val LOGS_PREFS_NAME = "life_dashboard_logs"
         private const val PAYLOAD_DIR = "webhook_payloads"
         private const val KEY_ENTRIES = "entries"
@@ -154,6 +225,8 @@ class WebhookLogStore(private val context: Context) {
         const val DEFAULT_PAYLOAD_LIMIT = 16 * 1024
 
         const val TRUNCATION_MARKER = "\n... truncated, enable full payloads in settings to keep everything"
+
+        private val MARKER_BYTES = TRUNCATION_MARKER.toByteArray()
 
         /**
          * What actually gets written for [payload]: the whole thing when the user keeps full

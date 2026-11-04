@@ -104,7 +104,7 @@ class TranslatedNamesTest {
         val receiver = mapOf(
             "values" to "receiver", "values-nl" to "ontvanger", "values-de" to "Empfänger",
             "values-fr" to "récepteur", "values-es" to "receptor", "values-it" to "destinatario",
-            "values-pt-rBR" to "receptor", "values-ja" to "受信側", "values-ar" to "جهة الاستقبال",
+            "values-pt-rBR" to "receptor", "values-ja" to "受信側", "values-ar" to "استقبال",
             "values-hi" to "रिसीवर", "values-zh-rCN" to "接收端"
         )
         for (folder in locales) {
@@ -114,7 +114,7 @@ class TranslatedNamesTest {
             for (name in listOf("onboarding_scan_option", "pairing_ping_sending", "pairing_ping_delivered", "pairing_ping_failed")) {
                 assertTrue("$name in $folder is only for Home Assistant: ${text(name)}", "Home Assistant" !in text(name))
             }
-            for (name in listOf("scan_hint", "onboarding_scan_desc")) {
+            for (name in listOf("scan_hint", "ld_onboarding_scan_note")) {
                 assertTrue("$name in $folder lost its Home Assistant guidance", "Home Assistant" in text(name))
                 assertTrue("$name in $folder does not speak to other receivers", receiver.getValue(folder) in text(name))
             }

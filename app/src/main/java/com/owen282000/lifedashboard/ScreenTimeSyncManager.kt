@@ -36,7 +36,7 @@ class ScreenTimeSyncManager(private val context: Context) {
             val appFilter = preferencesManager.getScreenTimeAppFilter()
             val screenTimeDataList = appFilter.apply(screenTimeResult.getOrThrow())
             if (screenTimeDataList.isEmpty()) {
-                return@withContext Result.failure(Exception("No data to preview"))
+                return@withContext Result.failure(NoNewDataToPreview())
             }
 
             val json = Json { prettyPrint = true }

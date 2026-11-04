@@ -103,7 +103,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -143,11 +144,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".AboutActivity"
-            android:exported="false"
-            android:label="@string/activity_about_label" />
-
         <!--
             The privacy policy, also what Health Connect opens from the privacy policy link on
             its permission screen. Up to Android 13 it sends ACTION_SHOW_PERMISSIONS_RATIONALE
@@ -177,9 +173,12 @@
         <!-- Home screen widget -->
         <receiver
             android:name=".SyncStatusWidgetReceiver"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <!-- So the widget's text does not stay in the old language until the next sync. -->
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

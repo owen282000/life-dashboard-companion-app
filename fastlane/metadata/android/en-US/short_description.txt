@@ -1,1 +1,1 @@
-Health Connect and screen time to Home Assistant, MQTT or webhooks. No cloud.
+Health Connect and screen time to Home Assistant, MQTT or webhooks. No account.

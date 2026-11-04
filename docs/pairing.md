@@ -3,7 +3,7 @@
 Your service can let its users connect Life Dashboard Companion the way the Home Assistant integration does: it shows one QR code, the user scans it and taps **Pair**, and the app fills in your webhook address and a signing secret for that user. Nobody types a URL or copies a secret, and you know it worked because the app posts a signed test ping right away.
 
 <p align="center">
-  <img src="pairing-flow.png" alt="Your service shows a QR code, the phone opens it into the Pair with a receiver sheet for Example Health at health.example.com, and after Pair your service receives a signed test ping" width="900">
+  <img src="pairing-flow.png" alt="Your service shows a QR code, the phone opens it into the pairing page for Example Health at health.example.com, and after Pair your service receives a signed test ping" width="900">
 </p>
 
 A pairing code is just a link. This page is the whole format, so you can build one in any language without a library from us. The [Home Assistant integration](https://github.com/owen282000/life-dashboard-ha/blob/main/custom_components/life_dashboard/pairing.py) and the [Life Dashboard Stack](https://github.com/owen282000/life-dashboard-stack) generate exactly these links.
@@ -26,9 +26,9 @@ A pairing code is just a link. This page is the whole format, so you can build o
 
 A code carries an address and a secret, and nothing else that changes what the phone does.
 
-- **It fills in one webhook address and the secret to sign with**, in the sections you allow (Health, Screen Time, or both). The user can still switch a section off in the dialog.
+- **It fills in one webhook address and the secret to sign with**, in the sections you allow (Health, Screen Time, or both). The user can still switch a section off on the pairing page.
 - **It never picks data types or a schedule.** Which data is sent, and how often, stays the user's choice on the app's tabs. A code cannot quietly start sending someone's heart rate anywhere.
-- **It never touches other receivers.** Every other address keeps its own secret and headers, and the dialog lists them. An address added by pairing starts without custom headers, so an API key typed for another receiver never follows a scanned code.
+- **It never touches other receivers.** Every other address keeps its own secret and headers, and the pairing page lists them. An address added by pairing starts without custom headers, so an API key typed for another receiver never follows a scanned code.
 - **It does not change the payload.** Every receiver gets the same signed JSON, described by the [JSON Schema](webhook-schema.json). There are no templates per receiver on purpose: one documented format, which your receiver maps to its own model.
 - **Nothing is saved until the user taps Pair.**
 
@@ -55,7 +55,7 @@ Use the https form for a QR code. The phone's camera opens it straight into the 
 | `v` | yes | `1`, the format version. Anything else is refused with "This code was made by a newer version". |
 | `url` | yes | The webhook address the app posts to, `https://` or `http://`. At most 2048 characters, with no spaces and no comma. |
 | `secret` | yes | The HMAC signing secret, used as text. At most 512 characters, no spaces. |
-| `name` | no | What the dialog calls your service: "Example Health wants to receive your data at". Control characters are removed and it is cut at 64 characters. Without it, the dialog says "A receiver wants your data at". |
+| `name` | no | What the pairing page calls your service: "Example Health wants to receive your data at:". Control characters are removed and it is cut at 64 characters. Without it, the page says "A receiver wants your data at:". |
 | `sources` | no | Which sections your receiver accepts, comma separated: `health_connect`, `screen_time`. Unknown values are ignored. Leave it out to accept both. |
 
 The order of the fields does not matter, and fields the app does not know are ignored, so a newer generator can add one without breaking older apps.
@@ -157,11 +157,11 @@ https://owen282000.github.io/life-dashboard-companion-app/pair#v=1&url=http%3A%2
 
 ## What happens on the phone
 
-<img src="brand/pairing-sheet.png" alt="The Pair with a receiver dialog: Example Health wants to receive your data at health.example.com, with switches for Health and Screen Time, and Cancel and Pair" width="260" align="right">
+<img src="brand/pairing-sheet.png" alt="The pairing page, Pair with this receiver?: Example Health wants to receive your data at health.example.com, with switches for Health and Screen Time, and Pair and Cancel" width="260" align="right">
 
-The user scans your code in the app (**Scan a pairing code** in the setup, or on the **Webhook** card of the Health or Screen Time tab) or with the phone's camera. Both end in the same dialog:
+The user scans your code in the app (**Scan a pairing code** in the setup, or under **Add destination** on the Health or Screen Time tab) or with the phone's camera. Both end on the same page, **Pair with this receiver?**:
 
-- **Your name and your host.** "Example Health wants to receive your data at `health.example.com`". The host is taken from `url`, so a code cannot claim to be one address and send to another.
+- **Your name and your host.** "Example Health wants to receive your data at:" with `health.example.com` and the full address under it. The host is taken from `url`, so a code cannot claim to be one address and send to another.
 - **Send from.** A switch per section your `sources` allows, both on. Under each, which other addresses keep their own secret, or that this address is already there and only its secret changes.
 - **Plain HTTP.** For an `http://` address, a switch that allows plain HTTP, which the app refuses by default.
 - **Pair** saves the address and the secret, then sends the test ping. **Cancel** saves nothing.
@@ -172,7 +172,7 @@ Scanning the same code again replaces only the secret of that address. Scanning 
 
 ## After Pair: the test ping
 
-Right after **Pair**, the app posts one test ping to your address, signed with the secret from the code. It is the same ping as the **Test ping** button ([reference](webhook.md#test-ping)):
+Right after **Pair**, the app posts one test ping to your address, signed with the secret from the code. It is the same ping as the **Send test** button ([reference](webhook.md#test-ping)):
 
 ```http
 POST /webhook/u/42 HTTP/1.1
@@ -202,9 +202,9 @@ def signature_ok(raw_body: bytes, header: str, secret: str) -> bool:
     return hmac.compare_digest(expected, header or "")
 ```
 
-Then answer with any `2xx`, and the user sees "Paired with health.example.com, test ping delivered". Anything else, or no answer, gives "Paired with health.example.com, but the test ping failed" with the reason, such as the HTTP status. Answer a bad signature with `401`, as for every other request.
+Then answer with any `2xx`, and the user sees **Connected.** with "Delivered: the receiver accepted the test ping." Anything else, or no answer, gives **Not connected yet.** with "Test ping failed:" and the reason, such as the HTTP status, and a **Try again** button. During the app's first setup the same result comes as a short message instead: "Paired with health.example.com, test ping delivered", or "Paired with health.example.com, but the test ping failed" with the reason. Answer a bad signature with `401`, as for every other request.
 
-A ping carries no data, so do not store it as a measurement. It is a good moment to mark the user as connected on your side. The pairing stays in place when the ping fails, so a user can fix the address or the network and tap **Test ping** later.
+A ping carries no data, so do not store it as a measurement. It is a good moment to mark the user as connected on your side. The pairing stays in place when the ping fails, so a user can fix the address or the network and tap **Try again**, or **Send test** on the address's page, later.
 
 From then on every sync is signed with the same secret. [The webhook reference](webhook.md) describes every payload.
 
@@ -236,7 +236,7 @@ From then on every sync is signed with the same secret. [The webhook reference](
 
 ## Try it
 
-Scan this code with a phone that has the app. It opens the dialog for Example Health; tap **Cancel**, because `health.example.com` does not exist.
+Scan this code with a phone that has the app. It opens the pairing page for Example Health; tap **Cancel**, because `health.example.com` does not exist.
 
 <p align="center">
   <img src="brand/pairing-example-qr.svg" alt="QR code for an example pairing link to health.example.com" width="220">

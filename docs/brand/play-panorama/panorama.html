@@ -1,319 +1,407 @@
 <!DOCTYPE html>
 <!--
-  Source for the Google Play phone screenshots in the panorama style: one wide composition of
-  seven 1080x1920 panels (7560x1920), rendered whole (panorama-en.png) and per panel (en-1.png
-  to en-7.png, panorama.html?panel=1 to ?panel=7) by docs/brand/play-panorama/render.sh.
+  Source for the Google Play phone screenshots: one wide panorama of eight panels, 10560x2640, that
+  render.sh renders into store-assets/, which is not in git, whole (panorama-en.png) and per
+  panel (en-1.png to en-8.png, 1320x2640: Play takes at most 2:1). ?lang= picks the language, from
+  store-assets/raw/<lang>/; English is the default. ?panel=1 to ?panel=8 shows one panel.
 
-  ?lang=nl and ?lang=de render the Dutch and German set (nl-1.png, de-1.png and so on) from the
-  captures in store-src/nl/ and store-src/de/, with the captions and labels from TEXT below;
-  English is the default. The Home Assistant and stack cards stay English, as they are.
+  One ground, one heartbeat line running through all eight panels at the app's own stroke (the
+  line of the design so it runs into the Grafana card in panel 8),
+  and phones that lean over the edge into the next panel. Arabic mirrors the whole row, because
+  Google Play runs right to left there and the app does too. The line turns the app's Screen Time
+  purple for panel 4, the part only Android has.
 
-  One continuous background, a heartbeat line through all seven panels, and two phones that
-  lean well over into the next panel (losing only their right edge), so the row reads as one picture when swiping. Same
-  messages and order as the flat set (docs/brand/store-shot.html, agreed on 17 October).
+  The order: panel 1 carries the whole promise, for every receiver, with Home as it opens. 2 and 3
+  are the two ways in: one QR code for any receiver that shows one, and a signed webhook or MQTT
+  for people who build their own. 4 is Screen Time. 5, 6 and 7 are what people check before
+  installing: what goes out, the history, and whether it arrived. 8 closes on what you get: your own dashboards.
 
-  Every phone screen is a real capture in docs/brand/store-src/ (see store-shot.html for where
-  they come from; scripts/store-screenshots.sh takes the app's own, per language); nothing is
-  drawn over the app. Floating cards are enlarged crops of those captures, or of Home Assistant
-  and the separate Life Dashboard Stack, labelled as such. The webhook address with its secret
-  on the Receive screen is left out by stacking the bands above and below it, as
-  store-shot.html does.
+  Every phone screen is a real capture of the app on the store emulator (store-assets/raw/, from
+  scripts/store-screenshots.sh), at its native 1080x2400. The floating cards are enlarged crops of
+  those captures, found by measure.py. The X-Signature line in panel 3 is the header the app sends,
+  with an example value; pairing-example-qr.svg is the made-up link of docs/pairing.md, which is
+  what the phone in panel 2 opened. Nothing in them is anyone's real data. Panel 8 shows the
+  results: results/ holds the Grafana overview of the stack's docs and the Home Assistant dashboard
+  of the site, the same example images those pages show.
 
-  Play rules for the captions: no prices, rankings or calls to action, no other stores or
-  platforms, no Google logos, no medical claims. The app itself contains no AI: the stack
-  panel says the model is optional and runs on your own machine.
+  Rules for the captions: only what the app does. No prices, no "no subscription", no rankings, no
+  competitors, no other stores or platforms, no Google logos, no medical claims, no number of data
+  types. n8n and Grafana are named as places the webhook can go. Home Assistant is one receiver next
+  to the others, never the only one.
 
-  Same identity as the other brand files: heartbeat green #30B77E (purple #B79BFF for screen
-  time), the dark green-tinted ground and grid, "Helvetica Neue".
+  Brand: ground #0A0F0D, accent #30B77E, Screen Time #8B5CF6, Space Grotesk. Scripts it has no
+  glyphs for use a system font of this Mac: Hiragino Sans (ja), PingFang SC (zh-CN), SF Arabic
+  (ar), Kohinoor Devanagari (hi).
 -->
 <html>
 <head>
 <meta charset="utf-8">
 <style>
+  @font-face { font-family: "Space Grotesk"; font-weight: 400; src: url(../../../app/src/main/res/font/space_grotesk_regular.ttf); }
+  @font-face { font-family: "Space Grotesk"; font-weight: 500; src: url(../../../app/src/main/res/font/space_grotesk_medium.ttf); }
+  @font-face { font-family: "Space Grotesk"; font-weight: 700; src: url(../../../app/src/main/res/font/space_grotesk_bold.ttf); }
+  @font-face { font-family: "Space Mono"; font-weight: 400; src: url(../../../app/src/main/res/font/space_mono_regular.ttf); }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 7560px; height: 1920px; overflow: hidden; background: #0C1714; }
+  :root { --script: sans-serif; --ground: #0A0F0D; --accent: #30B77E; --purple: #8B5CF6; --purple-text: #B79BFF; --text: #EEF4F0; --secondary: #B9C4BE; --tile: #141C18; --tile-border: #27332D; --on-accent: #06130D; }
+  html, body { width: 10560px; height: 2640px; overflow: hidden; background: var(--ground); }
   #stage {
-    position: absolute; left: 0; top: 0; width: 7560px; height: 1920px; overflow: hidden;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #fff;
-    background:
-      radial-gradient(700px 700px at 420px 1200px, rgba(48,183,126,0.20), transparent 70%),
-      radial-gradient(650px 650px at 1500px 1000px, rgba(48,183,126,0.13), transparent 70%),
-      radial-gradient(700px 700px at 2500px 1250px, rgba(48,183,126,0.15), transparent 70%),
-      radial-gradient(800px 800px at 3800px 1150px, rgba(155,120,255,0.20), transparent 70%),
-      radial-gradient(700px 700px at 4700px 1150px, rgba(48,183,126,0.15), transparent 70%),
-      radial-gradient(700px 700px at 5800px 1250px, rgba(48,183,126,0.15), transparent 70%),
-      radial-gradient(700px 700px at 7000px 1100px, rgba(48,183,126,0.17), transparent 70%),
-      linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%),
-      linear-gradient(90deg, #11221D 0%, #0E1B18 20%, #101C1C 40%, #13162A 50%, #0F1D19 60%, #0E1A17 80%, #112019 100%);
+    position: absolute; left: 0; top: 0; width: 10560px; height: 2640px; overflow: hidden;
+    font-family: "Space Grotesk", var(--script), sans-serif; color: var(--text); background: var(--ground);
   }
-  .grid {
-    position: absolute; inset: 0; pointer-events: none;
-    background-image:
-      linear-gradient(rgba(48,183,126,0.055) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(48,183,126,0.055) 1px, transparent 1px);
-    background-size: 72px 72px;
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, black 45%, rgba(0,0,0,0.5) 100%);
-  }
-  svg.pulse { position: absolute; left: 0; top: 0; }
+  :lang(ja) { --script: "Hiragino Sans"; }
+  :lang(zh-CN) { --script: "PingFang SC"; }
+  :lang(ar) { --script: "SF Arabic"; }
+  :lang(hi) { --script: "Kohinoor Devanagari"; }
+  svg.pulse { position: absolute; left: 0; top: 0; z-index: 1; }
 
-  /* Captions: a bold headline and a short subline at the top of each panel. */
-  .cap { position: absolute; top: 96px; width: 960px; text-align: center; }
-  .cap h1 {
-    font-size: 98px; font-weight: 800; line-height: 1.03; letter-spacing: -2.5px;
-    text-shadow: 0 6px 34px rgba(0,0,0,0.45);
+  /* Captions: a bold headline and a short subline at the top of each panel, as the app's headings. */
+  .cap { position: absolute; top: 112px; width: 1152px; z-index: 8; }
+  .cap h1 { font-weight: 700; line-height: 1.1; letter-spacing: -0.017em; }
+  .cap h1 span { display: block; white-space: nowrap; width: max-content; }
+  [dir=rtl] .cap h1 span, .cap[dir=rtl] h1 span { margin-inline-start: 0; }
+  .cap em { font-style: normal; color: var(--accent); }
+  .cap.purple em { color: var(--purple-text); }
+  .cap p span { white-space: var(--sentence, normal); }
+  .cap p { margin-top: 30px; text-wrap: balance; font-size: 52px; line-height: 1.28; color: var(--secondary); font-weight: 400; }
+  .cap .tag {
+    display: inline-block; margin-top: 36px; padding: 20px 44px; border-radius: 999px; white-space: nowrap;
+    background: var(--accent); color: var(--on-accent); font-size: 64px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em;
   }
-  .cap h1 em {
-    font-style: normal;
-    background: linear-gradient(90deg, #5BE3A6, #30B77E);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
+  .receivers { display: flex; gap: 18px; margin-top: 24px; direction: ltr; }
+  [dir=rtl] .receivers { justify-content: flex-end; }
+  .receivers span {
+    padding: 14px 32px; border-radius: 999px; font-size: 46px; font-weight: 500; line-height: 1.15; white-space: nowrap;
+    border: 3px solid var(--accent); color: var(--text); background: var(--tile);
   }
-  .cap.purple h1 em { background: linear-gradient(90deg, #CDB8FF, #9B78FF); -webkit-background-clip: text; background-clip: text; }
-  .cap p { margin: 26px auto 0; max-width: 900px; text-wrap: balance; font-size: 42px; line-height: 1.28; color: #B2C2BC; }
+  :lang(ar) .cap h1, :lang(ar) .cap .tag, :lang(hi) .cap h1, :lang(hi) .cap .tag { letter-spacing: 0; }
+  :lang(ar) .cap h1, :lang(hi) .cap h1 { line-height: 1.28; }
+  :lang(ar) .cap p, :lang(hi) .cap p { line-height: 1.42; }
+  :lang(ja) .cap p, :lang(zh-CN) .cap p { line-break: strict; word-break: auto-phrase; }
+  :lang(ja) .cap h1, :lang(zh-CN) .cap h1 { line-height: 1.22; letter-spacing: 0; }
 
-  /* A generic Android phone: flat graphite band, thin even bezel, a punch-hole camera. */
+  .glow { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(48,183,126,0.13), rgba(48,183,126,0)); z-index: 0; }
+  .glow.purple { background: radial-gradient(closest-side, rgba(139,92,246,0.24), rgba(139,92,246,0)); }
+
+  /* A generic Android phone: a flat graphite band, a thin even bezel, a punch-hole camera. */
   .phone { position: absolute; transform-origin: 50% 40%; }
   .phone .body {
     position: relative; width: 100%; height: 100%; border-radius: var(--r);
-    background: linear-gradient(135deg, #4A5054 0%, #24282B 25%, #16191B 50%, #272B2E 75%, #4B5155 100%);
+    background: linear-gradient(135deg, #5A6268 0%, #2A2F33 22%, #1A1D20 50%, #2E3438 78%, #5B6369 100%);
     padding: var(--band);
-    box-shadow: 0 50px 100px rgba(0,0,0,0.6), 0 16px 40px rgba(0,0,0,0.5), 0 0 130px rgba(48,183,126,0.18);
+    box-shadow: 0 60px 120px rgba(0,0,0,0.7), 0 20px 50px rgba(0,0,0,0.6);
   }
   .phone .bezel { width: 100%; height: 100%; border-radius: calc(var(--r) - var(--band)); background: #000; padding: var(--bezel); }
   .phone .screen {
-    position: relative; width: 100%; height: 100%; overflow: hidden; background: #1B2421;
+    position: relative; width: 100%; height: 100%; overflow: hidden;
     border-radius: calc(var(--r) - var(--band) - var(--bezel));
     background-size: 100% 100%; background-repeat: no-repeat;
   }
-  .phone .hole { position: absolute; left: 50%; transform: translateX(-50%); border-radius: 50%; background: #000;
-    box-shadow: inset 0 0 0 2px #15191B; }
-  .phone .btn { position: absolute; right: -5px; width: 7px; border-radius: 3px; background: linear-gradient(90deg, #4A5054, #1E2225); }
-  .phone .glare {
-    position: absolute; inset: 0; border-radius: calc(var(--r) - var(--band) - var(--bezel));
-    background: linear-gradient(115deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 30%);
-  }
+  .phone .hole { position: absolute; left: 50%; transform: translateX(-50%); background: #000; border-radius: 50%; }
+  .phone .btn { position: absolute; width: 8px; border-radius: 4px; background: linear-gradient(90deg, #22272A, #5A6268); }
 
-  /* Floating cards: enlarged crops with a label saying where they come from. */
-  .float { position: absolute; }
+  /* Floating cards: enlarged crops of the captures. */
+  .float { position: absolute; z-index: 5; }
   .float .frame {
-    border-radius: 28px; overflow: hidden; background: #111;
-    border: 2px solid rgba(255,255,255,0.14);
-    box-shadow: 0 40px 90px rgba(0,0,0,0.6), 0 0 0 10px rgba(0,0,0,0.12);
+    border-radius: var(--radius, 40px); overflow: hidden; background: var(--tile);
+    border: 2px solid var(--tile-border); box-shadow: 0 50px 100px rgba(0,0,0,0.65);
   }
-  .float .label {
-    display: inline-flex; align-items: center; gap: 12px; margin-bottom: 14px;
-    padding: 12px 24px; border-radius: 999px; white-space: nowrap;
-    font-size: 30px; font-weight: 700; color: #DDE7E3;
-    background: rgba(10,18,16,0.88); border: 2px solid rgba(255,255,255,0.14);
-    box-shadow: 0 14px 36px rgba(0,0,0,0.45);
-  }
-  .float .label small { font-weight: 500; color: #AEB8BC; }
-  .float .label i { width: 16px; height: 16px; border-radius: 50%; background: var(--dot, #41BDF5); display: inline-block; flex: none; }
+  .float.bare .frame { border: 0; background: transparent; }
+  .float.ground .frame { background: var(--ground); }
   .crop { background-repeat: no-repeat; }
+  .float.fade .crop { -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
 
-  .badge {
-    position: absolute; display: flex; align-items: center; gap: 22px;
-    padding: 26px 40px 26px 28px; border-radius: 999px; white-space: nowrap;
-    background: linear-gradient(135deg, rgba(48,183,126,0.96), rgba(32,140,95,0.96));
-    color: #04140D; box-shadow: 0 34px 80px rgba(0,0,0,0.55), 0 0 80px rgba(48,183,126,0.45);
+  /* The capture of About, on the same ground: no frame, the line runs straight into it. */
+  .seam { position: absolute; z-index: 2; mix-blend-mode: lighten; }
+
+  .code {
+    position: absolute; z-index: 7; padding: 28px 38px; border-radius: 30px; direction: ltr; white-space: nowrap;
+    font-family: "Space Mono", monospace; font-size: 46px; color: #6FE0AE;
+    background: var(--tile); border: 2px solid var(--tile-border); box-shadow: 0 40px 80px rgba(0,0,0,0.6);
   }
-  .badge b { display: block; font-size: 50px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
-  .badge small { display: block; margin-top: 6px; font-size: 28px; font-weight: 600; opacity: 0.8; }
+
+  .sign { position: absolute; display: flex; align-items: center; gap: 32px; z-index: 6; }
+  .sign img { width: 170px; height: 170px; border-radius: 38px; box-shadow: 0 0 0 2px var(--tile-border); }
+  .sign b { font-size: 68px; font-weight: 700; letter-spacing: -0.01em; }
 </style>
 </head>
 <body>
 <div id="stage">
-  <div class="grid"></div>
-  <svg class="pulse" width="7560" height="1920" viewBox="0 0 7560 1920">
-    <defs>
-      <filter id="glow" x="-5%" y="-50%" width="110%" height="200%">
-        <feGaussianBlur stdDeviation="8" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-      <linearGradient id="fade" x1="0" x2="1" y1="0" y2="0">
-        <stop offset="0" stop-color="#30B77E" stop-opacity="0.15"/>
-        <stop offset="0.5" stop-color="#30B77E" stop-opacity="0.55"/>
-        <stop offset="1" stop-color="#30B77E" stop-opacity="0.2"/>
-      </linearGradient>
-    </defs>
-    <path id="beat" fill="none" stroke="url(#fade)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  <svg class="pulse" width="10560" height="2640" viewBox="0 0 10560 2640">
+    <defs><linearGradient id="thread-color" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="10560" y2="0"></linearGradient></defs>
+    <g id="thread" fill="none" stroke="url(#thread-color)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"></g>
   </svg>
   <div id="items"></div>
 </div>
 
+<script src="../../../store-assets/raw/rects.js"></script>
 <script>
 const params = new URLSearchParams(location.search);
-const LANG = ["nl", "de"].includes(params.get("lang")) ? params.get("lang") : "en";
+const LANGS = ["en", "nl", "de", "fr", "es", "it", "pt-BR", "ja", "ar", "hi", "zh-CN"];
+const LANG = LANGS.includes(params.get("lang")) ? params.get("lang") : "en";
+const RTL = LANG === "ar";
 document.documentElement.lang = LANG;
-// The app's own screens per language; Home Assistant (H*) and the stack (S*) stay English.
-const W = 1080, H = 1920, SRC = "../store-src/", APP = LANG === "en" ? SRC : `${SRC}${LANG}/`;
+const W = 1320, H = 2640, PANELS = 8, TOTAL = W * PANELS, STORE = "../../../store-assets/", RAW = LANG === "en" ? STORE + "raw/" : `${STORE}raw/${LANG}/`;
 
-// Where things are in the captures, per language: [x, y, w, h] for a crop, [y0, y1] for the
-// bands of a phone screen. scripts/store-screenshots.sh prints the rows these follow from.
-const RECTS = {
-  en: {
-    DELETED: [160, 1054, 840, 190],         // A6-payload.png: "deleted_records" in the payload
-    RECEIVE: [[0, 715], [913, 2400]],        // A7-receive.png without the address that holds the secret
-  },
-  nl: {
-    DELETED: [160, 1026, 840, 190],
-    RECEIVE: [[0, 736], [934, 2400]],
-  },
-  de: {
-    DELETED: [160, 1048, 840, 190],
-    RECEIVE: [[0, 757], [955, 2400]],
-  },
-};
-const { DELETED, RECEIVE } = RECTS[LANG];
-
-// Every word on the panels, per language. Dutch says "je", German "du"; the app's own terms
-// from app/src/main/res/values-nl and values-de (aanvullen, Nachtragen, Schermtijd,
-// Bildschirmzeit, ondertekend, signiert). A third value is a smaller headline size, for a
-// language whose longest line would not fit at 98px.
+// Every word on the panels, per language: [headline line, accent line, subline]. Dutch says "je",
+// German "du", French "vous", as in the app, with the terms of docs/localization.md and of the
+// app's strings. One natural phrase each, not short stabs, and no period at the end in any script.
 const TEXT = {
   en: {
-    cap1: [`Health Connect to<br><em>your own server</em>`, `Home Assistant, MQTT or your own webhook`],
-    cap2: [`Pair with<br><em>one QR code</em>`, `No account, no YAML, no broker`],
-    cap3: [`All your history<br><em>in one go</em>`, `Backfill: 30 days or everything. Home Assistant shows the last year day by day.`],
-    cap4: [`Screen time<br><em>per app</em>`, `You choose which apps are sent`],
-    cap5: [`Your history, for<br><em>your own AI</em>`, `Optional: the separate Life Dashboard Stack, with a model on your own machine`],
-    stack: `Life Dashboard Stack <small>on your own server</small>`,
-    cap6: [`Edits and deletions<br><em>are sent too</em>`, `Signed JSON for n8n, Node-RED or your scripts`],
-    deleted: `Deleted, in the payload`,
-    signed: `Signed`,
-    cap7: [`Scale readings into<br><em>Health Connect</em>`, `Weight and blood pressure from Home Assistant`],
+    tag: "No account, no cloud", webhook: "Webhook",
+    lead: ["Your health data,", "on your own server"],
+    pair: ["Any receiver", "with one QR code", "Home Assistant, the Life Dashboard Stack or your own server, and the address and HMAC signing secret fill in by themselves"],
+    hook: ["Signed JSON", "to your own webhook", "HMAC signed, ready for your own server, n8n or Grafana, or publish to an MQTT broker"],
+    screen: ["Your screen time", "per app", "Minutes per app with your own day boundary, for every app or only the ones you choose"],
+    what: ["You choose", "what to send", "Start from the essentials or pick by category and type"],
+    history: ["Send your", "whole history", "In 3-day chunks, oldest first, and records are never counted twice"],
+    logs: ["Every delivery", "in the logs", "The status code, the records and the payload of each one"],
+    about: ["Your data in", "your own dashboards", "Home Assistant, Grafana or anything else that reads JSON"],
   },
   nl: {
-    cap1: [`Health Connect naar<br><em>je eigen server</em>`, `Home Assistant, MQTT of je eigen webhook`],
-    cap2: [`Koppelen met<br><em>één QR-code</em>`, `Geen account, geen YAML, geen broker`],
-    cap3: [`Al je geschiedenis<br><em>in één keer</em>`, `Aanvullen: 30 dagen of alles. Home Assistant toont het afgelopen jaar per dag.`],
-    cap4: [`Schermtijd<br><em>per app</em>`, `Jij kiest welke apps worden verstuurd`],
-    cap5: [`Je geschiedenis voor<br><em>je eigen AI</em>`, `Optioneel: de losse Life Dashboard Stack, met een model op je eigen computer`],
-    stack: `Life Dashboard Stack <small>op je eigen server</small>`,
-    cap6: [`Ook wijzigingen<br><em>en verwijderingen</em>`, `Ondertekende JSON voor n8n, Node-RED of je eigen scripts`],
-    deleted: `Verwijderd, in de payload`,
-    signed: `Ondertekend`,
-    cap7: [`Metingen van je weegschaal<br><em>in Health Connect</em>`, `Gewicht en bloeddruk uit Home Assistant`],
+    tag: "Geen account, geen cloud", webhook: "Webhook",
+    lead: ["Je gezondheidsdata,", "op je eigen server"],
+    pair: ["Elke ontvanger", "met één QR-code", "Home Assistant, de Life Dashboard Stack of je eigen server, en het adres en het HMAC-ondertekeningsgeheim vullen zichzelf in"],
+    hook: ["Ondertekende JSON", "naar je eigen webhook", "Met HMAC ondertekend, klaar voor je eigen server, n8n of Grafana, of publiceer naar een MQTT-broker"],
+    screen: ["Je schermtijd", "per app", "Minuten per app met je eigen daggrens, voor elke app of alleen de apps die jij kiest"],
+    what: ["Jij kiest", "wat je verstuurt", "Begin met de basis of kies per categorie en type"],
+    history: ["Verstuur je", "hele geschiedenis", "In blokken van 3 dagen, oudste eerst, en records worden nooit dubbel geteld"],
+    logs: ["Elke aflevering", "in de logs", "De statuscode, de records en de payload van elke aflevering"],
+    about: ["Je data in", "je eigen dashboards", "Home Assistant, Grafana of alles wat JSON kan lezen"],
   },
   de: {
-    cap1: [`Von Health Connect<br><em>auf deinen Server</em>`, `Home Assistant, MQTT oder dein eigener Webhook`],
-    cap2: [`Koppeln mit<br><em>einem QR-Code</em>`, `Kein Konto, kein YAML, kein Broker`],
-    cap3: [`Dein ganzer Verlauf<br><em>auf einmal</em>`, `Nachtragen: 30 Tage oder alles.<br>Home Assistant zeigt das letzte Jahr pro Tag.`],
-    cap4: [`Bildschirmzeit<br><em>pro App</em>`, `Du wählst, welche Apps gesendet werden`],
-    cap5: [`Dein Verlauf für<br><em>deine eigene KI</em>`, `Optional: der separate Life Dashboard Stack, mit einem Modell auf deinem eigenen Rechner`],
-    stack: `Life Dashboard Stack <small>auf deinem eigenen Server</small>`,
-    cap6: [`Auch Änderungen<br><em>und Löschungen</em>`, `Signiertes JSON für n8n, Node-RED oder deine Skripte`],
-    deleted: `Gelöscht, im Payload`,
-    signed: `Signiert`,
-    cap7: [`Waagenwerte<br><em>in Health Connect</em>`, `Gewicht und Blutdruck aus Home Assistant`],
+    tag: "Kein Konto, keine Cloud", webhook: "Webhook",
+    lead: ["Deine Gesundheitsdaten,", "auf deinem Server"],
+    pair: ["Jeder Empfänger", "mit einem QR-Code", "Home Assistant, der Life Dashboard Stack oder dein eigener Server, und Adresse und HMAC-Signaturgeheimnis trägt die App selbst ein"],
+    hook: ["Signiertes JSON", "an deinen eigenen Webhook", "Mit HMAC signiert, bereit für deinen eigenen Server, n8n oder Grafana, oder veröffentliche an einen MQTT-Broker"],
+    screen: ["Deine Bildschirmzeit", "pro App", "Minuten pro App mit deiner eigenen Tagesgrenze, für jede App oder nur die, die du wählst"],
+    what: ["Du wählst,", "was gesendet wird", "Starte mit dem Wesentlichen oder wähle nach Kategorie und Typ"],
+    history: ["Sende deinen", "ganzen Verlauf", "In 3-Tage-Blöcken, älteste zuerst, und Datensätze werden nie doppelt gezählt"],
+    logs: ["Jede Zustellung", "in den Logs", "Statuscode, Datensätze und Payload jeder Zustellung"],
+    about: ["Deine Daten in", "deinen eigenen Dashboards", "Home Assistant, Grafana oder alles, was JSON lesen kann"],
+  },
+  fr: {
+    tag: "Ni compte ni cloud", webhook: "Webhook",
+    lead: ["Vos données de santé,", "sur votre serveur"],
+    pair: ["Tout récepteur", "avec un seul code QR", "Home Assistant, le Life Dashboard Stack ou votre propre serveur, avec l’adresse et le secret de signature HMAC remplis tout seuls"],
+    hook: ["Du JSON signé", "vers votre propre webhook", "Signé avec HMAC, prêt pour votre propre serveur, n8n ou Grafana, ou publiez vers un broker MQTT"],
+    screen: ["Votre temps d’écran", "par app", "Les minutes par app avec votre propre changement de jour, pour chaque app ou seulement celles que vous choisissez"],
+    what: ["Vous choisissez", "quoi envoyer", "Partez de l’essentiel ou choisissez par catégorie et par type"],
+    history: ["Envoyez tout", "votre historique", "Par blocs de 3 jours, des plus anciens aux plus récents, sans jamais compter un enregistrement deux fois"],
+    logs: ["Chaque livraison", "dans les journaux", "Le code d’état, les enregistrements et le payload de chacune"],
+    about: ["Vos données dans", "vos propres tableaux de bord", "Home Assistant, Grafana ou tout ce qui lit du JSON"],
+  },
+  es: {
+    tag: "Sin cuenta y sin nube", webhook: "Webhook",
+    lead: ["Tus datos de salud,", "en tu propio servidor"],
+    pair: ["Cualquier receptor", "con un solo código QR", "Home Assistant, Life Dashboard Stack o tu propio servidor, y la dirección y el secreto de firma HMAC se rellenan solos"],
+    hook: ["JSON firmado", "a tu propio webhook", "Firmado con HMAC, listo para tu propio servidor, n8n o Grafana, o publica en un broker MQTT"],
+    screen: ["Tu tiempo de pantalla", "por app", "Minutos por app con tu propio cambio de día, para cada app o solo las que elijas"],
+    what: ["Tú eliges", "qué enviar", "Empieza con lo esencial o elige por categoría y tipo"],
+    history: ["Envía todo", "tu historial", "En bloques de 3 días, empezando por los más antiguos, y los registros nunca se cuentan dos veces"],
+    logs: ["Cada entrega", "en los logs", "El código de estado, los registros y el payload de cada una"],
+    about: ["Tus datos en", "tus propios paneles", "Home Assistant, Grafana o cualquier cosa que lea JSON"],
+  },
+  it: {
+    tag: "Nessun account, nessun cloud", webhook: "Webhook",
+    lead: ["I tuoi dati sulla salute,", "sul tuo server"],
+    pair: ["Qualsiasi destinatario", "con un solo codice QR", "Home Assistant, lo stack Life Dashboard o il tuo server, e indirizzo e segreto di firma HMAC si compilano da soli"],
+    hook: ["JSON firmato", "al tuo webhook", "Firmato con HMAC, pronto per il tuo server, n8n o Grafana, oppure pubblica su un broker MQTT"],
+    screen: ["Il tuo tempo di utilizzo", "per app", "Minuti per app con il tuo inizio giornata, per ogni app o solo quelle che scegli"],
+    what: ["Scegli tu", "cosa inviare", "Parti dagli essenziali o scegli per categoria e tipo"],
+    history: ["Invia tutto", "il tuo storico", "In blocchi di 3 giorni, dai più vecchi, e i record non vengono mai contati due volte"],
+    logs: ["Ogni consegna", "nei log", "Il codice di stato, i record e il payload di ognuna"],
+    about: ["I tuoi dati nelle", "tue dashboard", "Home Assistant, Grafana o qualsiasi cosa legga JSON"],
+  },
+  "pt-BR": {
+    tag: "Sem conta e sem nuvem", webhook: "Webhook",
+    lead: ["Seus dados de saúde,", "no seu próprio servidor"],
+    pair: ["Qualquer receptor", "com um só QR code", "O Home Assistant, o Life Dashboard Stack ou o seu próprio servidor, e o endereço e o segredo de assinatura HMAC se preenchem sozinhos"],
+    hook: ["JSON assinado", "para o seu webhook", "Assinado com HMAC, pronto para o seu próprio servidor, n8n ou Grafana, ou publique em um broker MQTT"],
+    screen: ["Seu tempo de tela", "por app", "Minutos por app com a sua própria virada do dia, para todos os apps ou só os que você escolher"],
+    what: ["Você escolhe", "o que enviar", "Comece pelos essenciais ou escolha por categoria e tipo"],
+    history: ["Envie todo", "o seu histórico", "Em blocos de 3 dias, do mais antigo para o mais recente, e os registros nunca são contados duas vezes"],
+    logs: ["Cada entrega", "nos logs", "O código de status, os registros e o payload de cada uma"],
+    about: ["Seus dados nos", "seus próprios painéis", "Home Assistant, Grafana ou qualquer coisa que leia JSON"],
+  },
+  ja: {
+    tag: "アカウントもクラウドも不要", webhook: "Webhook",
+    lead: ["健康データを、", "あなたのサーバーへ"],
+    pair: ["どの受信側にも", "QRコード1つで", "Home Assistant、Life Dashboard Stack、自分のサーバーで使え、アドレスとHMAC署名シークレットは自動で入力されます"],
+    hook: ["署名付きJSONを", "自分のWebhookへ", "HMAC署名付きで、自分のサーバー、n8n、Grafanaで使え、MQTTブローカーへの公開もできます"],
+    screen: ["スクリーンタイムも", "アプリごとに", "自分で決めた日の区切りで、アプリごとの利用時間を、すべてのアプリでも選んだアプリだけでも送信できます"],
+    what: ["自分で選ぶ", "送信するデータ", "基本のデータから始めるか、カテゴリ別、タイプ別に選べます"],
+    history: ["過去データも", "すべて送信", "古い順に3日ずつのブロックで送信し、レコードが二重に数えられることはありません"],
+    logs: ["すべての配信を", "ログで確認", "配信ごとのステータスコード、レコード、ペイロードを確認できます"],
+    about: ["データを", "自分のダッシュボードで", "Home Assistant、Grafana、JSON を読めるものなら何でも"],
+  },
+  ar: {
+    tag: "بدون حساب وبدون سحابة", webhook: "Webhook",
+    lead: ["بياناتك الصحية،", "على خادمك الخاص"],
+    pair: ["أي جهة استقبال", "برمز QR واحد", "Home Assistant أو Life Dashboard Stack أو خادمك الخاص، مع ملء العنوان وسر توقيع HMAC تلقائيًا"],
+    hook: ["JSON موقَّع", "إلى webhook الخاص بك", "موقَّع بـ HMAC، وجاهز لخادمك الخاص أو n8n أو Grafana، أو انشر إلى وسيط MQTT"],
+    screen: ["مدة استخدام الشاشة", "لكل تطبيق", "الدقائق لكل تطبيق مع حد اليوم الذي تحدده، لكل التطبيقات أو لما تختاره منها فقط"],
+    what: ["أنت تختار", "ما يتم إرساله", "ابدأ بالأساسيات أو اختر حسب الفئة والنوع"],
+    history: ["أرسل كل", "بياناتك السابقة", "على دفعات كل منها 3 أيام، بدءًا بالأقدم، ولا تُحتسب الإدخالات مرتين أبدًا"],
+    logs: ["كل عملية تسليم", "في السجلات", "رمز الحالة والإدخالات والحمولة لكل عملية"],
+    about: ["بياناتك في", "لوحات المعلومات الخاصة بك", "Home Assistant وGrafana وأي شيء يقرأ JSON"],
+  },
+  hi: {
+    tag: "न कोई खाता, न कोई क्लाउड", webhook: "वेबहुक",
+    lead: ["आपका स्वास्थ्य डेटा,", "आपके अपने सर्वर पर"],
+    pair: ["कोई भी रिसीवर", "एक QR कोड से", "Home Assistant, Life Dashboard Stack या आपका अपना सर्वर, और पता व HMAC साइनिंग सीक्रेट अपने आप भर जाते हैं"],
+    hook: ["साइन किया हुआ JSON", "आपके अपने वेबहुक पर", "HMAC से साइन किया हुआ, आपके अपने सर्वर, n8n या Grafana के लिए तैयार, या MQTT ब्रोकर पर पब्लिश करें"],
+    screen: ["आपका स्क्रीन टाइम", "हर ऐप का", "हर ऐप के मिनट, आपकी अपनी दिन की सीमा के साथ, हर ऐप के लिए या सिर्फ़ उनके लिए जो आप चुनें"],
+    what: ["आप चुनें", "क्या भेजें", "ज़रूरी टाइप से शुरू करें या श्रेणी और टाइप के अनुसार चुनें"],
+    history: ["अपना पूरा", "इतिहास भेजें", "3-3 दिन के हिस्सों में, सबसे पुराने से शुरू करके, और रिकॉर्ड कभी दो बार नहीं गिने जाते"],
+    logs: ["हर डिलीवरी", "लॉग में", "हर डिलीवरी का स्टेटस कोड, रिकॉर्ड और पेलोड"],
+    about: ["आपका डेटा", "आपके अपने डैशबोर्ड में", "Home Assistant, Grafana या JSON पढ़ने वाला कोई भी टूल"],
+  },
+  "zh-CN": {
+    tag: "无需账号，也不经过云服务", webhook: "Webhook",
+    lead: ["您的健康数据，", "发送到您自己的服务器"],
+    pair: ["任何接收端", "扫一个二维码即可配对", "Home Assistant、Life Dashboard Stack 或您自己的服务器，地址和 HMAC 签名密钥会自动填好"],
+    hook: ["已签名的 JSON", "发送到您自己的 Webhook", "使用 HMAC 签名，可用于您自己的服务器、n8n 或 Grafana，也可以发布到 MQTT 代理服务器"],
+    screen: ["您的屏幕使用时间", "按应用统计", "按应用统计分钟数，使用您自己的日期分界点，可发送所有应用或只发送您选择的应用"],
+    what: ["由您决定", "发送内容", "从基本类型开始，或按类别和类型选择"],
+    history: ["补全您的", "全部历史数据", "以 3 天为一批，从最早的数据开始发送，记录不会被重复计算"],
+    logs: ["每次传送", "都有日志", "每次传送的状态码、记录和数据包，都能查看"],
+    about: ["您的数据", "尽在您自己的仪表板", "Home Assistant、Grafana 或任何能读取 JSON 的工具"],
   },
 };
 const T = TEXT[LANG];
 
-// The heartbeat: a flat line through every panel with a beat between the phones.
+// Rows and cards in the captures, from measure.py through rects.js.
+const R = MEASURED[LANG];
+
+// Panel n, x from its reading start, for something w wide. Arabic mirrors the row.
+const sx = (n, x, w = 0) => RTL ? (PANELS - n) * W + (W - x - w) : (n - 1) * W + x;
+const flip = (deg) => RTL ? -deg : deg;
+
+// The heartbeat, in the proportions of the design. It runs flat
+// at THREAD_Y with one beat in every panel, drops behind the phone of panel 7 and runs into
+// the Grafana card of panel 8 at SPLIT_Y. Purple over panel 4 only, with a short change on both sides of it.
+const THREAD_Y = 800, SPLIT_Y = 1210;
 (function () {
-  const y = 1640, beats = [460, 2900, 4150, 6000, 7150];
-  let d = `M -20 ${y}`;
-  for (const x of beats) d += ` L ${x - 90} ${y} L ${x - 60} ${y - 100} L ${x - 15} ${y + 150} L ${x + 25} ${y - 45} L ${x + 55} ${y}`;
-  d += ` L 7580 ${y}`;
-  document.getElementById("beat").setAttribute("d", d);
+  const beats = [0, 1, 2, 3, 4, 5, 6].map((n) => n * W + 590);
+  let d = `M -20 ${THREAD_Y}`;
+  for (const x of beats) d += ` H ${x} l 35 -83 l 55 167 l 48 -122 l 22 38`;
+  const last = (PANELS - 1) * W;
+  d += ` H ${last - 260} C ${last - 120} ${THREAD_Y}, ${last - 140} ${SPLIT_Y}, ${last + 160} ${SPLIT_Y}`;
+  const g = document.getElementById("thread");
+  if (RTL) g.setAttribute("transform", `translate(${TOTAL} 0) scale(-1 1)`);
+  g.innerHTML = `<path d="${d}"/>`;
+  // In the coordinates of the path, which the transform above mirrors along with its gradient.
+  const a = 3 * W / TOTAL, b = 4 * W / TOTAL, fade = 160 / TOTAL;
+  document.getElementById("thread-color").innerHTML =
+    `<stop offset="${a - fade}" stop-color="#30B77E"/><stop offset="${a}" stop-color="#8B5CF6"/>` +
+    `<stop offset="${b}" stop-color="#8B5CF6"/><stop offset="${b + fade}" stop-color="#30B77E"/>`;
 })();
 
-// A phone of outer width w at (x, y). `screen` is a capture, or [capture, bands] to stack
-// horizontal bands of it, leaving out a band that holds a secret.
-function phone(screen, x, y, w, transform = "", z = 2) {
-  const band = Math.round(w * 0.012), bezel = Math.round(w * 0.018);
+// A phone of outer width w, showing a capture of 1080x2400, leaning by rz and ry degrees.
+function phone(src, n, x, y, w, rz = 0, ry = 0, z = 3, purple = false) {
+  const band = Math.round(w * 0.016), bezel = Math.round(w * 0.02);
   const sw = w - 2 * band - 2 * bezel, sh = Math.round(sw * 2400 / 1080);
-  const h = sh + 2 * band + 2 * bezel, r = Math.round(w * 0.085), k = sw / 1080;
-  let inner, bg = "";
-  if (typeof screen === "string") bg = `background-image:url(${screen})`;
-  else inner = screen[1].map(([y0, y1]) => crop(screen[0], 1080, [0, y0, 1080, y1 - y0], sw)).join("");
-  const hole = `<div class="hole" style="top:${Math.round(22 * k)}px;width:${Math.round(34 * k)}px;height:${Math.round(34 * k)}px"></div>`;
-  const btns = `<div class="btn" style="top:${Math.round(h * 0.2)}px;height:${Math.round(h * 0.09)}px"></div>` +
-    `<div class="btn" style="top:${Math.round(h * 0.33)}px;height:${Math.round(h * 0.05)}px"></div>`;
-  return `<div class="phone" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:${transform};z-index:${z};` +
+  const h = sh + 2 * band + 2 * bezel, r = Math.round(w * 0.105);
+  const k = sw / 1080, d = Math.round(52 * k);
+  const hole = `<div class="hole" style="top:${Math.round(24 * k)}px;width:${d}px;height:${d}px"></div>`;
+  const side = RTL ? "left" : "right";
+  const btns = `<div class="btn" style="${side}:-6px;top:${Math.round(h * 0.2)}px;height:${Math.round(h * 0.07)}px"></div>` +
+    `<div class="btn" style="${side}:-6px;top:${Math.round(h * 0.3)}px;height:${Math.round(h * 0.12)}px"></div>`;
+  const left = sx(n, x, w);
+  const glow = `<div class="glow${purple ? " purple" : ""}" style="left:${left - 260}px;top:${y - 100}px;width:${w + 520}px;height:${h + 200}px"></div>`;
+  return glow + `<div class="phone" style="left:${left}px;top:${y}px;width:${w}px;height:${h}px;` +
+    `transform:perspective(3200px) rotateY(${flip(ry)}deg) rotate(${flip(rz)}deg);z-index:${z};` +
     `--r:${r}px;--band:${band}px;--bezel:${bezel}px">${btns}<div class="body"><div class="bezel">` +
-    `<div class="screen" style="${bg}">${inner || ""}${hole}<div class="glare"></div></div></div></div></div>`;
+    `<div class="screen" style="background-image:url(${src})">${hole}</div></div></div></div>`;
 }
 
-// A crop of an image: rect [x, y, w, h] in its pixels, shown `width` wide.
-function crop(src, srcW, rect, width) {
+// A crop of a capture: rect [x, y, w, h] in its pixels, shown `width` wide.
+function crop(src, rect, width) {
   const [x, y, w, h] = rect, k = width / w;
   return `<div class="crop" style="width:${width}px;height:${Math.round(h * k)}px;background-image:url(${src});` +
-    `background-size:${Math.round(srcW * k)}px auto;background-position:${-Math.round(x * k)}px ${-Math.round(y * k)}px"></div>`;
+    `background-size:${Math.round(1080 * k)}px auto;background-position:${-Math.round(x * k)}px ${-Math.round(y * k)}px"></div>`;
 }
 
-function float(html, x, y, { label, dot, rotate = 0, z = 5, bg } = {}) {
-  return `<div class="float" style="left:${x}px;top:${y}px;transform:rotate(${rotate}deg);z-index:${z};${dot ? `--dot:${dot}` : ""}">` +
-    (label ? `<div class="label"><i></i>${label}</div>` : "") +
-    `<div class="frame" style="${bg ? `background:${bg}` : ""}">${html}</div></div>`;
+function float(html, n, x, y, w, { rotate = 0, z = 5, radius, kind = "" } = {}) {
+  return `<div class="float ${kind}" style="left:${sx(n, x, w)}px;top:${y}px;width:${w}px;transform:rotate(${flip(rotate)}deg);z-index:${z};${radius ? `--radius:${radius}px` : ""}">` +
+    `<div class="frame">${html}</div></div>`;
 }
 
-// size: a smaller headline, for a language whose longest line would not fit at 98px. Names
-// in the subline stay on one line.
-function caption(n, [h, p, size], cls = "") {
-  p = p.replace(/Home Assistant|Health Connect|Node-RED/g, (name) => `<span style="white-space:nowrap">${name}</span>`);
-  const style = size ? ` style="font-size:${size}px;letter-spacing:${(-2.5 * size / 98).toFixed(1)}px"` : "";
-  return `<div class="cap ${cls}" style="left:${(n - 1) * W + 60}px"><h1${style}>${h}</h1><p>${p}</p></div>`;
+function caption(n, [line, accent, sub], { tag, labels, purple } = {}) {
+  return `<div class="cap${purple ? " purple" : ""}" data-fit dir="${RTL ? "rtl" : "ltr"}" style="left:${sx(n, 84, 1152)}px;"><h1><span>${line}</span><span><em>${accent}</em></span></h1>` +
+    (tag ? `<div class="tag">${tag}</div>` : "") +
+    (labels ? `<div class="receivers">${labels.map((label) => `<span>${label}</span>`).join("")}</div>` : "") +
+    (sub ? `<p>${sub}</p>` : "") + `</div>`;
 }
 
-const tilt = (rz, ry = 0) => `perspective(2600px) rotateY(${ry}deg) rotate(${rz}deg)`;
-const shield = `<svg width="76" height="76" viewBox="0 0 24 24" fill="none" stroke="#04140D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z"/><path d="M8.3 12.2l2.6 2.6 4.9-5.2"/></svg>`;
-const X = (n, lx) => (n - 1) * W + lx;
+const PHONE_Y = 890, PHONE_W = 800;
 const items = [];
 
-// 1. Health Connect to your own server
-items.push(caption(1, T.cap1));
-// The phone leans well over into panel 2; only its right edge, chevrons and buttons, goes.
-items.push(phone(APP + "A1-health.png", X(1, 610), 470, 640, tilt(6, -8), 4));
-items.push(float(crop(SRC + "H1-today.png", 1082, [18, 296, 1046, 318], 660),
-  X(1, 40), 960, { label: "Home Assistant", rotate: -3, z: 6 }));
+// 1. The promise, on Home, with its receivers side by side.
+items.push(caption(1, T.lead, { tag: T.tag, labels: ["Home Assistant", T.webhook, "MQTT"] }));
+items.push(phone(RAW + "home.png", 1, 70, PHONE_Y, PHONE_W, -5, 7));
+items.push(float(crop(RAW + "home.png", R.dests, 720), 1, 560, 2020, 720, { rotate: 3 }));
 
-// 2. Pair with one QR code
-items.push(caption(2, T.cap2));
-items.push(phone(APP + "A2-pair.png", X(2, 400), 480, 620, tilt(-4, 10)));
-items.push(float(crop(SRC + "H2-qr.png", 1082, [62, 232, 848, 848], 400),
-  X(2, 150), 1220, { label: "Home Assistant", rotate: -5, z: 6 }));
+// 2. Any receiver: one QR code, and what comes after Pair.
+items.push(caption(2, T.pair));
+items.push(phone(RAW + "pairing.png", 2, -40, PHONE_Y, PHONE_W, 3, -8));
+items.push(float(`<img src="../pairing-example-qr.svg" style="display:block;width:500px;height:500px">`, 2, 760, 1290, 500, { rotate: -4, z: 6, kind: "bare" }));
+items.push(float(crop(RAW + "paired.png", R.connected, 1000), 2, 240, 2070, 1000, { rotate: 2, z: 7, kind: "ground" }));
 
-// 3. All your history in one go: the backfill lengths, up to everything Health Connect has
-items.push(caption(3, T.cap3));
-items.push(phone(APP + "A3-backfill.png", X(3, 60), 480, 640, tilt(-5, 8)));
-// Below the lengths, so "All history" stays in view.
-items.push(float(crop(SRC + "H3-history.png", 1082, [20, 296, 1044, 735], 460),
-  X(3, 470), 1480, { label: "Home Assistant", rotate: -3, z: 6 }));
+// 3. For builders: the payload and its signature.
+items.push(caption(3, T.hook));
+items.push(phone(RAW + "delivery.png", 3, 580, PHONE_Y, PHONE_W, 5, -8));
+items.push(float(crop(RAW + "webhook.png", R.signing, 720), 3, 30, 1200, 720, { rotate: -3, z: 6, kind: "ground" }));
+items.push(float(crop(RAW + "delivery.png", R.payload, 760), 3, 30, 1650, 760, { rotate: 3, z: 6, kind: "fade" }));
+items.push(`<div class="code" style="left:${sx(3, 40, 960)}px;top:2260px;width:960px;transform:rotate(${flip(-2)}deg)">X-Signature: sha256=9f2c41a7e0&hellip;</div>`);
 
-// 4. Screen time per app
-items.push(caption(4, T.cap4, "purple"));
-// The phone leans well over into panel 5.
-items.push(phone(APP + "A4-screen-time.png", X(4, 590), 470, 640, tilt(6, -8), 4));
-items.push(float(crop(SRC + "H4-apps.png", 1082, [20, 468, 1042, 954], 560),
-  X(4, 50), 900, { label: "Home Assistant", dot: "#B79BFF", rotate: -4, z: 6 }));
+// 4. Screen time, in its own purple.
+items.push(caption(4, T.screen, { purple: true }));
+items.push(phone(RAW + "screen-time.png", 4, 110, PHONE_Y, PHONE_W, -4, 7, 3, true));
+items.push(float(crop(RAW + "screen-time.png", R.used, 760), 4, 520, 1720, 760, { rotate: 3, kind: "ground" }));
 
-// 5. Your history for your own AI, through the separate stack
-items.push(caption(5, T.cap5));
-items.push(phone(APP + "A5-webhook.png", X(5, 400), 520, 600, tilt(-5, 10)));
-items.push(float(crop(SRC + "S5-chat.png", 1082, [24, 190, 1040, 500], 640),
-  X(5, 110), 1180, { label: T.stack, dot: "#30B77E", rotate: -3, z: 6 }));
+// 5. What to send.
+items.push(caption(5, T.what));
+items.push(phone(RAW + "what.png", 5, 580, PHONE_Y, PHONE_W, 4, -7));
+const pillWidth = Math.min(620, Math.round(R.essentials[2] * 1.9));
+items.push(float(crop(RAW + "what.png", R.essentials, pillWidth), 5, 70, 1080, pillWidth, { rotate: -5, z: 6, radius: 200, kind: "bare" }));
+items.push(float(crop(RAW + "category.png", R.switches, 860), 5, 40, 1400, 860, { rotate: -3, z: 6 }));
+items.push(float(crop(RAW + "what.png", R.goesOut, 860), 5, 60, 2090, 860, { rotate: 2, z: 6 }));
 
-// 6. Edits and deletions are sent too
-items.push(caption(6, T.cap6));
-items.push(phone(APP + "A6-payload.png", X(6, 60), 480, 620, tilt(-5, 8)));
-items.push(float(crop(APP + "A6-payload.png", 1080, DELETED, 560),
-  X(6, 460), 1050, { label: T.deleted, dot: "#E06C75", rotate: -3, z: 6 }));
-items.push(`<div class="badge" style="left:${X(6, 560)}px;top:1420px;transform:rotate(4deg);z-index:6">${shield}<div><b>${T.signed}</b><small>HMAC-SHA256</small></div></div>`);
+// 6. The history.
+items.push(caption(6, T.history));
+items.push(phone(RAW + "backfill.png", 6, 110, PHONE_Y, PHONE_W, -4, 7));
+items.push(float(crop(RAW + "backfill-run.png", R.progress, 1040), 6, 200, 1860, 1040, { rotate: 3, kind: "ground" }));
 
-// 7. Scale readings into Health Connect
-items.push(caption(7, T.cap7));
-items.push(phone([APP + "A7-receive.png", RECEIVE], X(7, 400), 480, 640, tilt(5, -10)));
-items.push(float(crop(APP + "A7-hc-weight.png", 1080, [30, 500, 1020, 560], 560),
-  X(7, 40), 1150, { label: "Health Connect", dot: "#30B77E", rotate: -4, z: 6 }));
+// 7. The proof.
+items.push(caption(7, T.logs));
+items.push(phone(RAW + "logs.png", 7, 580, PHONE_Y, PHONE_W, 5, -8));
+items.push(float(crop(RAW + "logs.png", R.logRows, 960), 7, 30, 1640, 960, { rotate: -3, z: 6, kind: "ground" }));
+
+// 8. The result: the line of the row runs into Grafana, with Home Assistant on a phone in front.
+items.push(caption(8, T.about));
+items.push(float(`<div style="width:1500px;height:780px;background:url(results/grafana-overview.png) 0 0/1500px auto no-repeat"></div>`, 8, 60, 960, 1500, { rotate: 2, z: 4 }));
+items.push(phone("results/ha-dashboard.png", 8, 90, 1560, 480, -4, 6, 6));
 
 document.getElementById("items").innerHTML = items.join("");
 
-// ?panel=n shows one 1080-wide panel of the panorama.
+// Each headline as large as its longest line allows, the same size for the two lines.
+document.fonts.ready.then(() => {
+  document.querySelectorAll("[data-fit]").forEach((cap) => {
+    const h1 = cap.querySelector("h1");
+    const max = 132;
+    h1.style.fontSize = max + "px";
+    const widest = Math.max(...[...h1.children].map((line) => line.getBoundingClientRect().width));
+    h1.style.fontSize = Math.floor(Math.min(max, max * 1150 / widest)) + "px";
+  });
+  document.body.dataset.ready = "1";
+});
+
+// ?panel=n shows one 1320-wide panel of the panorama.
 const panel = +(params.get("panel") || 0);
 if (panel) {
   document.documentElement.style.width = document.body.style.width = W + "px";
-  document.getElementById("stage").style.transform = `translateX(${-(panel - 1) * W}px)`;
+  document.getElementById("stage").style.transform = `translateX(${-sx(panel, 0, W)}px)`;
 }
 </script>
 </body>

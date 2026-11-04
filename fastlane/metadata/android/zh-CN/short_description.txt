@@ -1,0 +1,1 @@
+将“健康数据共享”和屏幕使用时间发送到您自己的 Home Assistant、MQTT 或 Webhook。

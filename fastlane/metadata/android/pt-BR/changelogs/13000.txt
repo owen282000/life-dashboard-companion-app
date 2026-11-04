@@ -1,0 +1,6 @@
+Um novo design. Seus destinos e configurações continuam como estavam.
+
+- Saúde e Tempo de tela abrem mostrando se os dados estão chegando, com os números de hoje abaixo
+- As configurações têm páginas próprias, atrás de blocos: O que enviar, Quando enviar, Receber e Mais
+- Salvar alterações acabou: as chaves valem na hora, só o que você digita tem o próprio Salvar
+- Onze idiomas: francês, espanhol, italiano, português (Brasil), japonês, árabe, hindi e chinês simplificado são novos

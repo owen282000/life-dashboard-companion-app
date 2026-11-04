@@ -20,9 +20,9 @@ import java.time.DayOfWeek
 import java.time.LocalTime
 
 /*
- * The editable settings of the two sync tabs as plain data, so the "has this changed" and
- * "is this valid" questions are pure functions the view models and tests share. Text fields
- * keep their raw text here (interval, port, day boundary hour) and are parsed on save.
+ * The settings of the two sync tabs as plain data, so the "is this valid" questions are pure
+ * functions the view models, the screens and the tests share. Text fields keep their raw text here
+ * (interval, port, day boundary hour) and are parsed on save.
  */
 
 data class WebhookDraft(
@@ -36,18 +36,8 @@ data class WebhookDraft(
     /** The addresses that have a secret: only those can be the source of Receive, whose answers are verified with it. */
     val urlsWithSecret: List<String> get() = destinations.filter { !it.secret.isNullOrBlank() }.map { it.url }
 
-    /**
-     * A destination for [url], typed in by hand. It starts with the secret the destinations
-     * share, or the section's, and with no headers: those were typed for another receiver. One
-     * that is already listed is not added twice (every payload would go to it twice).
-     */
-    fun withUrl(url: String, newId: () -> String = Destinations::newId): WebhookDraft {
-        if (url in urls) return this
-        return copy(destinations = destinations + Destination(id = newId(), url = url, secret = defaultSecret()))
-    }
-
     /** The secret a new destination starts with: the one the others (all but [except]) share, or the section's. */
-    private fun defaultSecret(except: String? = null): String? =
+    fun defaultSecret(except: String? = null): String? =
         Destinations.sharedSecret(destinations.filter { it.id != except }) ?: sectionSecret.takeIf { it.isNotBlank() }
 
     /**
@@ -84,22 +74,95 @@ data class WebhookDraft(
 
     /** Every address without the spaces around it, as it is saved. */
     fun trimmed(): WebhookDraft = copy(destinations = destinations.map { it.copy(url = it.url.trim()) })
+
+    /** [destination] in the place of the one with its id, or at the end when it is new. */
+    fun withDestination(destination: Destination): WebhookDraft =
+        if (destinations.any { it.id == destination.id }) edit(destination.id) { destination }
+        else copy(destinations = destinations + destination)
 }
 
-/** What the Webhook card can ask for; both tabs implement it. A destination is named by its id, which stays when its address is edited. */
-interface WebhookActions {
-    fun addUrl(url: String)
-    fun setDestinationUrl(id: String, url: String)
+/**
+ * One destination while the Webhook screen edits it. The screen holds this and nothing is stored
+ * until Save, because a half typed address must not reach the settings: [withUrl] on another host
+ * drops the headers and the secret, which typing back to the saved host restores from [saved], and
+ * only as long as nothing was written in between. Back throws it away.
+ */
+data class DestinationDraft(
+    val id: String,
+    /** The section's destinations when the screen opened, with this one's edits. */
+    val webhook: WebhookDraft,
+    /** What is stored under [id]; null while it is new. */
+    val saved: Destination?
+) {
+    val destination: Destination get() = webhook.destinations.first { it.id == id }
+    val isNew: Boolean get() = saved == null
+    val url: String get() = destination.url
+    val secret: String get() = destination.secret.orEmpty()
+    val headers: Map<String, String> get() = destination.headers
+
+    /** The section's other destinations: what headers and a secret can be copied from. */
+    val others: List<Destination> get() = webhook.destinations.filter { it.id != id }
+
+    /** What is wrong with the address as typed, for under the field; a saved address that was not changed passes. */
+    val urlProblem: UiMessage?
+        get() {
+            val typed = url.trim()
+            if (typed == saved?.url) return null
+            return SettingsRules.urlProblem(typed) ?: UiMessage.DuplicateUrl.takeIf { others.any { it.url == typed } }
+        }
+
+    fun withUrl(url: String) = copy(webhook = webhook.withEditedUrl(id, url, saved))
+    fun withSecret(secret: String) = copy(webhook = webhook.edit(id) { it.copy(secret = secret.ifEmpty { null }) })
+
+    /** Check [SettingsRules.headerProblem] first; the name and value are stored trimmed. */
+    fun withHeader(name: String, value: String) =
+        copy(webhook = webhook.edit(id) { it.copy(headers = it.headers + (name.trim() to value.trim())) })
+    fun withoutHeader(name: String) = copy(webhook = webhook.edit(id) { it.copy(headers = it.headers - name) })
+    fun withHeadersOf(otherId: String) = copy(webhook = webhook.withHeadersOf(id, otherId))
+    fun withSecretOf(otherId: String) = copy(webhook = webhook.withSecretOf(id, otherId))
+
+    companion object {
+        fun existing(webhook: WebhookDraft, id: String) =
+            DestinationDraft(id, webhook, webhook.destinations.first { it.id == id })
+
+        /** A new destination at [address], starting with the secret the others share and no headers. */
+        fun new(webhook: WebhookDraft, address: String, newId: () -> String = Destinations::newId): DestinationDraft {
+            val id = newId()
+            return DestinationDraft(id, webhook.copy(destinations = webhook.destinations + Destination(id = id, url = address, secret = webhook.defaultSecret())), null)
+        }
+    }
+}
+
+/**
+ * What a screen asks of a section, the same on both tabs. Each save takes what the screen holds in
+ * its own draft, stores it or nothing, and returns the problem to show under the field or in a
+ * banner; null means it was stored. See ui/ld/README.md.
+ */
+interface SectionActions {
+    /** A draft of the destination [id], or of a new one at [address] when [id] is null or gone. */
+    fun destinationDraft(id: String?, address: String? = null): DestinationDraft
+    fun saveDestination(draft: DestinationDraft): UiMessage?
+
+    /** Stores the list without [id] at once. An empty list is fine: types can be picked first. */
     fun removeDestination(id: String)
-    fun addHeader(id: String, key: String, value: String)
-    fun removeHeader(id: String, key: String)
-    fun setSecret(id: String, secret: String)
 
-    /** Replaces the headers of [id] with those of [from], another destination of the section. */
-    fun copyHeaders(id: String, from: String)
+    /** One test ping to the destination [id] as it is stored. The outcome comes as a toast. */
+    fun testDestination(id: String)
 
-    /** Gives [id] the secret of [from]. */
-    fun copySecret(id: String, from: String)
+    /** The section's MQTT settings as they are stored now, for the MQTT screen to edit. */
+    fun mqttDraft(): MqttDraft
+    fun saveMqtt(mqtt: MqttDraft): UiMessage?
+
+    /** MQTT off, and the address and login gone from the broker unless the other section publishes through it. */
+    fun removeMqtt()
+
+    /** Stores [schedule] at once when it differs; an interval that is no interval keeps the stored one. */
+    fun setSchedule(schedule: ScheduleDraft)
+    fun saveInterval(text: String): UiMessage?
+
+    /** Runs again what the secure storage refused, see the state's `refused`. */
+    fun retryRefused()
+    fun dismissRefused()
 }
 
 data class MqttDraft(
@@ -110,8 +173,7 @@ data class MqttDraft(
     val activeBroker: MqttBroker get() = if (section.useSharedBroker) sharedBroker else section.ownBroker
 
     /**
-     * Port lives in its own text field; fold it into whichever broker is active before comparing
-     * or saving. Text that is no port (empty, 0, above 65535) keeps the port the broker had.
+     * Port lives in its own text field; fold it into whichever broker is active before saving. Text that is no port (empty, 0, above 65535) keeps the port the broker had.
      */
     fun withPort(): MqttDraft {
         val port = MqttSupport.portOrNull(portText)
@@ -130,6 +192,12 @@ data class MqttDraft(
     fun withShared(shared: Boolean): MqttDraft = copy(
         section = section.copy(useSharedBroker = shared),
         portText = (if (shared) sharedBroker.port else section.ownBroker.port).toString()
+    )
+
+    /** With the shared broker as it is stored now: the other tab may have changed it. */
+    fun withStoredSharedBroker(stored: MqttBroker): MqttDraft = copy(
+        sharedBroker = stored,
+        portText = if (section.useSharedBroker) stored.port.toString() else portText
     )
 
     companion object {
@@ -192,13 +260,6 @@ data class HealthDraft(
     val resolutions: Map<HealthDataType, SeriesResolution> = emptyMap()
 ) {
     val hasDestination: Boolean get() = webhook.urls.isNotEmpty() || mqtt.section.enabled
-
-    fun differsFrom(saved: HealthDraft): Boolean =
-        webhook != saved.webhook ||
-            enabledTypes != saved.enabledTypes ||
-            resolutions.filterValues { it != SeriesResolution.RAW } != saved.resolutions.filterValues { it != SeriesResolution.RAW } ||
-            scheduleDiffers(schedule, saved.schedule) ||
-            mqtt.withPort().let { it.section to it.sharedBroker } != saved.mqtt.withPort().let { it.section to it.sharedBroker }
 }
 
 data class ScreenTimeDraft(
@@ -211,36 +272,14 @@ data class ScreenTimeDraft(
     val appFilter: ScreenTimeAppFilter = ScreenTimeAppFilter.ALL
 ) {
     val hasDestination: Boolean get() = webhook.urls.isNotEmpty() || mqtt.section.enabled
-
-    /** Same rule the old screen used for the hour: parse what can be parsed, fall back to the saved value, then compare. */
-    fun differsFrom(saved: ScreenTimeDraft): Boolean {
-        val hour = dayBoundaryHour.toIntOrNull() ?: saved.dayBoundaryHour.toIntOrNull()
-        return hour != saved.dayBoundaryHour.toIntOrNull() ||
-            useDayBoundary != saved.useDayBoundary ||
-            webhook != saved.webhook ||
-            appFilter != saved.appFilter ||
-            scheduleDiffers(schedule, saved.schedule) ||
-            mqtt.withPort().let { it.section to it.sharedBroker } != saved.mqtt.withPort().let { it.section to it.sharedBroker }
-    }
 }
 
-/**
- * Compares two schedule drafts the way the save button should: an interval being retyped only
- * counts once it parses, and in interval mode the times are irrelevant (and vice versa), so
- * switching mode back and forth does not light up the save bar.
- */
-private fun scheduleDiffers(draft: ScheduleDraft, saved: ScheduleDraft): Boolean {
-    if (draft.mode != saved.mode) return true
-    if (draft.days != saved.days || draft.quietWindow != saved.quietWindow) return true
-    return when (draft.mode) {
-        SyncMode.INTERVAL -> {
-            val interval = SettingsRules.intervalOrNull(draft.intervalText)
-                ?: SettingsRules.intervalOrNull(saved.intervalText)
-            interval != SettingsRules.intervalOrNull(saved.intervalText)
-        }
-        SyncMode.TIMES -> draft.times.distinct().sorted() != saved.times.distinct().sorted()
-    }
-}
+/** A broker without the address and login; the port stays for one added later. */
+internal fun MqttBroker.cleared(): MqttBroker = copy(host = "", username = null, password = null)
+
+/** Whether WorkManager has to hear about [next]: the order of the times and doubles among them do not count. */
+internal fun SyncSchedule.differsFrom(next: SyncSchedule): Boolean =
+    copy(times = times.distinct().sorted()) != next.copy(times = next.times.distinct().sorted())
 
 object SettingsRules {
     const val MIN_INTERVAL_MINUTES = SyncSchedule.MIN_INTERVAL_MINUTES
@@ -289,21 +328,13 @@ object SettingsRules {
     /**
      * What is wrong with the broker host of [mqtt], as the field shows it. A host is needed once
      * publishing is on; one that is typed is checked even while it is off, as the shared broker
-     * may be in use by the other tab, but only [mqttProblem] decides whether a save goes ahead.
+     * may be in use by the other tab.
      */
     fun mqttHostProblem(mqtt: MqttDraft): UiMessage? = brokerHostProblem(mqtt.activeBroker.host, required = mqtt.section.enabled)
 
     /** What is wrong with the port of [mqtt]: checked whenever the host is, see [mqttHostProblem]. */
     fun mqttPortProblem(mqtt: MqttDraft): UiMessage? =
         if (mqtt.section.enabled || mqtt.activeBroker.host.isNotBlank()) brokerPortProblem(mqtt.portText) else null
-
-    /**
-     * The first problem of [mqtt] that stops a save, host before port. Only while this section
-     * publishes: with MQTT off nothing connects, so a host or port that cannot work keeps its
-     * error under the field but does not hold back the rest of the tab, Sync Now included.
-     */
-    fun mqttProblem(mqtt: MqttDraft): UiMessage? =
-        if (mqtt.section.enabled) mqttHostProblem(mqtt) ?: mqttPortProblem(mqtt) else null
 
     /** A broker host as the settings and the setup wizard check it; blank only counts when [required]. */
     fun brokerHostProblem(host: String, required: Boolean): UiMessage? = when {
@@ -315,17 +346,8 @@ object SettingsRules {
     fun brokerPortProblem(portText: String): UiMessage? =
         if (MqttSupport.portOrNull(portText) == null) UiMessage.MqttPortInvalid else null
 
-    /**
-     * What is wrong with a schedule, or null when it can be saved. The interval floor only
-     * applies in interval mode: a schedule that runs at 08:00 and 08:05 is the user's call,
-     * not WorkManager's, because fixed times run as one-time work.
-     */
-    fun scheduleProblem(schedule: ScheduleDraft): UiMessage? = when {
-        schedule.mode == SyncMode.INTERVAL && intervalOrNull(schedule.intervalText) == null -> UiMessage.IntervalTooShort
-        schedule.mode == SyncMode.TIMES && schedule.times.isEmpty() -> UiMessage.NoSyncTimes
-        schedule.wouldNeverRun() -> UiMessage.ScheduleNeverRuns
-        else -> null
-    }
+    /** The first error the MQTT screen shows under a field. Its Save stops on it, also with publishing off. */
+    fun mqttFieldProblem(mqtt: MqttDraft): UiMessage? = mqttHostProblem(mqtt) ?: mqttPortProblem(mqtt)
 }
 
 /** Health Connect availability on this device, as [hcAvailability] reads the SDK's status. */
@@ -336,11 +358,7 @@ enum class HcAvailability { AVAILABLE, NOT_INSTALLED, NEEDS_UPDATE, UNAVAILABLE 
  * the view models never touch resources, which keeps them testable on the JVM.
  */
 sealed interface UiMessage {
-    data object Saved : UiMessage
     data object IntervalTooShort : UiMessage
-    data object NoSyncTimes : UiMessage
-    data object ScheduleNeverRuns : UiMessage
-    data object NoDestination : UiMessage
     data object InvalidDayBoundaryHour : UiMessage
     data object InvalidUrl : UiMessage
 

@@ -1,0 +1,6 @@
+Un nuovo design. Le tue destinazioni e impostazioni restano come erano.
+
+- Salute e Tempo di utilizzo si aprono mostrando se i dati arrivano, con i numeri di oggi sotto
+- Le impostazioni hanno pagine proprie, dietro dei riquadri: Cosa inviare, Quando inviare, Ricezione e Altro
+- Salva modifiche non c'è più: gli interruttori valgono subito, solo ciò che digiti ha il proprio Salva
+- Undici lingue: francese, spagnolo, italiano, portoghese, giapponese, arabo, hindi e cinese semplificato sono nuove

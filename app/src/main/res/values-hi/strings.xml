@@ -6,27 +6,20 @@
     <string name="common_back">वापस जाएं</string>
     <string name="common_cancel">रद्द करें</string>
     <string name="common_close">बंद करें</string>
-    <string name="common_collapse">छोटा करें</string>
     <string name="common_csv">CSV</string>
-    <string name="common_expand">बड़ा करें</string>
     <string name="common_grant">अनुमति दें</string>
     <string name="common_json">JSON</string>
     <string name="common_never">कभी नहीं</string>
-    <string name="common_none_configured">कुछ सेट नहीं है</string>
-    <string name="common_permissions_required">अनुमतियां ज़रूरी हैं</string>
     <string name="common_remove">हटाएं</string>
     <string name="common_show_password">पासवर्ड दिखाएं</string>
     <string name="common_hide_password">पासवर्ड छिपाएं</string>
-    <string name="common_saved">सेव हो गया!</string>
 
     <!-- Shared webhook / sync settings, used by Health Connect and Screen Time -->
-    <string name="webhook_add_a_url">वेबहुक URL जोड़ें</string>
     <string name="webhook_allow_plain_http">बिना एन्क्रिप्शन वाले HTTP वेबहुक की अनुमति दें</string>
     <string name="webhook_allow_plain_http_description">आपके अपने LAN या VPN पर ऐसे वेबहुक के लिए जिसका कोई सर्टिफ़िकेट नहीं है। डिफ़ॉल्ट HTTPS ही रहता है, और यह एक स्विच Health Connect और स्क्रीन टाइम दोनों पर लागू होता है, उन मेज़रमेंट पर भी जो Home Assistant इस फ़ोन को भेजता है। MQTT पर इसका असर नहीं पड़ता।</string>
     <string name="client_cert_title">क्लाइंट सर्टिफ़िकेट (mTLS)</string>
     <string name="client_cert_none">कोई नहीं</string>
     <string name="client_cert_description">ऐसे सर्वर के लिए जिसे क्लाइंट सर्टिफ़िकेट चाहिए। पहले इसे Android सेटिंग में इंस्टॉल करें (सुरक्षा, एन्क्रिप्शन और क्रेडेंशियल, सर्टिफ़िकेट इंस्टॉल करें)। एक बार चुनने के बाद यह हर वेबहुक के लिए इस्तेमाल होता है, बैकग्राउंड में भी। MQTT पर इसका असर नहीं पड़ता।</string>
-    <string name="client_cert_choose">चुनें</string>
     <string name="server_trust_title">सर्वर सर्टिफ़िकेट</string>
     <string name="server_trust_description">सिर्फ़ ऐसे सर्वर के लिए जिसके सर्टिफ़िकेट पर Android भरोसा नहीं करता, जैसे आपके अपने CA का या खुद से साइन किया गया सर्टिफ़िकेट। हर सेटिंग सिर्फ़ उसी होस्ट पर लागू होती है। MQTT पर इसका असर नहीं पड़ता।</string>
     <string name="server_trust_user_cas">इस फ़ोन पर इंस्टॉल किए गए सर्टिफ़िकेट पर भरोसा करें</string>
@@ -55,31 +48,17 @@
     <string name="webhook_header_value_invalid">हेडर की वैल्यू में सिर्फ़ सामान्य ASCII वर्ण हो सकते हैं, लाइन ब्रेक या é जैसे अक्षर नहीं</string>
     <string name="webhook_header_name_blocks_delivery">कुछ नहीं भेजा गया: हेडर %1$s का नाम भेजा नहीं जा सकता। उसे वेबहुक में हटाएं और बिना स्पेस वाले नाम के साथ फिर से जोड़ें।</string>
     <string name="webhook_header_value_blocks_delivery">कुछ नहीं भेजा गया: हेडर %1$s की वैल्यू में लाइन ब्रेक या ऐसा वर्ण है जो हेडर में नहीं जा सकता। उसे वेबहुक में हटाएं और फिर से जोड़ें।</string>
-    <string name="webhook_headers_title">वेबहुक हेडर (ज़रूरी नहीं)</string>
     <string name="webhook_hmac_secret_description">सेट होने पर हर POST में X-Signature हेडर (sha256=&lt;hex&gt;) जुड़ता है, जो बॉडी पर HMAC-SHA256 से बनता है, ताकि आपका सर्वर भेजने वाले की पुष्टि कर सके।</string>
     <string name="webhook_hmac_secret_title">HMAC साइनिंग सीक्रेट (ज़रूरी नहीं)</string>
-    <plurals name="webhook_headers_count">
-        <item quantity="one">%1$d हेडर</item>
-        <item quantity="other">%1$d हेडर</item>
-    </plurals>
     <string name="webhook_min_interval">कम से कम 15 मिनट</string>
     <string name="webhook_shared_secret">शेयर किया गया सीक्रेट</string>
-    <string name="webhook_url_placeholder">https://...</string>
-    <string name="webhook_urls_configured">%1$d सेट हैं</string>
-    <string name="webhook_destinations_hint">किसी पते के अपने हेडर और साइनिंग सीक्रेट देखने के लिए उस पर टैप करें। ये किसी दूसरे पते पर नहीं जाते।</string>
-    <string name="webhook_destination_summary">%1$s, %2$s</string>
-    <string name="webhook_destination_signed">साइन किया गया</string>
-    <string name="webhook_destination_unsigned">साइन नहीं किया गया</string>
-    <string name="webhook_destination_no_headers">कोई हेडर नहीं</string>
     <string name="webhook_destination_url">पता</string>
-    <string name="webhook_destination_open">हेडर और सीक्रेट दिखाएं</string>
     <string name="webhook_destination_moved">%1$s के बजाय दूसरा होस्ट: हेडर हटा दिए गए और सीक्रेट रीसेट कर दिया गया, ताकि %1$s के लिए सेट की गई कोई चीज़ यहां न जाए।</string>
     <string name="webhook_copy_headers_from">%1$s से हेडर कॉपी करें</string>
     <string name="webhook_use_secret_of">%1$s वाला सीक्रेट ही इस्तेमाल करें</string>
     <string name="webhook_url_duplicate">यह पता सूची में पहले से है</string>
     <string name="webhook_url_user_info">पते से यूज़र नेम या पासवर्ड हटाएं। पते सादे टेक्स्ट में, बैकअप में और लॉग में रखे जाते हैं। इसके बजाय क्रेडेंशियल को इस पते के किसी हेडर में डालें।</string>
     <string name="webhook_url_credential_parameter">पते से %1$s= हटाएं। पते सादे टेक्स्ट में, बैकअप में और लॉग में रखे जाते हैं। इसके बजाय क्रेडेंशियल को इस पते के किसी हेडर में डालें।</string>
-    <string name="webhook_urls_title">वेबहुक URL</string>
 
     <!-- Shared sync section, used by Health Connect and Screen Time -->
     <string name="sync_advanced_client_cert">क्लाइंट सर्टिफ़िकेट</string>
@@ -97,20 +76,16 @@
     <string name="receive_title">पाएं</string>
     <string name="receive_subtitle">Home Assistant से Health Connect में</string>
     <string name="receive_off">बंद</string>
-    <string name="receive_summary_written">%1$s · %2$s</string>
     <plurals name="receive_written_today">
         <item quantity="one">आज %1$d लिखा गया</item>
         <item quantity="other">आज %1$d लिखे गए</item>
     </plurals>
-    <string name="receive_enable">Home Assistant से मेज़रमेंट पाएं</string>
     <string name="receive_enable_description">Life Dashboard इंटीग्रेशन वे एंटिटी भेजता है जो आपने वहां चुनी हैं। नीचे दिए हर टाइप के लिए Health Connect में लिखने की अलग अनुमति चाहिए।</string>
     <string name="receive_needs_integration">इसके लिए Life Dashboard इंटीग्रेशन चाहिए: पहले Home Assistant से पेयर करें, ताकि वेबहुक पता और साइनिंग सीक्रेट मौजूद हों।</string>
-    <string name="receive_source">सोर्स: %1$s</string>
     <string name="receive_update_integration">मेज़रमेंट पाने के लिए Life Dashboard इंटीग्रेशन अपडेट करें, या जांचें कि यह वेबहुक इंटीग्रेशन का ही है: इसके पिछले जवाब में मेज़रमेंट प्रोटोकॉल नहीं था।</string>
     <string name="receive_no_types_yet">अगले सिंक में Home Assistant से पूछा जाएगा कि वह कौनसे टाइप देता है।</string>
     <string name="receive_choose_type">किसी टाइप को पाने के लिए उसे नीचे चालू करें।</string>
     <string name="receive_permission_missing">लिखने की अनुमति नहीं है: %1$s</string>
-    <string name="receive_type_permission_missing_a11y">%1$s, लिखने की अनुमति नहीं है</string>
     <string name="receive_summary_needs_pairing">Home Assistant से पेयर करना ज़रूरी है</string>
     <string name="receive_summary_update_integration">इंटीग्रेशन अपडेट करें</string>
     <string name="receive_summary_nothing_mapped">Home Assistant में कोई टाइप मैप नहीं किया गया</string>
@@ -126,11 +101,6 @@
     <plurals name="receive_written_count">
         <item quantity="one">%1$d Health Connect में लिखा गया</item>
         <item quantity="other">%1$d Health Connect में लिखे गए</item>
-    </plurals>
-    <string name="logs_row_receive_title">स्वास्थ्य · Home Assistant से</string>
-    <plurals name="logs_row_written">
-        <item quantity="one">%1$s · %2$d लिखा गया</item>
-        <item quantity="other">%1$s · %2$d लिखे गए</item>
     </plurals>
     <string name="logs_written">लिखा गया</string>
     <string name="logs_skipped">छोड़ा गया</string>
@@ -163,29 +133,20 @@
     <string name="outbox_dropped_log">आउटबॉक्स से हटाया गया: वह भर गया था (%1$d सिंक डिलीवर नहीं हुए), इसलिए इसके रिकॉर्ड खो गए</string>
     <string name="outbox_replaced_log">आउटबॉक्स में नए स्नैपशॉट से बदला गया, जिसमें इसके सबसे पुराने डिलीवर न हुए दिन नहीं हैं, इसलिए वे खो गए</string>
     <string name="sync_advanced_title">बेहतर सेटिंग</string>
-    <string name="sync_data_preview_title">डेटा की झलक</string>
     <string name="sync_export_failed">एक्सपोर्ट नहीं हो सका</string>
     <string name="sync_export_failed_with_reason">एक्सपोर्ट नहीं हो सका: %1$s</string>
     <string name="sync_failed_with_reason">विफल: %1$s</string>
-    <string name="sync_failed_prefix">विफल</string>
     <string name="sync_interval_subtitle">दो सिंक के बीच के मिनट</string>
     <string name="sync_interval_title">सिंक इंटरवल</string>
-    <string name="sync_loading">लोड हो रहा है...</string>
-    <string name="sync_manual_subtitle">अभी सिंक करें</string>
-    <string name="sync_manual_title">मैन्युअल सिंक</string>
     <string name="sync_no_new_data">कोई नया डेटा नहीं</string>
     <string name="sync_now">अभी सिंक करें</string>
-    <string name="sync_preview_data">डेटा की झलक देखें</string>
     <string name="sync_preview_failed">झलक नहीं दिख सकी</string>
     <string name="sync_preview_failed_with_reason">झलक नहीं दिख सकी: %1$s</string>
-    <string name="sync_preview_payload_description">यह JSON पेलोड भेजा जाएगा:</string>
     <string name="sync_preview_full_in_copy_share">पूरा पेलोड पाने के लिए JSON कॉपी करें या शेयर करें।</string>
     <string name="sync_preview_full_in_share">पूरा पेलोड पाने के लिए शेयर करें।</string>
-    <string name="sync_save_changes">बदलाव सेव करें</string>
     <string name="sync_syncing">सिंक हो रहा है...</string>
 
     <!-- Health Connect screen -->
-    <string name="health_backfill_dialog_description">चालू किए गए सभी टाइप का पुराना डेटा 3-3 दिन के हिस्सों में, सबसे पुराने से शुरू करके, आपके वेबहुक पर भेजता है। सामान्य सिंक पर असर नहीं पड़ता। ओवरलैप होने वाले रिकॉर्ड अपनी uuid से दोहराव-मुक्त हो जाते हैं। इसमें समय लग सकता है और मोबाइल डेटा खर्च हो सकता है।</string>
     <plurals name="health_backfill_complete">
         <item quantity="one">बैकफ़िल पूरा हुआ: %1$d रिकॉर्ड भेजा गया</item>
         <item quantity="other">बैकफ़िल पूरा हुआ: %1$d रिकॉर्ड भेजे गए</item>
@@ -208,17 +169,12 @@
     <string name="health_backfill_log_restarted">यह बैकफ़िल शुरू होने के बाद डेटा टाइप बदल गए, इसलिए यह पहले हिस्से से फिर शुरू हुआ।</string>
     <string name="health_backfill_log_stopped">%2$d में से हिस्सा %1$d पर रुका</string>
     <string name="health_backfill_grant_history">इतिहास का ऐक्सेस दें</string>
-    <string name="health_backfill_history">इतिहास बैकफ़िल करें</string>
     <string name="health_backfill_history_permission_warning">जब तक आप इतिहास का ऐक्सेस नहीं देते, Health Connect सिर्फ़ पिछले 30 दिन का डेटा पढ़ने देता है।</string>
     <string name="health_backfill_length_all">पूरा इतिहास</string>
     <string name="health_backfill_length_all_any">Health Connect में मौजूद सब कुछ, आपके सबसे पुराने रिकॉर्ड से</string>
     <plurals name="health_backfill_length_all_since">
         <item quantity="one">%1$s से अब तक सब कुछ, 3 दिन का %2$d हिस्सा</item>
         <item quantity="other">%1$s से अब तक सब कुछ, 3 दिन के %2$d हिस्से</item>
-    </plurals>
-    <plurals name="health_backfill_length_chunks">
-        <item quantity="one">3 दिन का %1$d हिस्सा</item>
-        <item quantity="other">3 दिन के %1$d हिस्से</item>
     </plurals>
     <plurals name="health_backfill_length_days">
         <item quantity="one">%1$d दिन</item>
@@ -243,13 +199,7 @@
     <string name="health_connect_not_installed">Health Connect इंस्टॉल नहीं है</string>
     <string name="health_connect_needs_update">Health Connect को अपडेट करना होगा</string>
     <string name="health_could_not_open">Health Connect खोला नहीं जा सका</string>
-    <plurals name="health_data_types_selected">
-        <item quantity="one">%1$d डेटा टाइप चुना गया</item>
-        <item quantity="other">%1$d डेटा टाइप चुने गए</item>
-    </plurals>
     <string name="health_data_types_selected_of">%2$d में से %1$d चुने गए</string>
-    <string name="health_type_permission_missing_a11y">%1$s, अनुमति नहीं है</string>
-    <string name="health_data_types_title">डेटा टाइप</string>
     <!-- The names of the data types, as shown on screen. The payload, MQTT and the stored settings use the enum name, never these. -->
     <string name="data_type_steps">क़दम</string>
     <string name="data_type_sleep">नींद</string>
@@ -322,13 +272,9 @@
     <string name="dashboard_last_sync">पिछला सिंक</string>
     <string name="dashboard_last_sync_succeeded">सफल</string>
     <string name="dashboard_last_sync_failed">विफल</string>
-    <string name="dashboard_lifetime">अब तक</string>
-    <string name="dashboard_min">मिनट</string>
-    <string name="dashboard_minutes_unit">%1$d मिनट</string>
     <string name="dashboard_minutes_per_day_last_days">हर दिन के मिनट, पिछले %1$d दिन</string>
     <string name="dashboard_none">कोई नहीं</string>
     <string name="dashboard_records">रिकॉर्ड</string>
-    <string name="dashboard_steps_last_days">क़दम, पिछले %1$d दिन</string>
     <string name="dashboard_today">आज</string>
     <string name="dashboard_top_app">सबसे ज़्यादा इस्तेमाल हुआ ऐप</string>
 
@@ -338,11 +284,8 @@
     <string name="mqtt_broker_host">ब्रोकर होस्ट</string>
     <string name="mqtt_broker_host_placeholder">ब्रोकर होस्ट, जैसे 192.168.1.10</string>
     <string name="mqtt_broker_host_shared">ब्रोकर होस्ट (शेयर किया गया)</string>
-    <string name="mqtt_disabled">बंद है</string>
     <string name="mqtt_enable_publishing">MQTT पब्लिशिंग चालू करें</string>
     <string name="mqtt_enabled_no_broker">चालू: कोई ब्रोकर सेट नहीं</string>
-    <string name="mqtt_enabled_own_broker">चालू: %1$s (अपना ब्रोकर)</string>
-    <string name="mqtt_enabled_shared_broker">चालू: %1$s (शेयर किया गया ब्रोकर)</string>
     <string name="mqtt_password">पासवर्ड (ज़रूरी नहीं)</string>
     <plurals name="mqtt_status_published">
         <item quantity="one">%2$s पर %1$d सेंसर पब्लिश किया गया</item>
@@ -373,7 +316,6 @@
     <string name="webhook_sync_failed">वेबहुक: %1$s</string>
 
     <!-- Logs screen -->
-    <string name="logs_clear_logs">लॉग साफ़ करें</string>
     <string name="logs_clear_title">लॉग साफ़ करें?</string>
     <plurals name="logs_clear_body">
         <item quantity="one">इससे इस फ़ोन से %1$d लॉग हट जाएगा। इसे पहले जैसा नहीं किया जा सकता।</item>
@@ -386,9 +328,7 @@
     </plurals>
     <string name="logs_export_logs">लॉग एक्सपोर्ट करें</string>
     <string name="logs_export_title">लॉग एक्सपोर्ट करें</string>
-    <string name="logs_empty">अभी कोई लॉग नहीं है</string>
     <string name="logs_error">गड़बड़ी</string>
-    <string name="logs_failure_line">%1$s: %2$s</string>
     <string name="logs_filter_all">सभी</string>
     <string name="logs_filter_health">स्वास्थ्य</string>
     <string name="logs_filter_screen_time">स्क्रीन टाइम</string>
@@ -397,7 +337,6 @@
     <string name="logs_keep_full_payloads_off">स्टोरेज कम रखने के लिए पेलोड छोटे कर दिए जाते हैं</string>
     <string name="logs_keep_full_payloads_on">पूरे पेलोड सेव होते हैं, कुल साइज़ की सीमा तक</string>
     <string name="logs_last_success">पिछली सफलता: %1$s</string>
-    <string name="logs_ok">ठीक है</string>
     <string name="logs_payload">पेलोड</string>
     <string name="logs_payload_stored_part">इस पेलोड का सिर्फ़ एक हिस्सा सेव हुआ। अगले सिंक से पूरे पेलोड सेव करने के लिए पूरे पेलोड रखें चालू करें।</string>
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
@@ -410,17 +349,7 @@
     <string name="payload_share_a11y">पूरे पेलोड को फ़ाइल के तौर पर शेयर करें</string>
     <string name="payload_copied">पूरा पेलोड कॉपी हो गया</string>
     <string name="payload_too_large_to_copy">यह पेलोड क्लिपबोर्ड के लिए बहुत बड़ा है। शेयर करें से आपको पूरा पेलोड फ़ाइल के तौर पर मिलता है।</string>
-    <string name="logs_record_count">%1$s: %2$d</string>
-    <string name="logs_recent_failures">हाल की विफलताएं:</string>
     <string name="logs_stat_records">रिकॉर्ड</string>
-    <string name="logs_stat_success">सफलता</string>
-    <string name="logs_stat_success_rate">%1$d%%</string>
-    <string name="logs_stat_total">कुल</string>
-    <string name="logs_status_failure">✗ %1$s</string>
-    <string name="logs_status_success">✓ %1$s</string>
-    <string name="logs_sync_overview">सिंक की खास जानकारी</string>
-    <string name="logs_type_ratio">%1$d / %2$d</string>
-    <string name="logs_unknown_error">अज्ञात गड़बड़ी</string>
 
     <!-- Main activity: top bar and bottom navigation -->
     <string name="main_about">जानकारी</string>
@@ -428,7 +357,6 @@
     <string name="main_tab_logs">लॉग</string>
     <string name="main_title_health_connect">Health Connect</string>
     <string name="main_title_screen_time">स्क्रीन टाइम</string>
-    <string name="main_title_webhook_logs">लॉग</string>
 
     <!-- Screen Time screen -->
     <plurals name="screentime_apps_queued">
@@ -439,30 +367,19 @@
         <item quantity="one">%1$d ऐप सिंक किया गया</item>
         <item quantity="other">%1$d ऐप सिंक किए गए</item>
     </plurals>
-    <string name="screentime_day_boundary_description">इस घंटे से पहले की गतिविधि पिछले दिन में गिनी जाती है</string>
     <string name="screentime_day_boundary_disabled">बंद है</string>
     <string name="screentime_day_boundary_enable">दिन की सीमा चालू करें</string>
-    <string name="screentime_day_boundary_enabled">चालू · %1$s</string>
     <string name="screentime_day_boundary_hour_invalid">घंटा 0-23 होना चाहिए</string>
-    <string name="screentime_day_boundary_title">दिन की सीमा</string>
-    <string name="screentime_header">अपने ऐप इस्तेमाल को ट्रैक करें</string>
     <string name="screentime_mqtt_description">आज और कल का स्क्रीन टाइम और आज का सबसे ज़्यादा इस्तेमाल हुआ ऐप Home Assistant Discovery के साथ आपके MQTT ब्रोकर पर पब्लिश करता है, Health Connect वाले डिवाइस के नीचे ही।</string>
     <string name="screentime_permission_not_granted">अनुमति नहीं दी गई</string>
 
     <!-- Onboarding wizard -->
-    <string name="onboarding_destination_body">Home Assistant के लिए, इंटीग्रेशन का कोड स्कैन करना सबसे अच्छा तरीका है। स्वास्थ्य और स्क्रीन टाइम टैब में आप कभी भी गंतव्य जोड़ या बदल सकते हैं।</string>
     <string name="onboarding_destination_title">आपका डेटा कहां जाए?</string>
-    <string name="onboarding_done_body">दो काम बचे हैं, दोनों मुख्य स्क्रीन पर: Health Connect की अनुमतियां दें, और स्क्रीन टाइम के लिए इस्तेमाल का ऐक्सेस दें। फिर अभी सिंक करें पर टैप करें।</string>
-    <string name="onboarding_done_short">बचे हुए काम मुख्य स्क्रीन पर हैं। फिर अभी सिंक करें पर टैप करें।</string>
     <string name="onboarding_done_title">सब तैयार है</string>
     <string name="onboarding_feature_health">Health Connect</string>
-    <string name="onboarding_feature_health_desc">Health Connect से क़दम, नींद, हृदय गति और 31 और टाइप</string>
     <string name="onboarding_feature_screen">स्क्रीन टाइम</string>
-    <string name="onboarding_feature_screen_desc">Android के इस्तेमाल के आंकड़ों से रोज़ का और हर ऐप का इस्तेमाल</string>
-    <string name="onboarding_features_body">एक या दोनों चुनें। हर एक का अपना टैब, अपनी अनुमतियां और अपनी सेटिंग हैं।</string>
     <string name="onboarding_features_title">आप क्या सिंक करना चाहते हैं?</string>
     <string name="onboarding_get_started">शुरू करें</string>
-    <string name="onboarding_mqtt_desc">पहले से ब्रोकर चला रहे हैं? सेंसर MQTT Discovery से Home Assistant में दिखते हैं। हर टाइप की सिर्फ़ नई वैल्यू भेजी जाती है, इसलिए पिछले दिनों का डेटा नहीं भरा जाता।</string>
     <string name="onboarding_mqtt_option">MQTT ब्रोकर</string>
     <string name="onboarding_next">आगे बढ़ें</string>
     <string name="onboarding_open_app">ऐप खोलें</string>
@@ -470,30 +387,22 @@
     <string name="onboarding_skip_destination">इसे बाद में सेट करें</string>
     <string name="onboarding_step_of">चरण %1$d/%2$d</string>
     <string name="onboarding_summary_all">सभी 34</string>
-    <string name="onboarding_summary_dest">गंतव्य</string>
     <string name="onboarding_summary_essentials">8 ज़रूरी</string>
     <string name="onboarding_summary_later">अभी कोई नहीं</string>
     <string name="onboarding_summary_none">अभी नहीं</string>
     <string name="onboarding_summary_sync">सिंक</string>
     <string name="onboarding_summary_types">डेटा टाइप</string>
     <string name="onboarding_task_health">Health Connect की अनुमतियां दें</string>
-    <string name="onboarding_task_health_sub">स्वास्थ्य टैब, सबसे ऊपर वाला कार्ड</string>
     <string name="onboarding_task_screen">स्क्रीन टाइम के लिए इस्तेमाल का ऐक्सेस दें</string>
-    <string name="onboarding_task_screen_sub">स्क्रीन टाइम टैब, Android सेटिंग खोलता है</string>
     <string name="onboarding_types_all">सभी 34 डेटा टाइप</string>
     <string name="onboarding_types_all_desc">Health Connect में मौजूद सब कुछ, क़दम से लेकर पीरियड ट्रैकिंग तक</string>
-    <string name="onboarding_types_body">सिर्फ़ चालू किए गए टाइप पढ़े और भेजे जाते हैं। ज़्यादा से शुरू करें या कम से। स्वास्थ्य टैब में हर टाइप का अपना स्विच रहता है।</string>
     <string name="onboarding_types_essentials">ज़रूरी टाइप</string>
     <string name="onboarding_types_essentials_desc">क़दम, नींद, हृदय गति, दूरी, कैलोरी और वज़न</string>
     <string name="onboarding_types_later">बाद में तय करें</string>
-    <string name="onboarding_types_later_desc">कुछ भी चालू किए बिना शुरू करें</string>
     <string name="onboarding_types_title">आपके लिए कौनसा स्वास्थ्य डेटा ज़रूरी है?</string>
     <string name="onboarding_webhook_applied">Health Connect और स्क्रीन टाइम दोनों के लिए इस्तेमाल होता है। बाद में आप इन्हें हर टैब में अलग कर सकते हैं</string>
     <string name="onboarding_webhook_applied_health">Health Connect के लिए इस्तेमाल होता है</string>
     <string name="onboarding_webhook_applied_screen">स्क्रीन टाइम के लिए इस्तेमाल होता है</string>
-    <string name="onboarding_webhook_desc">अपने सर्वर या डैशबोर्ड बैकएंड पर JSON POST करें</string>
-    <string name="onboarding_webhook_option">वेबहुक</string>
-    <string name="onboarding_welcome_body">Life Dashboard Companion आपके Health Connect और स्क्रीन टाइम का डेटा ऐसी जगह भेजता है जो आपके कंट्रोल में है: Life Dashboard इंटीग्रेशन के ज़रिए Home Assistant, आपका अपना वेबहुक बैकएंड, या कोई MQTT ब्रोकर। इंटीग्रेशन इतिहास को Home Assistant के लंबी अवधि के आंकड़ों में रखता है, और यह उल्टी दिशा में भी काम करता है: Home Assistant से जुड़ा वज़न मापने वाला स्केल या ब्लड प्रेशर मॉनिटर Health Connect में पहुंचता है। बीच में कोई क्लाउड नहीं। तीन छोटे सवाल और आप शुरू कर सकते हैं।</string>
     <string name="onboarding_welcome_title">आपका स्वास्थ्य डेटा, आपका सर्वर</string>
 
     <!-- Redesigned main screens -->
@@ -503,31 +412,21 @@
     <string name="screentime_allow">अनुमति दें</string>
     <string name="screentime_settings">सेटिंग</string>
     <string name="webhook_title">वेबहुक</string>
-    <string name="sync_action_preview">देखें</string>
     <string name="sync_action_ping">टेस्ट पिंग</string>
     <string name="sync_action_export">एक्सपोर्ट करें</string>
     <string name="sync_action_backfill">बैकफ़िल</string>
-    <string name="sync_no_destination">पहले वेबहुक URL जोड़ें या MQTT चालू करें</string>
     <string name="logs_delivered">डिलीवर हुआ</string>
     <string name="logs_published">पब्लिश हुआ</string>
     <string name="logs_failed">विफल</string>
-    <string name="logs_row_records">%1$s · %2$d रिकॉर्ड</string>
-    <string name="logs_row_sensors">%1$s · %2$d सेंसर</string>
     <string name="logs_destination_webhook">वेबहुक</string>
     <string name="logs_destination_mqtt">MQTT</string>
 
     <!-- About screen -->
     <string name="about_title">जानकारी</string>
-    <string name="about_back">वापस जाएं</string>
-    <string name="about_description">आपके Health Connect और स्क्रीन टाइम का डेटा Life Dashboard इंटीग्रेशन के ज़रिए Home Assistant पर, आपके अपने वेबहुक बैकएंड पर या किसी MQTT ब्रोकर पर भेजता है, और आपके अपने Home Assistant से मेज़रमेंट वापस Health Connect में ला सकता है। बीच में कोई क्लाउड नहीं।</string>
-    <string name="about_privacy_title">निजता और सुरक्षा</string>
-    <string name="about_backup_title">बैकअप और रीस्टोर</string>
     <string name="about_appearance_title">दिखावट</string>
-    <string name="about_appearance_description">फ़ोन की गहरे रंग वाली थीम के हिसाब से चलें, या फ़ोन चाहे जो करे, इस ऐप को हल्के या गहरे रंग में रखें।</string>
     <string name="about_theme_system">सिस्टम</string>
     <string name="about_theme_light">हल्का</string>
     <string name="about_theme_dark">गहरा</string>
-    <string name="backup_intro">सेटिंग Android के क्लाउड बैकअप में शामिल नहीं होतीं, क्योंकि उनमें मौजूद सीक्रेट कभी इस डिवाइस से बाहर नहीं जाते। नए फ़ोन पर ले जाने के लिए उन्हें यहां एक्सपोर्ट करें।</string>
     <string name="backup_export">एक्सपोर्ट करें</string>
     <string name="backup_import">इंपोर्ट करें</string>
     <string name="backup_export_title">सेटिंग एक्सपोर्ट करें</string>
@@ -566,38 +465,19 @@
     <string name="backup_note_broker_port_unusable">इस फ़ाइल का MQTT ब्रोकर इस्तेमाल नहीं किया जा सकता: उसका पोर्ट 1 से 65535 तक की संख्या नहीं है। यह फ़ोन अपना ब्रोकर रखता है।</string>
     <string name="backup_keeps_credentials">इस फ़ाइल में कोई क्रेडेंशियल नहीं है, इसलिए इस डिवाइस पर पहले से मौजूद क्रेडेंशियल बने रहते हैं।</string>
     <string name="backup_history_unaffected">सिंक इतिहास और लॉग पर असर नहीं पड़ता।</string>
-    <string name="backup_imported">सेटिंग इंपोर्ट हो गईं, उन्हें देखने के लिए ऐप फिर से खोलें</string>
     <string name="backup_import_failed">इंपोर्ट नहीं हो सका: %1$s</string>
-    <string name="about_f_steps">क़दम, दूरी, कैलोरी</string>
-    <string name="about_f_sleep">चरणों के साथ नींद की ट्रैकिंग</string>
-    <string name="about_f_meditation">मेडिटेशन सेशन</string>
-    <string name="about_f_heart">हृदय गति और भी बहुत कुछ</string>
-    <string name="about_f_apps">ऐप इस्तेमाल के आंकड़े</string>
-    <string name="about_f_boundary">बदलने लायक दिन की सीमा</string>
-    <string name="about_f_lookback">पिछले 7 दिन का डेटा</string>
-    <string name="about_f_no_sharing">किसी तीसरे पक्ष के साथ डेटा शेयर नहीं</string>
-    <string name="about_f_on_device">डेटा आपके डिवाइस पर रहता है</string>
-    <string name="about_f_control">सिंक सेटिंग पर पूरा कंट्रोल</string>
     <string name="about_website">वेबसाइट</string>
-    <string name="about_website_sub">सेटअप गाइड और Life Dashboard के दूसरे हिस्से</string>
     <string name="about_docs">दस्तावेज़</string>
-    <string name="about_docs_sub">सेटअप, वेबहुक स्कीमा, MQTT, डेटा सोर्स</string>
     <string name="about_whats_new">नया क्या है</string>
-    <string name="about_whats_new_sub">%1$s के बदलाव</string>
     <string name="about_report">समस्या की शिकायत करें</string>
-    <string name="about_report_sub">GitHub issues</string>
     <string name="about_github">GitHub पर देखें</string>
     <string name="about_play">Google Play पर भी</string>
     <string name="about_play_sub">वही ऐप। वहां खरीदने से डेवलपमेंट में मदद मिलती है</string>
     <string name="about_rate">ऐप को रेटिंग दें</string>
-    <string name="about_rate_sub">Google Play पर रेटिंग से दूसरों को इसे ढूंढने में मदद मिलती है</string>
     <string name="about_coffee">मुझे एक कॉफ़ी पिलाएं</string>
     <string name="about_coffee_sub">ऐप मुफ़्त और ओपन सोर्स रहता है। एक कॉफ़ी से नए रिलीज़ जल्दी आते रहते हैं</string>
-    <string name="about_privacy_policy">निजता नीति</string>
-    <string name="about_privacy_policy_sub">ऐप क्या पढ़ता है, लिखता है, सेव करता है और भेजता है</string>
     <string name="about_licence">लाइसेंस</string>
     <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
-    <string name="about_version">वर्शन %1$s</string>
     <string name="about_bpm">%1$d BPM</string>
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
@@ -616,7 +496,6 @@
     <string name="privacy_contact_title">संपर्क</string>
     <string name="privacy_contact_body">निजता के बारे में सवाल: GitHub पर issue खोलें या GitHub प्रोफ़ाइल पर दिए पते पर डेवलपर को ईमेल करें।</string>
     <string name="privacy_full">पूरी निजता नीति पढ़ें</string>
-    <string name="privacy_full_sub">GitHub पर PRIVACY.md</string>
     <string name="nerd_title">नर्ड स्टैट्स</string>
     <string name="nerd_secret">आपने राज़ खोज लिया</string>
     <string name="nerd_empty">अभी कोई सिंक नहीं हुआ। डेटा आना शुरू हो जाए, तब वापस आएं।</string>
@@ -632,13 +511,10 @@
     <string name="health_backfill_needs_webhook">बैकफ़िल के लिए वेबहुक URL चाहिए: MQTT हर टाइप की सिर्फ़ नई वैल्यू भेजता है</string>
     <string name="schedule_title">सिंक शेड्यूल</string>
     <string name="schedule_mode_interval">हर X मिनट पर</string>
-    <string name="schedule_mode_times">तय समय पर</string>
     <string name="schedule_times_title">सिंक के समय</string>
     <string name="schedule_add_time">समय जोड़ें</string>
-    <string name="schedule_remove_time">%1$s हटाएं</string>
     <string name="schedule_no_times">अभी कोई समय नहीं है। सिंक शुरू करने के लिए एक समय जोड़ें।</string>
     <string name="schedule_days_title">दिन</string>
-    <string name="schedule_days_all">हर दिन</string>
     <string name="schedule_quiet_title">शांत समय</string>
     <string name="schedule_quiet_subtitle">इन समयों के बीच कभी सिंक न करें</string>
     <string name="schedule_quiet_from">से</string>
@@ -646,9 +522,7 @@
     <string name="schedule_never_runs">इन सेटिंग से कभी सिंक नहीं होगा। कोई समय या दिन जोड़ें, या शांत समय छोटा करें।</string>
     <string name="schedule_summary_interval">हर %1$d मिनट पर</string>
     <string name="schedule_summary_times">%1$s पर</string>
-    <string name="schedule_summary_days">%1$s</string>
     <string name="schedule_summary_quiet">शांत समय %1$s से %2$s तक</string>
-    <string name="schedule_no_sync_times">कम से कम एक सिंक का समय जोड़ें</string>
     <string name="schedule_day_mon">सोम</string>
     <string name="schedule_day_tue">मंगल</string>
     <string name="schedule_day_wed">बुध</string>
@@ -674,18 +548,15 @@
     <string name="resolution_1h">1 घंटा</string>
     <string name="resolution_group_sampled">हर विंडो का औसत</string>
     <string name="resolution_group_accumulated">हर विंडो का योग</string>
-    <string name="activity_about_label">जानकारी</string>
     <string name="tile_sync_label">Life Dashboard सिंक करें</string>
     <string name="tile_sync_wait">एक मिनट बाद फिर से कोशिश करें</string>
     <string name="common_set">सेट करें</string>
     <string name="screentime_day_boundary_time_label">दिन शुरू होता है</string>
     <string name="webhook_secret_generate">बनाएं</string>
     <string name="webhook_secret_generated">सीक्रेट बन गया। सेव करें, फिर अपने सर्वर पर भी यही वैल्यू सेट करें। सिग्नेचर तभी कुछ साबित करता है जब दोनों तरफ़ यह मौजूद हो।</string>
-    <string name="webhook_secret_copy">कॉपी करें</string>
     <string name="webhook_secret_copied">क्लिपबोर्ड पर कॉपी हो गया</string>
 
     <!-- QR pairing -->
-    <string name="pairing_title">किसी रिसीवर से पेयर करें</string>
     <string name="pairing_intro">%1$s आपका डेटा इस पते पर पाना चाहता है:</string>
     <string name="pairing_intro_unnamed">एक रिसीवर आपका डेटा इस पते पर चाहता है:</string>
     <string name="pairing_sections_label">यहां से भेजें</string>
@@ -705,7 +576,6 @@
     <string name="pairing_error_no_source">यह रिसीवर ऐसा कुछ स्वीकार नहीं करता जो यह ऐप भेज सकता है।</string>
 
     <!-- QR scanner -->
-    <string name="scan_title">पेयरिंग कोड स्कैन करें</string>
     <string name="scan_hint">आपका रिसीवर जो पेयरिंग कोड दिखाता है, जैसे Home Assistant में Life Dashboard इंटीग्रेशन, उसे फ़्रेम में पूरा भरें। जितना पास, उतना बेहतर।</string>
     <string name="scan_close">बंद करें</string>
     <string name="scan_not_a_code">यह Life Dashboard पेयरिंग कोड नहीं है।</string>
@@ -716,7 +586,6 @@
     <string name="webhook_scan_lead">पेयरिंग कोड स्कैन करें</string>
     <string name="webhook_scan_button">स्कैन करें</string>
     <string name="onboarding_scan_option">पेयरिंग कोड स्कैन करें</string>
-    <string name="onboarding_scan_desc">Home Assistant के लिए सुझाया गया: HACS से Life Dashboard इंटीग्रेशन इंस्टॉल करें और वह जो QR कोड दिखाता है उसे स्कैन करें। Home Assistant इतिहास को अपने लंबी अवधि के आंकड़ों में रखता है। पेयरिंग कोड दिखाने वाला कोई भी दूसरा रिसीवर भी इसी तरह काम करता है। पता और साइनिंग सीक्रेट आपके लिए भर दिए जाते हैं।</string>
     <string name="onboarding_scan_paired">कोड पढ़ लिया गया। पता और सीक्रेट भर दिए गए हैं।</string>
     <!-- Home screen widget -->
     <!-- The widget shows the count in its own large text and this label beside it, so the label
@@ -726,6 +595,10 @@
         <item quantity="other">आज के रिकॉर्ड</item>
     </plurals>
     <string name="widget_synced_at">%1$s को सिंक हुआ</string>
+    <string name="widget_name">सिंक की स्थिति</string>
+    <string name="widget_synced_on">%1$s को सिंक हुआ</string>
+    <string name="widget_description">पिछले सिंक का नतीजा और आज डिलीवर हुए रिकॉर्ड, अभी सिंक करने वाले बटन के साथ।</string>
+    <string name="widget_preview_records">आज के रिकॉर्ड</string>
     <string name="widget_no_syncs">अभी कोई सिंक नहीं</string>
     <string name="widget_last_sync_succeeded">पिछला सिंक सफल रहा</string>
     <string name="widget_last_sync_failed">पिछला सिंक विफल रहा</string>
@@ -743,21 +616,12 @@
     <string name="screentime_apps_mode_all">सभी</string>
     <string name="screentime_apps_mode_except">इन्हें छोड़कर सभी</string>
     <string name="screentime_apps_mode_only">सिर्फ़ ये</string>
-    <string name="screentime_apps_description_all">पहले की तरह हर ऐप भेजा जाता है। सिस्टम UI और लॉन्चर हमेशा छोड़ दिए जाते हैं।</string>
-    <string name="screentime_apps_description_except">जिन ऐप पर आप सही का निशान लगाते हैं वे कभी नहीं भेजे जाते: न आपके वेबहुक पर और न Home Assistant पर। हर दिन total_screen_time_minutes में अब भी हर ऐप गिना जाता है। भेजे गए ऐप का योग filtered_screen_time_minutes में होता है।</string>
-    <string name="screentime_apps_description_only">सिर्फ़ वे ऐप भेजे जाते हैं जिन पर आप सही का निशान लगाते हैं, आपके वेबहुक पर और Home Assistant पर। हर दिन total_screen_time_minutes में अब भी हर ऐप गिना जाता है। भेजे गए ऐप का योग filtered_screen_time_minutes में होता है।</string>
-    <string name="screentime_apps_history_warning">हर सिंक पिछले सात दिन फिर से भेजता है, इसलिए यहां किया गया बदलाव आपके सर्वर पर और Home Assistant में उन दिनों को भी बदल देता है।</string>
     <string name="screentime_apps_none_chosen">किसी ऐप पर निशान नहीं: सिर्फ़ दिन का कुल योग भेजा जाता है।</string>
     <string name="screentime_apps_loading">आपके इस्तेमाल किए गए ऐप ढूंढे जा रहे हैं…</string>
     <string name="screentime_apps_none_used">पिछले 30 दिनों में किसी ऐप का इस्तेमाल एक मिनट से ज़्यादा नहीं हुआ।</string>
     <string name="screentime_apps_search">ऐप खोजें</string>
     <string name="screentime_apps_not_used">पिछले 30 दिनों में इस्तेमाल नहीं हुआ</string>
-    <plurals name="screentime_apps_minutes_month">
-        <item quantity="one">पिछले 30 दिनों में %d मिनट</item>
-        <item quantity="other">पिछले 30 दिनों में %d मिनट</item>
-    </plurals>
     <!-- Record metadata (P2-7) -->
-    <string name="health_record_metadata">रिकॉर्ड का मेटाडेटा</string>
     <string name="health_record_metadata_title">पेलोड में रिकॉर्ड का मेटाडेटा</string>
     <string name="health_record_metadata_description">हर रिकॉर्ड में जोड़ता है कि उसे आखिरी बार कब बदला गया, लिखने वाले ऐप की अपनी id और वर्शन, उसे कैसे रिकॉर्ड किया गया, डिवाइस और टाइम ज़ोन ऑफ़सेट, जहां Health Connect में ये मौजूद हों। पेलोड बड़े हो जाते हैं, सबसे ज़्यादा हृदय गति के लिए।</string>
     <!-- The secret store lost its secrets -->
@@ -771,4 +635,361 @@
     <string name="battery_hint_device_care">डिवाइस केयर</string>
     <string name="battery_hint_help">आपके फ़ोन के लिए मदद</string>
     <string name="battery_hint_dismiss">फिर से न दिखाएं</string>
+
+    <string name="ld_nerd_records_health">स्वास्थ्य रिकॉर्ड</string>
+    <string name="ld_nerd_records_screen_time">स्क्रीन टाइम रिकॉर्ड</string>
+    <string name="ld_nerd_records_today">आज के स्वास्थ्य रिकॉर्ड</string>
+    <string name="ld_nerd_last_sync_outcome">%1$s, %2$s</string>
+    <string name="ld_save">सेव करें</string>
+    <string name="ld_key_value">%1$s: %2$s</string>
+    <string name="ld_remove_named">%1$s हटाएं</string>
+    <string name="ld_try_again">फिर से कोशिश करें</string>
+    <string name="ld_not_saved">सेव नहीं हुआ</string>
+    <string name="ld_type_locked">अभी अनुमति नहीं है</string>
+    <string name="ld_title_add_destination">गंतव्य जोड़ें</string>
+    <string name="ld_title_destination">गंतव्य</string>
+    <string name="ld_title_paired">पेयर हो गया</string>
+    <string name="ld_title_what_to_send">क्या भेजें</string>
+    <string name="ld_title_backfill">बैकफ़िल</string>
+    <string name="ld_title_preview">झलक</string>
+    <string name="ld_title_when_to_send">कब भेजें</string>
+    <string name="ld_title_more">और</string>
+    <string name="ld_title_server_certificates">सर्वर सर्टिफ़िकेट</string>
+    <string name="ld_title_export_data">डेटा एक्सपोर्ट करें</string>
+    <string name="ld_title_backup_restore">बैकअप और रीस्टोर</string>
+    <string name="ld_title_delivery">डिलीवरी</string>
+    <string name="ld_title_apps_to_send">भेजे जाने वाले ऐप</string>
+    <string name="ld_title_day_starts_at">दिन शुरू होता है</string>
+    <string name="ld_title_help">मदद</string>
+    <string name="ld_title_support">सपोर्ट</string>
+    <string name="ld_title_privacy">निजता</string>
+    <string name="ld_title_open_source">ओपन सोर्स</string>
+    <string name="ld_category_activity">गतिविधि</string>
+    <string name="ld_category_body">शरीर</string>
+    <string name="ld_category_heart">हृदय और वाइटल्स</string>
+    <string name="ld_category_sleep">नींद और मन</string>
+    <string name="ld_category_food">खाना और पेय</string>
+    <string name="ld_category_cycle">चक्र ट्रैकिंग</string>
+    <string name="ld_just_now">अभी</string>
+    <string name="ld_home_heading_nothing_selected">कनेक्ट हो गया। अब अपना डेटा चुनें।</string>
+    <string name="ld_home_heading_problem_one">%1$s को आपकी ज़रूरत है।</string>
+    <plurals name="ld_home_heading_problem_many">
+        <item quantity="one">%1$d गंतव्य को आपकी ज़रूरत है।</item>
+        <item quantity="other">%1$d गंतव्यों को आपकी ज़रूरत है।</item>
+    </plurals>
+    <string name="ld_home_heading_overdue">हाल में कुछ नहीं पहुंचा।</string>
+    <string name="ld_home_heading_waiting">पहले सिंक के लिए तैयार।</string>
+    <string name="ld_home_heading_arriving">आपका डेटा पहुंच रहा है।</string>
+    <string name="ld_home_hc_install_note">Life Dashboard आपका स्वास्थ्य डेटा Health Connect के ज़रिए पढ़ता है। शुरू करने के लिए इसे इंस्टॉल करें।</string>
+    <string name="ld_home_hc_update_note">Health Connect का यह वर्शन Life Dashboard के लिए बहुत पुराना है। शुरू करने के लिए इसे अपडेट करें।</string>
+    <string name="ld_home_hc_unavailable_note">Health Connect इस डिवाइस या इस प्रोफ़ाइल में नहीं चलता। स्क्रीन टाइम फिर भी काम करता है।</string>
+    <string name="ld_home_access_note">Health Connect ने अभी Life Dashboard को ऐक्सेस नहीं दिया है, इसलिए न कुछ पढ़ा जा सकता है और न भेजा जा सकता है।</string>
+    <string name="ld_home_own_server">अपना सर्वर इस्तेमाल करें</string>
+    <string name="ld_home_pair_note">कोई भी रिसीवर पेयरिंग कोड दिखा सकता है, जैसे Home Assistant, Life Dashboard Stack या आपका अपना सर्वर।</string>
+    <string name="ld_home_broker">ब्रोकर %1$s</string>
+    <string name="ld_home_connected">कनेक्ट है</string>
+    <string name="ld_home_no_deliveries">अभी कोई डिलीवरी नहीं</string>
+    <string name="ld_home_failed_http">HTTP %1$d, %2$s</string>
+    <string name="ld_home_failed_time">विफल, %1$s</string>
+    <string name="ld_home_nothing_since">%1$s से कुछ डिलीवर नहीं हुआ।</string>
+    <string name="ld_home_overdue_battery">%1$s से कुछ डिलीवर नहीं हुआ। हो सकता है बैटरी ऑप्टिमाइज़ेशन सिंक रोक रहा हो।</string>
+    <string name="ld_home_overdue_logs">%1$s से कुछ डिलीवर नहीं हुआ। लॉग टैब में दिखता है कि क्या हुआ।</string>
+    <string name="ld_home_hold_never">अपने आप होने वाले सिंक बंद हैं। अभी सिंक करें अब भी काम करता है।</string>
+    <string name="ld_home_hold_quiet">%1$s तक शांत समय। अभी सिंक करें अब भी काम करता है।</string>
+    <string name="ld_home_hold_day_off">आज अपने आप कोई सिंक नहीं होगा। अभी सिंक करें अब भी काम करता है।</string>
+    <string name="ld_home_types_of">%2$d में से %1$d टाइप</string>
+    <string name="ld_home_none_yet">अभी कोई नहीं</string>
+    <string name="ld_home_once_a_day">दिन में एक बार</string>
+    <plurals name="ld_home_times_a_day">
+        <item quantity="one">दिन में %1$d बार</item>
+        <item quantity="other">दिन में %1$d बार</item>
+    </plurals>
+    <string name="ld_home_more_subtitle">बैकअप, जानकारी</string>
+    <string name="ld_home_receive_waiting">अगले सिंक का इंतज़ार है</string>
+    <string name="ld_home_receive_choose">टाइप चुनें</string>
+    <string name="ld_home_receive_permission">अनुमति नहीं है</string>
+    <plurals name="ld_home_receive_types">
+        <item quantity="one">%1$d टाइप</item>
+        <item quantity="other">%1$d टाइप</item>
+    </plurals>
+    <string name="ld_secrets_unavailable_title">सुरक्षित स्टोरेज उपलब्ध नहीं है</string>
+    <string name="ld_secrets_unavailable_body">सेव किए गए ऑथ हेडर, साइनिंग सीक्रेट और MQTT पासवर्ड अभी पढ़े या बदले नहीं जा सकते। डिवाइस अनलॉक करें और ऐप फिर से खोलें। कुछ भी बिना एन्क्रिप्शन के सेव नहीं होता।</string>
+    <string name="ld_secrets_lost_title">सीक्रेट फिर से डालने होंगे</string>
+    <string name="ld_today_pick">चुनें कि क्या भेजना है</string>
+    <string name="ld_today_lines">रेखाएं 7 दिन दिखाती हैं</string>
+    <string name="ld_today_rest_bpm">आराम BPM</string>
+    <string name="ld_today_kg">किग्रा</string>
+    <string name="ld_today_lb">पाउंड</string>
+    <string name="ld_today_sleep_value">%1$s घं %2$s</string>
+    <string name="ld_today_weight_value">%1$s %2$s</string>
+    <string name="ld_today_spoken">%1$s: %2$s, %3$s</string>
+    <string name="ld_today_trend">सबसे कम %1$s, सबसे ज़्यादा %2$s, नई %3$s</string>
+    <string name="ld_today_record">रिकॉर्ड</string>
+    <string name="ld_add_heading">कोई गंतव्य जोड़ें।</string>
+    <string name="ld_add_pair_note">किसी भी रिसीवर के लिए जो कोड दिखाता हो, जैसे Home Assistant, Life Dashboard Stack या आपका अपना सर्वर।</string>
+    <string name="ld_add_own_server">आपका अपना सर्वर</string>
+    <string name="ld_add_webhook_url">वेबहुक URL</string>
+    <string name="ld_add_webhook_example">https://your-webhook.com/health</string>
+    <string name="ld_add_webhook">वेबहुक जोड़ें</string>
+    <string name="ld_add_mqtt_subtitle">Home Assistant Discovery के साथ</string>
+    <string name="ld_add_mqtt_on">चालू: %1$s</string>
+    <string name="ld_dest_url">URL</string>
+    <string name="ld_dest_signing">साइनिंग</string>
+    <string name="ld_dest_copy_secret">सीक्रेट कॉपी करें</string>
+    <string name="ld_dest_headers">हेडर</string>
+    <string name="ld_dest_add_header">हेडर जोड़ें</string>
+    <string name="ld_dest_headers_note">सिर्फ़ इसी पते पर भेजे जाते हैं।</string>
+    <string name="ld_dest_header_invalid">मान्य हेडर नहीं है, इसलिए कुछ नहीं भेजा जाता। इसे हटाएं और फिर से जोड़ें।</string>
+    <string name="ld_dest_delivered">%1$s डिलीवर हुआ।</string>
+    <plurals name="ld_dest_delivered_records">
+        <item quantity="one">%1$s डिलीवर हुआ, %2$d रिकॉर्ड।</item>
+        <item quantity="other">%1$s डिलीवर हुआ, %2$d रिकॉर्ड।</item>
+    </plurals>
+    <string name="ld_dest_last_failed">पिछली कोशिश %1$s विफल रही।</string>
+    <string name="ld_dest_last_failed_reason">पिछली कोशिश %1$s विफल रही: %2$s</string>
+    <string name="ld_dest_plain_http">बिना एन्क्रिप्शन वाला HTTP बंद है</string>
+    <string name="ld_dest_plain_http_body">जब तक बेहतर सेटिंग में इसकी अनुमति नहीं दी जाती, http पते पर कुछ नहीं पहुंचता। हो सके तो https पता इस्तेमाल करें।</string>
+    <string name="ld_dest_send_test">टेस्ट भेजें</string>
+    <string name="ld_dest_sending">भेजा जा रहा है...</string>
+    <string name="ld_dest_test_uses_saved">टेस्ट वही इस्तेमाल करता है जो सेव है। अपने बदलाव टेस्ट करने के लिए पहले सेव करें।</string>
+    <string name="ld_dest_remove">गंतव्य हटाएं</string>
+    <string name="ld_dest_remove_body">यह पता डेटा पाना बंद कर देता है, और इसका साइनिंग सीक्रेट और हेडर मिटा दिए जाते हैं।</string>
+    <string name="ld_dest_remove_receive_body">यह पता डेटा पाना बंद कर देता है, और इसका साइनिंग सीक्रेट और हेडर मिटा दिए जाते हैं। पाएं भी बंद हो जाता है, क्योंकि उसके मेज़रमेंट इसी पते से आते हैं।</string>
+    <string name="ld_mqtt_remove_body">यहां MQTT पब्लिशिंग रुक जाती है, और जिस ब्रोकर को कुछ और इस्तेमाल नहीं करता, उसका पता और लॉगिन इस फ़ोन से मिटा दिए जाते हैं।</string>
+    <string name="ld_paired_connected">कनेक्ट हो गया।</string>
+    <string name="ld_paired_not_connected">अभी कनेक्ट नहीं हुआ।</string>
+    <string name="ld_paired_checking">कनेक्शन जांचा जा रहा है...</string>
+    <string name="ld_paired_delivered">डिलीवर हुआ: रिसीवर ने टेस्ट पिंग स्वीकार किया।</string>
+    <string name="ld_paired_next_sync">अपना डेटा भेजने के लिए अभी सिंक करें पर टैप करें।</string>
+    <string name="ld_paired_next_types">अब वे डेटा टाइप चालू करें जिन्हें आप भेजना चाहते हैं।</string>
+    <string name="ld_paired_done">हो गया</string>
+    <string name="ld_pairing_title">पेयरिंग</string>
+    <string name="ld_pairing_heading">इस रिसीवर से पेयर करें?</string>
+    <string name="ld_what_heading">%2$d में से %1$d टाइप।</string>
+    <string name="ld_what_start_from">यहां से शुरू करें</string>
+    <string name="ld_what_essentials">ज़रूरी टाइप</string>
+    <string name="ld_what_all_types">सभी टाइप</string>
+    <string name="ld_what_none">कोई नहीं</string>
+    <string name="ld_what_by_category">श्रेणी के अनुसार</string>
+    <string name="ld_what_count_of">%2$d में से %1$d</string>
+    <string name="ld_what_how_it_goes_out">कैसे भेजा जाता है</string>
+    <string name="ld_what_send_history">इतिहास भेजें</string>
+    <string name="ld_what_preview_payload">पेलोड की झलक देखें</string>
+    <string name="ld_what_access">Health Connect का ऐक्सेस</string>
+    <string name="ld_what_access_granted">आपके चुने हुए टाइप के लिए दिया गया</string>
+    <string name="ld_what_access_allowed_count">%2$d में से %1$d टाइप के लिए अनुमति है</string>
+    <string name="ld_access_blocked_not_installed">Health Connect इंस्टॉल नहीं है, इसलिए इसे चालू नहीं किया जा सकता। आपका चुनाव जैसा है वैसा ही रहता है।</string>
+    <string name="ld_access_blocked_needs_update">Health Connect को अपडेट करना होगा, इसलिए इसे चालू नहीं किया जा सकता। आपका चुनाव जैसा है वैसा ही रहता है।</string>
+    <string name="ld_access_blocked_unavailable">Health Connect इस फ़ोन पर उपलब्ध नहीं है, इसलिए इसे चालू नहीं किया जा सकता। आपका चुनाव जैसा है वैसा ही रहता है।</string>
+    <string name="ld_category_cycle_note">यह तब तक बंद रहता है जब तक आप इसे चालू नहीं करते। यह सिर्फ़ आपके अपने गंतव्यों पर जाता है।</string>
+    <string name="ld_category_lock_note">ताले का मतलब है कि अभी अनुमति नहीं है। चालू करने पर वह मांगी जाती है।</string>
+    <string name="ld_resolution_footnote">हर रिकॉर्ड, 1 मिनट, 5 मिनट, 15 मिनट या 1 घंटा चुनें। यहां सिर्फ़ चुने गए टाइप दिखते हैं।</string>
+    <string name="ld_resolution_empty">उसका रिज़ॉल्यूशन चुनने के लिए हृदय गति या क़दम जैसा कोई टाइप चालू करें।</string>
+    <string name="ld_backfill_heading">अपना इतिहास भेजें।</string>
+    <string name="ld_backfill_intro">3-3 दिन के हिस्सों में भेजा जाता है, सबसे पुराने से शुरू करके। रिकॉर्ड कभी दो बार नहीं गिने जाते।</string>
+    <plurals name="ld_backfill_chunks">
+        <item quantity="one">%1$d हिस्सा</item>
+        <item quantity="other">%1$d हिस्से</item>
+    </plurals>
+    <string name="ld_backfill_everything">सब कुछ</string>
+    <string name="ld_backfill_goes_to">%1$s पर जाता है।</string>
+    <string name="ld_backfill_mobile_data">इसमें समय लग सकता है और मोबाइल डेटा खर्च हो सकता है।</string>
+    <string name="ld_backfill_integration_note">Home Assistant अभी लगभग पिछले एक साल का डेटा लेता है। वेबहुक या Life Dashboard stack को सब कुछ मिलता है।</string>
+    <string name="ld_backfill_start">शुरू करें, %1$s</string>
+    <string name="ld_backfill_view">देखें</string>
+    <string name="ld_backfill_short_waiting">इंतज़ार में</string>
+    <string name="ld_backfill_short_paused">%1$d/%2$d पर रुका</string>
+    <string name="ld_backfill_running_heading">बैकफ़िल हो रहा है: %2$d में से %1$d।</string>
+    <string name="ld_backfill_paused_heading">%2$d में से %1$d पर रुका।</string>
+    <string name="ld_backfill_waiting_heading">सिंक का इंतज़ार है।</string>
+    <string name="ld_backfill_starting_heading">बैकफ़िल शुरू हो रहा है।</string>
+    <string name="ld_backfill_failed_heading">बैकफ़िल रुक गया।</string>
+    <string name="ld_backfill_done_heading">बैकफ़िल पूरा हुआ।</string>
+    <string name="ld_backfill_progress_a11y">बैकफ़िल की प्रोग्रेस, %2$d में से %1$d हिस्से</string>
+    <plurals name="ld_backfill_records_leave">
+        <item quantity="one">%1$s रिकॉर्ड भेजा गया। आप यह स्क्रीन छोड़ सकते हैं।</item>
+        <item quantity="other">%1$s रिकॉर्ड भेजे गए। आप यह स्क्रीन छोड़ सकते हैं।</item>
+    </plurals>
+    <string name="ld_backfill_can_leave">आप यह स्क्रीन छोड़ सकते हैं।</string>
+    <plurals name="ld_backfill_records_sent">
+        <item quantity="one">%1$s रिकॉर्ड भेजा गया</item>
+        <item quantity="other">%1$s रिकॉर्ड भेजे गए</item>
+    </plurals>
+    <string name="ld_backfill_stop_discard">रोकें और छोड़ें</string>
+    <string name="ld_backfill_stop_hint">प्रोग्रेस भूल जाता है। पहले से भेजा गया डेटा आपके सर्वर पर रहता है।</string>
+    <string name="ld_backfill_continue">जारी रखें</string>
+    <string name="ld_backfill_choose_length">अवधि चुनें</string>
+    <string name="ld_preview_intro">आपके सर्वर को यही मिलता है।</string>
+    <string name="ld_preview_no_types">कोई डेटा टाइप नहीं चुना गया</string>
+    <string name="ld_preview_nothing_new">पिछले सिंक के बाद कोई नया डेटा नहीं है, इसलिए अभी सिंक करने पर कुछ नहीं भेजा जाएगा। इतिहास भेजें पुराने रिकॉर्ड फिर से भेजता है।</string>
+    <string name="ld_when_every">हर %1$d मिनट पर।</string>
+    <plurals name="ld_when_times">
+        <item quantity="one">दिन में %d बार।</item>
+        <item quantity="other">दिन में %1$d बार।</item>
+    </plurals>
+    <string name="ld_when_never">कभी सिंक नहीं होता</string>
+    <string name="ld_when_fixed_times">तय समय</string>
+    <string name="ld_when_mode">सिंक मोड</string>
+    <string name="ld_when_minimum">न्यूनतम %1$d मिनट है।</string>
+    <string name="ld_when_limits">सीमाएं</string>
+    <string name="ld_receive_heading_off">पाएं बंद है।</string>
+    <string name="ld_receive_heading_on">Home Assistant से।</string>
+    <string name="ld_receive_heading_waiting">अगले सिंक का इंतज़ार है।</string>
+    <string name="ld_receive_heading_choose">चुनें कि क्या पाना है।</string>
+    <string name="ld_receive_heading_permission">अनुमति नहीं है।</string>
+    <string name="ld_receive_intro">मेज़रमेंट हर सिंक के साथ वापस आते हैं और Health Connect में जाते हैं।</string>
+    <string name="ld_receive_measurements">मेज़रमेंट पाएं</string>
+    <string name="ld_receive_source">सोर्स</string>
+    <string name="ld_receive_types">टाइप</string>
+    <string name="ld_advanced_connection">कनेक्शन</string>
+    <string name="ld_advanced_client_cert_used">हर वेबहुक के लिए इस्तेमाल होता है</string>
+    <plurals name="ld_advanced_hosts">
+        <item quantity="one">%1$d होस्ट</item>
+        <item quantity="other">%1$d होस्ट</item>
+    </plurals>
+    <string name="ld_certificates_empty">अभी कोई https वेबहुक नहीं है। एक जोड़ें, फिर यहां चुनें कि उसके सर्वर पर किस हद तक भरोसा किया जाए।</string>
+    <string name="ld_notifications_note">जब आपका डेटा हर गंतव्य तक न पहुंचे, और जब डेटा खो जाए, तब भी आपको पता चलता है।</string>
+    <string name="ld_notifications_blocked_title">Android ये सूचनाएं नहीं दिखा रहा</string>
+    <string name="ld_notifications_blocked_body">Android सेटिंग में ये इस ऐप के लिए बंद हैं, इसलिए जब तक आप वहां इनकी अनुमति नहीं देते, विफल सिंक की कोई सूचना नहीं आएगी।</string>
+    <string name="ld_export_heading">अपना डेटा एक्सपोर्ट करें।</string>
+    <string name="ld_export_intro_health">Health Connect से चुने गए टाइप वाली एक फ़ाइल।</string>
+    <string name="ld_export_intro_screen_time">पिछले सात दिनों के आपके स्क्रीन टाइम वाली एक फ़ाइल।</string>
+    <string name="ld_export_csv">CSV एक्सपोर्ट करें</string>
+    <string name="ld_export_json">JSON एक्सपोर्ट करें</string>
+    <string name="ld_export_opens_share">शेयर शीट खोलता है।</string>
+    <string name="ld_export_no_types">कोई डेटा टाइप नहीं चुना गया</string>
+    <string name="ld_backup_intro">अपनी सेटिंग दूसरे फ़ोन पर ले जाएं। लॉग और सिंक की प्रोग्रेस जहां हैं वहीं रहती हैं।</string>
+    <string name="ld_backup_choose_file">बैकअप फ़ाइल चुनें</string>
+    <string name="ld_backup_imported">सेटिंग इंपोर्ट हो गईं</string>
+    <string name="ld_logs_state">%1$d विफल, %2$d डिलीवर।</string>
+    <string name="ld_logs_nothing_yet">अभी कुछ नहीं भेजा गया।</string>
+    <string name="ld_logs_empty_note">हर डिलीवरी और MQTT पब्लिश यहां दिखता है। सूची में पिछले %1$d रहते हैं।</string>
+    <string name="ld_logs_outbox_empty">आउटबॉक्स खाली है</string>
+    <plurals name="ld_logs_pending">
+        <item quantity="one">%1$d बाकी</item>
+        <item quantity="other">%1$d बाकी</item>
+    </plurals>
+    <string name="ld_logs_success_rate">%1$d%% सफलता</string>
+    <plurals name="ld_logs_deliveries">
+        <item quantity="one">%1$s डिलीवरी</item>
+        <item quantity="other">%1$s डिलीवरी</item>
+    </plurals>
+    <plurals name="ld_logs_records">
+        <item quantity="one">%1$s रिकॉर्ड</item>
+        <item quantity="other">%1$s रिकॉर्ड</item>
+    </plurals>
+    <plurals name="ld_logs_sensors">
+        <item quantity="one">%1$s सेंसर</item>
+        <item quantity="other">%1$s सेंसर</item>
+    </plurals>
+    <plurals name="ld_logs_apps">
+        <item quantity="one">%1$s ऐप</item>
+        <item quantity="other">%1$s ऐप</item>
+    </plurals>
+    <plurals name="ld_logs_written">
+        <item quantity="one">%1$s लिखा गया</item>
+        <item quantity="other">%1$s लिखे गए</item>
+    </plurals>
+    <string name="ld_logs_by_section">स्वास्थ्य %1$d / %2$d · स्क्रीन टाइम %3$d / %4$d</string>
+    <string name="ld_logs_filter_failed">विफल %1$d</string>
+    <string name="ld_logs_no_match">इस फ़िल्टर से कोई लॉग मेल नहीं खाता।</string>
+    <string name="ld_logs_send_test">टेस्ट भेजें</string>
+    <string name="ld_logs_delete">डिलीट करें</string>
+    <string name="ld_logs_show_details">जानकारी दिखाएं</string>
+    <string name="ld_logs_show_actions">कार्रवाइयां दिखाएं</string>
+    <string name="ld_logs_size_stored">%1$s सेव हुआ</string>
+    <string name="ld_logs_headline">%1$s %2$s</string>
+    <string name="ld_logs_accepted">%1$s ने यह डिलीवरी स्वीकार की।</string>
+    <string name="ld_logs_not_accepted">%1$s ने यह डिलीवरी स्वीकार नहीं की।</string>
+    <string name="ld_logs_broker_accepted">ब्रोकर ने यह पब्लिश स्वीकार किया।</string>
+    <string name="ld_logs_key_time">समय</string>
+    <string name="ld_logs_key_url">URL</string>
+    <string name="ld_logs_key_status">स्थिति</string>
+    <string name="ld_logs_key_note">नोट</string>
+    <string name="ld_logs_key_sensors">सेंसर</string>
+    <string name="ld_logs_key_apps">ऐप</string>
+    <string name="ld_logs_key_type">टाइप</string>
+    <string name="ld_logs_key_section">सेक्शन</string>
+    <string name="ld_logs_key_payload_size">पेलोड का साइज़</string>
+    <string name="ld_logs_gone">यह डिलीवरी अब लॉग में नहीं है।</string>
+    <string name="ld_logs_readings">रीडिंग</string>
+    <string name="ld_logs_values_note">रीडिंग की वैल्यू तभी रहती है जब पूरे पेलोड रखें चालू हो।</string>
+    <string name="ld_screen_heading_total">आपके फ़ोन पर %1$s।</string>
+    <string name="ld_screen_heading_no_access">इस्तेमाल का ऐक्सेस दें।</string>
+    <string name="ld_screen_no_access_body">Android आपसे इसे अपनी सेटिंग में चालू करने को कहता है। इसके बिना ऐप नहीं देख सकता कि आपने कोई ऐप कितनी देर इस्तेमाल किया।</string>
+    <string name="ld_screen_open_settings">Android सेटिंग खोलें</string>
+    <string name="ld_screen_most_used">आज सबसे ज़्यादा इस्तेमाल हुए ऐप</string>
+    <string name="ld_screen_nothing_today">आज किसी ऐप का इस्तेमाल एक मिनट से ज़्यादा नहीं हुआ।</string>
+    <string name="ld_screen_status_no_deliveries">अभी कोई डिलीवरी नहीं</string>
+    <string name="ld_screen_status_just_now">अभी</string>
+    <string name="ld_screen_status_http">HTTP %1$d, %2$s</string>
+    <string name="ld_screen_status_failed">विफल, %1$s</string>
+    <string name="ld_screen_broker_named">ब्रोकर %1$s</string>
+    <string name="ld_screen_more_summary">बेहतर सेटिंग, जानकारी</string>
+    <string name="ld_screen_secrets_unavailable">सुरक्षित स्टोरेज उपलब्ध नहीं है, इसलिए सेव किए गए ऑथ हेडर, साइनिंग सीक्रेट और MQTT पासवर्ड अभी पढ़े या बदले नहीं जा सकते। डिवाइस अनलॉक करें और ऐप फिर से खोलें। कुछ भी बिना एन्क्रिप्शन के सेव नहीं होता।</string>
+    <string name="ld_screen_preview_payload">पेलोड की झलक देखें</string>
+    <string name="ld_screen_apps_description_all">हर ऐप भेजा जाता है। सिस्टम UI और लॉन्चर हमेशा छोड़ दिए जाते हैं।</string>
+    <string name="ld_screen_apps_description_except">जिन ऐप पर आप सही का निशान लगाते हैं, उन्हें छोड़कर सब कुछ। हर दिन total_screen_time_minutes में अब भी हर ऐप गिना जाता है। भेजे गए ऐप का योग filtered_screen_time_minutes में होता है।</string>
+    <string name="ld_screen_apps_description_only">सिर्फ़ वे ऐप जिन पर आप सही का निशान लगाते हैं। हर दिन total_screen_time_minutes में अब भी हर ऐप गिना जाता है। भेजे गए ऐप का योग filtered_screen_time_minutes में होता है।</string>
+    <string name="ld_screen_apps_history_warning">हर सिंक पिछले सात दिन फिर से भेजता है, इसलिए यहां किया गया बदलाव आपके गंतव्यों पर उन दिनों को भी बदल देता है।</string>
+    <string name="ld_screen_apps_search_label">खोजें</string>
+    <string name="ld_screen_apps_used_label">पिछले 30 दिनों में इस्तेमाल हुए</string>
+    <string name="ld_screen_apps_no_match">इस खोज से कोई ऐप मेल नहीं खाता।</string>
+    <string name="ld_screen_day_heading">आपका दिन %1$s पर शुरू होता है।</string>
+    <string name="ld_screen_day_body">इस घंटे से पहले की गतिविधि पिछले दिन में गिनी जाती है, इसलिए देर रात की फ़िल्म उसी शाम में रहती है जब वह शुरू हुई थी।</string>
+    <string name="ld_screen_day_whole_hours">सिर्फ़ पूरे घंटे।</string>
+    <string name="ld_screen_when_never">कभी सिंक नहीं होता</string>
+    <string name="ld_screen_when_every_hour">हर घंटे।</string>
+    <plurals name="ld_screen_when_every_hours">
+        <item quantity="one">हर %1$d घंटे पर।</item>
+        <item quantity="other">हर %1$d घंटे पर।</item>
+    </plurals>
+    <plurals name="ld_screen_when_every_minutes">
+        <item quantity="one">हर %1$d मिनट पर।</item>
+        <item quantity="other">हर %1$d मिनट पर।</item>
+    </plurals>
+    <plurals name="ld_screen_when_times_a_day">
+        <item quantity="one">दिन में %1$d बार।</item>
+        <item quantity="other">दिन में %1$d बार।</item>
+    </plurals>
+    <string name="ld_screen_when_note">हर सिंक पिछले 7 दिन भेजता है। यह शेड्यूल स्वास्थ्य से अलग है।</string>
+    <string name="ld_screen_when_limits">सीमाएं</string>
+    <string name="ld_about_heading">आपका डेटा वहीं जाता है जहां आप उसे भेजते हैं।</string>
+    <string name="ld_about_connected">कनेक्ट है</string>
+    <string name="ld_about_pair_code">कोड से पेयर करें</string>
+    <string name="ld_about_set_up_stack">stack सेट अप करें</string>
+    <string name="ld_about_own_server">आपका अपना सर्वर</string>
+    <string name="ld_about_own_server_sub">पेयरिंग कोड, वेबहुक या MQTT</string>
+    <string name="ld_about_no_cloud">न कोई खाता, न कोई क्लाउड। iPhone पर भी।</string>
+    <string name="ld_about_version_line">Life Dashboard Companion, वर्शन %1$s। Owen Vogelaar ने बनाया।</string>
+    <string name="ld_about_show_nerd">नर्ड स्टैट्स दिखाएं</string>
+    <string name="ld_about_help_sub">गाइड, नया क्या है</string>
+    <string name="ld_about_support_sub">रेटिंग, GitHub पर स्टार</string>
+    <string name="ld_about_privacy_sub">कोई ट्रैकर नहीं</string>
+    <string name="ld_about_source_sub">MIT लाइसेंस</string>
+    <string name="ld_about_setup_guide">सेटअप गाइड</string>
+    <string name="ld_about_questions">सवाल</string>
+    <string name="ld_about_mail">मेल</string>
+    <string name="ld_about_support_intro">रेटिंग या स्टार से दूसरों को ऐप ढूंढने में मदद मिलती है।</string>
+    <string name="ld_about_star">GitHub पर स्टार दें</string>
+    <string name="ld_about_source_intro">यह ऐप जो भी लाइन चलाता है, आप उसे पढ़ सकते हैं।</string>
+    <string name="ld_about_receiver">अपना रिसीवर कनेक्ट करें</string>
+    <string name="ld_about_receiver_sub">आपके यूज़र एक QR कोड स्कैन करके पेयर कर सकें</string>
+    <string name="ld_about_typefaces_title">टाइपफ़ेस</string>
+    <string name="ld_about_no_app_for_link">इस फ़ोन का कोई भी ऐप यह लिंक नहीं खोल सकता</string>
+    <string name="ld_about_typefaces">टाइपफ़ेस Space Grotesk और Space Mono, SIL Open Font License के तहत हैं।</string>
+    <string name="ld_onboarding_welcome_body">अपना स्वास्थ्य डेटा और स्क्रीन टाइम अपने Home Assistant या सर्वर पर भेजें। न कोई खाता, न कोई क्लाउड।</string>
+    <string name="ld_onboarding_pick_one_or_both">एक या दोनों चुनें।</string>
+    <string name="ld_onboarding_health_desc">क़दम, नींद, हृदय गति और भी बहुत कुछ</string>
+    <string name="ld_onboarding_screen_desc">इस फ़ोन पर हर ऐप का समय</string>
+    <string name="ld_onboarding_scan_note">किसी भी रिसीवर के लिए जो कोड दिखाता हो, जैसे Home Assistant, Life Dashboard Stack या आपका अपना सर्वर।</string>
+    <string name="ld_onboarding_own_server">या आपका अपना सर्वर</string>
+    <string name="ld_onboarding_webhook_url">वेबहुक URL</string>
+    <string name="ld_onboarding_set_up">सेट अप करें</string>
+    <string name="ld_onboarding_use">इस्तेमाल करें</string>
+    <string name="ld_onboarding_mqtt_note">पोर्ट 1883 पर TLS के बिना शुरू होता है। पोर्ट, TLS और लॉगिन बाद में MQTT पेज पर मिलते हैं।</string>
+    <string name="ld_onboarding_later_desc">क्या भेजें में से चुनें</string>
+    <string name="ld_onboarding_sending_to">कहां भेजा जा रहा है</string>
+    <string name="ld_onboarding_one_thing_left">एक काम बचा है</string>
+    <string name="ld_onboarding_two_things_left">दो काम बचे हैं</string>
 </resources>

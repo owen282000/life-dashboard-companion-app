@@ -14,7 +14,7 @@ If you send to the Life Dashboard integration, use [Route 1](#route-1-home-assis
 
 - **A model that runs locally**, with tool support. [Ollama](https://ollama.com) runs them, on any machine on your network (set `OLLAMA_HOST=0.0.0.0` when the client is on another one); models such as `qwen3` (8B or 14B) or `gpt-oss:20b` handle tool calls. Pick one without a `-cloud` tag: those run on Ollama's servers, not yours. Rough guide: an 8B model wants 16 GB of memory and runs slowly without a graphics card, 20 to 30B wants a 24 GB graphics card or a Mac with 32 GB or more. A NAS without a graphics card is too slow.
 - **A chat client that speaks MCP**, unless you use Home Assistant's own assistant: [Open WebUI](https://docs.openwebui.com/features/extensibility/mcp/) (connects over streamable HTTP) or [LM Studio](https://lmstudio.ai/docs/app/mcp). Ollama itself has no MCP client.
-- **History to ask about.** A backfill in the app (**Health** tab, **Backfill**) sends up to a year. Data from more than 30 days before you first gave the app access needs Health Connect's history access, which the backfill dialog asks for.
+- **History to ask about.** A backfill in the app (**Health** tab, **What to send**, **Send history**) sends up to a year. Data from more than 30 days before you first gave the app access needs Health Connect's history access, which the backfill page asks for.
 
 ## Route 1: Home Assistant
 
@@ -29,7 +29,7 @@ Which MCP server you use decides whether a model can read them:
 
 ### Set it up
 
-1. In HACS, add `homeassistant-ai/ha-mcp-integration` as a custom repository and install it; it needs Home Assistant 2026.8 or later and runs inside it. Restart Home Assistant, then add it under **Settings > Devices & services > Add integration > HA-MCP Custom Component** and choose **HA-MCP Server**. Its [README](https://github.com/homeassistant-ai/ha-mcp) shows the settings below.
+1. In the Marketplace (HACS before Home Assistant 2026.11), add `homeassistant-ai/ha-mcp-integration` as a custom repository and install it. In the Marketplace that's **Add from link**, which asks for a GitHub connection. It needs Home Assistant 2026.8 or later and runs inside it. Restart Home Assistant if it asks, then add it under **Settings > Devices & services > Add integration > HA-MCP Custom Component** and choose **HA-MCP Server**. Its [README](https://github.com/homeassistant-ai/ha-mcp) shows the settings below.
 2. Lock it down:
    - In its **HA-MCP** panel in the sidebar, switch on **Read Only Mode**. This is the setting that covers every way in, Home Assistant's own assistant included.
    - Under **Configure** on the integration, turn off **Remote access via webhook** and set **Network access** to `127.0.0.1`, unless a client on another machine needs it. A webhook that stays on is reachable wherever Home Assistant is, through Home Assistant Cloud or a reverse proxy; then set its authentication to `ha_auth`.
@@ -48,7 +48,7 @@ Without a start time the tool looks back 30 days.
 
 [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) stores the records the app sends in Postgres, in one table, `records`, with the record type (`steps`, `heart_rate`, `sleep`, `weight`, `daily_totals` and so on), its time, and the record itself as JSON in `data`. It applies the deletions the app reports, and a late payload can't overwrite a newer one. On top of that, its `dash` schema has views that turn records into days, nights, hours and workouts in your time zone, all listed in its [views.md](https://github.com/owen282000/life-dashboard-stack/blob/main/docs/views.md). The stack has an MCP server of its own that reads those views, so a model never has to write SQL against nested JSON, which small models often get wrong.
 
-The stack keeps series sent per time window in a separate `buckets` table, but only its heart rate views read them so far. Leave **Data Resolution** on the **Health** tab at **Every record**, the default, for the types you want to ask about.
+The stack keeps series sent per time window in a separate `buckets` table, but only its heart rate views read them so far. Leave **Data resolution**, under **What to send** on the **Health** tab, at **Every record**, the default, for the types you want to ask about.
 
 **1. Start the server.** It's an optional part of the stack, the Compose service `mcp` in the profile `mcp`, so a plain `docker compose up` leaves it out. Give it a token of its own in `.env`, at least 16 characters and not the same as `API_TOKEN`, since the server refuses to start without one:
 

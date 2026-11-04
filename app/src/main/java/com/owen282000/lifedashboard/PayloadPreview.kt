@@ -70,3 +70,6 @@ data class PayloadPreview(
         }
     }
 }
+
+/** A preview or export found nothing that a sync would send now: not a failure, the last sync took it all. */
+class NoNewDataToPreview : Exception("No new data to preview")

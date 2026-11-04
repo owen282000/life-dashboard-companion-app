@@ -1,0 +1,48 @@
+Envía datos de Health Connect y el tiempo de pantalla de tu teléfono Android a Home Assistant, un broker MQTT o tu propio webhook, según un horario. Sin cuenta; el desarrollador no recibe ninguno de tus datos, la app los envía solo a las direcciones que ingresas. Sin anuncios, sin analíticas. Necesitas un servidor propio.
+
+Funciona con cualquier app que escriba en Health Connect, como Samsung Health, Google Health (Fitbit y Pixel Watch), Garmin Connect, Oura y Withings.
+
+Los cambios y las eliminaciones también se envían, no solo los registros nuevos. Si un cambio no se puede enviar, el payload lo indica.
+
+Home Assistant
+- Instala la integración Life Dashboard desde el Marketplace o HACS y escanea su código QR. Sin YAML, sin broker.
+- 26 de los 34 tipos y el tiempo de pantalla se convierten en sensores. Cada día de tu historial llega con su fecha a las estadísticas a largo plazo, para aproximadamente el último año.
+- Recibir, con la integración: las mediciones de una báscula o un tensiómetro en Home Assistant pueden escribirse en Health Connect, por cada tipo que actives.
+
+Webhooks y tu propio servidor
+- Cualquier servidor que acepte un POST JSON: n8n, Node-RED, un script propio o Life Dashboard Stack, aparte y autoalojado, con Postgres y paneles de Grafana.
+- Cada registro completo a una o varias URL, cada una con su secreto de firma (HMAC-SHA256) y sus encabezados, y certificados de cliente (mTLS).
+- Reintentos y una cola de salida que guarda las sincronizaciones sin entregar hasta que tu servidor vuelva.
+
+MQTT
+- Con MQTT Discovery, 25 de los 34 tipos y el tiempo de pantalla aparecen como sensores en un solo dispositivo, con TLS e inicio de sesión opcionales.
+
+Qué enviar
+- 34 tipos, cada uno con su interruptor y su permiso: pasos, distancia, calorías, sueño con fases, frecuencia cardíaca, VFC, peso y composición corporal, presión arterial, glucosa en sangre, VO2 máx., sesiones de ejercicio, nutrición, seguimiento del ciclo y más.
+- Los totales diarios vienen del propio Health Connect, para que una caminata registrada por tu teléfono y tu reloj cuente una sola vez.
+- Recuperación del historial hacia un webhook o la integración: de 30 días a 5 años o todo lo que tiene Health Connect.
+
+Tiempo de pantalla
+- Tiempo por app, junto a tus datos de salud, con un cambio de día a tu elección.
+- Envía todas las apps, todas menos algunas o solo las que elijas. Una app excluida nunca sale del teléfono; solo el total del día sigue contando su tiempo.
+
+Cuándo enviar
+- Cada 15 minutos o más, o a horas fijas en los días que elijas, con horas de silencio.
+- Widget (Estado de sincronización), mosaico de ajustes rápidos (Sincronizar Life Dashboard) y un intent para Tasker y MacroDroid.
+
+Ver qué pasó
+- Logs de tus últimas 100 entregas, con filtros de fallidos, webhook y MQTT.
+- Una vista previa del JSON antes de enviarlo, y una prueba para cada dirección.
+- Una exportación de tus datos en CSV o JSON.
+
+El servidor MCP de solo lectura de Life Dashboard Stack permite que un modelo de IA que ejecutas por tu cuenta lea tu historial. La app en sí no contiene IA.
+
+Los secretos se guardan cifrados en el teléfono. Código abierto con licencia MIT; el código es público en GitHub.
+
+La app está en once idiomas: español, inglés, neerlandés, alemán, francés, italiano, portugués (Brasil), japonés, árabe, hindi y chino simplificado.
+
+Los datos de salud requieren Android 9 o posterior con Health Connect (integrado a partir de Android 14, una app de Google Play en Android 9 a 13). El tiempo de pantalla funciona desde Android 8.0.
+
+Home Assistant, Grafana y los demás productos citados son marcas de sus propietarios. No se incluyen con esta app, y sus propietarios no tienen relación con ella.
+
+Life Dashboard Companion no es un dispositivo médico y no diagnostica, trata, cura ni previene ninguna afección médica. Consulta a un profesional de la salud para obtener consejo médico, un diagnóstico o un tratamiento.

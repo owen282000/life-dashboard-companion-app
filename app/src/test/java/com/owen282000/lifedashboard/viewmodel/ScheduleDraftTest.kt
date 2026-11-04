@@ -9,7 +9,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.DayOfWeek
 import java.time.LocalTime
 
 /**
@@ -41,13 +40,14 @@ class ScheduleDraftTest {
     @Test
     fun `an interval under the floor is rejected, not silently clamped`() {
         val draft = ScheduleDraft(mode = SyncMode.INTERVAL, intervalText = "5")
-        assertEquals(UiMessage.IntervalTooShort, SettingsRules.scheduleProblem(draft))
+        assertNull(SettingsRules.intervalOrNull(draft.intervalText))
+        assertEquals("the stored one stays, see saveInterval", 60, draft.toSchedule(fallbackInterval = 60).intervalMinutes)
     }
 
     @Test
-    fun `times mode needs at least one time`() {
+    fun `times mode without a time never runs, which the screen warns about`() {
         val draft = ScheduleDraft(mode = SyncMode.TIMES, times = emptyList())
-        assertEquals(UiMessage.NoSyncTimes, SettingsRules.scheduleProblem(draft))
+        assertTrue(draft.wouldNeverRun())
     }
 
     @Test
@@ -58,13 +58,14 @@ class ScheduleDraftTest {
             intervalText = "5",
             times = listOf(time("08:00"), time("08:05"))
         )
-        assertNull(SettingsRules.scheduleProblem(draft))
+        assertFalse(draft.wouldNeverRun())
+        assertEquals(listOf(time("08:00"), time("08:05")), draft.toSchedule().times)
     }
 
     @Test
-    fun `a schedule that can never run is refused with its own message`() {
+    fun `a schedule that can never run is told apart`() {
         val noDays = ScheduleDraft(mode = SyncMode.INTERVAL, intervalText = "60", days = emptySet())
-        assertEquals(UiMessage.ScheduleNeverRuns, SettingsRules.scheduleProblem(noDays))
+        assertTrue(noDays.wouldNeverRun())
 
         val allTimesQuiet = ScheduleDraft(
             mode = SyncMode.TIMES,
@@ -72,7 +73,7 @@ class ScheduleDraftTest {
             quietFrom = time("23:00"),
             quietTo = time("07:00")
         )
-        assertEquals(UiMessage.ScheduleNeverRuns, SettingsRules.scheduleProblem(allTimesQuiet))
+        assertTrue(allTimesQuiet.wouldNeverRun())
     }
 
     @Test
@@ -84,7 +85,6 @@ class ScheduleDraftTest {
             quietFrom = time("23:00"),
             quietTo = time("07:00")
         )
-        assertNull(SettingsRules.scheduleProblem(draft))
         assertFalse(draft.wouldNeverRun())
     }
 
@@ -96,46 +96,26 @@ class ScheduleDraftTest {
     }
 
     @Test
-    fun `switching mode back and forth is not an unsaved change`() {
-        val saved = HealthDraft(WebhookDraft(), emptySet(), emptyMqtt(), ScheduleDraft(intervalText = "60"))
-        val toTimesAndBack = saved.copy(
-            schedule = saved.schedule.copy(mode = SyncMode.TIMES).copy(mode = SyncMode.INTERVAL)
-        )
-        assertFalse(toTimesAndBack.differsFrom(saved))
+    fun `switching mode back and forth is no change for WorkManager`() {
+        val saved = ScheduleDraft(intervalText = "60")
+        assertFalse(saved.copy(mode = SyncMode.TIMES).copy(mode = SyncMode.INTERVAL).toSchedule().differsFrom(saved.toSchedule()))
     }
 
     @Test
-    fun `in interval mode the times do not count as a change, and the other way around`() {
-        val saved = HealthDraft(WebhookDraft(), emptySet(), emptyMqtt(), ScheduleDraft(intervalText = "60"))
-        val withTimes = saved.copy(schedule = saved.schedule.copy(times = listOf(time("08:00"))))
-        assertFalse(withTimes.differsFrom(saved))
-
-        val savedTimes = saved.copy(
-            schedule = saved.schedule.copy(mode = SyncMode.TIMES, times = listOf(time("08:00")))
-        )
-        val withOtherInterval = savedTimes.copy(schedule = savedTimes.schedule.copy(intervalText = "120"))
-        assertFalse(withOtherInterval.differsFrom(savedTimes))
+    fun `the order of the times and doubles among them are no change`() {
+        val saved = ScheduleDraft(mode = SyncMode.TIMES, times = listOf(time("08:00"), time("21:00")))
+        val shuffled = saved.copy(times = listOf(time("21:00"), time("08:00"), time("08:00")))
+        assertFalse(shuffled.toSchedule().differsFrom(saved.toSchedule()))
     }
 
     @Test
-    fun `editing days, times or quiet hours is an unsaved change`() {
-        val saved = HealthDraft(WebhookDraft(), emptySet(), emptyMqtt(), ScheduleDraft(intervalText = "60"))
-        assertTrue(saved.copy(schedule = saved.schedule.copy(days = WEEKDAYS)).differsFrom(saved))
-        assertTrue(
-            saved.copy(schedule = saved.schedule.copy(quietFrom = time("23:00"), quietTo = time("07:00")))
-                .differsFrom(saved)
-        )
-        val savedTimes = saved.copy(schedule = saved.schedule.copy(mode = SyncMode.TIMES, times = listOf(time("08:00"))))
-        assertTrue(
-            savedTimes.copy(schedule = savedTimes.schedule.copy(times = listOf(time("09:00"))))
-                .differsFrom(savedTimes)
-        )
-    }
-
-    @Test
-    fun `screen time drafts compare their schedule too`() {
-        val saved = ScreenTimeDraft(WebhookDraft(), "4", true, emptyMqtt(), ScheduleDraft(intervalText = "60"))
-        assertFalse(saved.copy().differsFrom(saved))
-        assertTrue(saved.copy(schedule = saved.schedule.copy(days = setOf(DayOfWeek.MONDAY))).differsFrom(saved))
+    fun `editing the interval, days, times or quiet hours is a change`() {
+        val saved = ScheduleDraft(intervalText = "60")
+        fun differs(next: ScheduleDraft, from: ScheduleDraft = saved) = next.toSchedule().differsFrom(from.toSchedule())
+        assertTrue(differs(saved.copy(intervalText = "120")))
+        assertTrue(differs(saved.copy(days = WEEKDAYS)))
+        assertTrue(differs(saved.copy(quietFrom = time("23:00"), quietTo = time("07:00"))))
+        val savedTimes = saved.copy(mode = SyncMode.TIMES, times = listOf(time("08:00")))
+        assertTrue(differs(savedTimes.copy(times = listOf(time("09:00"))), savedTimes))
     }
 }

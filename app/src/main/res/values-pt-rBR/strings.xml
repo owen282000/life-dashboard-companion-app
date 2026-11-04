@@ -6,27 +6,20 @@
     <string name="common_back">Voltar</string>
     <string name="common_cancel">Cancelar</string>
     <string name="common_close">Fechar</string>
-    <string name="common_collapse">Recolher</string>
     <string name="common_csv">CSV</string>
-    <string name="common_expand">Expandir</string>
     <string name="common_grant">Permitir</string>
     <string name="common_json">JSON</string>
     <string name="common_never">nunca</string>
-    <string name="common_none_configured">Nada configurado</string>
-    <string name="common_permissions_required">Permissões necessárias</string>
     <string name="common_remove">Remover</string>
     <string name="common_show_password">Mostrar senha</string>
     <string name="common_hide_password">Ocultar senha</string>
-    <string name="common_saved">Salvo!</string>
 
     <!-- Configurações compartilhadas de webhook e sincronização, usadas pelo Conexão Saúde e pelo Tempo de tela -->
-    <string name="webhook_add_a_url">Adicione uma URL de webhook</string>
     <string name="webhook_allow_plain_http">Permitir webhooks com HTTP sem criptografia</string>
     <string name="webhook_allow_plain_http_description">Para um webhook na sua própria rede local ou VPN que não tem certificado. HTTPS continua sendo o padrão, e esta única chave vale para o Conexão Saúde e o Tempo de tela, inclusive para as medições que o Home Assistant envia para este celular. O MQTT não é afetado.</string>
     <string name="client_cert_title">Certificado do cliente (mTLS)</string>
     <string name="client_cert_none">Nenhum</string>
     <string name="client_cert_description">Para um servidor que exige um certificado do cliente. Instale o certificado primeiro nas configurações do Android (Segurança, Criptografia e credenciais, Instalar um certificado). Você escolhe uma vez, e ele vale para todos os webhooks, também em segundo plano. O MQTT não é afetado.</string>
-    <string name="client_cert_choose">Escolher</string>
     <string name="server_trust_title">Certificados do servidor</string>
     <string name="server_trust_description">Só para um servidor cujo certificado o Android não considera confiável, como um da sua própria CA ou um autoassinado. Cada configuração vale apenas para aquele host. O MQTT não é afetado.</string>
     <string name="server_trust_user_cas">Confiar em certificados instalados neste celular</string>
@@ -55,32 +48,17 @@
     <string name="webhook_header_value_invalid">O valor de um cabeçalho só pode ter caracteres ASCII simples, sem quebras de linha nem letras como é</string>
     <string name="webhook_header_name_blocks_delivery">Nada foi enviado: o cabeçalho %1$s tem um nome que não pode ser enviado. Remova-o em Webhook e adicione de novo com um nome sem espaços.</string>
     <string name="webhook_header_value_blocks_delivery">Nada foi enviado: o valor do cabeçalho %1$s tem uma quebra de linha ou um caractere que um cabeçalho não aceita. Remova-o em Webhook e adicione de novo.</string>
-    <string name="webhook_headers_title">Cabeçalhos do webhook (opcional)</string>
     <string name="webhook_hmac_secret_description">Quando definido, cada POST recebe um cabeçalho X-Signature (sha256=&lt;hex&gt;), calculado como HMAC-SHA256 sobre o corpo, para que seu servidor possa verificar o remetente.</string>
     <string name="webhook_hmac_secret_title">Segredo de assinatura HMAC (opcional)</string>
-    <plurals name="webhook_headers_count">
-        <item quantity="one">%1$d cabeçalho</item>
-        <item quantity="many">%1$d cabeçalhos</item>
-        <item quantity="other">%1$d cabeçalhos</item>
-    </plurals>
     <string name="webhook_min_interval">Mínimo de 15 minutos</string>
     <string name="webhook_shared_secret">Segredo compartilhado</string>
-    <string name="webhook_url_placeholder">https://...</string>
-    <string name="webhook_urls_configured">%1$d configuradas</string>
-    <string name="webhook_destinations_hint">Toque em um endereço para ver os cabeçalhos e o segredo de assinatura dele. Nenhum dos dois vai para outro endereço.</string>
-    <string name="webhook_destination_summary">%1$s, %2$s</string>
-    <string name="webhook_destination_signed">Assinado</string>
-    <string name="webhook_destination_unsigned">Não assinado</string>
-    <string name="webhook_destination_no_headers">sem cabeçalhos</string>
     <string name="webhook_destination_url">Endereço</string>
-    <string name="webhook_destination_open">mostrar cabeçalhos e segredo</string>
     <string name="webhook_destination_moved">Outro host em vez de %1$s: os cabeçalhos foram apagados e o segredo foi redefinido, então nada configurado para %1$s vai para cá.</string>
     <string name="webhook_copy_headers_from">Copiar cabeçalhos de %1$s</string>
     <string name="webhook_use_secret_of">Usar o mesmo segredo de %1$s</string>
     <string name="webhook_url_duplicate">Este endereço já está na lista</string>
     <string name="webhook_url_user_info">Remova o nome de usuário ou a senha do endereço. Os endereços ficam guardados como texto simples, nos backups e nos logs; coloque a credencial em um cabeçalho deste endereço.</string>
     <string name="webhook_url_credential_parameter">Remova %1$s= do endereço. Os endereços ficam guardados como texto simples, nos backups e nos logs; coloque a credencial em um cabeçalho deste endereço.</string>
-    <string name="webhook_urls_title">URLs de webhook</string>
 
     <!-- Seção de sincronização compartilhada, usada pelo Conexão Saúde e pelo Tempo de tela -->
     <string name="sync_advanced_client_cert">Certificado do cliente</string>
@@ -98,21 +76,17 @@
     <string name="receive_title">Receber</string>
     <string name="receive_subtitle">Do Home Assistant para o Conexão Saúde</string>
     <string name="receive_off">Desativado</string>
-    <string name="receive_summary_written">%1$s · %2$s</string>
     <plurals name="receive_written_today">
         <item quantity="one">%1$d gravada hoje</item>
         <item quantity="many">%1$d gravadas hoje</item>
         <item quantity="other">%1$d gravadas hoje</item>
     </plurals>
-    <string name="receive_enable">Receber medições do Home Assistant</string>
     <string name="receive_enable_description">A integração Life Dashboard envia as entidades que você escolheu lá; cada tipo abaixo precisa da própria permissão de gravação no Conexão Saúde.</string>
     <string name="receive_needs_integration">Precisa da integração Life Dashboard: pareie primeiro com o Home Assistant, para que haja um endereço de webhook e um segredo de assinatura.</string>
-    <string name="receive_source">Origem: %1$s</string>
     <string name="receive_update_integration">Atualize a integração Life Dashboard para receber medições, ou confira se este webhook é o da integração: a última resposta dele não trouxe o protocolo de medições.</string>
     <string name="receive_no_types_yet">Na próxima sincronização, o app pergunta ao Home Assistant quais tipos ele oferece.</string>
     <string name="receive_choose_type">Ative um tipo abaixo para recebê-lo.</string>
     <string name="receive_permission_missing">Falta permissão de gravação: %1$s</string>
-    <string name="receive_type_permission_missing_a11y">%1$s, falta permissão de gravação</string>
     <string name="receive_summary_needs_pairing">Precisa parear com o Home Assistant</string>
     <string name="receive_summary_update_integration">Atualize a integração</string>
     <string name="receive_summary_nothing_mapped">Nenhum tipo mapeado no Home Assistant</string>
@@ -129,12 +103,6 @@
         <item quantity="one">%1$d gravada no Conexão Saúde</item>
         <item quantity="many">%1$d gravadas no Conexão Saúde</item>
         <item quantity="other">%1$d gravadas no Conexão Saúde</item>
-    </plurals>
-    <string name="logs_row_receive_title">Saúde · do Home Assistant</string>
-    <plurals name="logs_row_written">
-        <item quantity="one">%1$s · %2$d gravada</item>
-        <item quantity="many">%1$s · %2$d gravadas</item>
-        <item quantity="other">%1$s · %2$d gravadas</item>
     </plurals>
     <string name="logs_written">Gravado</string>
     <string name="logs_skipped">Ignorado</string>
@@ -171,29 +139,20 @@
     <string name="outbox_dropped_log">Descartada da fila de saída: ela estava cheia (%1$d sincronizações não entregues), então os registros foram perdidos</string>
     <string name="outbox_replaced_log">Substituída na fila de saída por um retrato mais recente, que já não cobre os dias mais antigos não entregues, então esses dias foram perdidos</string>
     <string name="sync_advanced_title">Avançado</string>
-    <string name="sync_data_preview_title">Prévia dos dados</string>
     <string name="sync_export_failed">Falha na exportação</string>
     <string name="sync_export_failed_with_reason">Falha na exportação: %1$s</string>
     <string name="sync_failed_with_reason">Falhou: %1$s</string>
-    <string name="sync_failed_prefix">Falhou</string>
     <string name="sync_interval_subtitle">Minutos entre sincronizações</string>
     <string name="sync_interval_title">Intervalo de sincronização</string>
-    <string name="sync_loading">Carregando...</string>
-    <string name="sync_manual_subtitle">Sincronizar agora</string>
-    <string name="sync_manual_title">Sincronização manual</string>
     <string name="sync_no_new_data">Nenhum dado novo</string>
     <string name="sync_now">Sincronizar agora</string>
-    <string name="sync_preview_data">Ver prévia dos dados</string>
     <string name="sync_preview_failed">Falha na prévia</string>
     <string name="sync_preview_failed_with_reason">Falha na prévia: %1$s</string>
-    <string name="sync_preview_payload_description">Este é o payload JSON que será enviado:</string>
     <string name="sync_preview_full_in_copy_share">Copiar JSON ou Compartilhar dá o payload completo.</string>
     <string name="sync_preview_full_in_share">Compartilhar dá o payload completo.</string>
-    <string name="sync_save_changes">Salvar alterações</string>
     <string name="sync_syncing">Sincronizando...</string>
 
     <!-- Tela do Conexão Saúde -->
-    <string name="health_backfill_dialog_description">Envia os dados antigos de todos os tipos ativados para seus webhooks em blocos de 3 dias, do mais antigo para o mais recente. A sincronização normal não é afetada; registros repetidos são deduplicados pelo uuid. Isso pode demorar e usar dados móveis.</string>
     <plurals name="health_backfill_complete">
         <item quantity="one">Envio do histórico concluído: %1$d registro enviado</item>
         <item quantity="many">Envio do histórico concluído: %1$d registros enviados</item>
@@ -218,7 +177,6 @@
     <string name="health_backfill_log_restarted">Os tipos de dados mudaram desde o início deste envio do histórico, então ele recomeçou do primeiro bloco.</string>
     <string name="health_backfill_log_stopped">Parou no bloco %1$d de %2$d</string>
     <string name="health_backfill_grant_history">Permitir acesso ao histórico</string>
-    <string name="health_backfill_history">Enviar histórico</string>
     <string name="health_backfill_history_permission_warning">O Conexão Saúde limita as leituras aos últimos 30 dias até você permitir o acesso ao histórico.</string>
     <string name="health_backfill_length_all">Todo o histórico</string>
     <string name="health_backfill_length_all_any">Tudo o que o Conexão Saúde tem, desde o seu registro mais antigo</string>
@@ -226,11 +184,6 @@
         <item quantity="one">Tudo desde %1$s, %2$d bloco de 3 dias</item>
         <item quantity="many">Tudo desde %1$s, %2$d blocos de 3 dias</item>
         <item quantity="other">Tudo desde %1$s, %2$d blocos de 3 dias</item>
-    </plurals>
-    <plurals name="health_backfill_length_chunks">
-        <item quantity="one">%1$d bloco de 3 dias</item>
-        <item quantity="many">%1$d blocos de 3 dias</item>
-        <item quantity="other">%1$d blocos de 3 dias</item>
     </plurals>
     <plurals name="health_backfill_length_days">
         <item quantity="one">%1$d dia</item>
@@ -258,14 +211,7 @@
     <string name="health_connect_not_installed">O Conexão Saúde não está instalado</string>
     <string name="health_connect_needs_update">O Conexão Saúde precisa ser atualizado</string>
     <string name="health_could_not_open">Não foi possível abrir o Conexão Saúde</string>
-    <plurals name="health_data_types_selected">
-        <item quantity="one">%1$d tipo de dado selecionado</item>
-        <item quantity="many">%1$d tipos de dados selecionados</item>
-        <item quantity="other">%1$d tipos de dados selecionados</item>
-    </plurals>
     <string name="health_data_types_selected_of">%1$d de %2$d selecionados</string>
-    <string name="health_type_permission_missing_a11y">%1$s, falta permissão</string>
-    <string name="health_data_types_title">Tipos de dados</string>
     <!-- The names of the data types, as shown on screen. The payload, MQTT and the stored settings use the enum name, never these. -->
     <string name="data_type_steps">Passos</string>
     <string name="data_type_sleep">Sono</string>
@@ -341,13 +287,9 @@
     <string name="dashboard_last_sync">Última sincronização</string>
     <string name="dashboard_last_sync_succeeded">Concluída</string>
     <string name="dashboard_last_sync_failed">Falhou</string>
-    <string name="dashboard_lifetime">Total</string>
-    <string name="dashboard_min">min</string>
-    <string name="dashboard_minutes_unit">%1$d min</string>
     <string name="dashboard_minutes_per_day_last_days">Minutos por dia, últimos %1$d dias</string>
     <string name="dashboard_none">nenhum</string>
     <string name="dashboard_records">registros</string>
-    <string name="dashboard_steps_last_days">Passos, últimos %1$d dias</string>
     <string name="dashboard_today">Hoje</string>
     <string name="dashboard_top_app">App mais usado</string>
 
@@ -357,11 +299,8 @@
     <string name="mqtt_broker_host">Host do broker</string>
     <string name="mqtt_broker_host_placeholder">Host do broker, ex.: 192.168.1.10</string>
     <string name="mqtt_broker_host_shared">Host do broker (compartilhado)</string>
-    <string name="mqtt_disabled">Desativado</string>
     <string name="mqtt_enable_publishing">Ativar publicação MQTT</string>
     <string name="mqtt_enabled_no_broker">Ativado: nenhum broker definido</string>
-    <string name="mqtt_enabled_own_broker">Ativado: %1$s (broker próprio)</string>
-    <string name="mqtt_enabled_shared_broker">Ativado: %1$s (broker compartilhado)</string>
     <string name="mqtt_password">Senha (opcional)</string>
     <plurals name="mqtt_status_published">
         <item quantity="one">%1$d sensor publicado às %2$s</item>
@@ -393,7 +332,6 @@
     <string name="webhook_sync_failed">Webhook: %1$s</string>
 
     <!-- Tela de logs -->
-    <string name="logs_clear_logs">Limpar logs</string>
     <string name="logs_clear_title">Limpar logs?</string>
     <plurals name="logs_clear_body">
         <item quantity="one">Isso remove %1$d log deste celular. Não é possível desfazer.</item>
@@ -408,9 +346,7 @@
     </plurals>
     <string name="logs_export_logs">Exportar logs</string>
     <string name="logs_export_title">Exportar logs</string>
-    <string name="logs_empty">Nenhum log ainda</string>
     <string name="logs_error">Erro</string>
-    <string name="logs_failure_line">%1$s: %2$s</string>
     <string name="logs_filter_all">Todos</string>
     <string name="logs_filter_health">Saúde</string>
     <string name="logs_filter_screen_time">Tempo de tela</string>
@@ -419,7 +355,6 @@
     <string name="logs_keep_full_payloads_off">Os payloads são cortados para ocupar pouco espaço</string>
     <string name="logs_keep_full_payloads_on">Os payloads inteiros são guardados, com um limite de tamanho total</string>
     <string name="logs_last_success">Último sucesso: %1$s</string>
-    <string name="logs_ok">OK</string>
     <string name="logs_payload">Payload</string>
     <string name="logs_payload_stored_part">Só uma parte deste payload foi guardada. Ative Guardar payloads completos para guardar payloads inteiros a partir da próxima sincronização.</string>
     <!-- The payload preview in the Logs tab and the data preview dialog (P2-11) -->
@@ -432,17 +367,7 @@
     <string name="payload_share_a11y">Compartilhar o payload completo como arquivo</string>
     <string name="payload_copied">Payload completo copiado</string>
     <string name="payload_too_large_to_copy">Este payload é grande demais para a área de transferência. Compartilhar entrega tudo como arquivo.</string>
-    <string name="logs_record_count">%1$s: %2$d</string>
-    <string name="logs_recent_failures">Falhas recentes:</string>
     <string name="logs_stat_records">Registros</string>
-    <string name="logs_stat_success">Sucesso</string>
-    <string name="logs_stat_success_rate">%1$d%%</string>
-    <string name="logs_stat_total">Total</string>
-    <string name="logs_status_failure">✗ %1$s</string>
-    <string name="logs_status_success">✓ %1$s</string>
-    <string name="logs_sync_overview">Resumo das sincronizações</string>
-    <string name="logs_type_ratio">%1$d / %2$d</string>
-    <string name="logs_unknown_error">Erro desconhecido</string>
 
     <!-- Activity principal: barra superior e navegação inferior -->
     <string name="main_about">Sobre</string>
@@ -450,7 +375,6 @@
     <string name="main_tab_logs">Logs</string>
     <string name="main_title_health_connect">Conexão Saúde</string>
     <string name="main_title_screen_time">Tempo de tela</string>
-    <string name="main_title_webhook_logs">Logs</string>
 
     <!-- Tela de Tempo de tela -->
     <plurals name="screentime_apps_queued">
@@ -463,30 +387,19 @@
         <item quantity="many">%1$d apps sincronizados</item>
         <item quantity="other">%1$d apps sincronizados</item>
     </plurals>
-    <string name="screentime_day_boundary_description">A atividade antes deste horário conta para o dia anterior</string>
     <string name="screentime_day_boundary_disabled">Desativado</string>
     <string name="screentime_day_boundary_enable">Ativar virada do dia</string>
-    <string name="screentime_day_boundary_enabled">Ativado · %1$s</string>
     <string name="screentime_day_boundary_hour_invalid">A hora deve estar entre 0 e 23</string>
-    <string name="screentime_day_boundary_title">Virada do dia</string>
-    <string name="screentime_header">Acompanhe o uso dos seus apps</string>
     <string name="screentime_mqtt_description">Publica o tempo de tela de hoje e de ontem e o app mais usado de hoje no seu broker MQTT com o Home Assistant Discovery, no mesmo dispositivo do Conexão Saúde.</string>
     <string name="screentime_permission_not_granted">Permissão não concedida</string>
 
     <!-- Assistente de introdução -->
-    <string name="onboarding_destination_body">Para o Home Assistant, o caminho recomendado é escanear o código da integração. Você pode adicionar ou mudar destinos quando quiser nas abas Saúde e Tempo de tela.</string>
     <string name="onboarding_destination_title">Para onde seus dados devem ir?</string>
-    <string name="onboarding_done_body">Faltam duas coisas, ambas nas telas principais: conceder as permissões do Conexão Saúde e permitir o acesso aos dados de uso para o tempo de tela. Depois, toque em Sincronizar agora.</string>
-    <string name="onboarding_done_short">O que falta está nas telas principais; depois, toque em Sincronizar agora.</string>
     <string name="onboarding_done_title">Tudo pronto</string>
     <string name="onboarding_feature_health">Conexão Saúde</string>
-    <string name="onboarding_feature_health_desc">Passos, sono, frequência cardíaca e mais 31 tipos do Conexão Saúde</string>
     <string name="onboarding_feature_screen">Tempo de tela</string>
-    <string name="onboarding_feature_screen_desc">Uso diário e por app, das estatísticas de uso do Android</string>
-    <string name="onboarding_features_body">Escolha um ou os dois. Cada um tem sua própria aba, permissões e configurações.</string>
     <string name="onboarding_features_title">O que você quer sincronizar?</string>
     <string name="onboarding_get_started">Começar</string>
-    <string name="onboarding_mqtt_desc">Já tem um broker rodando? Os sensores aparecem no Home Assistant pelo MQTT Discovery. Só o valor mais recente de cada tipo é enviado, então os dias anteriores não são preenchidos.</string>
     <string name="onboarding_mqtt_option">Broker MQTT</string>
     <string name="onboarding_next">Avançar</string>
     <string name="onboarding_open_app">Abrir o app</string>
@@ -494,30 +407,22 @@
     <string name="onboarding_skip_destination">Vou configurar isso depois</string>
     <string name="onboarding_step_of">Etapa %1$d de %2$d</string>
     <string name="onboarding_summary_all">todos os 34</string>
-    <string name="onboarding_summary_dest">Destino</string>
     <string name="onboarding_summary_essentials">8 essenciais</string>
     <string name="onboarding_summary_later">nenhum ainda</string>
     <string name="onboarding_summary_none">ainda não</string>
     <string name="onboarding_summary_sync">Sincronização</string>
     <string name="onboarding_summary_types">Tipos de dados</string>
     <string name="onboarding_task_health">Conceder as permissões do Conexão Saúde</string>
-    <string name="onboarding_task_health_sub">Aba Saúde, o cartão no topo</string>
     <string name="onboarding_task_screen">Permitir o acesso aos dados de uso para o tempo de tela</string>
-    <string name="onboarding_task_screen_sub">Aba Tempo de tela, abre as configurações do Android</string>
     <string name="onboarding_types_all">Todos os 34 tipos de dados</string>
     <string name="onboarding_types_all_desc">Tudo o que o Conexão Saúde oferece, de passos ao acompanhamento do ciclo</string>
-    <string name="onboarding_types_body">Só os tipos ativados são lidos e enviados. Comece com muitos ou com poucos; cada tipo tem sua própria chave na aba Saúde.</string>
     <string name="onboarding_types_essentials">O essencial</string>
     <string name="onboarding_types_essentials_desc">Passos, sono, frequência cardíaca, distância, calorias e peso</string>
     <string name="onboarding_types_later">Decidir depois</string>
-    <string name="onboarding_types_later_desc">Começar sem nada ativado</string>
     <string name="onboarding_types_title">Quais dados de saúde importam para você?</string>
     <string name="onboarding_webhook_applied">Usado para o Conexão Saúde e o Tempo de tela; depois você pode separar por aba</string>
     <string name="onboarding_webhook_applied_health">Usado para o Conexão Saúde</string>
     <string name="onboarding_webhook_applied_screen">Usado para o Tempo de tela</string>
-    <string name="onboarding_webhook_desc">POST de JSON para seu próprio servidor ou backend de dashboard</string>
-    <string name="onboarding_webhook_option">Webhook</string>
-    <string name="onboarding_welcome_body">O Life Dashboard Companion envia seus dados do Conexão Saúde e de tempo de tela para um lugar que você controla: o Home Assistant pela integração Life Dashboard, seu próprio backend de webhook ou um broker MQTT. A integração guarda o histórico nas estatísticas de longo prazo do Home Assistant e também funciona no sentido contrário: uma balança ou um medidor de pressão que fala com o Home Assistant vai parar no Conexão Saúde. Sem nuvem no meio. Três perguntas rápidas e está tudo funcionando.</string>
     <string name="onboarding_welcome_title">Seus dados de saúde, seu servidor</string>
 
     <!-- Redesigned main screens -->
@@ -527,31 +432,21 @@
     <string name="screentime_allow">Permitir</string>
     <string name="screentime_settings">Configurações</string>
     <string name="webhook_title">Webhook</string>
-    <string name="sync_action_preview">Ver</string>
     <string name="sync_action_ping">Ping de teste</string>
     <string name="sync_action_export">Exportar</string>
     <string name="sync_action_backfill">Histórico</string>
-    <string name="sync_no_destination">Primeiro adicione uma URL de webhook ou ative o MQTT</string>
     <string name="logs_delivered">Entregue</string>
     <string name="logs_published">Publicado</string>
     <string name="logs_failed">Falhou</string>
-    <string name="logs_row_records">%1$s · %2$d registros</string>
-    <string name="logs_row_sensors">%1$s · %2$d sensores</string>
     <string name="logs_destination_webhook">Webhook</string>
     <string name="logs_destination_mqtt">MQTT</string>
 
     <!-- About screen -->
     <string name="about_title">Sobre</string>
-    <string name="about_back">Voltar</string>
-    <string name="about_description">Envia seus dados do Conexão Saúde e de tempo de tela para o Home Assistant pela integração Life Dashboard, para seu próprio backend de webhook ou para um broker MQTT, e pode trazer medições do seu próprio Home Assistant de volta para o Conexão Saúde. Sem nuvem no meio.</string>
-    <string name="about_privacy_title">Privacidade e segurança</string>
-    <string name="about_backup_title">Backup e restauração</string>
     <string name="about_appearance_title">Aparência</string>
-    <string name="about_appearance_description">Siga o tema escuro do celular, ou deixe este app sempre claro ou escuro, faça o celular o que fizer.</string>
     <string name="about_theme_system">Sistema</string>
     <string name="about_theme_light">Claro</string>
     <string name="about_theme_dark">Escuro</string>
-    <string name="backup_intro">As configurações não entram no backup em nuvem do Android, porque os segredos que elas contêm nunca saem deste dispositivo. Exporte as configurações aqui para passar para um celular novo.</string>
     <string name="backup_export">Exportar</string>
     <string name="backup_import">Importar</string>
     <string name="backup_export_title">Exportar configurações</string>
@@ -590,38 +485,19 @@
     <string name="backup_note_broker_port_unusable">O broker MQTT deste arquivo não pode ser usado: a porta dele não é um número de 1 a 65535. Este celular mantém o próprio broker.</string>
     <string name="backup_keeps_credentials">Este arquivo não tem credenciais, então as que já estão neste dispositivo são mantidas.</string>
     <string name="backup_history_unaffected">O histórico de sincronização e os logs não são afetados.</string>
-    <string name="backup_imported">Configurações importadas, abra o app de novo para vê-las</string>
     <string name="backup_import_failed">Falha na importação: %1$s</string>
-    <string name="about_f_steps">Passos, distância, calorias</string>
-    <string name="about_f_sleep">Sono com fases</string>
-    <string name="about_f_meditation">Sessões de meditação</string>
-    <string name="about_f_heart">Frequência cardíaca e mais</string>
-    <string name="about_f_apps">Estatísticas de uso de apps</string>
-    <string name="about_f_boundary">Virada do dia configurável</string>
-    <string name="about_f_lookback">Janela retroativa de 7 dias</string>
-    <string name="about_f_no_sharing">Nenhum dado compartilhado com terceiros</string>
-    <string name="about_f_on_device">Os dados ficam no seu dispositivo</string>
-    <string name="about_f_control">Controle total da sincronização</string>
     <string name="about_website">Site</string>
-    <string name="about_website_sub">Guias de configuração e as outras partes do Life Dashboard</string>
     <string name="about_docs">Documentação</string>
-    <string name="about_docs_sub">Configuração, esquema do webhook, MQTT, fontes de dados</string>
     <string name="about_whats_new">Novidades</string>
-    <string name="about_whats_new_sub">Alterações da versão %1$s</string>
     <string name="about_report">Informar um problema</string>
-    <string name="about_report_sub">Issues no GitHub</string>
     <string name="about_github">Ver no GitHub</string>
     <string name="about_play">Também no Google Play</string>
     <string name="about_play_sub">O mesmo app; comprar por lá apoia o desenvolvimento</string>
     <string name="about_rate">Avaliar o app</string>
-    <string name="about_rate_sub">Uma avaliação no Google Play ajuda outras pessoas a encontrá-lo</string>
     <string name="about_coffee">Me pague um café</string>
     <string name="about_coffee_sub">O app continua gratuito e de código aberto; um café mantém as versões saindo rápido</string>
-    <string name="about_privacy_policy">Política de privacidade</string>
-    <string name="about_privacy_policy_sub">O que o app lê, grava, guarda e envia</string>
     <string name="about_licence">Licença</string>
     <string name="about_licence_sub">MIT · © 2025-2026 Owen Vogelaar</string>
-    <string name="about_version">Versão %1$s</string>
     <string name="about_bpm">%1$d BPM</string>
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
@@ -640,7 +516,6 @@
     <string name="privacy_contact_title">Contato</string>
     <string name="privacy_contact_body">Dúvidas sobre privacidade: abra uma issue no GitHub ou mande um e-mail para o desenvolvedor no endereço que está no perfil do GitHub.</string>
     <string name="privacy_full">Ler a política de privacidade completa</string>
-    <string name="privacy_full_sub">PRIVACY.md no GitHub</string>
     <string name="nerd_title">Estatísticas nerd</string>
     <string name="nerd_secret">Você achou o segredo</string>
     <string name="nerd_empty">Nenhuma sincronização ainda. Volte quando seus dados começarem a fluir.</string>
@@ -657,13 +532,10 @@
     <string name="health_backfill_needs_webhook">O envio do histórico precisa de uma URL de webhook: o MQTT só leva o valor mais recente de cada tipo</string>
     <string name="schedule_title">Agenda de sincronização</string>
     <string name="schedule_mode_interval">A cada X minutos</string>
-    <string name="schedule_mode_times">Em horários fixos</string>
     <string name="schedule_times_title">Horários de sincronização</string>
     <string name="schedule_add_time">Adicionar um horário</string>
-    <string name="schedule_remove_time">Remover %1$s</string>
     <string name="schedule_no_times">Nenhum horário ainda. Adicione um para começar a sincronizar.</string>
     <string name="schedule_days_title">Dias</string>
-    <string name="schedule_days_all">Todos os dias</string>
     <string name="schedule_quiet_title">Horário de silêncio</string>
     <string name="schedule_quiet_subtitle">Nunca sincronizar entre estes horários</string>
     <string name="schedule_quiet_from">De</string>
@@ -671,9 +543,7 @@
     <string name="schedule_never_runs">Com estas configurações nunca há sincronização. Adicione um horário, um dia, ou encurte o horário de silêncio.</string>
     <string name="schedule_summary_interval">A cada %1$d min</string>
     <string name="schedule_summary_times">Às %1$s</string>
-    <string name="schedule_summary_days">%1$s</string>
     <string name="schedule_summary_quiet">silêncio das %1$s às %2$s</string>
-    <string name="schedule_no_sync_times">Adicione pelo menos um horário de sincronização</string>
     <string name="schedule_day_mon">seg.</string>
     <string name="schedule_day_tue">ter.</string>
     <string name="schedule_day_wed">qua.</string>
@@ -699,18 +569,15 @@
     <string name="resolution_1h">1 hora</string>
     <string name="resolution_group_sampled">Média por janela</string>
     <string name="resolution_group_accumulated">Soma por janela</string>
-    <string name="activity_about_label">Sobre</string>
     <string name="tile_sync_label">Sincronizar Life Dashboard</string>
     <string name="tile_sync_wait">Tente de novo em um minuto</string>
     <string name="common_set">Definir</string>
     <string name="screentime_day_boundary_time_label">O dia começa às</string>
     <string name="webhook_secret_generate">Gerar</string>
     <string name="webhook_secret_generated">Segredo gerado. Salve e configure o mesmo valor no seu servidor; uma assinatura só prova algo quando os dois lados têm o segredo.</string>
-    <string name="webhook_secret_copy">Copiar</string>
     <string name="webhook_secret_copied">Copiado para a área de transferência</string>
 
     <!-- QR pairing -->
-    <string name="pairing_title">Parear com um receptor</string>
     <string name="pairing_intro">%1$s quer receber seus dados em:</string>
     <string name="pairing_intro_unnamed">Um receptor quer seus dados em:</string>
     <string name="pairing_sections_label">Enviar de</string>
@@ -730,7 +597,6 @@
     <string name="pairing_error_no_source">Este receptor não aceita nada que este app possa enviar.</string>
 
     <!-- QR scanner -->
-    <string name="scan_title">Escanear um código de pareamento</string>
     <string name="scan_hint">Enquadre o código de pareamento que o seu receptor mostra, como o da integração Life Dashboard no Home Assistant. Quanto mais perto, melhor.</string>
     <string name="scan_close">Fechar</string>
     <string name="scan_not_a_code">Esse não é um código de pareamento do Life Dashboard.</string>
@@ -741,7 +607,6 @@
     <string name="webhook_scan_lead">Escanear um código de pareamento</string>
     <string name="webhook_scan_button">Escanear</string>
     <string name="onboarding_scan_option">Escanear um código de pareamento</string>
-    <string name="onboarding_scan_desc">Recomendado para o Home Assistant: instale a integração Life Dashboard pelo HACS e escaneie o QR code que ela mostra, e o Home Assistant guarda o histórico nas estatísticas de longo prazo. Qualquer outro receptor que mostre um código de pareamento funciona do mesmo jeito. O endereço e o segredo de assinatura são preenchidos para você.</string>
     <string name="onboarding_scan_paired">Código lido. O endereço e o segredo foram preenchidos.</string>
     <!-- Widget da tela inicial -->
     <!-- The widget shows the count in its own large text and this label beside it, so the label
@@ -752,6 +617,10 @@
         <item quantity="other">registros hoje</item>
     </plurals>
     <string name="widget_synced_at">Sincronizado às %1$s</string>
+    <string name="widget_name">Status da sincronização</string>
+    <string name="widget_synced_on">Sincronizado em %1$s</string>
+    <string name="widget_description">Resultado da última sincronização e registros entregues hoje, com um botão que sincroniza agora.</string>
+    <string name="widget_preview_records">registros hoje</string>
     <string name="widget_no_syncs">Nenhuma sincronização ainda</string>
     <string name="widget_last_sync_succeeded">Última sincronização concluída</string>
     <string name="widget_last_sync_failed">A última sincronização falhou</string>
@@ -771,22 +640,12 @@
     <string name="screentime_apps_mode_all">Todos</string>
     <string name="screentime_apps_mode_except">Todos menos</string>
     <string name="screentime_apps_mode_only">Só</string>
-    <string name="screentime_apps_description_all">Todos os apps são enviados, como antes. A interface do sistema e a tela inicial sempre ficam de fora.</string>
-    <string name="screentime_apps_description_except">Os apps que você marcar nunca são enviados: nem para o seu webhook, nem para o Home Assistant. Cada dia continua contando todos os apps em total_screen_time_minutes; os apps enviados somam filtered_screen_time_minutes.</string>
-    <string name="screentime_apps_description_only">Só os apps que você marcar são enviados, para o seu webhook e para o Home Assistant. Cada dia continua contando todos os apps em total_screen_time_minutes; os apps enviados somam filtered_screen_time_minutes.</string>
-    <string name="screentime_apps_history_warning">Cada sincronização envia de novo os últimos sete dias, então uma mudança aqui também altera esses dias no seu servidor e no Home Assistant.</string>
     <string name="screentime_apps_none_chosen">Nenhum app marcado: só os totais do dia são enviados.</string>
     <string name="screentime_apps_loading">Buscando os apps que você usou…</string>
     <string name="screentime_apps_none_used">Nenhum app foi usado por mais de um minuto nos últimos 30 dias.</string>
     <string name="screentime_apps_search">Pesquisar apps</string>
     <string name="screentime_apps_not_used">Não usado nos últimos 30 dias</string>
-    <plurals name="screentime_apps_minutes_month">
-        <item quantity="one">%d minuto nos últimos 30 dias</item>
-        <item quantity="many">%d minutos nos últimos 30 dias</item>
-        <item quantity="other">%d minutos nos últimos 30 dias</item>
-    </plurals>
     <!-- Record metadata (P2-7) -->
-    <string name="health_record_metadata">Metadados dos registros</string>
     <string name="health_record_metadata_title">Metadados dos registros no payload</string>
     <string name="health_record_metadata_description">Adiciona a cada registro quando ele foi alterado pela última vez, o ID e a versão próprios do app que o gravou, como foi registrado, o dispositivo e o deslocamento do fuso horário, quando o Conexão Saúde tem esses dados. Deixa os payloads maiores, principalmente para a frequência cardíaca.</string>
     <!-- The secret store lost its secrets -->
@@ -800,4 +659,379 @@
     <string name="battery_hint_device_care">Assistência do aparelho</string>
     <string name="battery_hint_help">Ajuda para o seu celular</string>
     <string name="battery_hint_dismiss">Não mostrar de novo</string>
+
+    <string name="ld_nerd_records_health">Registros de Saúde</string>
+    <string name="ld_nerd_records_screen_time">Registros de Tempo de tela</string>
+    <string name="ld_nerd_records_today">Registros de Saúde hoje</string>
+    <string name="ld_nerd_last_sync_outcome">%1$s, %2$s</string>
+    <string name="ld_save">Salvar</string>
+    <string name="ld_key_value">%1$s: %2$s</string>
+    <string name="ld_remove_named">Remover %1$s</string>
+    <string name="ld_try_again">Tentar de novo</string>
+    <string name="ld_not_saved">Não salvo</string>
+    <string name="ld_type_locked">Ainda sem permissão</string>
+    <string name="ld_title_add_destination">Adicionar destino</string>
+    <string name="ld_title_destination">Destino</string>
+    <string name="ld_title_paired">Pareado</string>
+    <string name="ld_title_what_to_send">O que enviar</string>
+    <string name="ld_title_backfill">Histórico</string>
+    <string name="ld_title_preview">Prévia</string>
+    <string name="ld_title_when_to_send">Quando enviar</string>
+    <string name="ld_title_more">Mais</string>
+    <string name="ld_title_server_certificates">Certificados do servidor</string>
+    <string name="ld_title_export_data">Exportar dados</string>
+    <string name="ld_title_backup_restore">Backup e restauração</string>
+    <string name="ld_title_delivery">Entrega</string>
+    <string name="ld_title_apps_to_send">Apps a enviar</string>
+    <string name="ld_title_day_starts_at">O dia começa às</string>
+    <string name="ld_title_help">Ajuda</string>
+    <string name="ld_title_support">Suporte</string>
+    <string name="ld_title_privacy">Privacidade</string>
+    <string name="ld_title_open_source">Código aberto</string>
+    <string name="ld_category_activity">Atividade</string>
+    <string name="ld_category_body">Corpo</string>
+    <string name="ld_category_heart">Coração e sinais vitais</string>
+    <string name="ld_category_sleep">Sono e mente</string>
+    <string name="ld_category_food">Comida e bebida</string>
+    <string name="ld_category_cycle">Monitoramento do ciclo</string>
+    <string name="ld_just_now">agora mesmo</string>
+    <string name="ld_home_heading_nothing_selected">Conectado. Agora escolha seus dados.</string>
+    <string name="ld_home_heading_problem_one">%1$s precisa de você.</string>
+    <plurals name="ld_home_heading_problem_many">
+        <item quantity="one">%1$d destino precisa de você.</item>
+        <item quantity="many">%1$d destinos precisam de você.</item>
+        <item quantity="other">%1$d destinos precisam de você.</item>
+    </plurals>
+    <string name="ld_home_heading_overdue">Nada chegou ultimamente.</string>
+    <string name="ld_home_heading_waiting">Pronto para a primeira sincronização.</string>
+    <string name="ld_home_heading_arriving">Seus dados estão chegando.</string>
+    <string name="ld_home_hc_install_note">O Life Dashboard lê seus dados de saúde pelo Conexão Saúde. Instale-o para começar.</string>
+    <string name="ld_home_hc_update_note">Esta versão do Conexão Saúde é antiga demais para o Life Dashboard. Atualize-o para começar.</string>
+    <string name="ld_home_hc_unavailable_note">O Conexão Saúde não funciona neste dispositivo nem neste perfil. O Tempo de tela continua funcionando.</string>
+    <string name="ld_home_access_note">O Conexão Saúde ainda não deu acesso ao Life Dashboard, então nada pode ser lido nem enviado.</string>
+    <string name="ld_home_own_server">Usar seu próprio servidor</string>
+    <string name="ld_home_pair_note">Qualquer receptor pode mostrar um código de pareamento, como o Home Assistant, o Life Dashboard Stack ou o seu próprio servidor.</string>
+    <string name="ld_home_broker">Broker %1$s</string>
+    <string name="ld_home_connected">Conectado</string>
+    <string name="ld_home_no_deliveries">Nenhuma entrega ainda</string>
+    <string name="ld_home_failed_http">HTTP %1$d, %2$s</string>
+    <string name="ld_home_failed_time">Falhou, %1$s</string>
+    <string name="ld_home_nothing_since">Nada entregue desde %1$s.</string>
+    <string name="ld_home_overdue_battery">Nada entregue desde %1$s. A otimização de bateria pode estar segurando as sincronizações.</string>
+    <string name="ld_home_overdue_logs">Nada entregue desde %1$s. A aba Logs mostra o que aconteceu.</string>
+    <string name="ld_home_hold_never">As sincronizações automáticas estão desativadas. Sincronizar agora continua funcionando.</string>
+    <string name="ld_home_hold_quiet">Horário de silêncio até as %1$s. Sincronizar agora continua funcionando.</string>
+    <string name="ld_home_hold_day_off">Nenhuma sincronização automática hoje. Sincronizar agora continua funcionando.</string>
+    <string name="ld_home_types_of">%1$d de %2$d tipos</string>
+    <string name="ld_home_none_yet">Nenhum ainda</string>
+    <string name="ld_home_once_a_day">Uma vez por dia</string>
+    <plurals name="ld_home_times_a_day">
+        <item quantity="one">%1$d vez por dia</item>
+        <item quantity="many">%1$d vezes por dia</item>
+        <item quantity="other">%1$d vezes por dia</item>
+    </plurals>
+    <string name="ld_home_more_subtitle">Backup, sobre</string>
+    <string name="ld_home_receive_waiting">Aguardando a próxima sincronização</string>
+    <string name="ld_home_receive_choose">Escolha os tipos</string>
+    <string name="ld_home_receive_permission">Falta permissão</string>
+    <plurals name="ld_home_receive_types">
+        <item quantity="one">%1$d tipo</item>
+        <item quantity="many">%1$d tipos</item>
+        <item quantity="other">%1$d tipos</item>
+    </plurals>
+    <string name="ld_secrets_unavailable_title">O armazenamento seguro está indisponível</string>
+    <string name="ld_secrets_unavailable_body">Os cabeçalhos de autenticação, os segredos de assinatura e as senhas MQTT salvos não podem ser lidos nem alterados agora. Desbloqueie o dispositivo e abra o app de novo. Nada é guardado sem criptografia.</string>
+    <string name="ld_secrets_lost_title">Os segredos precisam ser digitados de novo</string>
+    <string name="ld_today_pick">Escolher o que enviar</string>
+    <string name="ld_today_lines">As linhas mostram 7 dias</string>
+    <string name="ld_today_rest_bpm">Bpm em repouso</string>
+    <string name="ld_today_kg">kg</string>
+    <string name="ld_today_lb">lb</string>
+    <string name="ld_today_sleep_value">%1$sh %2$s</string>
+    <string name="ld_today_weight_value">%1$s %2$s</string>
+    <string name="ld_today_spoken">%1$s: %2$s, %3$s</string>
+    <string name="ld_today_trend">Mínimo %1$s, máximo %2$s, mais recente %3$s</string>
+    <string name="ld_today_record">registro</string>
+    <string name="ld_add_heading">Adicione um destino.</string>
+    <string name="ld_add_pair_note">Para qualquer receptor que mostre um, como o Home Assistant, o Life Dashboard Stack ou o seu próprio servidor.</string>
+    <string name="ld_add_own_server">Seu próprio servidor</string>
+    <string name="ld_add_webhook_url">URL do webhook</string>
+    <string name="ld_add_webhook_example">https://your-webhook.com/health</string>
+    <string name="ld_add_webhook">Adicionar webhook</string>
+    <string name="ld_add_mqtt_subtitle">Com o discovery do Home Assistant</string>
+    <string name="ld_add_mqtt_on">Ativado: %1$s</string>
+    <string name="ld_dest_url">URL</string>
+    <string name="ld_dest_signing">Assinatura</string>
+    <string name="ld_dest_copy_secret">Copiar segredo</string>
+    <string name="ld_dest_headers">Cabeçalhos</string>
+    <string name="ld_dest_add_header">Adicionar um cabeçalho</string>
+    <string name="ld_dest_headers_note">Enviados só para este endereço.</string>
+    <string name="ld_dest_header_invalid">Cabeçalho inválido, então nada é enviado. Remova-o e adicione de novo.</string>
+    <string name="ld_dest_delivered">Entregue %1$s.</string>
+    <plurals name="ld_dest_delivered_records">
+        <item quantity="one">Entregue %1$s, %2$d registro.</item>
+        <item quantity="many">Entregue %1$s, %2$d registros.</item>
+        <item quantity="other">Entregue %1$s, %2$d registros.</item>
+    </plurals>
+    <string name="ld_dest_last_failed">A última tentativa falhou %1$s.</string>
+    <string name="ld_dest_last_failed_reason">A última tentativa falhou %1$s: %2$s</string>
+    <string name="ld_dest_plain_http">O HTTP sem criptografia está desativado</string>
+    <string name="ld_dest_plain_http_body">Nada chega a um endereço http até que isso seja permitido em Avançado. Use um endereço https, se puder.</string>
+    <string name="ld_dest_send_test">Enviar teste</string>
+    <string name="ld_dest_sending">Enviando...</string>
+    <string name="ld_dest_test_uses_saved">O teste usa o que está salvo. Salve primeiro para testar suas alterações.</string>
+    <string name="ld_dest_remove">Remover destino</string>
+    <string name="ld_dest_remove_body">Este endereço deixa de receber dados, e o segredo de assinatura e os cabeçalhos dele são apagados.</string>
+    <string name="ld_dest_remove_receive_body">Este endereço deixa de receber dados, e o segredo de assinatura e os cabeçalhos dele são apagados. O recebimento de medições também para, porque elas vêm deste endereço.</string>
+    <string name="ld_mqtt_remove_body">A publicação MQTT é encerrada aqui, e o endereço e o login de um broker que mais nada usa são apagados deste celular.</string>
+    <string name="ld_paired_connected">Conectado.</string>
+    <string name="ld_paired_not_connected">Ainda não conectado.</string>
+    <string name="ld_paired_checking">Verificando a conexão...</string>
+    <string name="ld_paired_delivered">Entregue: o receptor aceitou o ping de teste.</string>
+    <string name="ld_paired_next_sync">Toque em Sincronizar agora para enviar seus dados.</string>
+    <string name="ld_paired_next_types">Agora, ative os tipos de dados que você quer enviar.</string>
+    <string name="ld_paired_done">OK</string>
+    <string name="ld_pairing_title">Pareamento</string>
+    <string name="ld_pairing_heading">Parear com este receptor?</string>
+    <string name="ld_what_heading">%1$d de %2$d tipos.</string>
+    <string name="ld_what_start_from">Começar com</string>
+    <string name="ld_what_essentials">Essenciais</string>
+    <string name="ld_what_all_types">Todos os tipos</string>
+    <string name="ld_what_none">Nenhum</string>
+    <string name="ld_what_by_category">Por categoria</string>
+    <string name="ld_what_count_of">%1$d de %2$d</string>
+    <string name="ld_what_how_it_goes_out">Como é enviado</string>
+    <string name="ld_what_send_history">Enviar histórico</string>
+    <string name="ld_what_preview_payload">Prévia do payload</string>
+    <string name="ld_what_access">Acesso ao Conexão Saúde</string>
+    <string name="ld_what_access_granted">Concedido para o que você selecionou</string>
+    <string name="ld_what_access_allowed_count">Permitido para %1$d de %2$d tipos</string>
+    <string name="ld_access_blocked_not_installed">O Conexão Saúde não está instalado, então não é possível ativar isto. Sua seleção continua como está.</string>
+    <string name="ld_access_blocked_needs_update">O Conexão Saúde precisa ser atualizado, então não é possível ativar isto. Sua seleção continua como está.</string>
+    <string name="ld_access_blocked_unavailable">O Conexão Saúde não está disponível neste celular, então não é possível ativar isto. Sua seleção continua como está.</string>
+    <string name="ld_category_cycle_note">Isto fica desativado até você ativar. Só vai para os seus próprios destinos.</string>
+    <string name="ld_category_lock_note">O cadeado significa que ainda não há permissão. Ao ativar, ela é solicitada.</string>
+    <string name="ld_resolution_footnote">Escolha todos os registros, 1 min, 5 min, 15 min ou 1 hora. Só os tipos selecionados aparecem aqui.</string>
+    <string name="ld_resolution_empty">Ative um tipo como frequência cardíaca ou passos para escolher a resolução dele.</string>
+    <string name="ld_backfill_heading">Envie seu histórico.</string>
+    <string name="ld_backfill_intro">Enviado em blocos de 3 dias, do mais antigo para o mais recente. Os registros nunca são contados duas vezes.</string>
+    <plurals name="ld_backfill_chunks">
+        <item quantity="one">%1$d bloco</item>
+        <item quantity="many">%1$d blocos</item>
+        <item quantity="other">%1$d blocos</item>
+    </plurals>
+    <string name="ld_backfill_everything">Tudo</string>
+    <string name="ld_backfill_goes_to">Vai para %1$s.</string>
+    <string name="ld_backfill_mobile_data">Isso pode demorar e usar dados móveis.</string>
+    <string name="ld_backfill_integration_note">Por enquanto, o Home Assistant recebe mais ou menos o último ano. Um webhook ou o Life Dashboard Stack recebe tudo.</string>
+    <string name="ld_backfill_start">Iniciar, %1$s</string>
+    <string name="ld_backfill_view">Ver</string>
+    <string name="ld_backfill_short_waiting">Aguardando</string>
+    <string name="ld_backfill_short_paused">Pausado em %1$d/%2$d</string>
+    <string name="ld_backfill_running_heading">Enviando histórico: %1$d de %2$d.</string>
+    <string name="ld_backfill_paused_heading">Pausado em %1$d de %2$d.</string>
+    <string name="ld_backfill_waiting_heading">Aguardando a sincronização.</string>
+    <string name="ld_backfill_starting_heading">Iniciando o envio do histórico.</string>
+    <string name="ld_backfill_failed_heading">O envio do histórico parou.</string>
+    <string name="ld_backfill_done_heading">Envio do histórico concluído.</string>
+    <string name="ld_backfill_progress_a11y">Progresso do envio do histórico, %1$d de %2$d blocos</string>
+    <plurals name="ld_backfill_records_leave">
+        <item quantity="one">%1$s registro enviado. Você pode sair desta tela.</item>
+        <item quantity="many">%1$s registros enviados. Você pode sair desta tela.</item>
+        <item quantity="other">%1$s registros enviados. Você pode sair desta tela.</item>
+    </plurals>
+    <string name="ld_backfill_can_leave">Você pode sair desta tela.</string>
+    <plurals name="ld_backfill_records_sent">
+        <item quantity="one">%1$s registro enviado</item>
+        <item quantity="many">%1$s registros enviados</item>
+        <item quantity="other">%1$s registros enviados</item>
+    </plurals>
+    <string name="ld_backfill_stop_discard">Parar e descartar</string>
+    <string name="ld_backfill_stop_hint">Esquece o progresso. Os dados já enviados continuam no seu servidor.</string>
+    <string name="ld_backfill_continue">Continuar</string>
+    <string name="ld_backfill_choose_length">Escolher um período</string>
+    <string name="ld_preview_intro">É isso que o seu servidor recebe.</string>
+    <string name="ld_preview_no_types">Nenhum tipo de dado selecionado</string>
+    <string name="ld_preview_nothing_new">Nenhum dado novo desde a última sincronização, então uma sincronização não enviaria nada agora. Enviar histórico envia de novo os registros mais antigos.</string>
+    <string name="ld_when_every">A cada %1$d minutos.</string>
+    <plurals name="ld_when_times">
+        <item quantity="one">%d vez por dia.</item>
+        <item quantity="many">%1$d vezes por dia.</item>
+        <item quantity="other">%1$d vezes por dia.</item>
+    </plurals>
+    <string name="ld_when_never">Nunca sincroniza</string>
+    <string name="ld_when_fixed_times">Horários fixos</string>
+    <string name="ld_when_mode">Modo de sincronização</string>
+    <string name="ld_when_minimum">O mínimo é de %1$d minutos.</string>
+    <string name="ld_when_limits">Limites</string>
+    <string name="ld_receive_heading_off">O recebimento está desativado.</string>
+    <string name="ld_receive_heading_on">Do Home Assistant.</string>
+    <string name="ld_receive_heading_waiting">Aguardando a próxima sincronização.</string>
+    <string name="ld_receive_heading_choose">Escolha o que receber.</string>
+    <string name="ld_receive_heading_permission">Falta permissão.</string>
+    <string name="ld_receive_intro">As medições voltam a cada sincronização e vão para o Conexão Saúde.</string>
+    <string name="ld_receive_measurements">Receber medições</string>
+    <string name="ld_receive_source">Origem</string>
+    <string name="ld_receive_types">Tipos</string>
+    <string name="ld_advanced_connection">Conexão</string>
+    <string name="ld_advanced_client_cert_used">Usado em todos os webhooks</string>
+    <plurals name="ld_advanced_hosts">
+        <item quantity="one">%1$d host</item>
+        <item quantity="many">%1$d hosts</item>
+        <item quantity="other">%1$d hosts</item>
+    </plurals>
+    <string name="ld_certificates_empty">Ainda não há webhooks https. Adicione um para escolher aqui como confiar no servidor dele.</string>
+    <string name="ld_notifications_note">Você também é avisado quando nem todo destino recebe seus dados e quando dados são perdidos.</string>
+    <string name="ld_notifications_blocked_title">O Android não está mostrando estas notificações</string>
+    <string name="ld_notifications_blocked_body">Elas estão desativadas para este app nas configurações do Android, então uma sincronização com falha passa em silêncio até você permiti-las lá.</string>
+    <string name="ld_export_heading">Exporte seus dados.</string>
+    <string name="ld_export_intro_health">Um arquivo com os tipos selecionados do Conexão Saúde.</string>
+    <string name="ld_export_intro_screen_time">Um arquivo com o seu tempo de tela dos últimos sete dias.</string>
+    <string name="ld_export_csv">Exportar CSV</string>
+    <string name="ld_export_json">Exportar JSON</string>
+    <string name="ld_export_opens_share">Abre o menu de compartilhamento.</string>
+    <string name="ld_export_no_types">Nenhum tipo de dado selecionado</string>
+    <string name="ld_backup_intro">Passe suas configurações para outro celular. Os logs e o progresso da sincronização ficam onde estão.</string>
+    <string name="ld_backup_choose_file">Escolher um arquivo de backup</string>
+    <string name="ld_backup_imported">Configurações importadas</string>
+    <string name="ld_logs_state">Falhas: %1$d, entregas: %2$d.</string>
+    <string name="ld_logs_nothing_yet">Nada enviado ainda.</string>
+    <string name="ld_logs_empty_note">Cada entrega e publicação MQTT aparece aqui. A lista guarda as últimas %1$d.</string>
+    <string name="ld_logs_outbox_empty">Fila de saída vazia</string>
+    <plurals name="ld_logs_pending">
+        <item quantity="one">%1$d pendente</item>
+        <item quantity="many">%1$d pendentes</item>
+        <item quantity="other">%1$d pendentes</item>
+    </plurals>
+    <string name="ld_logs_success_rate">%1$d%% de sucesso</string>
+    <plurals name="ld_logs_deliveries">
+        <item quantity="one">%1$s entrega</item>
+        <item quantity="many">%1$s entregas</item>
+        <item quantity="other">%1$s entregas</item>
+    </plurals>
+    <plurals name="ld_logs_records">
+        <item quantity="one">%1$s registro</item>
+        <item quantity="many">%1$s registros</item>
+        <item quantity="other">%1$s registros</item>
+    </plurals>
+    <plurals name="ld_logs_sensors">
+        <item quantity="one">%1$s sensor</item>
+        <item quantity="many">%1$s sensores</item>
+        <item quantity="other">%1$s sensores</item>
+    </plurals>
+    <plurals name="ld_logs_apps">
+        <item quantity="one">%1$s app</item>
+        <item quantity="many">%1$s apps</item>
+        <item quantity="other">%1$s apps</item>
+    </plurals>
+    <plurals name="ld_logs_written">
+        <item quantity="one">%1$s gravada</item>
+        <item quantity="many">%1$s gravadas</item>
+        <item quantity="other">%1$s gravadas</item>
+    </plurals>
+    <string name="ld_logs_by_section">Saúde %1$d / %2$d · Tempo de tela %3$d / %4$d</string>
+    <string name="ld_logs_filter_failed">Falhas %1$d</string>
+    <string name="ld_logs_no_match">Nenhum log corresponde a este filtro.</string>
+    <string name="ld_logs_send_test">Enviar teste</string>
+    <string name="ld_logs_delete">Apagar</string>
+    <string name="ld_logs_show_details">Mostrar os detalhes</string>
+    <string name="ld_logs_show_actions">Mostrar as ações</string>
+    <string name="ld_logs_size_stored">%1$s guardados</string>
+    <string name="ld_logs_headline">%1$s %2$s</string>
+    <string name="ld_logs_accepted">%1$s aceitou esta entrega.</string>
+    <string name="ld_logs_not_accepted">%1$s não aceitou esta entrega.</string>
+    <string name="ld_logs_broker_accepted">O broker aceitou esta publicação.</string>
+    <string name="ld_logs_key_time">Horário</string>
+    <string name="ld_logs_key_url">URL</string>
+    <string name="ld_logs_key_status">Status</string>
+    <string name="ld_logs_key_note">Observação</string>
+    <string name="ld_logs_key_sensors">Sensores</string>
+    <string name="ld_logs_key_apps">Apps</string>
+    <string name="ld_logs_key_type">Tipo</string>
+    <string name="ld_logs_key_section">Seção</string>
+    <string name="ld_logs_key_payload_size">Tamanho do payload</string>
+    <string name="ld_logs_gone">Esta entrega não está mais no log.</string>
+    <string name="ld_logs_readings">Leituras</string>
+    <string name="ld_logs_values_note">Uma leitura só mantém o valor enquanto Guardar payloads completos estiver ativado.</string>
+    <string name="ld_screen_heading_total">%1$s no seu celular.</string>
+    <string name="ld_screen_heading_no_access">Permita o acesso aos dados de uso.</string>
+    <string name="ld_screen_no_access_body">O Android pede que você ative isso nas configurações dele. Sem isso, o app não consegue ver quanto tempo você usou cada app.</string>
+    <string name="ld_screen_open_settings">Abrir as configurações do Android</string>
+    <string name="ld_screen_most_used">Mais usados hoje</string>
+    <string name="ld_screen_nothing_today">Nenhum app foi usado por mais de um minuto hoje.</string>
+    <string name="ld_screen_status_no_deliveries">Nenhuma entrega ainda</string>
+    <string name="ld_screen_status_just_now">agora mesmo</string>
+    <string name="ld_screen_status_http">HTTP %1$d, %2$s</string>
+    <string name="ld_screen_status_failed">Falhou, %1$s</string>
+    <string name="ld_screen_broker_named">Broker %1$s</string>
+    <string name="ld_screen_more_summary">Avançado, sobre</string>
+    <string name="ld_screen_secrets_unavailable">O armazenamento seguro está indisponível, então os cabeçalhos de autenticação, os segredos de assinatura e as senhas MQTT salvos não podem ser lidos nem alterados agora. Desbloqueie o dispositivo e abra o app de novo. Nada é guardado sem criptografia.</string>
+    <string name="ld_screen_preview_payload">Prévia do payload</string>
+    <string name="ld_screen_apps_description_all">Todos os apps são enviados. A interface do sistema e a tela inicial sempre ficam de fora.</string>
+    <string name="ld_screen_apps_description_except">Tudo menos os apps que você marcar. Cada dia continua contando todos os apps em total_screen_time_minutes; os apps enviados somam filtered_screen_time_minutes.</string>
+    <string name="ld_screen_apps_description_only">Só os apps que você marcar. Cada dia continua contando todos os apps em total_screen_time_minutes; os apps enviados somam filtered_screen_time_minutes.</string>
+    <string name="ld_screen_apps_history_warning">Cada sincronização envia de novo os últimos sete dias, então uma mudança aqui também altera esses dias nos seus destinos.</string>
+    <string name="ld_screen_apps_search_label">Pesquisar</string>
+    <string name="ld_screen_apps_used_label">Usados nos últimos 30 dias</string>
+    <string name="ld_screen_apps_no_match">Nenhum app corresponde a esta pesquisa.</string>
+    <string name="ld_screen_day_heading">Seu dia começa às %1$s.</string>
+    <string name="ld_screen_day_body">A atividade antes deste horário conta para o dia anterior, então um filme até tarde fica com a noite em que começou.</string>
+    <string name="ld_screen_day_whole_hours">Só horas cheias.</string>
+    <string name="ld_screen_when_never">Nunca sincroniza</string>
+    <string name="ld_screen_when_every_hour">A cada hora.</string>
+    <plurals name="ld_screen_when_every_hours">
+        <item quantity="one">A cada %1$d hora.</item>
+        <item quantity="many">A cada %1$d horas.</item>
+        <item quantity="other">A cada %1$d horas.</item>
+    </plurals>
+    <plurals name="ld_screen_when_every_minutes">
+        <item quantity="one">A cada %1$d minuto.</item>
+        <item quantity="many">A cada %1$d minutos.</item>
+        <item quantity="other">A cada %1$d minutos.</item>
+    </plurals>
+    <plurals name="ld_screen_when_times_a_day">
+        <item quantity="one">%1$d vez por dia.</item>
+        <item quantity="many">%1$d vezes por dia.</item>
+        <item quantity="other">%1$d vezes por dia.</item>
+    </plurals>
+    <string name="ld_screen_when_note">Cada sincronização envia os últimos 7 dias. Esta agenda é separada da de Saúde.</string>
+    <string name="ld_screen_when_limits">Limites</string>
+    <string name="ld_about_heading">Seus dados vão para onde você mandar.</string>
+    <string name="ld_about_connected">Conectado</string>
+    <string name="ld_about_pair_code">Parear com um código</string>
+    <string name="ld_about_set_up_stack">Configurar o Stack</string>
+    <string name="ld_about_own_server">Seu próprio servidor</string>
+    <string name="ld_about_own_server_sub">Código de pareamento, webhook ou MQTT</string>
+    <string name="ld_about_no_cloud">Sem conta e sem nuvem. Também no iPhone.</string>
+    <string name="ld_about_version_line">Life Dashboard Companion, versão %1$s. Feito por Owen Vogelaar.</string>
+    <string name="ld_about_show_nerd">Mostrar estatísticas nerd</string>
+    <string name="ld_about_help_sub">Guia, novidades</string>
+    <string name="ld_about_support_sub">Avaliar, estrela no GitHub</string>
+    <string name="ld_about_privacy_sub">Sem rastreadores</string>
+    <string name="ld_about_source_sub">Licença MIT</string>
+    <string name="ld_about_setup_guide">Guia de configuração</string>
+    <string name="ld_about_questions">Dúvidas</string>
+    <string name="ld_about_mail">E-mail</string>
+    <string name="ld_about_support_intro">Uma avaliação ou uma estrela ajuda outras pessoas a encontrar o app.</string>
+    <string name="ld_about_star">Dar uma estrela no GitHub</string>
+    <string name="ld_about_source_intro">Você pode ler cada linha que este app executa.</string>
+    <string name="ld_about_receiver">Conecte seu próprio receptor</string>
+    <string name="ld_about_receiver_sub">Deixe seus usuários parearem escaneando um QR code</string>
+    <string name="ld_about_typefaces_title">Fontes</string>
+    <string name="ld_about_no_app_for_link">Nenhum app neste celular consegue abrir este link</string>
+    <string name="ld_about_typefaces">As fontes Space Grotesk e Space Mono estão sob a SIL Open Font License.</string>
+    <string name="ld_onboarding_welcome_body">Envie seus dados de saúde e seu tempo de tela para o seu próprio Home Assistant ou servidor. Sem conta, sem nuvem.</string>
+    <string name="ld_onboarding_pick_one_or_both">Escolha um ou os dois.</string>
+    <string name="ld_onboarding_health_desc">Passos, sono, frequência cardíaca e mais</string>
+    <string name="ld_onboarding_screen_desc">Tempo por app neste celular</string>
+    <string name="ld_onboarding_scan_note">Para qualquer receptor que mostre um, como o Home Assistant, o Life Dashboard Stack ou o seu próprio servidor.</string>
+    <string name="ld_onboarding_own_server">Ou seu próprio servidor</string>
+    <string name="ld_onboarding_webhook_url">URL do webhook</string>
+    <string name="ld_onboarding_set_up">Configurar</string>
+    <string name="ld_onboarding_use">Usar</string>
+    <string name="ld_onboarding_mqtt_note">Começa na porta 1883 sem TLS. Depois, porta, TLS e login ficam na página do MQTT.</string>
+    <string name="ld_onboarding_later_desc">Escolha em “O que enviar”</string>
+    <string name="ld_onboarding_sending_to">Enviando para</string>
+    <string name="ld_onboarding_one_thing_left">Falta uma coisa</string>
+    <string name="ld_onboarding_two_things_left">Faltam duas coisas</string>
 </resources>

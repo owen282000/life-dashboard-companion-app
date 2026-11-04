@@ -6,75 +6,48 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
+import androidx.activity.viewModels
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import com.owen282000.lifedashboard.screens.HealthConnectScreen
-import com.owen282000.lifedashboard.screens.LogsScreen
-import com.owen282000.lifedashboard.screens.OnboardingScreen
 import com.owen282000.lifedashboard.screens.PairingDialog
 import com.owen282000.lifedashboard.screens.ScanScreen
-import com.owen282000.lifedashboard.screens.ScreenTimeScreen
-import com.owen282000.lifedashboard.ui.theme.*
-import com.owen282000.lifedashboard.ui.theme.ink
+import com.owen282000.lifedashboard.screens.ld.LDAppShell
+import com.owen282000.lifedashboard.screens.ld.OnboardingFlowScreen
+import com.owen282000.lifedashboard.ui.ld.LDDebugDestination
+import com.owen282000.lifedashboard.ui.ld.LDDebugRoute
+import com.owen282000.lifedashboard.ui.ld.LDNavigator
+import com.owen282000.lifedashboard.ui.ld.LDPairedPing
+import com.owen282000.lifedashboard.ui.ld.LDPairedResult
+import com.owen282000.lifedashboard.ui.ld.LDRoute
+import com.owen282000.lifedashboard.ui.ld.LDTheme
+import com.owen282000.lifedashboard.ui.ld.LocalLDPairing
+import com.owen282000.lifedashboard.ui.ld.homeTab
+import com.owen282000.lifedashboard.ui.ld.rememberLDNavigator
+import com.owen282000.lifedashboard.ui.theme.LifeDashboardTheme
 import com.owen282000.lifedashboard.viewmodel.HealthConnectViewModel
+import com.owen282000.lifedashboard.viewmodel.PairingViewModel
 import com.owen282000.lifedashboard.viewmodel.ScreenTimeViewModel
-import kotlinx.coroutines.launch
-
-enum class AppTab {
-    HealthConnect,
-    ScreenTime,
-    Logs
-}
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var preferencesManager: PreferencesManager
-    private var permissionStatusCallback: ((Boolean) -> Unit)? = null
 
-    /** A scanned or opened pairing link, waiting for the user to confirm or dismiss it. */
-    private val pendingPairing = mutableStateOf<PairingLink?>(null)
+    /** The scanner, the code waiting for an answer and the ping after Pair. They span both tabs and the wizard, and outlive a rotation. */
+    private val pairing: PairingViewModel by viewModels()
 
-    /** Whether the QR scanner is open. The Activity owns it: pairing spans both tabs. */
-    private val scanning = mutableStateOf(false)
+    /** The navigator of the shell on screen; a new one comes with each recreation of the Activity. */
+    private var navigator: LDNavigator? = null
 
-    /** The code last paired while the wizard is open, for the wizard to show. */
-    private val pairedInWizard = mutableStateOf<OnboardingSupport.WizardPairing?>(null)
+    /** A debug build's `ld.route` waiting for the shell, see [LDDebugRoute]. */
+    private val debugDestination = mutableStateOf<LDDebugDestination?>(null)
     private lateinit var permissionLauncher: androidx.activity.result.ActivityResultLauncher<Set<String>>
 
+    /** What comes back is read in the shell, which re-checks the permissions on resume. */
     private fun initializePermissionLauncher() {
         val requestPermissionActivityContract = androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
-
-        permissionLauncher = registerForActivityResult(requestPermissionActivityContract) { granted: Set<String> ->
-            lifecycleScope.launch {
-                val healthConnectManager = HealthConnectManager(this@MainActivity)
-                val grantedPermissions = healthConnectManager.getGrantedPermissions()
-                val hasAnyPerms = grantedPermissions.isNotEmpty()
-
-                permissionStatusCallback?.invoke(hasAnyPerms)
-            }
-        }
+        permissionLauncher = registerForActivityResult(requestPermissionActivityContract) { }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,55 +58,67 @@ class MainActivity : ComponentActivity() {
         initializePermissionLauncher()
         // Only on a fresh start. Android recreates the Activity on rotation with the same
         // intent, and a link the user already answered must not come back as a new one.
-        if (savedInstanceState == null) handlePairingIntent(intent)
+        if (savedInstanceState == null) {
+            handlePairingIntent(intent)
+            handleDebugIntent(intent)
+        }
 
         setContent {
             LifeDashboardTheme {
-                // First run: walk through the onboarding wizard before showing the main UI.
-                var showOnboarding by remember {
-                    mutableStateOf(!preferencesManager.onboardingCompleted())
-                }
-                if (showOnboarding) {
-                    OnboardingScreen(
-                        onFinished = { showOnboarding = false },
-                        onScanRequested = { scanning.value = true },
-                        paired = pairedInWizard.value
-                    )
-                } else {
-                    MainScreen(
-                        activity = this@MainActivity,
-                        permissionLauncher = permissionLauncher
-                    )
-                }
-
-                // Over the tabs and over the wizard: a scan from either lands in the same
-                // confirmation dialog as a link from the camera.
-                if (scanning.value) {
-                    ScanScreen(
-                        onScanned = { link ->
-                            scanning.value = false
-                            pendingPairing.value = link
-                        },
-                        onClose = { scanning.value = false }
-                    )
-                }
-
-                // Above both, so a link scanned during onboarding is not lost.
-                pendingPairing.value?.let { link ->
-                    PairingDialog(
-                        link = link,
-                        accent = HealthPrimary,
-                        currentHealth = preferencesManager.getDestinations(LogType.HEALTH_CONNECT),
-                        currentScreenTime = preferencesManager.getDestinations(LogType.SCREEN_TIME),
-                        onDismiss = { pendingPairing.value = null },
-                        onConfirm = { choice ->
-                            pendingPairing.value = null
-                            applyPairing(link, choice, inWizard = showOnboarding)
-                            // During onboarding the wizard stays open: its data-types step
-                            // is still worth answering, and finishing it never clears what
-                            // pairing just wrote.
+                LDTheme {
+                    CompositionLocalProvider(LocalLDPairing provides pairing.pairing) {
+                        // First run: walk through the onboarding flow before showing the main UI.
+                        var showOnboarding by rememberSaveable {
+                            mutableStateOf(
+                                when (debugDestination.value) {
+                                    null -> !preferencesManager.onboardingCompleted()
+                                    LDDebugDestination.Onboarding -> true
+                                    else -> false
+                                }
+                            )
                         }
-                    )
+                        if (showOnboarding) {
+                            OnboardingFlowScreen(
+                                onFinished = { showOnboarding = false },
+                                onScanRequested = { pairing.scanning = true },
+                                paired = pairing.pairedInWizard
+                            )
+                        } else {
+                            val shellNavigator = rememberLDNavigator()
+                            SideEffect { navigator = shellNavigator }
+                            LDAppShell(shellNavigator, permissionLauncher)
+                            LaunchedEffect(debugDestination.value) { applyDebugDestination(shellNavigator) }
+                        }
+
+                        // Over the tabs and over the wizard: a scan from either lands in the same
+                        // confirmation as a link from the camera.
+                        if (pairing.scanning) {
+                            ScanScreen(
+                                onScanned = { link ->
+                                    pairing.scanning = false
+                                    pairing.pending = link
+                                },
+                                onClose = { pairing.scanning = false }
+                            )
+                        }
+
+                        // Above both, so a link scanned during onboarding is not lost.
+                        pairing.pending?.let { link ->
+                            PairingDialog(
+                                link = link,
+                                currentHealth = preferencesManager.getDestinations(LogType.HEALTH_CONNECT),
+                                currentScreenTime = preferencesManager.getDestinations(LogType.SCREEN_TIME),
+                                onDismiss = { pairing.pending = null },
+                                onConfirm = { choice ->
+                                    pairing.pending = null
+                                    applyPairing(link, choice, inWizard = showOnboarding)
+                                    // During onboarding the wizard stays open: its data-types step
+                                    // is still worth answering, and finishing it never clears what
+                                    // pairing just wrote.
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -155,6 +140,44 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handlePairingIntent(intent)
+        handleDebugIntent(intent)
+    }
+
+    /** See [LDDebugRoute]: nothing happens outside a debug build. */
+    private fun handleDebugIntent(intent: Intent?) {
+        val name = LDDebugRoute.nameIn(this, intent) ?: return
+        val logs = preferencesManager.getWebhookLogs()
+        debugDestination.value = LDDebugRoute.named(
+            name,
+            newestLog = logs.firstOrNull()?.id,
+            newestFailedLog = logs.firstOrNull { !it.success }?.id,
+            newestOkLog = logs.firstOrNull { it.success }?.id,
+            firstHealthDestination = preferencesManager.getDestinations(LogType.HEALTH_CONNECT).firstOrNull()?.id,
+            firstScreenTimeDestination = preferencesManager.getDestinations(LogType.SCREEN_TIME).firstOrNull()?.id
+        )
+    }
+
+    private fun applyDebugDestination(navigator: LDNavigator) {
+        val destination = debugDestination.value ?: return
+        debugDestination.value = null
+        val example = (PairingLinks.parse(LDDebugRoute.EXAMPLE_PAIRING_LINK) as? PairingParse.Ok)?.link
+        when (destination) {
+            is LDDebugDestination.Page -> {
+                if (destination.route == LDRoute.PairedResult && example != null) {
+                    pairing.pairing.result = LDPairedResult(example, setOf(PairingSource.HEALTH), LDPairedPing.Delivered)
+                }
+                val tab = destination.route.homeTab
+                if (destination.route == tab.root) {
+                    navigator.selectTab(tab)
+                    navigator.popToRoot()
+                } else {
+                    navigator.open(destination.route)
+                }
+            }
+            LDDebugDestination.Scanner -> pairing.scanning = true
+            LDDebugDestination.Pairing -> pairing.pending = example
+            LDDebugDestination.Onboarding -> Unit
+        }
     }
 
     /**
@@ -166,7 +189,7 @@ class MainActivity : ComponentActivity() {
     private fun handlePairingIntent(intent: Intent?) {
         if (intent?.action != Intent.ACTION_VIEW) return
         when (val parsed = PairingLinks.parse(intent.dataString)) {
-            is PairingParse.Ok -> pendingPairing.value = parsed.link
+            is PairingParse.Ok -> pairing.pending = parsed.link
             is PairingParse.Invalid -> Toast.makeText(this, pairingProblemText(parsed.reason), Toast.LENGTH_LONG).show()
             PairingParse.NotAPairingLink -> Unit
         }
@@ -183,10 +206,9 @@ class MainActivity : ComponentActivity() {
     /**
      * Write the pairing, then tell the screens to re-read it.
      *
-     * The write goes through PreferencesManager because it spans both sections, while each
-     * ViewModel owns only its own unsaved draft. Those ViewModels live in this Activity's
-     * store (the screens create them with viewModel(factory = ...) and there is no
-     * NavHost), so these are the instances the tabs are showing.
+     * The write goes through PreferencesManager because it spans both sections. The ViewModels
+     * live in this Activity's store (the screens create them with viewModel(factory = ...) and
+     * there is no NavHost), so these are the instances the tabs are showing.
      */
     private fun applyPairing(link: PairingLink, choice: PairingChoice, inWizard: Boolean) {
         val result = PairingApply.apply(link, choice, preferencesManager.asPairingStore())
@@ -194,217 +216,24 @@ class MainActivity : ComponentActivity() {
         val written = result.written
         if (written.isEmpty()) return
 
-        // The wizard re-reads it instead. No ViewModel here: creating the tabs' ones now would
-        // load the settings before the wizard writes its data types and MQTT broker, and the
+        // The wizard re-reads it instead. No settings view model here: creating the tabs' ones now
+        // would load the settings before the wizard writes its data types and MQTT broker, and the
         // tabs would show those stale.
+        //
+        // The pairing checks itself: one test ping to the paired address, signed with the paired
+        // secret. The pairing is written before this and stays written whatever the ping says: a
+        // receiver that is down right now is still the one the user chose, and the next sync tries
+        // it again.
         if (inWizard) {
-            pairedInWizard.value = OnboardingSupport.WizardPairing(
-                link = link,
-                written = written,
-                seq = (pairedInWizard.value?.seq ?: 0) + 1
-            )
+            pairing.pairedInWizard(link, written)
+            pairing.confirmInWizard(link, written)
         } else {
             ViewModelProvider(this, HealthConnectViewModel.factory(this))[HealthConnectViewModel::class.java]
                 .reloadFromSettings()
             ViewModelProvider(this, ScreenTimeViewModel.factory(this))[ScreenTimeViewModel::class.java]
                 .reloadFromSettings()
-        }
-
-        confirmPairing(link, written)
-    }
-
-    /**
-     * The pairing checks itself: one test ping to the paired address, signed with the paired
-     * secret, and the outcome in a toast. The pairing is written before this and stays written
-     * whatever the ping says: a receiver that is down right now is still the one the user chose,
-     * and the next sync tries it again. Sent to the destination as it is stored now, so with the
-     * headers it has, like every sync to it: none when pairing added it.
-     */
-    private fun confirmPairing(link: PairingLink, written: Set<PairingSource>) {
-        val app = applicationContext
-        Toast.makeText(app, getString(R.string.pairing_ping_sending, link.host), Toast.LENGTH_SHORT).show()
-        lifecycleScope.launch {
-            val logType = if (PairingSource.HEALTH in written) LogType.HEALTH_CONNECT else LogType.SCREEN_TIME
-            val destination = preferencesManager.getDestinations(logType).firstOrNull { it.url == link.url }
-                ?: Destination(id = Destinations.newId(), url = link.url, secret = link.secret)
-            val result = TestPing.send(app, listOf(destination), logType)
-            val text = result.fold(
-                onSuccess = { app.getString(R.string.pairing_ping_delivered, link.host) },
-                onFailure = { app.getString(R.string.pairing_ping_failed, link.host, FailureReason.of(it).orEmpty()) }
-            )
-            Toast.makeText(app, text, Toast.LENGTH_LONG).show()
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun MainScreen(
-        activity: MainActivity,
-        permissionLauncher: androidx.activity.result.ActivityResultLauncher<Set<String>>
-    ) {
-        // Saveable, so turning the phone, a dark mode switch or a language change keeps the tab (P2-15).
-        var selectedTab by rememberSaveable { mutableStateOf(AppTab.HealthConnect) }
-        val context = LocalContext.current
-
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.background,
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            when (selectedTab) {
-                                AppTab.HealthConnect -> stringResource(R.string.main_title_health_connect)
-                                AppTab.ScreenTime -> stringResource(R.string.main_title_screen_time)
-                                AppTab.Logs -> stringResource(R.string.main_title_webhook_logs)
-                            },
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = {
-                                val intent = Intent(context, AboutActivity::class.java)
-                                context.startActivity(intent)
-                            }
-                        ) {
-                            Icon(
-                                Icons.Outlined.Info,
-                                contentDescription = stringResource(R.string.main_about),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent
-                    )
-                )
-            },
-            bottomBar = {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 3.dp,
-                    shadowElevation = 8.dp
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp)
-                            .navigationBarsPadding(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        // Health Connect Tab
-                        NavBarItem(
-                            selected = selectedTab == AppTab.HealthConnect,
-                            onClick = { selectedTab = AppTab.HealthConnect },
-                            icon = if (selectedTab == AppTab.HealthConnect)
-                                Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                            label = stringResource(R.string.main_tab_health),
-                            selectedColor = HealthPrimary,
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        // Screen Time Tab
-                        NavBarItem(
-                            selected = selectedTab == AppTab.ScreenTime,
-                            onClick = { selectedTab = AppTab.ScreenTime },
-                            icon = if (selectedTab == AppTab.ScreenTime)
-                                Icons.Filled.PhoneAndroid else Icons.Outlined.PhoneAndroid,
-                            label = stringResource(R.string.main_title_screen_time),
-                            selectedColor = ScreenTimePrimary,
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        // Logs Tab
-                        NavBarItem(
-                            selected = selectedTab == AppTab.Logs,
-                            onClick = { selectedTab = AppTab.Logs },
-                            icon = if (selectedTab == AppTab.Logs)
-                                Icons.Filled.History else Icons.Outlined.History,
-                            label = stringResource(R.string.main_tab_logs),
-                            selectedColor = LogsPrimary,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-        ) { padding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    // All four sides: in landscape the navigation bar sits on the right.
-                    .padding(padding)
-            ) {
-                AnimatedContent(
-                    targetState = selectedTab,
-                    transitionSpec = {
-                        fadeIn(animationSpec = androidx.compose.animation.core.tween(300)) togetherWith
-                        fadeOut(animationSpec = androidx.compose.animation.core.tween(300))
-                    },
-                    label = "tab_transition"
-                ) { tab ->
-                    when (tab) {
-                        AppTab.HealthConnect -> HealthConnectScreen(
-                            permissionLauncher = permissionLauncher,
-                            onPermissionResult = { granted ->
-                                activity.permissionStatusCallback?.invoke(granted)
-                            },
-                            onScanRequested = { activity.scanning.value = true }
-                        )
-                        AppTab.ScreenTime -> ScreenTimeScreen(
-                            onScanRequested = { activity.scanning.value = true }
-                        )
-                        AppTab.Logs -> LogsScreen()
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun NavBarItem(
-    selected: Boolean,
-    onClick: () -> Unit,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    selectedColor: Color,
-    modifier: Modifier = Modifier
-) {
-    val backgroundColor = if (selected) selectedColor.copy(alpha = 0.12f) else Color.Transparent
-    val contentColor = if (selected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant
-
-    Surface(
-        onClick = onClick,
-        // The label below names the tab; the tint is what says it is the open one.
-        modifier = modifier
-            .padding(horizontal = 4.dp)
-            .semantics {
-                role = Role.Tab
-                this.selected = selected
-            },
-        shape = RoundedCornerShape(16.dp),
-        color = backgroundColor
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(vertical = 8.dp, horizontal = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = icon,
-                // The text under it already says it; naming the icon too made TalkBack say it twice.
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                color = contentColor.ink()
-            )
+            pairing.confirmOnPage(link, written)
+            navigator?.open(LDRoute.PairedResult)
         }
     }
 }

@@ -1,0 +1,1 @@
+Santé Connect et temps d’écran vers votre Home Assistant, MQTT ou webhook.

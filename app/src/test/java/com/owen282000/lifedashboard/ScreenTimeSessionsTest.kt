@@ -4,6 +4,7 @@ import android.app.usage.UsageEvents
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -220,5 +221,13 @@ class ScreenTimeSessionsTest {
             setOf("com.google.android.apps.nexuslauncher", "com.sec.android.app.launcher"),
             ScreenTimeSessions.launcherPackages(home)
         )
+    }
+
+    @Test
+    fun `the launchers of the common phones are known by name`() {
+        // The HOME query finds nothing on Android 11 and later without a queries entry for it.
+        assertTrue("com.google.android.apps.nexuslauncher" in ScreenTimeSessions.KNOWN_LAUNCHER_PACKAGES)
+        assertTrue("com.sec.android.app.launcher" in ScreenTimeSessions.KNOWN_LAUNCHER_PACKAGES)
+        assertFalse("com.android.settings" in ScreenTimeSessions.KNOWN_LAUNCHER_PACKAGES)
     }
 }

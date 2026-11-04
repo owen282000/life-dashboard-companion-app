@@ -15,7 +15,7 @@ Last updated October 4, 2026, for version 1.23.0.
 
 The rest of this page gives the details, and every statement can be checked against the [source code](#open-source).
 
-The app shows a summary of this policy under **About > Privacy policy**. Health Connect opens the same screen from the privacy policy link on its permission screen.
+The app shows a summary of this policy under **More > About > Privacy**. Health Connect opens the same screen from the privacy policy link on its permission screen.
 
 ## Contents
 
@@ -76,7 +76,7 @@ Under **Apps to send** on the **Screen Time** tab you can leave apps out (**All 
 - Your settings: destinations, headers, sync intervals and enabled types. Secrets (auth headers, HMAC signing keys and MQTT passwords) are encrypted with a key in the Android Keystore that never leaves the phone.
 - Sync progress, so each record is sent once.
 - With **Receive** on, a small list of the measurement IDs the app has written and their versions, so a measurement Home Assistant sends again is not written twice. It is cleared when the address or the secret changes.
-- A delivery log (the **Logs** tab) with up to the last 100 deliveries. Payloads in this log are cut short unless you switch on **Keep full payloads**. For measurements received from Home Assistant, the log keeps the entity ID, the type, the measurement time and the outcome, and the values only with **Keep full payloads**. You can clear it at any time with **Clear logs** on the **Logs** tab.
+- A delivery log (the **Logs** tab) with up to the last 100 deliveries. Payloads in this log are cut short unless you switch on **Keep full payloads** under **More > Advanced**. For measurements received from Home Assistant, the log keeps the entity ID, the type, the measurement time and the outcome, and the values only with **Keep full payloads**. You can clear it at any time with **Clear** on the **Logs** tab, or delete a single row.
 - An outbox of payloads that could not be delivered yet, so a sync survives a server being down. A payload leaves the outbox once it is delivered, after a week of refusals by the server, or when it is the oldest and 700 Health Connect payloads are waiting. Screen Time keeps only its newest unsent week. Anything dropped without being delivered is noted in the **Logs** tab and in a notification.
 
 Android's own backup (to your Google account, or to a new phone) includes your settings if you have it switched on, but never the secrets, the delivery log, the outbox payloads or the Receive list. After a restore you enter the secrets again.

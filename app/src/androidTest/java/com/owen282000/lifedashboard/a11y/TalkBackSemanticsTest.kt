@@ -1,6 +1,5 @@
 package com.owen282000.lifedashboard.a11y
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -26,26 +25,25 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.owen282000.lifedashboard.Destination
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.R
-import com.owen282000.lifedashboard.screens.DataTypesRow
-import com.owen282000.lifedashboard.screens.SwitchLine
-import com.owen282000.lifedashboard.screens.SyncMessageLine
-import com.owen282000.lifedashboard.screens.WebhookRow
-import com.owen282000.lifedashboard.ui.theme.HealthPrimary
+import com.owen282000.lifedashboard.screens.ld.HeaderRow
+import com.owen282000.lifedashboard.screens.ld.LDSyncMessageLine
+import com.owen282000.lifedashboard.ui.ld.LDOption
+import com.owen282000.lifedashboard.ui.ld.LDOptionMark
+import com.owen282000.lifedashboard.ui.ld.LDTheme
+import com.owen282000.lifedashboard.ui.ld.LDToggleRow
 import com.owen282000.lifedashboard.viewmodel.UiMessage
-import com.owen282000.lifedashboard.viewmodel.WebhookActions
-import com.owen282000.lifedashboard.viewmodel.WebhookDraft
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * What TalkBack is given by the shared pieces of the tabs: a switch row is one named switch,
- * a sync result is a live region, a type without permission says so, and a remove cross is a
- * full-size target. Asserted on the semantics tree, which is what TalkBack reads.
+ * What TalkBack is given by the kit's shared pieces: a switch row is one named switch, a sync
+ * result is a live region, a type without permission says so and still says On or Off, a check
+ * option is a checkbox, and a remove cross is a full-size target. Asserted on the semantics tree,
+ * which is what TalkBack reads.
  */
 @RunWith(AndroidJUnit4::class)
 class TalkBackSemanticsTest {
@@ -58,11 +56,11 @@ class TalkBackSemanticsTest {
     private fun hasRole(role: Role) = SemanticsMatcher.expectValue(SemanticsProperties.Role, role)
 
     @Test
-    fun aSwitchLineIsOneNamedSwitchThatTheWholeRowFlips() {
+    fun aSwitchRowIsOneNamedSwitchThatTheWholeRowFlips() {
         var checked by mutableStateOf(false)
         compose.setContent {
-            MaterialTheme {
-                SwitchLine("Allow plain HTTP", "Only on your own network", checked, HealthPrimary) { checked = it }
+            LDTheme {
+                LDToggleRow("Allow plain HTTP", checked, { checked = it }, subtitle = "Only on your own network")
             }
         }
         compose.onAllNodes(isToggleable()).assertCountEquals(1)
@@ -78,7 +76,7 @@ class TalkBackSemanticsTest {
     @Test
     fun theSyncResultIsReadOutWhenItAppears() {
         var message by mutableStateOf<UiMessage?>(null)
-        compose.setContent { MaterialTheme { SyncMessageLine(message, HealthPrimary) } }
+        compose.setContent { LDTheme { LDSyncMessageLine(message) } }
         message = UiMessage.PingDelivered
         compose.onNodeWithText(res.getString(R.string.health_test_ping_delivered))
             .assert(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))
@@ -87,52 +85,51 @@ class TalkBackSemanticsTest {
     @Test
     fun aTypeWithoutPermissionSaysSoAndIsStillOneSwitch() {
         val type = HealthDataType.entries.first()
+        val name = res.getString(type.displayNameRes)
+        var checked by mutableStateOf(true)
         compose.setContent {
-            MaterialTheme {
-                DataTypesRow(
-                    accent = HealthPrimary,
-                    enabledTypes = emptySet(),
-                    grantedPermissions = emptySet(),
-                    expanded = true,
-                    onToggle = {},
-                    onToggleType = { _, _ -> }
-                )
+            LDTheme {
+                LDToggleRow(name, checked, { checked = it }, locked = true)
             }
         }
-        val label = res.getString(R.string.health_type_permission_missing_a11y, res.getString(type.displayNameRes))
-        compose.onNode(hasContentDescription(label))
+        compose.onAllNodes(isToggleable()).assertCountEquals(1)
+        // On and Off stay TalkBack's own, so a locked row that is on is announced as on.
+        compose.onNodeWithText(name)
             .assert(hasRole(Role.Switch))
-            .assertIsOff()
+            .assert(hasContentDescription(res.getString(R.string.ld_type_locked)))
+            .assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.StateDescription))
+            .assertIsOn()
+        compose.onNodeWithText(name).performClick()
+        compose.onNodeWithText(name).assertIsOff()
     }
 
     @Test
-    fun theRemoveCrossOfAWebhookIsAFullTouchTarget() {
+    fun aCheckOptionIsACheckbox() {
+        var selected by mutableStateOf(false)
         compose.setContent {
-            MaterialTheme {
-                WebhookRow(
-                    accent = HealthPrimary,
-                    webhook = WebhookDraft(destinations = listOf(Destination(id = "ha", url = "https://ha.example/api/webhook/x"))),
-                    expanded = true,
-                    onToggle = {},
-                    actions = object : WebhookActions {
-                        override fun addUrl(url: String) = Unit
-                        override fun setDestinationUrl(id: String, url: String) = Unit
-                        override fun removeDestination(id: String) = Unit
-                        override fun addHeader(id: String, key: String, value: String) = Unit
-                        override fun removeHeader(id: String, key: String) = Unit
-                        override fun setSecret(id: String, secret: String) = Unit
-                        override fun copyHeaders(id: String, from: String) = Unit
-                        override fun copySecret(id: String, from: String) = Unit
-                    },
-                    onScanRequested = {}
-                )
+            LDTheme {
+                LDOption("Health Connect", selected, { selected = !selected }, mark = LDOptionMark.Check)
             }
         }
-        compose.onAllNodesWithContentDescription(res.getString(R.string.common_remove)).assertCountEquals(1)
-        // The visible button is no longer squeezed to 32dp, and it is touched at the full 48dp.
-        compose.onNodeWithContentDescription(res.getString(R.string.common_remove))
-            .assertWidthIsAtLeast(40.dp)
-            .assertHeightIsAtLeast(40.dp)
+        compose.onNodeWithText("Health Connect")
+            .assert(hasRole(Role.Checkbox))
+            .assertIsOff()
+            .performClick()
+        compose.onNodeWithText("Health Connect").assertIsOn()
+    }
+
+    @Test
+    fun theRemoveCrossOfAHeaderIsAFullTouchTarget() {
+        val label = res.getString(R.string.ld_remove_named, "X-Api-Key")
+        compose.setContent {
+            LDTheme {
+                HeaderRow("X-Api-Key", "Bearer secret", onRemove = {})
+            }
+        }
+        compose.onAllNodesWithContentDescription(label).assertCountEquals(1)
+        compose.onNodeWithContentDescription(label)
+            .assertWidthIsAtLeast(48.dp)
+            .assertHeightIsAtLeast(48.dp)
             .assertTouchWidthIsEqualTo(48.dp)
             .assertTouchHeightIsEqualTo(48.dp)
     }

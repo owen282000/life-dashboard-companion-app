@@ -15,7 +15,9 @@ import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
 import com.owen282000.lifedashboard.HealthPermissionRequests
 import com.owen282000.lifedashboard.HealthSyncResult
+import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.MqttSection
+import com.owen282000.lifedashboard.NoNewDataToPreview
 import com.owen282000.lifedashboard.ReceiveSettings
 import com.owen282000.lifedashboard.ReceiveStatus
 import com.owen282000.lifedashboard.SeriesResolution
@@ -23,9 +25,13 @@ import com.owen282000.lifedashboard.ServerTrust
 import com.owen282000.lifedashboard.SourceApps
 import com.owen282000.lifedashboard.SourceUrlChoice
 import com.owen282000.lifedashboard.SyncSchedule
+import com.owen282000.lifedashboard.TodayKind
+import com.owen282000.lifedashboard.TodayStat
+import com.owen282000.lifedashboard.TodayState
 import com.owen282000.lifedashboard.WriteBackPayload
 import com.owen282000.lifedashboard.WriteBackType
 import com.owen282000.lifedashboard.appPreferences
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -37,17 +43,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 data class HealthUiState(
+    /** The settings as they are stored. What a page edits, it holds in a draft of its own until its Save. */
     val saved: HealthDraft,
-    val draft: HealthDraft,
     val availability: HcAvailability = HcAvailability.AVAILABLE,
-    /** null until the first permission check has run. */
+    /** Whether any data type can be read; null until the first permission check has run. Background or write access alone does not count. */
     val hasPermissions: Boolean? = null,
     val grantedPermissions: Set<String> = emptySet(),
-    /** Bumped after a manual sync so the dashboard card reloads, as on the Screen Time tab. */
+    /** Bumped after a sync, here or in the worker, so the dashboard card reloads, as on the Screen Time tab. */
     val refreshKey: Int = 0,
     val includeDailyTotals: Boolean = false,
     /** Record metadata on every record (P2-7); applied at once, like daily totals. */
     val includeRecordMetadata: Boolean = false,
+    /** Whole payloads in the logs instead of the first part; applied at once. */
+    val keepFullPayloads: Boolean = false,
     val allowHttpWebhooks: Boolean = false,
     /** KeyChain alias of the client certificate (mTLS) presented to webhooks, null for none. */
     val clientCertAlias: String? = null,
@@ -61,6 +69,8 @@ data class HealthUiState(
     val secretsNeedReentry: Boolean = false,
     val mqttLastStatus: String? = null,
     val isSyncing: Boolean = false,
+    /** A sync in the worker, not asked for on this screen: a schedule, the widget, the tile or a broadcast. */
+    val workerSyncing: Boolean = false,
     val isPreviewing: Boolean = false,
     val isPinging: Boolean = false,
     val isExporting: Boolean = false,
@@ -74,10 +84,22 @@ data class HealthUiState(
     val backfillRestarted: Boolean = false,
     /** The line under the sync actions; stays until the next action replaces it. */
     val syncMessage: UiMessage? = null,
+    /**
+     * [UiMessage.SecretsNotReady] after a removal the secure storage refused: nothing changed, and
+     * a screen shows it with Try again ([SectionActions.retryRefused]). A screen's own Save gets
+     * the refusal as its return value instead, because going back there has to discard the draft.
+     */
+    val refused: UiMessage? = null,
+    /** The figures of the Today panel, read by [HealthConnectViewModel.refreshToday]. */
+    val today: TodayState = TodayState(),
     val previewData: String? = null,
+    /** Why there is no [previewData], for the page to say and go on saying; null while none was asked for or it came. */
+    val previewProblem: UiMessage? = null,
     val exportJson: String? = null,
     /** A data type whose toggle needs a permission grant first. */
     val permissionPrompt: HealthDataType? = null,
+    /** Why the last request for a permission did not go out: Health Connect is not there to ask. What is selected stays. */
+    val accessBlocked: HcAvailability? = null,
     val backfillDialog: Boolean = false,
     /** A stopped backfill that choosing its length in the dialog continues; read when the dialog opens. */
     val stoppedBackfill: BackfillJob? = null,
@@ -96,8 +118,6 @@ data class HealthUiState(
     /** More than one webhook looks like the integration's; the user picks the source. */
     val receiveSourceChoice: List<String>? = null
 ) {
-    val hasChanges: Boolean get() = draft.differsFrom(saved)
-
     /**
      * Whether Receive can be switched on: the saved section has a destination that looks like
      * the integration's and has a signing secret. Only then does the Receive row stop asking to pair.
@@ -105,26 +125,37 @@ data class HealthUiState(
     val receiveAvailable: Boolean get() =
         WriteBackPayload.sourceUrlChoice(saved.webhook.urlsWithSecret) != SourceUrlChoice.None
 
+    /** Sync Now says Syncing for either kind: one started now would only wait for the other. */
+    val isSyncBusy: Boolean get() = isSyncing || workerSyncing
+
     /**
      * A phone that only receives has nothing to read, but every sync is still the round trip that fetches measurements.
      * A running backfill holds the sync lock, so a sync started then would only wait for it; a
      * paused one holds nothing until WorkManager runs it again.
      */
     val canSync: Boolean get() =
-        !isSyncing && (backfillProgress == null || backfillPaused) && draft.hasDestination &&
-            (draft.enabledTypes.isNotEmpty() || receive.enabled)
+        !isSyncBusy && (backfillProgress == null || backfillPaused) && saved.hasDestination &&
+            (saved.enabledTypes.isNotEmpty() || receive.enabled)
 }
 
 /** Everything the Health Connect screen can ask for; the view model implements it, previews can fake it. */
-interface HealthActions : WebhookActions {
-    fun setSyncInterval(text: String)
-    fun setSchedule(schedule: ScheduleDraft)
+interface HealthActions : SectionActions {
+    /** Stored at once. */
     fun setResolution(type: HealthDataType, resolution: SeriesResolution)
+
+    /** Stored at once when it is off or the permission is there; otherwise asks, see [HealthUiState.permissionPrompt]. */
     fun toggleType(type: HealthDataType, enabled: Boolean)
+
+    /**
+     * The shortcuts Essentials, All types and None: sets the switches to [types] at once. The
+     * ones without their permission are asked for together and go on once granted.
+     */
+    fun applyTypes(types: Set<HealthDataType>)
     fun dismissPermissionPrompt()
-    fun setMqtt(mqtt: MqttDraft)
+
     fun setIncludeDailyTotals(enabled: Boolean)
     fun setIncludeRecordMetadata(enabled: Boolean)
+    fun setKeepFullPayloads(enabled: Boolean)
     fun setAllowHttpWebhooks(enabled: Boolean)
     fun setClientCertAlias(alias: String?)
 
@@ -136,14 +167,10 @@ interface HealthActions : WebhookActions {
 
     /** The banner about lost secrets was dismissed. */
     fun dismissSecretsLost()
-    fun save()
 
     /**
-     * Re-read the settings from storage, discarding the draft.
-     *
-     * For changes made outside this screen, such as QR pairing writing the webhook
-     * address and secret for both sections at once. Saved and draft are set together, so
-     * the unsaved-changes bar does not appear for something the user did not type.
+     * Re-read the settings from storage, for changes made outside this view model, such as QR
+     * pairing writing the webhook address and secret for both sections at once.
      */
     fun reloadFromSettings()
     fun syncNow()
@@ -168,7 +195,7 @@ interface HealthActions : WebhookActions {
     /** The read permission of the type in [HealthUiState.permissionPrompt]; the switch goes on once it is granted. */
     fun requestTypePermission()
 
-    // Receive (issue #62). Applied at once, like the other settings that are not part of the draft.
+    // Receive (issue #62). Applied at once.
     fun setReceiveEnabled(enabled: Boolean)
     fun toggleReceiveType(type: WriteBackType, enabled: Boolean)
     fun setReceiveOlderMeasurements(enabled: Boolean)
@@ -187,9 +214,9 @@ class HealthConnectViewModel(
         settings.loadHealth().let { saved ->
             HealthUiState(
                 saved = saved,
-                draft = saved,
                 includeDailyTotals = settings.includeDailyTotals(),
                 includeRecordMetadata = settings.includeRecordMetadata(),
+                keepFullPayloads = settings.keepFullPayloads(),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
                 serverTrust = settings.serverTrust(),
@@ -213,8 +240,13 @@ class HealthConnectViewModel(
      */
     private var pendingReceiveType: WriteBackType? = null
 
-    /** The data type whose read permission was just asked for; like [pendingReceiveType], it goes on once granted. */
-    private var pendingType: HealthDataType? = null
+    /** The data types whose read permission was just asked for; like [pendingReceiveType], they go on once granted. */
+    private var pendingTypes: Set<HealthDataType> = emptySet()
+
+    /** What runs again on Try again after a refusal, see [HealthUiState.refused]. */
+    private var refusedAction: (() -> Unit)? = null
+
+    private var todayRead: Job? = null
 
     /** One-shot messages the screen shows as toasts. */
     private val _toasts = MutableSharedFlow<UiMessage>(extraBufferCapacity = 8)
@@ -229,29 +261,59 @@ class HealthConnectViewModel(
 
     init {
         observeBackfill()
+        observeWorker()
     }
 
-    private fun editDraft(transform: (HealthDraft) -> HealthDraft) = _state.update { it.copy(draft = transform(it.draft)) }
-    private fun editWebhook(transform: (WebhookDraft) -> WebhookDraft) = editDraft { it.copy(webhook = transform(it.webhook)) }
-
-    /** Re-reads availability and granted permissions; called on open and after a grant. */
     /**
-     * Re-read the settings this tab shares with Screen Time (plain HTTP, client
-     * certificate), which that tab may have changed. The draft is left alone, so an
-     * unsaved edit here survives a look at the other tab.
+     * A sync in the worker reports to the store and not to this view model, so what it leaves
+     * behind is read here. Its own result is on the rows and the heading, and it makes the line
+     * under Sync Now out of date: a failure there would go on saying so next to a delivery.
      */
+    private fun observeWorker() {
+        viewModelScope.launch {
+            ops.dataChanges().collect {
+                _state.update {
+                    it.copy(
+                        receive = settings.receiveSettings(),
+                        receiveStatus = settings.receiveStatus(),
+                        mqttLastStatus = settings.lastMqttStatus(MqttSection.HEALTH),
+                        refreshKey = it.refreshKey + 1
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            ops.workerRunning().collect { running ->
+                _state.update {
+                    it.copy(workerSyncing = running, syncMessage = if (it.workerSyncing && !running && !it.isSyncing) null else it.syncMessage)
+                }
+            }
+        }
+    }
+
+    /** What was just stored. */
+    private fun stored(transform: (HealthDraft) -> HealthDraft) = _state.update { it.copy(saved = transform(it.saved)) }
+
     override fun dismissSecretsLost() {
         settings.dismissSecretsReentry()
         _state.update { it.copy(secretsNeedReentry = settings.secretsNeedReentry) }
     }
 
+    /**
+     * Re-read the settings this tab shares with Screen Time (plain HTTP, client certificate,
+     * the shared broker and so on), which that tab may have changed.
+     */
     fun refreshSharedSettings() {
+        val broker = settings.sharedBroker()
         _state.update {
             it.copy(
+                saved = it.saved.copy(mqtt = it.saved.mqtt.withStoredSharedBroker(broker)),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
                 serverTrust = settings.serverTrust(),
                 phoneName = settings.phoneName(),
+                failureNotificationsEnabled = settings.failureNotificationsEnabled(),
+                failureThreshold = settings.failureThreshold(),
                 // A secret saved on the other tab may have ended the request to enter them again.
                 secretsUnavailable = settings.secretsUnavailable,
                 secretsNeedReentry = settings.secretsNeedReentry
@@ -259,6 +321,7 @@ class HealthConnectViewModel(
         }
     }
 
+    /** Re-reads availability and granted permissions; called on open and after a grant. */
     fun refreshPermissions() {
         viewModelScope.launch {
             val availability = ops.availability()
@@ -267,7 +330,14 @@ class HealthConnectViewModel(
                 return@launch
             }
             val granted = ops.grantedPermissions()
-            _state.update { it.copy(availability = availability, hasPermissions = granted.isNotEmpty(), grantedPermissions = granted) }
+            _state.update {
+                it.copy(
+                    availability = availability,
+                    hasPermissions = HealthDataType.entries.any { type -> readPermission(type) in granted },
+                    grantedPermissions = granted,
+                    accessBlocked = null
+                )
+            }
             // History access granted from the open backfill dialog: now the oldest record can be found.
             if (_state.value.backfillDialog && _state.value.backfillEarliest == null) loadBackfillEarliest()
 
@@ -275,59 +345,151 @@ class HealthConnectViewModel(
                 pendingReceiveType = null
                 if (type.writePermission in granted) enableReceiveType(type)
             }
-            pendingType?.let { type ->
-                pendingType = null
-                if (readPermission(type) in granted) editDraft { it.copy(enabledTypes = it.enabledTypes + type) }
-            }
+            val arrived = pendingTypes.filter { readPermission(it) in granted }.toSet()
+            pendingTypes = emptySet()
+            if (arrived.isNotEmpty()) commitTypes(_state.value.saved.enabledTypes + arrived)
 
             // A fresh install with permissions already granted: pre-select the granted types.
-            val current = _state.value
-            if (current.draft.enabledTypes.isEmpty() && granted.isNotEmpty()) {
+            // Not once the user has chosen, an empty choice included, or None would not stick.
+            if (_state.value.saved.enabledTypes.isEmpty() && granted.isNotEmpty() && !settings.healthTypesChosen()) {
                 val grantedTypes = HealthDataType.entries
                     .filter { readPermission(it) in granted }
                     .toSet()
                 if (grantedTypes.isNotEmpty()) {
                     settings.setHealthEnabledTypes(grantedTypes)
-                    _state.update {
-                        it.copy(draft = it.draft.copy(enabledTypes = grantedTypes), saved = it.saved.copy(enabledTypes = grantedTypes))
-                    }
+                    stored { it.copy(enabledTypes = grantedTypes) }
                 }
             }
         }
     }
 
-    override fun setSyncInterval(text: String) = editDraft { it.copy(schedule = it.schedule.copy(intervalText = text)) }
-
-    override fun setSchedule(schedule: ScheduleDraft) = editDraft { it.copy(schedule = schedule) }
-
-    override fun setResolution(type: HealthDataType, resolution: SeriesResolution) = editDraft {
-        it.copy(resolutions = it.resolutions + (type to resolution))
+    override fun setSchedule(schedule: ScheduleDraft) {
+        val saved = _state.value.saved.schedule
+        val interval = SettingsRules.intervalOrNull(schedule.intervalText)
+            ?: SettingsRules.intervalOrNull(saved.intervalText)
+            ?: SyncSchedule.DEFAULT_INTERVAL_MINUTES
+        val next = schedule.toSchedule(fallbackInterval = interval)
+        if (!saved.toSchedule(fallbackInterval = interval).differsFrom(next)) return
+        settings.setSchedule(LogType.HEALTH_CONNECT, next)
+        settings.reschedule(LogType.HEALTH_CONNECT)
+        stored { it.copy(schedule = ScheduleDraft.from(next)) }
     }
 
-    override fun addUrl(url: String) {
-        (SettingsRules.urlProblem(url) ?: UiMessage.DuplicateUrl.takeIf { url.trim() in _state.value.draft.webhook.urls })?.let {
-            _toasts.tryEmit(it)
+    override fun saveInterval(text: String): UiMessage? {
+        SettingsRules.intervalOrNull(text) ?: return UiMessage.IntervalTooShort
+        setSchedule(_state.value.saved.schedule.copy(intervalText = text))
+        return null
+    }
+
+    override fun setResolution(type: HealthDataType, resolution: SeriesResolution) {
+        val next = _state.value.saved.resolutions + (type to resolution)
+        settings.setSeriesResolutions(next)
+        stored { it.copy(resolutions = next) }
+    }
+
+    private fun commitTypes(types: Set<HealthDataType>) {
+        settings.setHealthEnabledTypes(types)
+        settings.setHealthTypesChosen(true)
+        stored { it.copy(enabledTypes = types) }
+        _state.update { it.copy(accessBlocked = null) }
+    }
+
+    // ==================== What the destination screens save ====================
+
+    override fun destinationDraft(id: String?, address: String?): DestinationDraft {
+        val webhook = settings.loadHealth().webhook
+        return if (id != null && webhook.destinations.any { it.id == id }) {
+            DestinationDraft.existing(webhook, id)
+        } else {
+            DestinationDraft.new(webhook, address.orEmpty())
+        }
+    }
+
+    override fun saveDestination(draft: DestinationDraft): UiMessage? {
+        val stored = settings.loadHealth().webhook
+        val next = stored.withDestination(draft.destination).trimmed()
+        SettingsRules.destinationProblem(next, stored.urls)?.let { return it }
+        if (!settings.setDestinations(LogType.HEALTH_CONNECT, next.destinations)) return UiMessage.SecretsNotReady
+        destinationsStored()
+        return null
+    }
+
+    /** Receive follows its source destination in the store, so it is read back along with the list. */
+    private fun destinationsStored() {
+        val webhook = settings.loadHealth().webhook
+        refusedAction = null
+        stored { it.copy(webhook = webhook) }
+        _state.update { it.copy(refused = null, receive = settings.receiveSettings(), secretsNeedReentry = settings.secretsNeedReentry) }
+    }
+
+    private fun refuse(action: () -> Unit) {
+        refusedAction = action
+        _state.update { it.copy(refused = UiMessage.SecretsNotReady) }
+    }
+
+    override fun retryRefused() {
+        val action = refusedAction ?: return
+        dismissRefused()
+        action()
+    }
+
+    override fun dismissRefused() {
+        refusedAction = null
+        _state.update { it.copy(refused = null) }
+    }
+
+    override fun testDestination(id: String) {
+        val destination = _state.value.saved.webhook.destinations.firstOrNull { it.id == id } ?: return
+        ping(WebhookDraft(listOf(destination)))
+    }
+
+    override fun mqttDraft(): MqttDraft = settings.loadHealth().mqtt
+
+    /**
+     * Writes the shared broker only when this screen changed it. Whatever is stored by then wins
+     * otherwise: the other tab may have changed it since this tab read it.
+     */
+    override fun saveMqtt(mqtt: MqttDraft): UiMessage? {
+        SettingsRules.mqttFieldProblem(mqtt)?.let { return it }
+        val next = mqtt.withPort()
+        val editedShared = next.section.useSharedBroker && next.sharedBroker != _state.value.saved.mqtt.withPort().sharedBroker
+        if (!settings.setMqtt(MqttSection.HEALTH, next.section, next.sharedBroker.takeIf { editedShared })) return UiMessage.SecretsNotReady
+        mqttStored()
+        return null
+    }
+
+    override fun removeMqtt() {
+        val stored = settings.loadHealth().mqtt
+        val shared = stored.section.useSharedBroker
+        val otherPublishes = settings.loadScreenTime().mqtt.section.let { it.enabled && it.useSharedBroker }
+        val section = stored.section.copy(
+            enabled = false,
+            ownBroker = if (shared) stored.section.ownBroker else stored.section.ownBroker.cleared()
+        )
+        if (!settings.setMqtt(MqttSection.HEALTH, section, stored.sharedBroker.cleared().takeIf { shared && !otherPublishes })) {
+            refuse(::removeMqtt)
             return
         }
-        editWebhook { it.withUrl(url.trim()) }
+        settings.clearMqttStatus(MqttSection.HEALTH)
+        mqttStored()
     }
 
-    override fun setDestinationUrl(id: String, url: String) =
-        editWebhook { it.withEditedUrl(id, url, _state.value.saved.webhook.destinations.firstOrNull { d -> d.id == id }) }
-    override fun copyHeaders(id: String, from: String) = editWebhook { it.withHeadersOf(id, from) }
-    override fun copySecret(id: String, from: String) = editWebhook { it.withSecretOf(id, from) }
-    override fun removeDestination(id: String) = editWebhook { it.without(id) }
+    private fun mqttStored() {
+        val mqtt = settings.loadHealth().mqtt
+        refusedAction = null
+        stored { it.copy(mqtt = mqtt) }
+        _state.update { it.copy(refused = null, mqttLastStatus = settings.lastMqttStatus(MqttSection.HEALTH), secretsNeedReentry = settings.secretsNeedReentry) }
+    }
 
-    override fun addHeader(id: String, key: String, value: String) {
-        SettingsRules.headerProblem(key, value)?.let {
-            _toasts.tryEmit(it)
-            return
+    override fun removeDestination(id: String) {
+        val stored = settings.loadHealth().webhook
+        if (stored.destinations.none { it.id == id }) return
+        if (settings.setDestinations(LogType.HEALTH_CONNECT, stored.without(id).destinations)) {
+            destinationsStored()
+        } else {
+            refuse { removeDestination(id) }
         }
-        editWebhook { it.edit(id) { d -> d.copy(headers = d.headers + (key.trim() to value.trim())) } }
     }
-
-    override fun removeHeader(id: String, key: String) = editWebhook { it.edit(id) { d -> d.copy(headers = d.headers - key) } }
-    override fun setSecret(id: String, secret: String) = editWebhook { it.edit(id) { d -> d.copy(secret = secret.ifEmpty { null }) } }
 
     /**
      * A type goes on only with its read permission granted. Grant asks for the enabled types
@@ -335,14 +497,37 @@ class HealthConnectViewModel(
      */
     override fun toggleType(type: HealthDataType, enabled: Boolean) {
         if (enabled && readPermission(type) !in _state.value.grantedPermissions) {
+            if (healthConnectMissing()) return
             _state.update { it.copy(permissionPrompt = type) }
             return
         }
-        editDraft { it.copy(enabledTypes = if (enabled) it.enabledTypes + type else it.enabledTypes - type) }
+        commitTypes(_state.value.saved.enabledTypes.let { if (enabled) it + type else it - type })
+    }
+
+    override fun applyTypes(types: Set<HealthDataType>) {
+        val granted = _state.value.grantedPermissions
+        val (ready, missing) = types.partition { readPermission(it) in granted }
+        // Without Health Connect nothing can be granted, and the selection would be lost for it.
+        if (missing.isNotEmpty() && healthConnectMissing()) return
+        commitTypes(ready.toSet())
+        pendingTypes = missing.toSet()
+        if (missing.isNotEmpty()) {
+            askPermissions(HealthPermissionRequests.readPermissions(missing) + HealthConnectManager.BACKGROUND_PERMISSION)
+        }
+    }
+
+    /** True when there is no Health Connect to ask, and then the screen says so in [HealthUiState.accessBlocked]. */
+    private fun healthConnectMissing(): Boolean {
+        val availability = _state.value.availability
+        _state.update { it.copy(accessBlocked = availability.takeIf { missing -> missing != HcAvailability.AVAILABLE }) }
+        return availability != HcAvailability.AVAILABLE
+    }
+
+    private fun askPermissions(permissions: Set<String>) {
+        if (!healthConnectMissing()) _permissionRequests.tryEmit(permissions)
     }
 
     override fun dismissPermissionPrompt() = _state.update { it.copy(permissionPrompt = null) }
-    override fun setMqtt(mqtt: MqttDraft) = editDraft { it.copy(mqtt = mqtt) }
 
     override fun setIncludeDailyTotals(enabled: Boolean) {
         settings.setIncludeDailyTotals(enabled)
@@ -352,6 +537,11 @@ class HealthConnectViewModel(
     override fun setIncludeRecordMetadata(enabled: Boolean) {
         settings.setIncludeRecordMetadata(enabled)
         _state.update { it.copy(includeRecordMetadata = enabled) }
+    }
+
+    override fun setKeepFullPayloads(enabled: Boolean) {
+        settings.setKeepFullPayloads(enabled)
+        _state.update { it.copy(keepFullPayloads = enabled) }
     }
 
     override fun setAllowHttpWebhooks(enabled: Boolean) {
@@ -386,47 +576,25 @@ class HealthConnectViewModel(
         _state.update { it.copy(failureThreshold = threshold) }
     }
 
-    /** Validates, persists and reschedules; returns the message shown either way. */
-    private fun persist(): UiMessage {
-        val draft = _state.value.draft.let { it.copy(webhook = it.webhook.trimmed()) }
-        SettingsRules.destinationProblem(draft.webhook, _state.value.saved.webhook.urls)?.let { return it }
-        SettingsRules.scheduleProblem(draft.schedule)?.let { return it }
-        SettingsRules.mqttProblem(draft.mqtt)?.let { return it }
-        // In times mode the interval field is hidden and may hold half-typed text; keep what
-        // was saved rather than silently resetting it to the default.
-        val interval = SettingsRules.intervalOrNull(draft.schedule.intervalText)
-            ?: SettingsRules.intervalOrNull(_state.value.saved.schedule.intervalText)
-            ?: SyncSchedule.DEFAULT_INTERVAL_MINUTES
-        if (!draft.hasDestination) return UiMessage.NoDestination
-        if (!settings.saveHealth(draft, interval)) return UiMessage.SecretsNotReady
-        val saved = draft.copy(
-            schedule = draft.schedule.copy(intervalText = interval.toString()),
-            mqtt = draft.mqtt.withPort()
-        )
-        _state.update { it.copy(saved = saved, draft = saved, secretsNeedReentry = settings.secretsNeedReentry) }
-        return UiMessage.Saved
-    }
-
     override fun reloadFromSettings() {
         val saved = settings.loadHealth()
         _state.update {
             it.copy(
                 saved = saved,
-                draft = saved,
                 includeDailyTotals = settings.includeDailyTotals(),
                 includeRecordMetadata = settings.includeRecordMetadata(),
+                keepFullPayloads = settings.keepFullPayloads(),
                 allowHttpWebhooks = settings.allowHttpWebhooks(),
                 clientCertAlias = settings.clientCertAlias(),
                 serverTrust = settings.serverTrust(),
                 phoneName = settings.phoneName(),
+                failureNotificationsEnabled = settings.failureNotificationsEnabled(),
+                failureThreshold = settings.failureThreshold(),
+                mqttLastStatus = settings.lastMqttStatus(MqttSection.HEALTH),
                 receive = settings.receiveSettings(),
                 receiveStatus = settings.receiveStatus()
             )
         }
-    }
-
-    override fun save() {
-        _toasts.tryEmit(persist())
     }
 
     override fun syncNow() {
@@ -442,17 +610,7 @@ class HealthConnectViewModel(
                     _permissionRequests.tryEmit(accessPermissions())
                     return@launch
                 }
-                // Save first when the tab has unsaved changes, so the sync manager runs with what is
-                // on screen. Without changes nothing is written: the draft was loaded when the tab
-                // was created, and writing it whole would put back a shared broker changed on the
-                // other tab or settings a backup import brought in since.
-                if (_state.value.hasChanges) {
-                    val saved = persist()
-                    if (saved != UiMessage.Saved) {
-                        _toasts.tryEmit(saved)
-                        return@launch
-                    }
-                }
+                // Everything a screen applies is stored by now, and a sync reads what is stored.
                 val message = ops.sync().fold(
                     onSuccess = { result ->
                         when (result) {
@@ -493,29 +651,34 @@ class HealthConnectViewModel(
     override fun preview() {
         if (_state.value.isPreviewing) return
         viewModelScope.launch {
-            _state.update { it.copy(isPreviewing = true) }
+            _state.update { it.copy(isPreviewing = true, previewProblem = null) }
             try {
-                ops.preview(_state.value.draft.enabledTypes, _state.value.draft.resolutions).fold(
+                ops.preview(_state.value.saved.enabledTypes, _state.value.saved.resolutions).fold(
                     onSuccess = { data -> _state.update { it.copy(previewData = data) } },
-                    onFailure = { _toasts.tryEmit(UiMessage.PreviewFailed(it.message)) }
+                    onFailure = { error ->
+                        val problem = if (error is NoNewDataToPreview) UiMessage.NoNewData else UiMessage.PreviewFailed(error.message)
+                        _state.update { it.copy(previewProblem = problem) }
+                    }
                 )
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _toasts.tryEmit(UiMessage.PreviewFailed(e.message))
+                _state.update { it.copy(previewProblem = UiMessage.PreviewFailed(e.message)) }
             } finally {
                 _state.update { it.copy(isPreviewing = false) }
             }
         }
     }
 
-    override fun dismissPreview() = _state.update { it.copy(previewData = null) }
+    override fun dismissPreview() = _state.update { it.copy(previewData = null, previewProblem = null) }
 
-    override fun testPing() {
+    override fun testPing() = ping(_state.value.saved.webhook)
+
+    private fun ping(webhook: WebhookDraft) {
         if (_state.value.isPinging) return
         viewModelScope.launch {
             _state.update { it.copy(isPinging = true) }
-            val result = ops.testPing(_state.value.draft.webhook)
+            val result = ops.testPing(webhook)
             _state.update { it.copy(isPinging = false) }
             _toasts.tryEmit(
                 result.fold(
@@ -531,9 +694,9 @@ class HealthConnectViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isExporting = true) }
             try {
-                ops.preview(_state.value.draft.enabledTypes, _state.value.draft.resolutions).fold(
+                ops.preview(_state.value.saved.enabledTypes, _state.value.saved.resolutions).fold(
                     onSuccess = { data -> _state.update { it.copy(exportJson = data) } },
-                    onFailure = { _toasts.tryEmit(UiMessage.ExportFailed(it.message)) }
+                    onFailure = { _toasts.tryEmit(if (it is NoNewDataToPreview) UiMessage.NoNewData else UiMessage.ExportFailed(it.message)) }
                 )
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -547,9 +710,30 @@ class HealthConnectViewModel(
 
     override fun dismissExport() = _state.update { it.copy(exportJson = null) }
 
+    /**
+     * Reads the Today panel's figures for the enabled types, off the settings as they are stored.
+     * A newer call replaces one under way. A figure that cannot be read right now keeps its last
+     * value; only the types that are enabled are read, so a sensitive type can never be asked for.
+     */
+    fun refreshToday() {
+        todayRead?.cancel()
+        todayRead = viewModelScope.launch {
+            val kinds = TodayKind.entries.filter { it.dataType in _state.value.saved.enabledTypes }
+            val reads = if (kinds.isEmpty()) emptyMap() else ops.todaySeries(kinds.toSet())
+            val previous = _state.value.today.stats
+            val stats = kinds.mapNotNull { kind ->
+                when (val series = reads[kind]) {
+                    null -> previous.firstOrNull { it.kind == kind }
+                    else -> series.takeIf { it.isNotEmpty() }?.let { TodayStat(kind, it) }
+                }
+            }
+            _state.update { it.copy(today = TodayState(stats, settings.healthRecordsToday(), hasLoaded = true)) }
+        }
+    }
+
     /** Backfill posts history to webhooks; MQTT only carries the latest value, so say so instead of failing. */
     override fun openBackfillDialog() {
-        if (_state.value.draft.webhook.urls.isEmpty()) {
+        if (_state.value.saved.webhook.urls.isEmpty()) {
             _toasts.tryEmit(UiMessage.BackfillNeedsWebhook)
             return
         }
@@ -655,21 +839,23 @@ class HealthConnectViewModel(
 
     private fun readPermission(type: HealthDataType) = HealthPermission.getReadPermission(type.recordClass)
 
-    private fun accessPermissions(): Set<String> = HealthPermissionRequests.forGrant(_state.value.draft.enabledTypes)
+    private fun accessPermissions(): Set<String> = HealthPermissionRequests.forGrant(_state.value.saved.enabledTypes)
 
+    /** With nothing selected every read permission is offered, and what is granted becomes the selection. */
     override fun requestAccess() {
-        _permissionRequests.tryEmit(accessPermissions())
+        if (_state.value.saved.enabledTypes.isEmpty()) pendingTypes = HealthDataType.entries.toSet()
+        askPermissions(accessPermissions())
     }
 
     override fun requestHistoryPermission() {
-        _permissionRequests.tryEmit(HealthPermissionRequests.forHistory(_state.value.draft.enabledTypes))
+        askPermissions(HealthPermissionRequests.forHistory(_state.value.saved.enabledTypes))
     }
 
     override fun requestTypePermission() {
         val type = _state.value.permissionPrompt ?: return
-        pendingType = type
+        pendingTypes = setOf(type)
         _state.update { it.copy(permissionPrompt = null) }
-        _permissionRequests.tryEmit(setOf(readPermission(type)))
+        askPermissions(setOf(readPermission(type)))
     }
 
     // ==================== Receive (issue #62) ====================
@@ -745,7 +931,7 @@ class HealthConnectViewModel(
         val type = _state.value.receivePermissionPrompt ?: return
         pendingReceiveType = type
         _state.update { it.copy(receivePermissionPrompt = null) }
-        _permissionRequests.tryEmit(setOf(type.writePermission))
+        askPermissions(setOf(type.writePermission))
     }
 
     override fun dismissReceivePermissionPrompt() = _state.update { it.copy(receivePermissionPrompt = null) }

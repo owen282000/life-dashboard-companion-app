@@ -1,6 +1,6 @@
 # Settings backup and restore
 
-Export your configuration to a file and import it on another device. Find it under **About > Backup & restore**.
+Export your configuration to a file and import it on another device. Find it on the **Health** tab, under **More > Backup and restore**.
 
 ## Contents
 
@@ -34,28 +34,28 @@ Webhook auth headers, HMAC signing secrets and MQTT passwords are stored encrypt
 
 Sync state is left out on purpose. Those watermarks describe how far *this* install has read from Health Connect. Restoring them on another device would make the next sync skip everything written before the imported timestamp. After an import the new device syncs from its own starting point. The Receive ledger stays behind for the same reason: on a new phone the integration offers again what was not acknowledged, and since every reading is an upsert on its own ID, that is harmless. The write permissions are Android's and are asked for again per type.
 
-The client certificate lives in Android's credential store and never leaves it, so an export could only carry its name, which means nothing on another phone. Install the certificate on the new device and pick it again under **Advanced**. Android's own backup and device transfer do carry the name along with the other settings. Until you pick the certificate again, the webhook log says it is unavailable and no webhook is sent.
+The client certificate lives in Android's credential store and never leaves it, so an export could only carry its name, which means nothing on another phone. Install the certificate on the new device and pick it again under **More > Advanced**. Android's own backup and device transfer do carry the name along with the other settings. Until you pick the certificate again, the webhook log says it is unavailable and no webhook is sent.
 
 Permissions are granted by Android, not by the app, so you still grant Health Connect access and usage access on the new device.
 
 ## Exporting
 
-1. Open **About > Backup & restore > Export**
+1. Open **More > Backup and restore** on the **Health** tab
 2. Choose whether to **Include secrets**
 3. When secrets are included, enter a password of at least 8 characters, then enter it again
-4. Share or save the file through the Android share sheet
+4. Tap **Export settings**, then share or save the file through the Android share sheet
 
-**With secrets** the file is encrypted with AES-256-GCM under a key derived from your password (PBKDF2-HMAC-SHA256, 210,000 iterations). It is saved as `life-dashboard-config.encrypted.json`. There is no recovery if you lose the password: without it the file cannot be decrypted, which is why Export stays off until the two password fields match. A long password, such as four random words, is best.
+**With secrets** the file is encrypted with AES-256-GCM under a key derived from your password (PBKDF2-HMAC-SHA256, 210,000 iterations). It is saved as `life-dashboard-config.encrypted.json`. There is no recovery if you lose the password: without it the file cannot be decrypted, which is why **Export settings** stays off until the two password fields match. A long password, such as four random words, is best.
 
 **Without secrets** the file is plain JSON (`life-dashboard-config.json`) holding URLs, MQTT hosts, topics and options, but no passwords, headers or HMAC secrets. It still contains your webhook URLs, and a URL can be a credential in itself: a Home Assistant `/api/webhook/<id>` address accepts anything posted to it. Share the file only with someone you would give that access to.
 
 ## Importing
 
-1. Open **About > Backup & restore > Import**
-2. Pick the file
+1. Open **More > Backup and restore** on the **Health** tab
+2. Tap **Choose a backup file** under **Import** and pick the file
 3. Enter the password when the file is encrypted
 4. Check the preview, which lists what will be replaced
-5. Confirm
+5. Tap **Import**
 
 An import replaces your current configuration, so the preview shows the webhook counts, data types and broker count first, and below them what the file leaves as it is. A setting the file does not mention keeps the value on the device; it is never reset to its default because a key is missing. A file without secrets keeps the credentials already on the device rather than clearing them, so you can import a shared setup and fill in your own tokens. A broker keeps its username and password only when the file points at the same broker: the same host, port and TLS setting. Otherwise they are left empty. That way they never go to a server they were not set for, or out in plain text to a broker that used TLS.
 
@@ -65,7 +65,7 @@ A file from before 1.28.0, or from the iPhone app, has no `destinations` and is 
 
 Right after a restart the phone's secure storage can need a moment. An import then changes nothing and says so; import again a little later.
 
-Reopen the app after importing so every screen reads the new values.
+Every screen shows the imported values right away, and the imported schedule takes effect at once.
 
 ## File format
 

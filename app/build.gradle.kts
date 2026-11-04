@@ -72,7 +72,9 @@ if (semverMatch == null && System.getenv("CI") != null && isUpstreamCi) {
     )
 }
 
-val appVersionName = describedVersion
+// scripts/store-screenshots.sh: a store image shows a release's version, not a dirty describe.
+val appVersionName = providers.gradleProperty("ldVersionName").orNull
+    ?: describedVersion
     ?: versionProperties["VERSION_NAME"]?.let { "$it-untagged" }
     ?: "0.0.0-dev"
 val appVersionCode = semverMatch?.destructured?.let { (major, minor, patch) ->

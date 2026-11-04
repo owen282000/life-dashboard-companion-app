@@ -118,6 +118,32 @@ class LogsTest {
         assertTrue(!failed.success)
     }
 
+    /** The list reads a row's size and whether the store cut it short, without the payload; a delete takes both away. */
+    @Test
+    fun rowsKnowThePayloadWithoutReadingItAndDeleteTakesItAway() {
+        fun row(payload: String?) = WebhookLog(
+            id = UUID.randomUUID().toString(), timestamp = System.currentTimeMillis(), url = "https://example.invalid",
+            statusCode = 200, success = true, errorMessage = null, dataType = "test", recordCount = 1, rawPayload = payload
+        )
+        val none = row(null)
+        val small = row("""{"steps":[]}""")
+        val cut = row("a".repeat(WebhookLogStore.DEFAULT_PAYLOAD_LIMIT + 1))
+        listOf(none, small, cut).forEach(prefs::addWebhookLog)
+
+        val rows = prefs.getWebhookLogRows().associateBy { it.log.id }
+        assertNull(rows.getValue(none.id).payloadBytes)
+        assertEquals(small.rawPayload!!.length.toLong(), rows.getValue(small.id).payloadBytes)
+        assertEquals(false, rows.getValue(small.id).cutInStorage)
+        assertEquals(WebhookLogStore.DEFAULT_PAYLOAD_LIMIT.toLong(), rows.getValue(cut.id).payloadBytes)
+        assertEquals(true, rows.getValue(cut.id).cutInStorage)
+        assertNull(rows.getValue(cut.id).log.rawPayload)
+
+        assertEquals(small.rawPayload, prefs.getWebhookLog(small.id)?.rawPayload)
+        prefs.deleteWebhookLogs(setOf(small.id))
+        assertNull(prefs.getWebhookLog(small.id))
+        assertEquals(2, prefs.getWebhookLogs().size)
+    }
+
     /** T24. Clearing the Screen Time logs keeps the health ones, and reading by type filters. */
     @Test
     fun clearByTypeKeepsTheOther() {

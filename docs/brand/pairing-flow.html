@@ -3,7 +3,7 @@
   Source for docs/pairing-flow.png, the picture at the top of docs/pairing.md: a receiver shows
   one QR code, the phone opens it into the pairing sheet, and after Pair the app posts a signed
   test ping. Drawn at twice the size it is shown at (900 px wide), with transparent corners so it
-  sits on GitHub's light and dark theme alike. Same identity as how-it-works.html. The QR is
+  sits on GitHub's light and dark theme alike. The ground and font of the app. The QR is
   pairing-example-qr.svg (a made-up address and secret), the phone is pairing-sheet.png
   (the app on the ldc-store emulator, opened with that same link).
 
@@ -16,30 +16,26 @@
 <head>
 <meta charset="utf-8">
 <style>
+  @font-face { font-family: "Space Grotesk"; font-weight: 400; src: url(../../app/src/main/res/font/space_grotesk_regular.ttf); }
+  @font-face { font-family: "Space Grotesk"; font-weight: 700; src: url(../../app/src/main/res/font/space_grotesk_bold.ttf); }
+  @font-face { font-family: "Space Mono"; font-weight: 400; src: url(../../app/src/main/res/font/space_mono_regular.ttf); }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1800px; height: 900px; overflow: hidden; background: transparent; }
   .card {
     position: absolute; inset: 0; border-radius: 40px; overflow: hidden;
-    background: radial-gradient(130% 130% at 25% 20%, #171D21 0%, #14181C 45%, #101C1C 100%);
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #E8EDEF;
-  }
-  .grid {
-    position: absolute; inset: 0; opacity: 0.5;
-    background-image:
-      linear-gradient(rgba(48,183,126,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(48,183,126,0.05) 1px, transparent 1px);
-    background-size: 60px 60px;
+    background: radial-gradient(90% 70% at 30% 25%, rgba(48,183,126,0.10), rgba(48,183,126,0)), #0A0F0D;
+    font-family: "Space Grotesk", sans-serif; color: #EEF4F0;
   }
   .col-title {
     position: absolute; top: 52px; font-size: 25px; font-weight: 700;
-    letter-spacing: 2.5px; text-transform: uppercase; color: #7E8B91;
+    letter-spacing: 2.5px; text-transform: uppercase; color: #A7B5AE;
   }
   .box {
     position: absolute; border-radius: 28px; padding: 34px;
-    background: rgba(255,255,255,0.045); border: 2px solid rgba(255,255,255,0.1);
+    background: #141C18; border: 2px solid #27332D;
   }
-  .box h3 { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15; }
-  .box p { margin-top: 12px; font-size: 25px; line-height: 1.35; color: #AEB8BC; }
+  .box h3 { font-size: 36px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.15; }
+  .box p { margin-top: 12px; font-size: 25px; line-height: 1.35; color: #B9C4BE; }
   .qrbox { left: 70px; top: 110px; width: 470px; height: 720px; }
   .qr {
     display: block; width: 360px; height: 360px; margin: 34px auto 26px;
@@ -47,17 +43,17 @@
   }
   .phone {
     position: absolute; left: 705px; top: 110px; width: 340px; height: 721px;
-    border-radius: 48px; padding: 14px; background: #05080A;
-    border: 3px solid rgba(48,183,126,0.75); box-shadow: 0 0 60px rgba(48,183,126,0.18);
+    border-radius: 48px; padding: 14px; background: #000;
+    border: 3px solid #33423B; box-shadow: 0 0 60px rgba(48,183,126,0.18);
   }
   .phone img { width: 100%; height: 100%; border-radius: 36px; display: block; object-fit: cover; }
   .pingbox { left: 1210px; top: 110px; width: 520px; height: 720px; }
   pre {
-    margin-top: 26px; padding: 26px 28px; border-radius: 18px; background: #0B1114;
+    margin-top: 26px; padding: 26px 28px; border-radius: 18px; background: #0A0F0D;
     border: 2px solid rgba(48,183,126,0.35);
-    font: 21px/1.5 "SF Mono", Menlo, Consolas, monospace; color: #CFE9DD; white-space: pre;
+    font: 21px/1.5 "Space Mono", monospace; color: #8FDDB8; white-space: pre;
   }
-  pre .k { color: #7E8B91; }
+  pre .k { color: #A7B5AE; }
   pre .g { color: #30B77E; }
   .arrow { position: absolute; top: 430px; width: 120px; height: 40px; }
   .arrow svg { width: 120px; height: 40px; display: block; }
@@ -71,7 +67,6 @@
 </head>
 <body>
 <div class="card">
-  <div class="grid"></div>
 
   <div class="col-title" style="left:70px">Your service</div>
   <div class="box qrbox">

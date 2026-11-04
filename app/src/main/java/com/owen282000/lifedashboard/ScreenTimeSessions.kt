@@ -32,6 +32,33 @@ object ScreenTimeSessions {
     const val SYSTEM_UI_PACKAGE = "com.android.systemui"
 
     /**
+     * Launchers of the common phone makers. Since Android 11 the HOME query only sees packages the
+     * manifest's queries block lists, and that block stays limited to Health Connect, so on most
+     * phones the query finds nothing and the launcher has to be known by name. A launcher that is
+     * not here counts as an app.
+     */
+    val KNOWN_LAUNCHER_PACKAGES = setOf(
+        "com.android.launcher3",
+        "com.google.android.apps.nexuslauncher",
+        "com.sec.android.app.launcher",
+        "com.miui.home",
+        "com.mi.android.globallauncher",
+        "net.oneplus.launcher",
+        "com.oppo.launcher",
+        "com.bbk.launcher2",
+        "com.huawei.android.launcher",
+        "com.hihonor.android.launcher",
+        "com.motorola.launcher3",
+        "com.sonymobile.home",
+        "com.nothing.launcher",
+        "com.asus.launcher",
+        "com.lge.launcher3",
+        "com.transsion.hilauncher",
+        "com.microsoft.launcher",
+        "com.teslacoilsw.launcher"
+    )
+
+    /**
      * The launchers among the activities that answer the HOME intent, given as package and
      * activity name. Settings answers it too, with FallbackHome, the screen Android shows
      * before the phone is unlocked after a restart; counting that as a launcher hid every

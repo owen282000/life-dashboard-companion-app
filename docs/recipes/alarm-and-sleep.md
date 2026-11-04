@@ -8,7 +8,7 @@ This recipe is Android-only: the companion app for iPhone has no next alarm sens
 
 - **The Home Assistant companion app** on the phone, with its **Next alarm** sensor switched on: in the companion app, **Settings > Companion app > Manage sensors > Next alarm**. It is off by default. Under **Allow list** in the same place, pick your clock app, so a calendar or a reminder app can't move the alarm.
 - **Life Dashboard Companion** with the [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) and **Sleep** switched on: [Phone to Home Assistant](../usage.md#with-the-integration).
-- **A fixed sync time in the morning**, such as 09:00, so last night is in Home Assistant at a time you know (**Health** tab, **Sync Schedule**). A watch app writes the night to Health Connect when it syncs after you wake up, not at the moment you wake.
+- **A fixed sync time in the morning**, such as 09:00, so last night is in Home Assistant at a time you know (**Health** tab, **When to send**, **Fixed times**). A watch app writes the night to Health Connect when it syncs after you wake up, not at the moment you wake.
 
 The YAML below uses three placeholders. Replace each with the ID from your own Home Assistant:
 

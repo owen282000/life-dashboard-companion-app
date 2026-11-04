@@ -89,7 +89,6 @@ secrets/
 *.pem
 *.key
 
-# Store renders made locally for a look, not uploaded: fastlane keeps the panels that go to
-# Google Play (docs/brand/play-panorama/render.sh)
-docs/brand/play-panorama/panorama-*.png
-docs/brand/play-panorama/??-[1-7].png
+# Generated store images (scripts/store-screenshots.sh, docs/brand/play-panorama/render.sh):
+# fastlane keeps the panels F-Droid reads
+store-assets/

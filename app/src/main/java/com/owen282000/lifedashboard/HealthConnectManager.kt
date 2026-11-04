@@ -619,6 +619,82 @@ class HealthConnectManager(
     }
 
     /**
+     * The last [TodaySeries.DAYS] days of [kinds] for the Today panel, one call per kind. Reads
+     * only: nothing here touches the per-run state above or a watermark, and a sync that runs at
+     * the same time does not notice. Null for a kind the quota or a timeout kept out, whose last
+     * figures the panel keeps; a kind without permission is an empty series and drops off.
+     */
+    suspend fun readTodaySeries(kinds: Set<TodayKind>, today: java.time.LocalDate = java.time.LocalDate.now()): Map<TodayKind, List<TodayDay>?> =
+        kinds.associateWith { kind ->
+            try {
+                when (kind) {
+                    TodayKind.STEPS -> TodaySeries.steps(dailyAggregate(StepsRecord.COUNT_TOTAL, today) { it.toDouble() })
+                    TodayKind.SLEEP -> TodaySeries.sleep(nightlySleepMinutes(today))
+                    TodayKind.RESTING_HEART_RATE ->
+                        TodaySeries.present(dailyAggregate(RestingHeartRateRecord.BPM_AVG, today) { it.toDouble() })
+                    TodayKind.WEIGHT -> TodaySeries.latestPerDay(recentWeights(today))
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (e is HealthConnectTimeoutException || ResilientReadLogic.isQuotaError(e)) null else emptyList()
+            }
+        }
+
+    /** [metric] per local day of the Today window, oldest first; null for a day without a record. */
+    private suspend fun <T : Any> dailyAggregate(
+        metric: androidx.health.connect.client.aggregate.AggregateMetric<T>,
+        today: java.time.LocalDate,
+        value: (T) -> Double
+    ): List<Pair<java.time.LocalDate, Double?>> {
+        val response = bounded("the Today figures") {
+            healthConnectClient.aggregateGroupByPeriod(
+                androidx.health.connect.client.request.AggregateGroupByPeriodRequest(
+                    metrics = setOf(metric),
+                    timeRangeFilter = TimeRangeFilter.between(TodaySeries.firstDay(today).atStartOfDay(), java.time.LocalDateTime.now()),
+                    timeRangeSlicer = java.time.Period.ofDays(1)
+                )
+            )
+        }
+        return response.map { bucket -> bucket.startTime.toLocalDate() to bucket.result[metric]?.let(value) }
+    }
+
+    /** Time asleep per night, as Health Connect totals it without the awake stages; see [TodaySeries.nightOf]. */
+    private suspend fun nightlySleepMinutes(today: java.time.LocalDate): List<Pair<java.time.LocalDate, Double?>> {
+        val response = bounded("the Today figures") {
+            healthConnectClient.aggregateGroupByPeriod(
+                androidx.health.connect.client.request.AggregateGroupByPeriodRequest(
+                    metrics = setOf(SleepSessionRecord.SLEEP_DURATION_TOTAL),
+                    timeRangeFilter = TimeRangeFilter.between(
+                        TodaySeries.firstNightStart(today),
+                        minOf(java.time.LocalDateTime.now(), today.atTime(TodaySeries.NIGHT_STARTS_AT))
+                    ),
+                    timeRangeSlicer = java.time.Period.ofDays(1)
+                )
+            )
+        }
+        return response.map { bucket ->
+            TodaySeries.nightOf(bucket.startTime) to bucket.result[SleepSessionRecord.SLEEP_DURATION_TOTAL]?.toMinutes()?.toDouble()
+        }
+    }
+
+    /** The weights of the Today window in kilograms, with the moment each was taken. */
+    private suspend fun recentWeights(today: java.time.LocalDate): List<Pair<java.time.LocalDateTime, Double>> {
+        val zone = ZoneId.systemDefault()
+        val response = bounded("the Today figures") {
+            healthConnectClient.readRecords(
+                ReadRecordsRequest(
+                    recordType = WeightRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(TodaySeries.firstDay(today).atStartOfDay(zone).toInstant(), Instant.now()),
+                    ascendingOrder = false,
+                    pageSize = TodaySeries.WEIGHT_PAGE
+                )
+            )
+        }
+        return response.records.map { it.time.atZone(zone).toLocalDateTime() to it.weight.inKilograms }
+    }
+
+    /**
      * The oldest record of [types] this app may read, where a backfill of all history starts
      * (issue stack#23): one read per record type, oldest first and one record long, so years of
      * data are found without walking empty windows from a fixed date. Nothing before

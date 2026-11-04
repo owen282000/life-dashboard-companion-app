@@ -1,60 +1,64 @@
 #!/bin/sh
-# Renders the Google Play phone screenshots in the panorama style from panorama.html with
-# headless Chrome, like docs/brand/render-store.sh. Run from the repository root, after
-# scripts/store-screenshots.sh has filled docs/brand/store-src/ (and store-src/nl/, store-src/de/
-# with LANG_CODE=nl and LANG_CODE=de).
+# Renders the Google Play phone screenshots from panorama.html with headless Chrome into
+# store-assets/, which is not in git. Run from the repository root, after
+# scripts/store-screenshots.sh has filled store-assets/raw/ and store-assets/raw/<lang>/. measure.py
+# first finds the rows and cards the panels crop, per language (raw/rects.js).
 #
-#   panorama-en.png        the whole row, 7560x1920
-#   en-1.png to en-7.png   one panel each, 1080x1920, RGB without alpha
-#   contact-sheet.png      the seven panels side by side, scaled down, for review
-#   the same in Dutch and German: panorama-nl.png, nl-1.png, contact-sheet-nl.png, and de in
-#     place of nl
+#   docs/brand/play-panorama/render.sh           every language
+#   docs/brand/play-panorama/render.sh nl de     only these
 #
-# docs/brand/render-store.sh runs it and copies the panels into fastlane, the store set.
+#   panorama-en.png        the whole row, 10560x2640
+#   en-1.png to en-8.png   one panel each, 1320x2640, RGB without alpha
+#   contact-sheet.png      the eight panels side by side, scaled down, for review; other languages
+#     contact-sheet-<lang>.png
+#   feature-en.png         the feature graphic of docs/brand/feature-graphic.html, 1024x500, RGB
 #
-# Only what is uploaded or reviewed goes into git: the panels as fastlane copies them, the
-# contact sheets and the captures in store-src/. The panoramas (about 7 MB each) and the panels
-# here are made for a look and stay local (.gitignore). With oxipng installed (brew install
-# oxipng), every new or changed PNG that git keeps is recompressed without loss and without
-# changing its colour type; a file that matches git is left alone, so a rerun changes nothing.
+# Upload these to the Play Console. docs/brand/render-store.sh copies en, nl and de into fastlane,
+# which F-Droid reads from the repository and so does stay in git.
 set -e
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 DIR=docs/brand/play-panorama
+OUT=store-assets
 SRC="file://$PWD/$DIR/panorama.html"
+SRGB="/System/Library/ColorSync/Profiles/sRGB Profile.icc"
 
 shot() { # out width height url
-  "$CHROME" --headless=new --screenshot="$1" --window-size="$2,$3" --hide-scrollbars \
-    --force-device-scale-factor=1 --force-color-profile=srgb --virtual-time-budget=4000 \
-    --default-background-color=0C1714FF "$4" 2>/dev/null
+  "$CHROME" --headless=new --screenshot="$1" --window-size="$2,$3" --hide-scrollbars --allow-file-access-from-files \
+    --force-device-scale-factor=1 --force-color-profile=srgb --virtual-time-budget=6000 --default-background-color=0A0F0DFF \
+    "$4" 2>/dev/null
 }
 
-for lang in en nl de; do
-  # English is the page without a query, as before; the others add lang=.
-  if [ "$lang" = en ]; then q="?"; sheet=contact-sheet.png; else q="?lang=$lang&"; sheet=contact-sheet-$lang.png; fi
-  shot "$DIR/panorama-$lang.png" 7560 1920 "$SRC${q%[?&]}"
-  for n in 1 2 3 4 5 6 7; do
-    shot "$DIR/$lang-$n.png" 1080 1920 "$SRC${q}panel=$n"
+WORK=build/store-render
+mkdir -p "$WORK" "$OUT"
+# Chrome writes an alpha channel even for an opaque page, and Play refuses one.
+cat > "$WORK/flatten.swift" <<'SWIFT'
+import AppKit
+let path = CommandLine.arguments[1]
+let source = NSBitmapImageRep(data: try Data(contentsOf: URL(fileURLWithPath: path)))!.cgImage!
+let space = CGColorSpace(name: CGColorSpace.sRGB)!
+let context = CGContext(data: nil, width: source.width, height: source.height, bitsPerComponent: 8, bytesPerRow: 0,
+                        space: space, bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!
+context.draw(source, in: CGRect(x: 0, y: 0, width: source.width, height: source.height))
+try NSBitmapImageRep(cgImage: context.makeImage()!).representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: path))
+SWIFT
+swiftc -O -o "$WORK/flatten" "$WORK/flatten.swift" 2>/dev/null
+finish() { "$WORK/flatten" "$1"; sips --embedProfile "$SRGB" "$1" >/dev/null; }
+
+python3 -I "$DIR/measure.py"
+[ $# -gt 0 ] || set -- en nl de fr es it pt-BR ja ar hi zh-CN
+for lang in "$@"; do
+  if [ "$lang" = en ]; then sheet=contact-sheet.png; else sheet=contact-sheet-$lang.png; fi
+  shot "$OUT/panorama-$lang.png" 10560 2640 "$SRC?lang=$lang"
+  finish "$OUT/panorama-$lang.png"
+  for n in 1 2 3 4 5 6 7 8; do
+    shot "$OUT/$lang-$n.png" 1320 2640 "$SRC?lang=$lang&panel=$n"
+    finish "$OUT/$lang-$n.png"
   done
-  shot "$DIR/$sheet" 2172 578 "file://$PWD/$DIR/contact-sheet.html${q%[?&]}"
+  shot "$OUT/feature-$lang.png" 1024 500 "file://$PWD/docs/brand/feature-graphic.html?lang=$lang"
+  finish "$OUT/feature-$lang.png"
+  shot "$OUT/$sheet" 2620 680 "file://$PWD/$DIR/contact-sheet.html?lang=$lang"
 done
 
-# Tagged as sRGB, which is what Chrome rendered them in.
-for f in "$DIR"/??-[1-7].png "$DIR"/panorama-??.png; do
-  sips --embedProfile "/System/Library/ColorSync/Profiles/sRGB Profile.icc" "$f" >/dev/null
-done
-
-# Smaller files in git, the same pixels: lossless, RGB stays RGB, and the sRGB profile stays.
-# Only files that are new or differ from git: an unchanged file keeps the bytes git already has
-# (a recompressed file is a whole new blob in git).
-if command -v oxipng >/dev/null; then
-  for f in "$DIR"/contact-sheet*.png docs/brand/store-src/*.png docs/brand/store-src/*/*.png; do
-    if ! git ls-files --error-unmatch "$f" >/dev/null 2>&1 || ! git diff --quiet HEAD -- "$f"; then
-      oxipng -q -o 4 --nx --strip safe "$f"
-    fi
-  done
-else
-  echo "oxipng not found: the PNGs stay as Chrome wrote them (brew install oxipng)" >&2
-fi
-
-# Play wants RGB without alpha: every one must say "no".
-sips -g pixelWidth -g pixelHeight -g hasAlpha "$DIR"/??-[1-7].png "$DIR"/panorama-??.png
+# Play refuses screenshots with an alpha channel: every one must say "no".
+sips -g pixelWidth -g pixelHeight -g hasAlpha "$OUT"/*-[1-8].png "$OUT"/feature-*.png \
+  | grep -E 'pixel|hasAlpha' | paste - - - | sort | uniq -c
