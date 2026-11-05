@@ -22,7 +22,7 @@ fun AboutHelpScreen() {
             AboutLinkRow(stringResource(R.string.ld_about_setup_guide), AboutLinks.WEBSITE, value = stringResource(R.string.about_website))
             AboutLinkRow(stringResource(R.string.about_docs), AboutLinks.DOCUMENTATION, value = GITHUB)
             AboutLinkRow(stringResource(R.string.about_whats_new), AboutLinks.release(version), value = version.ldLeftToRight)
-            AboutLinkRow(stringResource(R.string.about_report), AboutLinks.NEW_ISSUE)
+            AboutLinkRow(stringResource(R.string.about_report), AboutLinks.FEEDBACK)
             AboutLinkRow(stringResource(R.string.ld_about_questions), AboutLinks.QUESTIONS, value = stringResource(R.string.ld_about_mail))
         }
     }
