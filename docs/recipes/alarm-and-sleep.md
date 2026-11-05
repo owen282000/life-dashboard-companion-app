@@ -146,7 +146,8 @@ actions:
         {% set last = state_attr('sensor.<phone>_last_sleep_duration', 'measured_at') | as_datetime(none) %}
         Your alarm is at {{ alarm.strftime('%H:%M') }}. For {{ '%g' | format(states('input_number.sleep_goal') | float(8)) }} hours of sleep, be in bed at {{ bedtime.strftime('%H:%M') }}.
         {%- if last is not none and now() - last < timedelta(hours=20) %}
-        Last night: {{ (states('sensor.<phone>_last_sleep_duration') | float(0) // 60) | int }} h {{ (states('sensor.<phone>_last_sleep_duration') | float(0) % 60) | int }} min.
+        {%- set slept = states('sensor.<phone>_last_sleep_duration') | float(0) * (60 if state_attr('sensor.<phone>_last_sleep_duration', 'unit_of_measurement') == 'h' else 1) %}
+        Last night: {{ (slept // 60) | int }} h {{ (slept % 60) | int }} min.
         {%- endif %}
 ```
 
