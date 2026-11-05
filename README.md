@@ -67,12 +67,12 @@ Your watch, ring or scale already writes to Health Connect. This app sends that 
 
 Recipes to start from: a [bedtime reminder from your next alarm](docs/recipes/alarm-and-sleep.md), [screen time limits](docs/recipes/screen-time-limits.md), a [Bluetooth scale into Samsung Health](docs/recipes/scale-to-health-connect.md), and [asking a local LLM about your own history](docs/recipes/ask-your-own-llm.md).
 
-On the other end, this is the Life Dashboard integration's example dashboard in Home Assistant:
+On the other end, this is the Life Dashboard integration's [example dashboard](https://github.com/owen282000/life-dashboard-ha/blob/main/docs/dashboard.md) in Home Assistant, with a screen time view of its own (demo data):
 
 <p align="center">
   <picture>
     <source media="(max-width: 600px)" srcset="docs/readme-hero-phone.png">
-    <img src="docs/readme-hero.png" alt="The integration's example dashboard in Home Assistant: today's steps, distance, calories, screen time, heart rate and sleep, weight, resting heart rate and blood pressure, the top apps of the day, and charts of screen time and history" width="900">
+    <img src="docs/readme-hero.png" alt="The integration's example dashboard in Home Assistant: today's steps, distance, calories and heart rate, the last workout with its pace, heart rate and laps, recovery with heart rate variability, resting heart rate and VO2 max, and last night's sleep; on a phone, today's tiles and the time in each app" width="900">
   </picture>
 </p>
 

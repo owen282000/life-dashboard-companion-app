@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <!--
   Source for docs/readme-hero-phone.png, the phone version of the README hero
-  (readme-hero.html): two crops of the same dashboard screenshot, the Today tiles and the
-  screen time per day card, stacked so they stay readable on a screen about 400 px wide. The README
-  picks it with <picture> and a max-width media query. The crops are offsets into
-  docs/screenshots/home-assistant-dashboard.png (2480 x 1468) shown at 2837 px wide; after a
-  new screenshot, check that each crop still starts at a card edge.
+  (readme-hero.html): two crops, the Today tiles of the dashboard and the apps of the screen
+  time view, stacked so they stay readable on a screen about 400 px wide. The README picks it
+  with <picture> and a max-width media query. The crops are offsets into
+  docs/screenshots/home-assistant-dashboard.png and home-assistant-screen-time.png (both 2880
+  px wide) shown at 2883 px wide; after a new screenshot, check that each crop still starts at a
+  card edge.
 
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-      --headless=new --screenshot=docs/readme-hero-phone.png --window-size=1000,1318 \
+      --headless=new --screenshot=docs/readme-hero-phone.png --window-size=1000,1438 \
       --hide-scrollbars --force-device-scale-factor=1 \
       --default-background-color=00000000 docs/brand/readme-hero-phone.html
 -->
@@ -17,7 +18,7 @@
 <meta charset="utf-8">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 1000px; height: 1318px; overflow: hidden; background: transparent; }
+  html, body { width: 1000px; height: 1438px; overflow: hidden; background: transparent; }
   .card {
     position: absolute; inset: 0; border-radius: 40px; overflow: hidden;
     background: radial-gradient(130% 130% at 25% 20%, #171D21 0%, #14181C 45%, #101C1C 100%);
@@ -34,18 +35,18 @@
     border: 3px solid rgba(255,255,255,0.12); background: #111;
     box-shadow: 0 24px 60px rgba(0,0,0,0.45), 0 0 0 10px rgba(255,255,255,0.025);
   }
-  .crop img { position: absolute; width: 2837px; height: auto; display: block; }
-  .today { top: 48px; height: 526px; }
-  .today img { left: -46px; top: -46px; }
-  .screen { top: 606px; height: 664px; }
-  .screen img { left: -967px; top: -903px; }
+  .crop img { position: absolute; width: 2883px; height: auto; display: block; }
+  .today { top: 48px; height: 470px; }
+  .today img { left: -49px; top: -344px; }
+  .screen { top: 550px; height: 840px; }
+  .screen img { left: -49px; top: -574px; }
 </style>
 </head>
 <body>
 <div class="card">
   <div class="grid"></div>
   <div class="crop today"><img src="../screenshots/home-assistant-dashboard.png" alt=""></div>
-  <div class="crop screen"><img src="../screenshots/home-assistant-dashboard.png" alt=""></div>
+  <div class="crop screen"><img src="../screenshots/home-assistant-screen-time.png" alt=""></div>
 </div>
 </body>
 </html>
