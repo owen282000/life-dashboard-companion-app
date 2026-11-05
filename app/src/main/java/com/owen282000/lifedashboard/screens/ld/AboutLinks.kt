@@ -17,7 +17,9 @@ internal object AboutLinks {
     const val REPOSITORY = "https://github.com/owen282000/life-dashboard-companion-app"
     const val WEBSITE = "https://owen282000.com/life-dashboard/"
     const val DOCUMENTATION = "$REPOSITORY/blob/main/docs/usage.md"
-    const val NEW_ISSUE = "$REPOSITORY/issues/new"
+
+    /** Needs no GitHub account, and the address stays the same if the board moves. */
+    const val FEEDBACK = "https://owen282000.com/life-dashboard/feedback/"
     const val LICENCE = "$REPOSITORY/blob/main/LICENSE"
     const val PLAY_LISTING = "https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard&referrer=utm_source%3Dapp-about%26utm_medium%3Dapp"
     const val RATE = "https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard"

@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Changed
+
+- **Report a problem** under **About > Help** opens the feedback board, which needs no GitHub account, instead of a new GitHub issue.
+
 ## [1.30.0] - 2026-11-05
 
 ### Highlights
