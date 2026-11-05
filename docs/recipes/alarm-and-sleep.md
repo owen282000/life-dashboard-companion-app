@@ -111,13 +111,13 @@ template:
             {{ this.state if this.state | is_number else none }}
           {% endif %}
 
-  # Optional: the goal in minutes, to show next to the nights in one graph.
+  # Optional: the goal in hours, to show next to the nights in one graph.
   - sensor:
-      - name: Sleep goal minutes
-        unique_id: recipe_sleep_goal_minutes
-        unit_of_measurement: min
+      - name: Sleep goal hours
+        unique_id: recipe_sleep_goal_hours
+        unit_of_measurement: h
         state_class: measurement
-        state: "{{ (states('input_number.sleep_goal') | float(8) * 60) | round(0) }}"
+        state: "{{ states('input_number.sleep_goal') | float(8) }}"
 ```
 
 ### The automation
@@ -176,11 +176,11 @@ stat_types:
   - change
   - mean
 entities:
-  - life_dashboard:<entry>_sleep_minutes   # "<phone> sleep minutes" in the picker
-  - sensor.sleep_goal_minutes              # optional; its history starts the day you add it
+  - life_dashboard:<entry>_sleep_minutes   # "<phone> sleep" in the picker, in hours
+  - sensor.sleep_goal_hours                # optional; its history starts the day you add it
 ```
 
-Pick the sleep statistic from the card editor's picker rather than typing the ID. A backfill in the app fills the weeks before you set this up.
+Pick the sleep statistic from the card editor's picker rather than typing the ID. Since integration 1.0.0 it is in hours, with the ID it always had, so the goal is in hours too and both share one axis. On an older integration it is still in minutes, so update it first. A backfill in the app fills the weeks before you set this up.
 
 ## 3. Awake before the alarm
 
@@ -194,7 +194,7 @@ Its limits:
 
 ## Where it is kept
 
-The sleep sensor and the two alarm sensors stay in Home Assistant's recorder for 10 days by default. The sleep history, **Awake before the alarm** and **Sleep goal minutes** go into long-term statistics, which Home Assistant keeps without a time limit. Your alarm times show your daily routine to everyone with access to Home Assistant and its backups; leave the three recipe sensors out of the recorder if you don't want that history.
+The sleep sensor and the two alarm sensors stay in Home Assistant's recorder for 10 days by default. The sleep history, **Awake before the alarm** and **Sleep goal hours** go into long-term statistics, which Home Assistant keeps without a time limit. Your alarm times show your daily routine to everyone with access to Home Assistant and its backups; leave the three recipe sensors out of the recorder if you don't want that history.
 
 ## When something is off
 
