@@ -48,7 +48,7 @@
 
 Your watch, ring or scale already writes to Health Connect. This app sends that data, from every source app at once, plus your screen time per app, to Home Assistant, an MQTT broker or a webhook you run. There is no account and no Google account in between, and none of it reaches me.
 
-- In Home Assistant every day lands on its own date, up to a year back, paired with one QR code. The Home Assistant companion app shows the latest value.
+- In Home Assistant every day lands on its own date, as far back as Health Connect has data, paired with one QR code. The Home Assistant companion app shows the latest value.
 - Edits and deletions go out too, not only new records, so your server stays in step with Health Connect.
 - Samsung Health, Fitbit, Garmin, Oura, Withings: if it writes to Health Connect, it arrives. That includes Fitbit, now that Google switched off the Fitbit Web API on 2 November 2026.
 - Open source (MIT), with the same signing key on GitHub, F-Droid and Google Play.
@@ -96,7 +96,7 @@ Life Dashboard is four projects, and you only install the parts you need. Put th
 <p align="center">
   <picture><img src="docs/family/android-here.png" alt="Android app: Health Connect and screen time (this repository)" width="400"></picture>
   <a href="https://github.com/owen282000/life-dashboard-companion-app-ios"><img src="docs/family/ios.png" alt="iPhone app: Apple Health" width="400"></a>
-  <a href="https://github.com/owen282000/life-dashboard-ha"><img src="docs/family/ha.png" alt="Home Assistant integration: sensors and a year of history" width="400"></a>
+  <a href="https://github.com/owen282000/life-dashboard-ha"><img src="docs/family/ha.png" alt="Home Assistant integration: sensors and all your history" width="400"></a>
   <a href="https://github.com/owen282000/life-dashboard-stack"><img src="docs/family/stack.png" alt="Grafana stack: Postgres and Grafana dashboards" width="400"></a>
 </p>
 
