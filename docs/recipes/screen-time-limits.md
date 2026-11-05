@@ -14,12 +14,14 @@ The YAML below uses the integration's entity IDs. `<phone>` is the device name a
 
 | Integration | Over MQTT | What it holds |
 |---|---|---|
-| `sensor.<phone>_screen_time_today` | **Screen Time Today** | Minutes on the phone today, with the attributes `date`, `app_count` and `top_apps` |
+| `sensor.<phone>_screen_time_today` | **Screen Time Today** | Time on the phone today, with the attributes `date`, `app_count` and `top_apps` |
 | `sensor.<phone>_screen_time_yesterday` | **Screen Time Yesterday** | Yesterday's final total, with the same attributes |
 | `sensor.<phone>_most_used_app_today` | **Screen Time Top App Today** | The name of today's most used app, with the attributes `package` and `minutes` |
-| `sensor.<phone>_<app>_screen_time` | Not over MQTT | One app's minutes today, such as `sensor.pixel_8_youtube_screen_time`, with the attributes `app`, `package`, `date` and `week_minutes`. One per app, created disabled (integration 0.9.0 or newer) |
+| `sensor.<phone>_<app>_screen_time` | Not over MQTT | One app's time today, such as `sensor.pixel_8_youtube_screen_time`, with the attributes `app`, `package`, `date` and `week_minutes`. One per app, created disabled (integration 0.9.0 or newer) |
 
 Over MQTT the sensors sit on the Life Dashboard Companion device, and their entity IDs start with `sensor.life_dashboard_companion_`. Look up the exact IDs under **Settings > Devices & services > Entities** and use those in place of the integration's.
+
+The integration gives the time in hours (1.0.0 and newer), so 2 h 51 min reads `2.85`. Over MQTT, and in the integration before 1.0.0, it is in minutes: `171`. The attributes are in minutes on both routes. The YAML below turns the state into minutes first, so the limits stay in minutes and work with either unit.
 
 `top_apps` holds today's five most used apps with their minutes, as one line of text: `YouTube (42 min), Chrome (18 min), WhatsApp (12 min)`.
 
@@ -36,27 +38,30 @@ alias: Screen time limit
 triggers:
   - trigger: numeric_state
     entity_id: sensor.<phone>_screen_time_today
+    value_template: "{{ state.state | float(0) * (60 if state.attributes.unit_of_measurement == 'h' else 1) }}"
     above: 180
 actions:
   - action: notify.mobile_app_<phone>
     data:
       title: Screen time
       message: >
-        {% set minutes = states('sensor.<phone>_screen_time_today') | int(0) %}
+        {% set minutes = (states('sensor.<phone>_screen_time_today') | float(0)
+           * (60 if state_attr('sensor.<phone>_screen_time_today', 'unit_of_measurement') == 'h' else 1))
+           | round(0) | int %}
         {{ minutes // 60 }} h {{ minutes % 60 }} min on the phone today.
         Most used: {{ state_attr('sensor.<phone>_screen_time_today', 'top_apps') }}.
 ```
 
 Add it under **Settings > Automations & scenes > Create automation > Create new automation**: open the three-dot menu, choose **Edit in YAML**, replace what is there with the block above, and save. Do the same for the other automations on this page.
 
-A `numeric_state` trigger fires when the value goes from below the limit to above it, so this sends one notification a day. When the next day starts, the sensor drops back to a few minutes, and the trigger is ready again.
+The `value_template` line multiplies hours by 60 and leaves minutes as they are, so `above: 180` means three hours on both routes. A `numeric_state` trigger fires when the value goes from below the limit to above it, so this sends one notification a day. When the next day starts, the sensor drops back to a few minutes, and the trigger is ready again.
 
-- To change the limit from a dashboard, create a **Number** helper (**Settings > Devices & services > Helpers > Create helper**) and write its ID in place of the number: `above: input_number.screen_time_limit`.
-- With an app filter on, a limit on every app's time uses the attribute instead: add `attribute: all_apps_minutes` under the trigger's `entity_id`.
+- To change the limit from a dashboard, create a **Number** helper (**Settings > Devices & services > Helpers > Create helper**) with the limit in minutes, and write its ID in place of the number: `above: input_number.screen_time_limit`. Keep the `value_template` line.
+- With an app filter on, a limit on every app's time uses the attribute instead, which is in minutes on both routes: replace the `value_template` line with `attribute: all_apps_minutes`.
 
 ## 2. A limit for one app
 
-The integration gives every app a sensor of its own with its minutes today. They are created disabled, so enable the one you need first: open your phone's device under **Settings > Devices & services > Life Dashboard**, show the disabled entities, open the app's sensor and switch on **Enabled**. Home Assistant reloads the integration about 30 seconds later, and the sensor shows today's minutes.
+The integration gives every app a sensor of its own with its time today. They are created disabled, so enable the one you need first: open your phone's device under **Settings > Devices & services > Life Dashboard**, show the disabled entities, open the app's sensor and switch on **Enabled**. Home Assistant reloads the integration about 30 seconds later, and the sensor shows today's time, in hours since integration 1.0.0.
 
 A notification after an hour of YouTube:
 
@@ -65,6 +70,7 @@ alias: YouTube limit
 triggers:
   - trigger: numeric_state
     entity_id: sensor.<phone>_youtube_screen_time
+    value_template: "{{ state.state | float(0) * (60 if state.attributes.unit_of_measurement == 'h' else 1) }}"
     above: 60
 actions:
   - action: notify.mobile_app_<phone>
@@ -133,7 +139,10 @@ actions:
     target:
       entity_id: input_number.screen_time_at_bedtime
     data:
-      value: "{{ states('sensor.<phone>_screen_time_today') | int(0) }}"
+      value: >
+        {{ (states('sensor.<phone>_screen_time_today') | float(0)
+            * (60 if state_attr('sensor.<phone>_screen_time_today', 'unit_of_measurement') == 'h' else 1))
+            | round(0) }}
 ```
 
 The second sends a notification, once a night, when more than 20 minutes have been added between 23:00 and 04:00:
@@ -143,14 +152,17 @@ alias: Late-night phone use
 triggers:
   - trigger: state
     entity_id: sensor.<phone>_screen_time_today
+variables:
+  since_bedtime: >
+    {% set today = states('sensor.<phone>_screen_time_today') | float(0)
+       * (60 if state_attr('sensor.<phone>_screen_time_today', 'unit_of_measurement') == 'h' else 1) %}
+    {{ (today - states('input_number.screen_time_at_bedtime') | float(0)) | round(0) | int }}
 conditions:
   - condition: time
     after: "23:00:00"
     before: "04:00:00"
   - condition: template
-    value_template: >
-      {{ states('sensor.<phone>_screen_time_today') | int(0)
-         - states('input_number.screen_time_at_bedtime') | int(0) > 20 }}
+    value_template: "{{ since_bedtime > 20 }}"
   - condition: template
     value_template: >
       {{ this.attributes.last_triggered is none
@@ -159,10 +171,7 @@ actions:
   - action: notify.mobile_app_<phone>
     data:
       title: Still up?
-      message: >
-        {{ states('sensor.<phone>_screen_time_today') | int(0)
-           - states('input_number.screen_time_at_bedtime') | int(0) }} minutes
-        on the phone since 23:00.
+      message: "{{ since_bedtime }} minutes on the phone since 23:00."
 ```
 
 - Keep `before:` the same as the day boundary in the app. If your boundary is 03:00, use `"03:00:00"`.
@@ -172,4 +181,4 @@ actions:
 
 ## Where it is kept
 
-Every sync updates these sensors, and Home Assistant's recorder keeps their history for 10 days by default, with the `top_apps` text. That includes the sensors per app you enabled; they add nothing to long-term statistics. The integration also keeps total screen time per day in long-term statistics, without a time limit. Everyone with access to Home Assistant and its backups can see which apps you used and when. Apps you leave out in the app never get there.
+Every sync updates these sensors, and Home Assistant's recorder keeps their history for 10 days by default, with the `top_apps` text. That includes the sensors per app you enabled. The integration also keeps total screen time per day in long-term statistics, and the time per day of every app whose sensor you enabled, in hours and without a time limit. Everyone with access to Home Assistant and its backups can see which apps you used and when. Apps you leave out in the app never get there.

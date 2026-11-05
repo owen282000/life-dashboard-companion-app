@@ -33,7 +33,7 @@ What Life Dashboard Companion does, section by section. For setup and day-to-day
 
 ## Health data
 
-The app reads 34 Health Connect data types. Each has its own switch and its own permission, so you share only what you choose. Every enabled type goes to your webhooks as individual records; 26 of them also become a sensor in Home Assistant through the integration, 25 over MQTT. The integration adds a last workout sensor and the workout minutes of today and yesterday (0.10.0 and newer), and minutes per day for mindfulness sessions.
+The app reads 34 Health Connect data types. Each has its own switch and its own permission, so you share only what you choose. Every enabled type goes to your webhooks as individual records; 26 of them also become a sensor in Home Assistant through the integration, 25 over MQTT. The integration adds a last workout sensor and the workout minutes of today and yesterday (0.10.0 and newer), and the time per day of mindfulness sessions.
 
 | Category | Type | Sensor in Home Assistant |
 |---|---|---|
@@ -42,7 +42,7 @@ The app reads 34 Health Connect data types. Each has its own switch and its own 
 | Activity | Active calories | Today's total |
 | Activity | Total calories | Today's total |
 | Activity | Speed | Latest value, in m/s |
-| Activity | Exercise sessions | Last workout, exercise today and yesterday (integration 0.10.0 and newer); minutes per day in the statistics |
+| Activity | Exercise sessions | Last workout, exercise today and yesterday (integration 0.10.0 and newer); time per day in the statistics |
 | Body | Weight | Latest value |
 | Body | Height | Latest value |
 | Body | Body temperature | Latest value |
@@ -64,7 +64,7 @@ The app reads 34 Health Connect data types. Each has its own switch and its own 
 | Sleep | Sleep sessions, with stages | Last sleep duration |
 | Nutrition | Hydration | Latest value |
 | Nutrition | Nutrition (meals and nutrients) | No, records only |
-| Mindfulness | Meditation sessions (from apps such as Waking Up or Headspace) | No; minutes per day in the integration's statistics |
+| Mindfulness | Meditation sessions (from apps such as Waking Up or Headspace) | No; time per day in the integration's statistics |
 | Cycle tracking | Menstruation period | No, records only |
 | Cycle tracking | Menstruation flow | No, records only |
 | Cycle tracking | Intermenstrual bleeding | No, records only |
@@ -119,9 +119,9 @@ There are two ways into Home Assistant. Use one, not both: with both you get two
 
 Both routes create the same sensors, each one the first time its type arrives, so you only get the types you sync. Grouped by key:
 
-- **Today's totals:** `steps_today`, `distance_today`, `active_calories_today`, `total_calories_today`, each with the day as a `date` attribute.
-- **Latest value:** `heart_rate`, `speed`, `resting_heart_rate`, `heart_rate_variability`, `sleep_duration`, `weight`, `height`, `blood_pressure_systolic`, `blood_pressure_diastolic`, `blood_glucose`, `oxygen_saturation`, `body_temperature`, `skin_temperature_delta`, `basal_body_temperature`, `respiratory_rate`, `hydration`, `body_fat`, `lean_body_mass`, `bone_mass`, `body_water_mass`, `basal_metabolic_rate`, `vo2_max`. Each carries `measured_at`, `source` (the app that wrote the record) and `uuid` (the record's ID) as attributes. In the integration, a type you send per time window under **Data resolution** shows the average of the newest window instead, with `sample_count`, `min`, `max` and `sources` as attributes.
-- **Screen time:** `screen_time_today` and `screen_time_yesterday` in minutes, with `date`, `app_count` and `top_apps` (the top five with their minutes) as attributes, and `screen_time_top_app`, today's most used app, with `package`, `minutes` and `date`. The integration adds a sensor per app, described [below](#what-only-the-integration-adds). With an app filter on, the minutes are those of the apps that are sent and `all_apps_minutes` holds the real total (in the integration, 0.8.0 or newer).
+- **Today's totals:** `steps_today`, `distance_today`, `active_calories_today`, `total_calories_today`, each with the day as a `date` attribute. `distance_today` is in km in the integration (1.0.0 and newer) and in meters over MQTT.
+- **Latest value:** `heart_rate`, `speed`, `resting_heart_rate`, `heart_rate_variability`, `sleep_duration`, `weight`, `height`, `blood_pressure_systolic`, `blood_pressure_diastolic`, `blood_glucose`, `oxygen_saturation`, `body_temperature`, `skin_temperature_delta`, `basal_body_temperature`, `respiratory_rate`, `hydration`, `body_fat`, `lean_body_mass`, `bone_mass`, `body_water_mass`, `basal_metabolic_rate`, `vo2_max`. Each carries `measured_at`, `source` (the app that wrote the record) and `uuid` (the record's ID) as attributes. In the integration, a type you send per time window under **Data resolution** shows the average of the newest window instead, with `sample_count`, `min`, `max` and `sources` as attributes. `sleep_duration` is in hours in the integration (1.0.0 and newer) and in minutes over MQTT.
+- **Screen time:** `screen_time_today` and `screen_time_yesterday`, in hours in the integration (1.0.0 and newer) and in minutes over MQTT, with `date`, `app_count` and `top_apps` (the top five with their minutes) as attributes, and `screen_time_top_app`, today's most used app, with `package`, `minutes` and `date`. The integration adds a sensor per app, described [below](#what-only-the-integration-adds). The attributes are in minutes on both routes. With an app filter on, the sensors count the apps that are sent and `all_apps_minutes` holds the real total in minutes (in the integration, 0.8.0 or newer).
 
 Over MQTT the key is part of the topic (`<base>/<key>/state`), and the sensors sit on a device called Life Dashboard Companion. With the integration, they sit on a device with the **Name** you gave when you added the integration, and the entity ID is that name plus the key: "Pixel 8" gives `sensor.pixel_8_steps_today`. Three sensors have a different name in the integration:
 
@@ -131,12 +131,12 @@ Over MQTT the key is part of the topic (`<base>/<key>/state`), and the sensors s
 | `hydration` | `sensor.<phone>_last_drink` (**Last drink**) |
 | `screen_time_top_app` | `sensor.<phone>_most_used_app_today` (**Most used app today**) |
 
-The other nine types (exercise, nutrition, mindfulness and the six cycle tracking types) are events, not single values, so neither route turns them into sensors. The integration counts workouts and mindfulness sessions as minutes per day in its statistics. Single meals, cycle tracking entries and workout details reach only a webhook of your own, as records.
+The other nine types (exercise, nutrition, mindfulness and the six cycle tracking types) are events, not single values, so neither route turns them into sensors. The integration counts workouts and mindfulness sessions as time per day in its statistics. Single meals, cycle tracking entries and workout details reach only a webhook of your own, as records.
 
 #### What only the integration adds
 
-- **Long-term statistics.** One value per day for steps, distance, active and total calories, sleep minutes, exercise minutes, mindfulness minutes, hydration and screen time, each on its own date, so a year of backfill shows up as a year of days. Heart rate, weight, blood pressure and the other measured values get an hourly mean, minimum and maximum. The IDs look like `life_dashboard:<entry id>_steps`; pick them by name in the **Statistics graph** card.
-- **A sensor per app.** Every app gets a sensor of its own with its minutes today, such as `sensor.<phone>_youtube_screen_time`, with `app`, `package`, `date` and `week_minutes` as attributes. They are created disabled: show the disabled entities on the phone's device and enable the apps you want. An app needs 5 minutes over the days a sync carries to get one, a phone gets 50 at most, and a sensor you delete stays deleted. An app missing from a newer day, or left out with the app filter since, reads 0 for that day. Requires integration 0.9.0 or newer.
+- **Long-term statistics.** One value per day for steps, distance, active and total calories, sleep, exercise and mindfulness time, hydration and screen time, each on its own date, so a year of backfill shows up as a year of days. Since integration 1.0.0 distance is in km, and sleep, exercise, mindfulness and screen time are in hours, so a graph reads 42 km and 7.5 h. The IDs kept their names, so `sleep_minutes` and the other `_minutes` statistics hold hours. Heart rate, weight, blood pressure and the other measured values get an hourly mean, minimum and maximum. The IDs look like `life_dashboard:<entry id>_steps`; pick them by name in the **Statistics graph** card.
+- **A sensor per app.** Every app gets a sensor of its own with its time today, in hours since integration 1.0.0, such as `sensor.<phone>_youtube_screen_time`, with `app`, `package`, `date` and `week_minutes` (in minutes) as attributes. They are created disabled: show the disabled entities on the phone's device and enable the apps you want. An app needs 5 minutes over the days a sync carries to get one, a phone gets 50 at most, and a sensor you delete stays deleted. An app missing from a newer day, or left out with the app filter since, reads 0 for that day. Requires integration 0.9.0 or newer. Each app whose sensor you enable also keeps its time per day in long-term statistics, in hours.
 - **Diagnostics.** `last_health_sync` and `last_screen_time_sync` hold the time of the last payload of each kind. A test ping updates them too, which is the quickest check that pairing worked.
 - **History for the phone.** Once an entity is mapped for [receiving](#receiving-from-home-assistant), a **Send history to phone** button queues up to 30 days of its readings for the phone.
 
