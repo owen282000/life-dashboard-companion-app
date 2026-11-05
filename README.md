@@ -217,7 +217,7 @@ The app has no analytics, no crash reporting and no ads, and there is no Life Da
 
 ## Help and contributing
 
-Questions go to [Discussions](https://github.com/owen282000/life-dashboard-companion-app/discussions). Bugs go to [issues](https://github.com/owen282000/life-dashboard-companion-app/issues/new/choose); the template asks for what helps, like your phone, the source app and a log entry. [SUPPORT.md](.github/SUPPORT.md) explains which is which.
+Questions go to [Discussions](https://github.com/owen282000/life-dashboard-companion-app/discussions). Bugs go to [issues](https://github.com/owen282000/life-dashboard-companion-app/issues/new/choose); the template asks for what helps, like your phone, the source app and a log entry. [SUPPORT.md](.github/SUPPORT.md) explains which is which. No GitHub account? Use the [feedback board](https://owen282000.com/life-dashboard/feedback/), which needs no account. Everything on it is public, so leave out health data, logs and webhook URLs.
 
 Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the checks CI runs, and [building.md](docs/building.md) gets you a working build. Not into Kotlin? The issues labelled [good first issue](https://github.com/owen282000/life-dashboard-companion-app/issues?q=is%3Aopen+label%3A%22good+first+issue%22) include a Node-RED recipe, a brand guide for a device you own, and example payloads checked against the schema. Translations happen on [Weblate](https://hosted.weblate.org/engage/life-dashboard-companion/), in the browser, without a build: pick your language or add a new one.
 
