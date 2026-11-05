@@ -139,7 +139,7 @@ There are two ways in. Neither needs YAML.
 | | Life Dashboard integration | MQTT |
 |---|---|---|
 | Setup | Marketplace (HACS before 2026.11), then scan a QR code | Enter your broker |
-| Sensors | 25 of 34 types, plus screen time in total and per app | The same, without the sensors per app |
+| Sensors | 26 of 34 types, plus screen time in total and per app | 25 of 34 types, without the last workout, plus screen time in total |
 | History | Every day, up to a year back, through backfill | From the first sync on |
 | Workouts and mindfulness | Minutes per day | No |
 | **Receive** into Health Connect | Yes | No |
