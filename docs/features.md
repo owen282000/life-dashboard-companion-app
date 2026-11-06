@@ -290,12 +290,13 @@ Under **More > Backup and restore** on the **Health** tab you can export your we
 
 ## How this compares to the Home Assistant companion app
 
-The [Home Assistant companion app](https://companion.home-assistant.io/docs/core/sensors) ships Health Connect sensors of its own, so if you run Home Assistant you may wonder what this app adds. The companion app gives you the latest value of 25 metrics inside Home Assistant; this app gives you every record of 34 types, wherever you want them. Checked against the companion app's documentation on September 14, 2026.
+The [Home Assistant companion app](https://companion.home-assistant.io/docs/core/sensors) ships Health Connect sensors of its own, so if you run Home Assistant you may wonder what this app adds. The companion app gives you the latest value of 25 metrics inside Home Assistant; this app gives you every record of 34 types, wherever you want them. Checked against the companion app's documentation and its release 2026.11.1 on November 6, 2026.
 
 | | HA companion app | Life Dashboard Companion |
 |---|---|---|
-| Health Connect coverage | 26 sensors from 25 types | 34 data types |
-| Exercise sessions, nutrition, sleep stages, cycle tracking, mindfulness, skin temperature | Missing ([open issue](https://github.com/home-assistant/android/issues/4804)) | Supported |
+| Health Connect coverage | 36 sensors from 25 types | 34 data types |
+| Sleep | Last session: duration, start and end, and minutes per stage (since 2026.11.1) | Every session with its stages |
+| Exercise sessions, nutrition, cycle tracking, mindfulness, skin temperature | Missing ([open issue](https://github.com/home-assistant/android/issues/4804)) | Supported |
 | Detail | Latest value or daily aggregate per sensor | Every record, with the source app and a stable ID, plus deduplicated daily totals |
 | History | "Only the last 30 days of data is used" | Unlimited, with backfill of all history |
 | Screen time | Last used app; total screen-on time through History Stats | Foreground time per app, custom day boundary |
@@ -304,4 +305,4 @@ The [Home Assistant companion app](https://companion.home-assistant.io/docs/core
 | Delivery | Sensor updates | HMAC-signed webhooks, retries, store-and-forward outbox, delivery logs |
 | Android | 9+ on the Play build, 14+ otherwise | 9+ for Health Connect, 8.0+ for screen time |
 
-The two work side by side. Keep the companion app for presence, notifications and device sensors, and add this app when you want the full health history, writing into Health Connect, or delivery to something other than Home Assistant.
+The two work side by side. Keep the companion app for presence, notifications and device sensors, and for last night's sleep and its stages. Add this app when you want the full health history, daily totals for every past day on their own date, writing into Health Connect, screen time per app, or delivery to something other than Home Assistant.
