@@ -22,7 +22,7 @@ The YAML below uses three placeholders. Replace each with the ID from your own H
 
 ## What the sleep number is
 
-The integration's **Last sleep duration** is the whole sleep session as your tracker recorded it, from when it saw you fall asleep to when it saw you wake, with time awake in between included. Its `measured_at` attribute is the end of the session: when you woke. It isn't time asleep, and it isn't time in bed either, because the session starts when the tracker notices sleep, not when you lie down. Time asleep, the session minus its awake stages, isn't in Home Assistant today.
+The integration's **Last sleep duration** is the whole sleep session as your tracker recorded it, from when it saw you fall asleep to when it saw you wake, with time awake in between included. Its `measured_at` attribute is the end of the session: when you woke. It isn't time asleep, and it isn't time in bed either, because the session starts when the tracker notices sleep, not when you lie down. Time asleep, the session minus its awake stages, isn't in the integration today. The companion app's own Health Connect sleep duration has left awake and out-of-bed time out since its version 2026.10.1.
 
 In the history, each day holds every session that **ended** that day, naps included: the night from Thursday to Friday is Friday's bar.
 
