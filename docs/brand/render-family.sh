@@ -1,5 +1,5 @@
 #!/bin/sh
-# Renders the eight project cards of the "Part of Life Dashboard" README section from
+# Renders the eight project cards and the Sleep card of the "Part of Life Dashboard" README section from
 # docs/brand/family-card.html into docs/family/. Run from the repository root. The same
 # docs/family/ folder goes into all four Life Dashboard repositories unchanged.
 set -e
@@ -13,3 +13,6 @@ for p in android ios ha stack; do
       --virtual-time-budget=2000 "file://$PWD/docs/brand/family-card.html?p=$p&here=$here"
   done
 done
+"$CHROME" --headless=new --screenshot=docs/family/sleep-card.png --window-size=800,232 \
+  --hide-scrollbars --force-device-scale-factor=1 --default-background-color=00000000 \
+  --virtual-time-budget=2000 "file://$PWD/docs/brand/family-card.html?p=sleep&here=0"

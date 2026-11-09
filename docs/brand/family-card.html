@@ -81,6 +81,8 @@
     stack: { kicker: "Where the data goes", name: "Grafana stack", desc: "Postgres and Grafana dashboards",
       glyph: '<path d="M4 20h16"/><path d="M6.5 16v-4"/><path d="M11 16V7"/><path d="M15.5 16v-6"/><path d="M20 16V4"/>' }
   };
+  parts.sleep = { kicker: "In Home Assistant", name: "Sleep card", desc: "One night, stage by stage",
+    glyph: '<path d="M3 6h5v5h4v7h5v-7h4"/>' };
   const q = new URLSearchParams(location.search);
   const p = parts[q.get("p")] || parts.android;
   const here = q.get("here") === "1";
