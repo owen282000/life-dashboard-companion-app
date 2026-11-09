@@ -1,0 +1,2 @@
+Improved
+- Report a problem under About > Help opens the feedback board, which needs no GitHub account, instead of a new GitHub issue.
