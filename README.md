@@ -36,7 +36,7 @@
 </p>
 
 <p align="center">
-  <sub>Life Dashboard: <b>Android app</b> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iPhone app</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-ha">Home Assistant integration</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-stack">Grafana stack</a></sub>
+  <sub>Life Dashboard: <b>Android app</b> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iPhone app</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-ha">Home Assistant integration</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-stack">Grafana stack</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-sleep-card">Sleep card</a></sub>
 </p>
 
 <p align="center">
@@ -91,13 +91,14 @@ Not sure your watch is covered? The [brand guides](docs/brands/README.md) show w
 
 ## Part of Life Dashboard
 
-Life Dashboard is four projects, and you only install the parts you need. Put the app on each phone, then pick where the data goes. Both apps send the same payload, so an Android phone and an iPhone can share one Home Assistant or one stack.
+Life Dashboard is four projects and a card, and you only install the parts you need. Put the app on each phone, then pick where the data goes. Both apps send the same payload, so an Android phone and an iPhone can share one Home Assistant or one stack.
 
 <p align="center">
   <picture><img src="docs/family/android-here.png" alt="Android app: Health Connect and screen time (this repository)" width="400"></picture>
   <a href="https://github.com/owen282000/life-dashboard-companion-app-ios"><img src="docs/family/ios.png" alt="iPhone app: Apple Health" width="400"></a>
   <a href="https://github.com/owen282000/life-dashboard-ha"><img src="docs/family/ha.png" alt="Home Assistant integration: sensors and all your history" width="400"></a>
   <a href="https://github.com/owen282000/life-dashboard-stack"><img src="docs/family/stack.png" alt="Grafana stack: Postgres and Grafana dashboards" width="400"></a>
+  <a href="https://github.com/owen282000/life-dashboard-sleep-card"><img src="docs/family/sleep-card.png" alt="Sleep card: one night, stage by stage" width="400"></a>
 </p>
 
 The data can also go to an MQTT broker or a webhook of your own instead. Both apps have that built in, for n8n, Node-RED or a script.
