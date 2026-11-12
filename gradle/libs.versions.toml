@@ -8,7 +8,7 @@ junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 androidxTest = "1.7.0"
-uiautomator = "2.4.0"
+uiautomator = "2.4.1"
 jsonSchemaValidator = "0.5.5"
 # What the app already resolves to, through Compose and Activity. Dependabot never proposes a
 # lifecycle bump: Google Maven publishes no release dates, its cooldown filter drops every stable
