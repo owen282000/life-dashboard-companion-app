@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Changed
+
+- The Google Play version asks for a rating at a better moment. The app syncs in the background and is rarely opened, so the question now comes when a backfill you started has finished, or, from the second day, when you open the app or sync from the screen and everything arrived, with no failed delivery in the last day. It waits a moment first instead of meeting you at the door. After a dialog the app waits four months and it stops after three, where it used to ask once per version.
+
+### Added
+
+- A quiet card on the **Health** tab, once, when the syncs have been going well. In the Google Play version it links to the Play listing, after two weeks at the earliest and never in the week after the rating dialog. In the GitHub and F-Droid versions, which never ask for a rating, it asks for a star on GitHub and opens the repository in your browser. **Don't show again** removes it for good, and the app looks nothing up to see whether you rated or starred.
+
 ## [1.30.1] - 2026-11-09
 
 ### Changed

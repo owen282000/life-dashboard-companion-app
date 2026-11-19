@@ -89,7 +89,7 @@ Any receiver can show such a code, not only Home Assistant. [Pairing your own re
 
 The easy way is [Google Play](https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard). It costs €4.99 (US$4.99) once, with no subscription, updates arrive automatically, and buying the app supports development.
 
-The Google Play version has **Rate the app** under **About > Support**, and asks for a rating itself at most once per version: not in the first three days, and only right after things went well, when the last sync reached every address with nothing failing or queued, or a backfill finished. Google Play decides whether its dialog appears. The free versions below never ask.
+The Google Play version has **Rate the app** under **About > Support**, and asks for a rating itself only right after things went well: when a backfill you started finished, or, from the second day, when you open the app or sync from the screen and the last sync reached every address, with nothing failing or queued and no failed delivery in the last day. Google Play decides whether its dialog appears. After a dialog the app waits four months, and it stops after three. If the syncs keep going well, a card on the **Health** tab links to the Play listing once, after two weeks at the earliest; **Don't show again** removes it. The free versions below never ask for a rating. They show a similar card once, from the second day, that asks for a star on GitHub and opens the repository in your browser; the app does not check whether you gave one.
 
 On the phone the app is called **Life Dashboard**.
 

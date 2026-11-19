@@ -122,7 +122,7 @@ The app is on Google Play (a paid listing) and F-Droid, and it is distributed as
 
 When you install the app from Google Play or F-Droid, the store may keep its own installation statistics under its own policy. On Google Play, Google handles the purchase under its own policy.
 
-The version from Google Play can ask Google Play to show its rating dialog, at most once per version and only after a sync went well. The request goes to the Play Store app on the phone and carries none of your data, and the app does not learn whether or how you rated it. **Rate the app** under **About** opens the Play listing. The versions from GitHub and F-Droid contain neither.
+The version from Google Play can ask Google Play to show its rating dialog, only after things went well and at most a few times a year. The request goes to the Play Store app on the phone and carries none of your data, and the app does not learn whether or how you rated it; it only notes on the phone when it asked. **Rate the app** under **About**, and a card on the **Health** tab that can appear once after some weeks, open the Play listing. The versions from GitHub and F-Droid contain none of this. They can show a card once that asks for a star on GitHub: it opens the repository in your browser when you tap it, and the app never looks up whether you starred it.
 
 ## Your control
 

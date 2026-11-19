@@ -10,7 +10,8 @@ import javax.xml.parsers.DocumentBuilderFactory
  * row in About off, the GitHub and F-Droid builds keep it. Those two also point to the Play
  * listing (P1-27), which the Play build itself has no use for. Only the Play build asks for a
  * rating (P1-28): it has the Rate the app row, and its manifest names PlayApplication, which
- * brings Play's In-App Review; the other builds run the plain application and never ask.
+ * brings Play's In-App Review; the other builds run the plain application and never ask Play.
+ * They have a card that asks for a star on GitHub instead (P1-43), which the Play build leaves out.
  */
 class PlayBuildTest {
 
@@ -43,6 +44,16 @@ class PlayBuildTest {
     @Test
     fun thePlayBuildDoesNotPointToItself() {
         assertEquals(false, bool("play", "show_play_listing"))
+    }
+
+    @Test
+    fun theFreeBuildsAskForAStarOnGitHub() {
+        assertEquals(true, bool("main", "show_star_card"))
+    }
+
+    @Test
+    fun thePlayBuildAsksForARatingAndNeverForAStarToo() {
+        assertEquals(false, bool("play", "show_star_card"))
     }
 
     @Test
