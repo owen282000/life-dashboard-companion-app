@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.screens.ReviewAfterSync
+import com.owen282000.lifedashboard.screens.ReviewWhenOpened
 import com.owen282000.lifedashboard.screens.text
 import com.owen282000.lifedashboard.ui.ld.LDNavigator
 import com.owen282000.lifedashboard.ui.ld.LDShell
@@ -70,6 +71,8 @@ fun LDAppShell(navigator: LDNavigator, permissionLauncher: ActivityResultLaunche
     LaunchedEffect(Unit) {
         screenTime.openUsageAccess.collect { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
     }
+    // The tabs only show after the setup, so the first use counts from there (P1-28, P1-43).
+    ReviewWhenOpened(atTabRoot = navigator.stack.isEmpty() && navigator.tab != LDTab.Logs)
     ReviewAfterSync(healthState.syncMessage)
     ReviewAfterSync(screenTimeState.syncMessage)
 

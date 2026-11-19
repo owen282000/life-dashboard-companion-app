@@ -8,4 +8,6 @@
     <bool name="show_rate_app">true</bool>
     <!-- No REQUEST_IGNORE_BATTERY_OPTIMIZATIONS here (src/play/AndroidManifest.xml): the card opens app info. -->
     <bool name="ask_battery_exemption">false</bool>
+    <!-- No star card: this build asks for a rating on Play, and never for both (P1-43). -->
+    <bool name="show_star_card">false</bool>
 </resources>

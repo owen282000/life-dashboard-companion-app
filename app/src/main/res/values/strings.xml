@@ -987,6 +987,7 @@
     <string name="ld_about_mail">Mail</string>
     <string name="ld_about_support_intro">A rating or a star helps other people find the app.</string>
     <string name="ld_about_star">Star on GitHub</string>
+    <string name="review_star_card">Free on F-Droid and GitHub. If it works for you, a star helps others find it.</string>
     <string name="ld_about_source_intro">You can read every line this app runs.</string>
     <string name="ld_about_receiver">Connect your own receiver</string>
     <string name="ld_about_receiver_sub">Let your users pair by scanning one QR code</string>

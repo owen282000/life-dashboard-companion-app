@@ -257,6 +257,8 @@ private fun HomeContent(state: HealthUiState, viewModel: HealthConnectViewModel)
                 )
             }
             if (battery.showsCard || overdueSince != null) LDGap(8.dp)
+            // Never next to a warning: the rating card is for when all is well.
+            if (!battery.showsCard && overdueSince == null) LDRatingCard()
         }
 
         if (home != HomeState.NoDestination && home != HomeState.NoAccess) {

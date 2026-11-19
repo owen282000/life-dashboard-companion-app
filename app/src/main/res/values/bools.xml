@@ -8,4 +8,6 @@
     <bool name="show_rate_app">false</bool>
     <!-- The battery card asks Android's own dialog to exempt the app; off in the Play build, see the manifest. -->
     <bool name="ask_battery_exemption">true</bool>
+    <!-- The card on the Health tab that asks for a star on GitHub (P1-43). Off in the Play build, which asks for a rating on Play instead. -->
+    <bool name="show_star_card">true</bool>
 </resources>
