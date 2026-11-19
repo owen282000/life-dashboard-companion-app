@@ -4,9 +4,13 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.31.0] - 2026-11-19
+
 ### Changed
 
 - The Google Play version asks for a rating at a better moment. The app syncs in the background and is rarely opened, so the question now comes when a backfill you started has finished, or, from the second day, when you open the app or sync from the screen and everything arrived, with no failed delivery in the last day. It waits a moment first instead of meeting you at the door. After a dialog the app waits four months and it stops after three, where it used to ask once per version.
+
+- The MQTT client (HiveMQ) is updated to 1.4.2.
 
 ### Added
 
@@ -1183,7 +1187,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.30.1...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.31.0...HEAD
+[1.31.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.30.1...1.31.0
 [1.30.1]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.30.0...1.30.1
 [1.30.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.29.0...1.30.0
 [1.29.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.28.0...1.29.0

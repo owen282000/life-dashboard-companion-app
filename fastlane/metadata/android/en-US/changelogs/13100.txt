@@ -1,0 +1,5 @@
+Improved
+- The Google Play version asks for a rating at a better moment: when a backfill you started has finished, or after a day in which every sync arrived. Never right after a failed delivery.
+- The GitHub and F-Droid versions ask once for a star on GitHub. Don't show again removes it for good.
+- The MQTT client is updated to 1.4.2.
+Full release notes: https://github.com/owen282000/life-dashboard-companion-app/releases/tag/1.31.0
