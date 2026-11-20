@@ -462,7 +462,7 @@
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
     <string name="privacy_title">プライバシーポリシー</string>
-    <string name="privacy_intro">Life Dashboard Companionはセルフホスティング用のツールです。このスマートフォンの健康データとスクリーンタイムのデータを読み取り、自分で用意したサーバーにだけ送信します。開発者があなたのデータを受け取ったり、保存したり、見たりすることはありません。</string>
+    <string name="privacy_intro">Life Dashboardはセルフホスティング用のツールです。このスマートフォンの健康データとスクリーンタイムのデータを読み取り、自分で用意したサーバーにだけ送信します。開発者があなたのデータを受け取ったり、保存したり、見たりすることはありません。</string>
     <string name="privacy_reads_title">アプリが読み取るもの</string>
     <string name="privacy_reads_body">ヘルスコネクトのレコード。オンにしたタイプだけを、権限を許可したあとにだけ読み取ります。スクリーンタイム用のアプリ使用統計。使用状況へのアクセスを通じて読み取ります。履歴の権限がある場合は、1回限りの過去データ送信用に30日より前のレコード。カメラはペアリング用のスキャナ画面を開いている間だけ使います。映像はスマートフォン上で解析され、保存も送信もされません。</string>
     <string name="privacy_writes_title">アプリが書き込むもの</string>
@@ -917,7 +917,7 @@
     <string name="ld_about_own_server">自分のサーバー</string>
     <string name="ld_about_own_server_sub">ペアリングコード、Webhook、MQTT</string>
     <string name="ld_about_no_cloud">アカウントもクラウドも不要です。iPhone版もあります。</string>
-    <string name="ld_about_version_line">Life Dashboard Companion、バージョン%1$s。開発：Owen Vogelaar。</string>
+    <string name="ld_about_version_line">Life Dashboard、バージョン%1$s。開発：Owen Vogelaar。</string>
     <string name="ld_about_show_nerd">マニア向け統計を表示</string>
     <string name="ld_about_help_sub">ガイド、新機能</string>
     <string name="ld_about_support_sub">評価、GitHubでスター</string>

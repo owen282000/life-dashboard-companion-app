@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Changed
+
+- The app is called Life Dashboard everywhere now: in the app itself, in the test ping and in the F-Droid listing. Google Play still lists it as Health Data for Home Assistant, and the MQTT device in Home Assistant keeps its name.
+
 ## [1.31.0] - 2026-11-19
 
 ### Changed

@@ -481,7 +481,7 @@
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
     <string name="privacy_title">Datenschutzerklärung</string>
-    <string name="privacy_intro">Life Dashboard Companion ist ein Werkzeug zum Selbsthosten. Die App liest Gesundheits- und Bildschirmzeitdaten auf diesem Telefon und sendet sie nur an Server, die du selbst einrichtest. Der Entwickler erhält, speichert oder sieht keine deiner Daten.</string>
+    <string name="privacy_intro">Life Dashboard ist ein Werkzeug zum Selbsthosten. Die App liest Gesundheits- und Bildschirmzeitdaten auf diesem Telefon und sendet sie nur an Server, die du selbst einrichtest. Der Entwickler erhält, speichert oder sieht keine deiner Daten.</string>
     <string name="privacy_reads_title">Was die App liest</string>
     <string name="privacy_reads_body">Health-Connect-Datensätze, nur für die Typen, die du einschaltest, und erst nachdem du die Berechtigung erteilst. App-Nutzungsstatistiken für Bildschirmzeit, über den Nutzungszugriff. Mit der Verlaufsberechtigung auch Datensätze, die älter als 30 Tage sind, für ein einmaliges Nachtragen. Die Kamera nutzt nur der Kopplungsscanner, solange dieser Bildschirm offen ist: Bilder werden auf dem Telefon ausgewertet und nie gespeichert oder gesendet.</string>
     <string name="privacy_writes_title">Was die App schreibt</string>
@@ -958,7 +958,7 @@
     <string name="ld_about_own_server">Dein eigener Server</string>
     <string name="ld_about_own_server_sub">Kopplungscode, Webhook oder MQTT</string>
     <string name="ld_about_no_cloud">Kein Konto und keine Cloud. Auch fürs iPhone.</string>
-    <string name="ld_about_version_line">Life Dashboard Companion, Version %1$s. Erstellt von Owen Vogelaar.</string>
+    <string name="ld_about_version_line">Life Dashboard, Version %1$s. Erstellt von Owen Vogelaar.</string>
     <string name="ld_about_show_nerd">Nerd-Statistiken zeigen</string>
     <string name="ld_about_help_sub">Anleitung, was ist neu</string>
     <string name="ld_about_support_sub">Bewerten, Stern auf GitHub</string>

@@ -45,4 +45,4 @@ Les données de santé exigent Android 9 ou plus avec Santé Connect (intégré 
 
 Home Assistant, Grafana et les autres produits cités sont des marques de leurs propriétaires. Ils ne sont pas fournis avec cette app, et ces propriétaires n’y sont pas liés.
 
-Life Dashboard Companion n’est pas un dispositif médical et ne diagnostique, ne traite, ne guérit ni ne prévient aucune affection médicale. Demandez à un professionnel de santé tout avis médical, diagnostic ou traitement.
+Life Dashboard n’est pas un dispositif médical et ne diagnostique, ne traite, ne guérit ni ne prévient aucune affection médicale. Demandez à un professionnel de santé tout avis médical, diagnostic ou traitement.

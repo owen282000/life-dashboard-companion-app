@@ -502,7 +502,7 @@
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
     <string name="privacy_title">Règles de confidentialité</string>
-    <string name="privacy_intro">Life Dashboard Companion est un outil d’auto-hébergement. Il lit les données de santé et de temps d’écran sur ce téléphone et les envoie uniquement aux serveurs que vous configurez vous-même. Le développeur ne reçoit, ne stocke ni ne voit jamais aucune de vos données.</string>
+    <string name="privacy_intro">Life Dashboard est un outil d’auto-hébergement. Il lit les données de santé et de temps d’écran sur ce téléphone et les envoie uniquement aux serveurs que vous configurez vous-même. Le développeur ne reçoit, ne stocke ni ne voit jamais aucune de vos données.</string>
     <string name="privacy_reads_title">Ce que l’app lit</string>
     <string name="privacy_reads_body">Les enregistrements de Santé Connect, uniquement pour les types que vous activez et uniquement après que vous avez accordé l’autorisation. Les statistiques d’utilisation des apps pour Temps d’écran, via l’accès aux données d’utilisation. Avec l’autorisation d’accès à l’historique, les enregistrements de plus de 30 jours pour un rattrapage ponctuel. L’appareil photo n’est utilisé que par le scanner d’association, tant que cet écran est ouvert : les images sont décodées sur le téléphone et ne sont jamais stockées ni envoyées.</string>
     <string name="privacy_writes_title">Ce que l’app écrit</string>
@@ -1003,7 +1003,7 @@
     <string name="ld_about_own_server">Votre propre serveur</string>
     <string name="ld_about_own_server_sub">Code d’association, webhook ou MQTT</string>
     <string name="ld_about_no_cloud">Sans compte ni cloud. Aussi sur iPhone.</string>
-    <string name="ld_about_version_line">Life Dashboard Companion, version %1$s. Créé par Owen Vogelaar.</string>
+    <string name="ld_about_version_line">Life Dashboard, version %1$s. Créé par Owen Vogelaar.</string>
     <string name="ld_about_show_nerd">Afficher les stats de geek</string>
     <string name="ld_about_help_sub">Guide, nouveautés</string>
     <string name="ld_about_support_sub">Noter, étoile sur GitHub</string>

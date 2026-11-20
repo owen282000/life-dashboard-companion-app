@@ -482,7 +482,7 @@
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
     <string name="privacy_title">निजता नीति</string>
-    <string name="privacy_intro">Life Dashboard Companion सेल्फ़-होस्टिंग टूल है। यह इस फ़ोन पर स्वास्थ्य और स्क्रीन टाइम का डेटा पढ़ता है और उसे सिर्फ़ उन सर्वर पर भेजता है जो आपने खुद सेट किए हैं। डेवलपर को आपका कोई भी डेटा कभी नहीं मिलता, न वह उसे सेव करता है और न देखता है।</string>
+    <string name="privacy_intro">Life Dashboard सेल्फ़-होस्टिंग टूल है। यह इस फ़ोन पर स्वास्थ्य और स्क्रीन टाइम का डेटा पढ़ता है और उसे सिर्फ़ उन सर्वर पर भेजता है जो आपने खुद सेट किए हैं। डेवलपर को आपका कोई भी डेटा कभी नहीं मिलता, न वह उसे सेव करता है और न देखता है।</string>
     <string name="privacy_reads_title">ऐप क्या पढ़ता है</string>
     <string name="privacy_reads_body">Health Connect के रिकॉर्ड, सिर्फ़ उन टाइप के लिए जिन्हें आप चालू करते हैं और सिर्फ़ अनुमति देने के बाद। स्क्रीन टाइम के लिए ऐप इस्तेमाल के आंकड़े, इस्तेमाल के ऐक्सेस के ज़रिए। इतिहास की अनुमति होने पर, एक बार के बैकफ़िल के लिए 30 दिन से पुराने रिकॉर्ड। कैमरा सिर्फ़ पेयरिंग स्कैनर इस्तेमाल करता है, जब तक वह स्क्रीन खुली है: फ़्रेम फ़ोन पर ही डिकोड होते हैं और कभी सेव या भेजे नहीं जाते।</string>
     <string name="privacy_writes_title">ऐप क्या लिखता है</string>
@@ -961,7 +961,7 @@
     <string name="ld_about_own_server">आपका अपना सर्वर</string>
     <string name="ld_about_own_server_sub">पेयरिंग कोड, वेबहुक या MQTT</string>
     <string name="ld_about_no_cloud">न कोई खाता, न कोई क्लाउड। iPhone पर भी।</string>
-    <string name="ld_about_version_line">Life Dashboard Companion, वर्शन %1$s। Owen Vogelaar ने बनाया।</string>
+    <string name="ld_about_version_line">Life Dashboard, वर्शन %1$s। Owen Vogelaar ने बनाया।</string>
     <string name="ld_about_show_nerd">नर्ड स्टैट्स दिखाएं</string>
     <string name="ld_about_help_sub">गाइड, नया क्या है</string>
     <string name="ld_about_support_sub">रेटिंग, GitHub पर स्टार</string>

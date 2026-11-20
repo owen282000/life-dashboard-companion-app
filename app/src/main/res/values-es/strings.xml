@@ -502,7 +502,7 @@
 
     <!-- Pantalla de política de privacidad: también la que abre Health Connect desde su enlace a la política de privacidad -->
     <string name="privacy_title">Política de privacidad</string>
-    <string name="privacy_intro">Life Dashboard Companion es una herramienta para autoalojar. Lee los datos de salud y de tiempo de pantalla de este teléfono y los envía solo a servidores que configuras tú. El desarrollador nunca recibe, guarda ni ve ninguno de tus datos.</string>
+    <string name="privacy_intro">Life Dashboard es una herramienta para autoalojar. Lee los datos de salud y de tiempo de pantalla de este teléfono y los envía solo a servidores que configuras tú. El desarrollador nunca recibe, guarda ni ve ninguno de tus datos.</string>
     <string name="privacy_reads_title">Qué lee la app</string>
     <string name="privacy_reads_body">Registros de Health Connect, solo de los tipos que activas y solo después de que concedas el permiso. Estadísticas de uso de apps para Tiempo de pantalla, mediante el acceso a datos de uso. Con el permiso de historial, registros de hace más de 30 días para una recuperación puntual del historial. La cámara solo la usa el escáner de vinculación, mientras esa pantalla está abierta: las imágenes se procesan en el teléfono y nunca se guardan ni se envían.</string>
     <string name="privacy_writes_title">Qué escribe la app</string>
@@ -1001,7 +1001,7 @@
     <string name="ld_about_own_server">Tu propio servidor</string>
     <string name="ld_about_own_server_sub">Código de vinculación, webhook o MQTT</string>
     <string name="ld_about_no_cloud">Sin cuenta y sin nube. También en iPhone.</string>
-    <string name="ld_about_version_line">Life Dashboard Companion, versión %1$s. Hecho por Owen Vogelaar.</string>
+    <string name="ld_about_version_line">Life Dashboard, versión %1$s. Hecho por Owen Vogelaar.</string>
     <string name="ld_about_show_nerd">Mostrar estadísticas para nerds</string>
     <string name="ld_about_help_sub">Guía, novedades</string>
     <string name="ld_about_support_sub">Calificar, estrella en GitHub</string>

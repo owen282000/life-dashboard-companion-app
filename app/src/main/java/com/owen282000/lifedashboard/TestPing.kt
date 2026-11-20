@@ -15,7 +15,7 @@ import java.time.Instant
  */
 object TestPing {
 
-    const val MESSAGE = "Test ping from Life Dashboard Companion"
+    const val MESSAGE = "Test ping from Life Dashboard"
 
     /** The source a ping names for [logType]: the section it tests, like a sync of it would. */
     fun source(logType: LogType): String = when (logType) {

@@ -502,7 +502,7 @@
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
     <string name="privacy_title">Política de privacidade</string>
-    <string name="privacy_intro">O Life Dashboard Companion é uma ferramenta de auto-hospedagem. Ele lê dados de saúde e de tempo de tela neste celular e os envia só para servidores que você mesmo configura. O desenvolvedor nunca recebe, guarda nem vê nenhum dos seus dados.</string>
+    <string name="privacy_intro">O Life Dashboard é uma ferramenta de auto-hospedagem. Ele lê dados de saúde e de tempo de tela neste celular e os envia só para servidores que você mesmo configura. O desenvolvedor nunca recebe, guarda nem vê nenhum dos seus dados.</string>
     <string name="privacy_reads_title">O que o app lê</string>
     <string name="privacy_reads_body">Registros do Conexão Saúde, só dos tipos que você ativa e só depois que você concede a permissão. Estatísticas de uso de apps para o Tempo de tela, pelo acesso aos dados de uso. Com a permissão de histórico, registros com mais de 30 dias para um envio do histórico pontual. A câmera é usada só pelo leitor de pareamento, enquanto essa tela está aberta: as imagens são decodificadas no celular e nunca são guardadas nem enviadas.</string>
     <string name="privacy_writes_title">O que o app grava</string>
@@ -1003,7 +1003,7 @@
     <string name="ld_about_own_server">Seu próprio servidor</string>
     <string name="ld_about_own_server_sub">Código de pareamento, webhook ou MQTT</string>
     <string name="ld_about_no_cloud">Sem conta e sem nuvem. Também no iPhone.</string>
-    <string name="ld_about_version_line">Life Dashboard Companion, versão %1$s. Feito por Owen Vogelaar.</string>
+    <string name="ld_about_version_line">Life Dashboard, versão %1$s. Feito por Owen Vogelaar.</string>
     <string name="ld_about_show_nerd">Mostrar estatísticas nerd</string>
     <string name="ld_about_help_sub">Guia, novidades</string>
     <string name="ld_about_support_sub">Avaliar, estrela no GitHub</string>

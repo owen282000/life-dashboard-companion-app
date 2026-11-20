@@ -502,7 +502,7 @@
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
     <string name="privacy_title">Informativa sulla privacy</string>
-    <string name="privacy_intro">Life Dashboard Companion è uno strumento self-hosted. Legge i dati sulla salute e sul tempo di utilizzo di questo telefono e li invia solo ai server che configuri tu. Lo sviluppatore non riceve, non conserva e non vede mai nessuno dei tuoi dati.</string>
+    <string name="privacy_intro">Life Dashboard è uno strumento self-hosted. Legge i dati sulla salute e sul tempo di utilizzo di questo telefono e li invia solo ai server che configuri tu. Lo sviluppatore non riceve, non conserva e non vede mai nessuno dei tuoi dati.</string>
     <string name="privacy_reads_title">Cosa legge l\'app</string>
     <string name="privacy_reads_body">I record di Connessione Salute, solo per i tipi che attivi e solo dopo che hai concesso l\'autorizzazione. Le statistiche di utilizzo delle app per Tempo di utilizzo, tramite l\'accesso ai dati di utilizzo. Con l\'autorizzazione allo storico, i record più vecchi di 30 giorni per un recupero una tantum. La fotocamera viene usata solo dallo scanner di associazione, mentre quella schermata è aperta: i fotogrammi vengono decodificati sul telefono e non vengono mai salvati né inviati.</string>
     <string name="privacy_writes_title">Cosa scrive l\'app</string>
@@ -1001,7 +1001,7 @@
     <string name="ld_about_own_server">Il tuo server</string>
     <string name="ld_about_own_server_sub">Codice di associazione, webhook o MQTT</string>
     <string name="ld_about_no_cloud">Nessun account e nessun cloud. Anche su iPhone.</string>
-    <string name="ld_about_version_line">Life Dashboard Companion, versione %1$s. Creata da Owen Vogelaar.</string>
+    <string name="ld_about_version_line">Life Dashboard, versione %1$s. Creata da Owen Vogelaar.</string>
     <string name="ld_about_show_nerd">Mostra statistiche da nerd</string>
     <string name="ld_about_help_sub">Guida, novità</string>
     <string name="ld_about_support_sub">Valuta, stella su GitHub</string>
