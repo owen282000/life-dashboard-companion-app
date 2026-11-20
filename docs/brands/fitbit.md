@@ -1,9 +1,9 @@
 # Fitbit, Pixel Watch and Google Health in Home Assistant via Health Connect
 
-A Fitbit or a Pixel Watch syncs to the Google Health app (the Fitbit app until May 2026), and Google Health writes your data into Health Connect on the phone. Life Dashboard Companion reads it there and sends it to Home Assistant, with no Google Cloud project, OAuth client or Fitbit API involved:
+A Fitbit or a Pixel Watch syncs to the Google Health app (the Fitbit app until May 2026), and Google Health writes your data into Health Connect on the phone. The Life Dashboard app reads it there and sends it to Home Assistant, with no Google Cloud project, OAuth client or Fitbit API involved:
 
 ```
-Fitbit or Pixel Watch  ->  Google Health app  ->  Health Connect  ->  Life Dashboard Companion  ->  Home Assistant
+Fitbit or Pixel Watch  ->  Google Health app  ->  Health Connect  ->  Life Dashboard app  ->  Home Assistant
 ```
 
 The same data can also go to an MQTT broker or to any webhook that accepts a JSON POST.
@@ -39,7 +39,7 @@ In the Google Health app ([Google's instructions](https://support.google.com/goo
 
 To check it later, or to push a sync by hand: **Connections > Partner apps > Manage Health Connect > Sync**. Google asks for Android 9 or later and an adult Google Account.
 
-For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install Life Dashboard Companion](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
+For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install the Life Dashboard app](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
 
 ## Good to know
 

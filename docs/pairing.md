@@ -1,6 +1,6 @@
 # Pairing your own receiver by QR code
 
-Your service can let its users connect Life Dashboard Companion the way the Home Assistant integration does: it shows one QR code, the user scans it and taps **Pair**, and the app fills in your webhook address and a signing secret for that user. Nobody types a URL or copies a secret, and you know it worked because the app posts a signed test ping right away.
+Your service can let its users connect the Life Dashboard app the way the Home Assistant integration does: it shows one QR code, the user scans it and taps **Pair**, and the app fills in your webhook address and a signing secret for that user. Nobody types a URL or copies a secret, and you know it worked because the app posts a signed test ping right away.
 
 <p align="center">
   <img src="pairing-flow.png" alt="Your service shows a QR code, the phone opens it into the pairing page for Example Health at health.example.com, and after Pair your service receives a signed test ping" width="900">
@@ -183,7 +183,7 @@ X-Signature: sha256=<hex of HMAC-SHA256(secret, raw body)>
   "test": true,
   "message": "Test ping from Life Dashboard Companion",
   "timestamp": "2026-10-04T12:00:00Z",
-  "app_version": "1.29.0",
+  "app_version": "1.31.0",
   "source": "health_connect"
 }
 ```
@@ -219,7 +219,7 @@ From then on every sync is signed with the same secret. [The webhook reference](
 
 ## iPhone
 
-[Life Dashboard Companion for iPhone](https://github.com/owen282000/life-dashboard-companion-app-ios) reads the same links, with three differences.
+[Life Dashboard for iPhone](https://github.com/owen282000/life-dashboard-companion-app-ios) reads the same links, with three differences.
 
 - **Health only.** iOS has no screen time to send, so a code must accept `health_connect`: leave `sources` out, or include it.
 - **Plain HTTP only to a home network.** iOS fixes which `http://` addresses an app may reach. A private IP address (`192.168.x.x`, `10.x.x.x`, `172.16.x.x` to `172.31.x.x`, `100.64.x.x` to `100.127.x.x` for Tailscale, loopback, link local), a `.local` name, or a name without a dot work. Plain HTTP to a name such as `ha.lan` is refused by iOS on every request, and the sheet says so before anything is saved. Use https and the problem is gone.

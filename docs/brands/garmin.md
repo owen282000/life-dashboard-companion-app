@@ -1,9 +1,9 @@
 # Garmin in Home Assistant via Health Connect, without a Garmin login
 
-Garmin Connect on your phone writes your watch's data into Health Connect. Life Dashboard Companion reads it there and sends it to Home Assistant, so Home Assistant never needs your Garmin username, password or MFA code:
+Garmin Connect on your phone writes your watch's data into Health Connect. The Life Dashboard app reads it there and sends it to Home Assistant, so Home Assistant never needs your Garmin username, password or MFA code:
 
 ```
-Garmin watch  ->  Garmin Connect  ->  Health Connect  ->  Life Dashboard Companion  ->  Home Assistant
+Garmin watch  ->  Garmin Connect  ->  Health Connect  ->  Life Dashboard app  ->  Home Assistant
 ```
 
 The same data can also go to an MQTT broker or to any webhook that accepts a JSON POST.
@@ -31,7 +31,7 @@ Not in Garmin's list (as of October 2026): Body Battery, stress, heart rate vari
 
 In Garmin Connect: **Settings > Connected Apps > Health Connect**, then grant the data types. It needs Garmin Connect 5.14.1 or later and Android 14 or later. ([Garmin's support page](https://support.garmin.com/en-US/?faq=JToBEy0jfe6pIygark2Ui5))
 
-For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install Life Dashboard Companion](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
+For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install the Life Dashboard app](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
 
 ## Good to know
 

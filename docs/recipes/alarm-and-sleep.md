@@ -1,20 +1,20 @@
 # Your alarm and your night, together
 
-The Home Assistant companion app knows when your alarm goes off; this app knows how you slept. Together they answer three questions: when should I go to bed for the sleep I want, how did my nights go this week, and do I wake up before my alarm. This page has the Home Assistant configuration for all three. Checked on October 2, 2026, with Home Assistant 2026.9.
+Home Assistant's Companion app knows when your alarm goes off; this app knows how you slept. Together they answer three questions: when should I go to bed for the sleep I want, how did my nights go this week, and do I wake up before my alarm. This page has the Home Assistant configuration for all three. Checked on October 2, 2026, with Home Assistant 2026.9.
 
-This recipe is Android-only: the companion app for iPhone has no next alarm sensor.
+This recipe is Android-only: Home Assistant's Companion app for iPhone has no next alarm sensor.
 
 ## What you need
 
-- **The Home Assistant companion app** on the phone, with its **Next alarm** sensor switched on: in the companion app, **Settings > Companion app > Manage sensors > Next alarm**. It is off by default. Under **Allow list** in the same place, pick your clock app, so a calendar or a reminder app can't move the alarm.
-- **Life Dashboard Companion** with the [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) and **Sleep** switched on: [Phone to Home Assistant](../usage.md#with-the-integration).
+- **Home Assistant's Companion app** on the phone, with its **Next alarm** sensor switched on: in that app, **Settings > Companion app > Manage sensors > Next alarm**. It is off by default. Under **Allow list** in the same place, pick your clock app, so a calendar or a reminder app can't move the alarm.
+- **The Life Dashboard app** with the [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) and **Sleep** switched on: [Phone to Home Assistant](../usage.md#with-the-integration).
 - **A fixed sync time in the morning**, such as 09:00, so last night is in Home Assistant at a time you know (**Health** tab, **When to send**, **Fixed times**). A watch app writes the night to Health Connect when it syncs after you wake up, not at the moment you wake.
 
 The YAML below uses three placeholders. Replace each with the ID from your own Home Assistant:
 
-- `sensor.<phone>_next_alarm`: the companion app's next alarm, named after the companion app's device.
+- `sensor.<phone>_next_alarm`: the Companion app's next alarm, named after the Companion app's device.
 - `sensor.<phone>_last_sleep_duration`: this app's last sleep, named after the Life Dashboard device. The two devices can have different names, so look up both IDs under **Settings > Devices & services > Entities**.
-- `notify.mobile_app_<phone>`: the companion app's notification action for that phone.
+- `notify.mobile_app_<phone>`: the Companion app's notification action for that phone.
 
 **With MQTT instead of the integration,** use the MQTT sensor **Last Sleep Duration** of the Life Dashboard Companion device; its entity ID starts with `sensor.life_dashboard_companion_`. It is in minutes and carries the same `measured_at` attribute, so the templates and the reminder work unchanged. The week of sleep in part 2 needs the integration's statistics.
 
@@ -22,7 +22,7 @@ The YAML below uses three placeholders. Replace each with the ID from your own H
 
 ## What the sleep number is
 
-The integration's **Last sleep duration** is the whole sleep session as your tracker recorded it, from when it saw you fall asleep to when it saw you wake, with time awake in between included. Its `measured_at` attribute is the end of the session: when you woke. It isn't time asleep, and it isn't time in bed either, because the session starts when the tracker notices sleep, not when you lie down. Time asleep, the session minus its awake stages, isn't in the integration today. The companion app's own Health Connect sleep duration has left awake and out-of-bed time out since its version 2026.10.1.
+The integration's **Last sleep duration** is the whole sleep session as your tracker recorded it, from when it saw you fall asleep to when it saw you wake, with time awake in between included. Its `measured_at` attribute is the end of the session: when you woke. It isn't time asleep, and it isn't time in bed either, because the session starts when the tracker notices sleep, not when you lie down. Time asleep, the session minus its awake stages, isn't in the integration today. The Companion app's own Health Connect sleep duration has left awake and out-of-bed time out since its version 2026.10.1.
 
 In the history, each day holds every session that **ended** that day, naps included: the night from Thursday to Friday is Friday's bar.
 
@@ -184,7 +184,7 @@ Pick the sleep statistic from the card editor's picker rather than typing the ID
 
 ## 3. Awake before the alarm
 
-**Morning alarm** keeps the alarm that was meant for this morning, even after it has gone off, been snoozed or been switched off: the companion app's own sensor moves on to the next alarm the moment one rings. **Awake before the alarm** compares the end of last night's sleep with it: 25 means you woke 25 minutes before the alarm, -12 that you got up 12 minutes after it. An alarm that wakes you gives about 0.
+**Morning alarm** keeps the alarm that was meant for this morning, even after it has gone off, been snoozed or been switched off: the Companion app's own sensor moves on to the next alarm the moment one rings. **Awake before the alarm** compares the end of last night's sleep with it: 25 means you woke 25 minutes before the alarm, -12 that you got up 12 minutes after it. An alarm that wakes you gives about 0.
 
 Its limits:
 
@@ -200,4 +200,4 @@ The sleep sensor and the two alarm sensors stay in Home Assistant's recorder for
 
 - **The alarm time is wrong.** Check the allow list; on a Samsung phone, a routine or Sleep mode may be the "next alarm". A next alarm that is in the past means the allow list held back an update.
 - **"Last night" is missing from the reminder.** The night hadn't been synced yet: move the morning sync time later, or check the **Logs** tab in the app.
-- **An entity isn't found.** Look up the exact ID under **Settings > Devices & services > Entities**. The companion app's device and the Life Dashboard device can have different names.
+- **An entity isn't found.** Look up the exact ID under **Settings > Devices & services > Entities**. The Companion app's device and the Life Dashboard device can have different names.

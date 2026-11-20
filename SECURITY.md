@@ -1,6 +1,6 @@
 # Security policy
 
-Life Dashboard Companion moves health data from your phone to servers you run. This page explains how to [check that an APK is genuine](#verifying-a-release), and how to [report a security problem](#reporting-a-vulnerability).
+The Life Dashboard app moves health data from your phone to servers you run. This page explains how to [check that an APK is genuine](#verifying-a-release), and how to [report a security problem](#reporting-a-vulnerability).
 
 ## Supported versions
 

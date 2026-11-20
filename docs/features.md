@@ -1,6 +1,6 @@
 # Features
 
-What Life Dashboard Companion does, section by section. For setup and day-to-day use see [usage.md](usage.md); for the payload your server receives see [webhook.md](webhook.md).
+What the Life Dashboard app does, section by section. For setup and day-to-day use see [usage.md](usage.md); for the payload your server receives see [webhook.md](webhook.md).
 
 ## At a glance
 
@@ -26,7 +26,7 @@ What Life Dashboard Companion does, section by section. For setup and day-to-day
 - [Status on the phone](#status-on-the-phone)
 - [Preview, export and logs](#preview-export-and-logs)
 - [Settings backup](#settings-backup)
-- [How this compares to the Home Assistant companion app](#how-this-compares-to-the-home-assistant-companion-app)
+- [How this compares to Home Assistant's Companion app](#how-this-compares-to-the-home-assistant-companion-app)
 
 <a id="33-supported-data-types"></a>
 <a id="34-supported-data-types"></a>
@@ -295,11 +295,13 @@ The app's lifetime figures are in **Nerd Stats**: press and hold the version lin
 
 Under **More > Backup and restore** on the **Health** tab you can export your webhooks, headers, secrets, MQTT brokers, schedules and options as a JSON file, and import it on another phone. With secrets included, the file is encrypted with a password. The same format moves between this app and the iOS app. See [settings-backup.md](settings-backup.md).
 
-## How this compares to the Home Assistant companion app
+<a id="how-this-compares-to-the-home-assistant-companion-app"></a>
 
-The [Home Assistant companion app](https://companion.home-assistant.io/docs/core/sensors) ships Health Connect sensors of its own, so if you run Home Assistant you may wonder what this app adds. The companion app gives you the latest value of 25 metrics inside Home Assistant; this app gives you every record of 34 types, wherever you want them. Checked against the companion app's documentation and its release 2026.11.1 on November 6, 2026.
+## How this compares to Home Assistant's Companion app
 
-| | HA companion app | Life Dashboard Companion |
+Home Assistant's [Companion app](https://companion.home-assistant.io/docs/core/sensors) ships Health Connect sensors of its own, so if you run Home Assistant you may wonder what this app adds. The Companion app gives you the latest value of 25 metrics inside Home Assistant; this app gives you every record of 34 types, wherever you want them. Checked against the Companion app's documentation and its release 2026.11.1 on November 6, 2026.
+
+| | Home Assistant's Companion app | Life Dashboard |
 |---|---|---|
 | Health Connect coverage | 36 sensors from 25 types | 34 data types |
 | Sleep | Last session: duration, start and end, and minutes per stage (since 2026.11.1) | Every session with its stages |
@@ -312,4 +314,4 @@ The [Home Assistant companion app](https://companion.home-assistant.io/docs/core
 | Delivery | Sensor updates | HMAC-signed webhooks, retries, store-and-forward outbox, delivery logs |
 | Android | 9+ on the Play build, 14+ otherwise | 9+ for Health Connect, 8.0+ for screen time |
 
-The two work side by side. Keep the companion app for presence, notifications and device sensors, and for last night's sleep and its stages. Add this app when you want the full health history, daily totals for every past day on their own date, writing into Health Connect, screen time per app, or delivery to something other than Home Assistant.
+The two work side by side. Keep the Companion app for presence, notifications and device sensors, and for last night's sleep and its stages. Add this app when you want the full health history, daily totals for every past day on their own date, writing into Health Connect, screen time per app, or delivery to something other than Home Assistant.

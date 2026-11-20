@@ -1,6 +1,6 @@
 # Data sources and their limits
 
-Life Dashboard Companion forwards what Health Connect and Android's usage statistics contain. It cannot add what the source app never wrote, and it delivers late-arriving data only once the source has written it. This page collects what is known per source, mostly from user reports, so the same question does not have to be answered twice. For setting up a brand from scratch, see the [brand pages](brands/README.md). Corrections and additions are welcome as a pull request or issue.
+The Life Dashboard app forwards what Health Connect and Android's usage statistics contain. It cannot add what the source app never wrote, and it delivers late-arriving data only once the source has written it. This page collects what is known per source, mostly from user reports, so the same question does not have to be answered twice. For setting up a brand from scratch, see the [brand pages](brands/README.md). Corrections and additions are welcome as a pull request or issue.
 
 ## How records are picked up
 

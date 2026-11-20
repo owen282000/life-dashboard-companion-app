@@ -1,9 +1,9 @@
 # Coros in Home Assistant via Health Connect
 
-The Coros app on your phone can write your watch's data into Health Connect. Life Dashboard Companion reads it there and sends it to Home Assistant, so Home Assistant never needs your Coros login:
+The Coros app on your phone can write your watch's data into Health Connect. The Life Dashboard app reads it there and sends it to Home Assistant, so Home Assistant never needs your Coros login:
 
 ```
-Coros watch  ->  Coros app  ->  Health Connect  ->  Life Dashboard Companion  ->  Home Assistant
+Coros watch  ->  Coros app  ->  Health Connect  ->  Life Dashboard app  ->  Home Assistant
 ```
 
 The same data can also go to an MQTT broker or to any webhook that accepts a JSON POST.
@@ -56,7 +56,7 @@ Over MQTT the same template works with the entity IDs of the MQTT device.
 
 In the Coros app, connect Health Connect under the third-party apps in the settings, and grant the data types.
 
-For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install Life Dashboard Companion](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types you want under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
+For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install the Life Dashboard app](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types you want under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
 
 Do you have a Coros watch and see something else? Corrections are welcome as an issue or pull request, and [DATA_SOURCES.md](../DATA_SOURCES.md) collects what users found per source app.
 

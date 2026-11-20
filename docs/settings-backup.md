@@ -75,7 +75,7 @@ Plain exports are readable JSON:
 {
   "version": 1,
   "exported_at": "2026-10-04T12:00:00Z",
-  "app_version": "1.23.0",
+  "app_version": "1.31.0",
   "health": {
     "webhook_urls": ["https://example.com/health", "https://ha.example.com/api/webhook/abc"],
     "headers": {},

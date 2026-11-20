@@ -36,6 +36,8 @@ The build also runs `scripts/check-hardcoded-strings.sh` and `scripts/check-canc
 - **Keep pure logic testable.** Sync logic that doesn't need Health Connect lives in small, dependency-free types (see `ResilientReadLogic`, `WebhookSupport`); follow that pattern so it stays unit-testable on the JVM.
 - **AI assistance is fine; say so in the PR.** The rules are in [AI_POLICY.md](AI_POLICY.md): disclose the tool, understand and test what you submit, no unreviewed agent output.
 
+**The README's shared blocks come from a script.** The nav, "How this is built" and the footer are the same in all nine Life Dashboard READMEs, between `<!-- life-dashboard:... -->` markers. Change them in [docs/brand/readme-blocks.py](docs/brand/readme-blocks.py), run `python3 docs/brand/readme-blocks.py --print <key>` for each repository and paste the result into its README. A daily workflow runs `--check` and fails when a README is out of step.
+
 Anything a user would notice gets a line under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md); the pull request template asks for it. Commit messages follow the conventional style used in the history: `feat:`, `fix:`, `docs:`, `ci:`, `build:`, `test:`, `chore:`.
 
 ## Opening a pull request

@@ -1,9 +1,9 @@
 # Gadgetbridge in Home Assistant via Health Connect, no vendor account
 
-[Gadgetbridge](https://gadgetbridge.org/) talks to Amazfit, Bangle.js, Pebble, Xiaomi and many other watches and bands without the vendor's app or cloud, and writes their data into Health Connect. Life Dashboard Companion reads it there and sends it to Home Assistant. The whole chain stays on your own devices, and on Android 14 and newer, where Health Connect is part of Android, every step is open source:
+[Gadgetbridge](https://gadgetbridge.org/) talks to Amazfit, Bangle.js, Pebble, Xiaomi and many other watches and bands without the vendor's app or cloud, and writes their data into Health Connect. The Life Dashboard app reads it there and sends it to Home Assistant. The whole chain stays on your own devices, and on Android 14 and newer, where Health Connect is part of Android, every step is open source:
 
 ```
-watch  ->  Gadgetbridge  ->  Health Connect  ->  Life Dashboard Companion  ->  Home Assistant
+watch  ->  Gadgetbridge  ->  Health Connect  ->  Life Dashboard app  ->  Home Assistant
 ```
 
 The same data can also go to an MQTT broker or to any webhook that accepts a JSON POST.
@@ -31,7 +31,7 @@ Anything outside Gadgetbridge's Health Connect list stays in Gadgetbridge, for e
 
 In Gadgetbridge 0.89.0 or later: **Settings > External Integrations > Health Connect**, enable the sync and grant the permissions. Turn on **Sync after device sync** so new data goes out after every watch sync. On the first sync you choose how much history to send: everything, or a recent period. ([Gadgetbridge's documentation](https://gadgetbridge.org/basics/integrations/health-connect/))
 
-For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install Life Dashboard Companion](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
+For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install the Life Dashboard app](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
 
 ## Good to know
 
