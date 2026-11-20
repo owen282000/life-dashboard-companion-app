@@ -562,7 +562,7 @@
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
     <string name="privacy_title">سياسة الخصوصية</string>
-    <string name="privacy_intro">\u200FLife Dashboard Companion أداة للاستضافة الذاتية. يقرأ بيانات الصحة ومدة استخدام الشاشة على هذا الهاتف ويرسلها فقط إلى خوادم تُعدّها بنفسك. لا يتلقى المطوّر أيًّا من بياناتك ولا يخزّنها ولا يطّلع عليها أبدًا.</string>
+    <string name="privacy_intro">\u200FLife Dashboard أداة للاستضافة الذاتية. يقرأ بيانات الصحة ومدة استخدام الشاشة على هذا الهاتف ويرسلها فقط إلى خوادم تُعدّها بنفسك. لا يتلقى المطوّر أيًّا من بياناتك ولا يخزّنها ولا يطّلع عليها أبدًا.</string>
     <string name="privacy_reads_title">ما يقرؤه التطبيق</string>
     <string name="privacy_reads_body">إدخالات Health Connect، للأنواع التي تفعّلها فقط وبعد منح الإذن فقط. إحصاءات استخدام التطبيقات لمدة استخدام الشاشة، عبر الوصول إلى بيانات الاستخدام. مع إذن الوصول إلى السجل السابق، الإدخالات الأقدم من 30 يومًا لعملية استكمال لمرة واحدة. تُستخدم الكاميرا فقط من قِبل ماسح الإقران، أثناء فتح تلك الشاشة: تُفك ترميز الإطارات على الهاتف ولا تُخزّن أو تُرسل أبدًا.</string>
     <string name="privacy_writes_title">ما يكتبه التطبيق</string>
@@ -1127,7 +1127,7 @@
     <string name="ld_about_own_server">خادمك الخاص</string>
     <string name="ld_about_own_server_sub">رمز الإقران أو webhook أو MQTT</string>
     <string name="ld_about_no_cloud">بدون حساب وبدون سحابة. متوفر أيضًا على iPhone.</string>
-    <string name="ld_about_version_line">\u200FLife Dashboard Companion، الإصدار %1$s. من تطوير Owen Vogelaar.</string>
+    <string name="ld_about_version_line">\u200FLife Dashboard، الإصدار %1$s. من تطوير Owen Vogelaar.</string>
     <string name="ld_about_show_nerd">إظهار إحصاءات للمهووسين</string>
     <string name="ld_about_help_sub">الدليل، ما الجديد</string>
     <string name="ld_about_support_sub">التقييم، نجمة على GitHub</string>

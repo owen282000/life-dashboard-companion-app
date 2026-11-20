@@ -45,4 +45,4 @@ Gezondheidsgegevens vereisen Android 9 of nieuwer met Health Connect (ingebouwd 
 
 Home Assistant, Grafana en andere genoemde producten zijn merken van hun eigenaren. Ze zitten niet bij deze app en die eigenaren hebben er niets mee te maken.
 
-Life Dashboard Companion is geen medisch hulpmiddel en stelt geen diagnose, behandelt, geneest of voorkomt geen enkele medische aandoening. Vraag een zorgverlener om medisch advies, een diagnose of een behandeling.
+Life Dashboard is geen medisch hulpmiddel en stelt geen diagnose, behandelt, geneest of voorkomt geen enkele medische aandoening. Vraag een zorgverlener om medisch advies, een diagnose of een behandeling.

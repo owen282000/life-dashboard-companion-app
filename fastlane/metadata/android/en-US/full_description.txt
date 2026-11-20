@@ -46,4 +46,4 @@ Health data needs Android 9 or newer with Health Connect (built into Android 14 
 
 Home Assistant, Grafana and other products named here are trademarks of their owners. They are not included with this app, and their owners have no connection to it.
 
-Life Dashboard Companion is not a medical device and does not diagnose, treat, cure or prevent any medical condition. Ask a healthcare professional for medical advice, diagnosis or treatment.
+Life Dashboard is not a medical device and does not diagnose, treat, cure or prevent any medical condition. Ask a healthcare professional for medical advice, diagnosis or treatment.

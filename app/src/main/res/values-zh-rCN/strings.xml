@@ -463,7 +463,7 @@
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
     <string name="privacy_title">隐私权政策</string>
-    <string name="privacy_intro">Life Dashboard Companion 是一款自托管工具。它会读取这部手机上的健康数据和屏幕使用时间数据，并且只发送到您自己设置的服务器。开发者绝不会接收、存储或查看您的任何数据。</string>
+    <string name="privacy_intro">Life Dashboard 是一款自托管工具。它会读取这部手机上的健康数据和屏幕使用时间数据，并且只发送到您自己设置的服务器。开发者绝不会接收、存储或查看您的任何数据。</string>
     <string name="privacy_reads_title">应用会读取什么</string>
     <string name="privacy_reads_body">“健康数据共享”中的记录，仅限您开启的类型，并且仅在您授予权限之后。通过使用情况访问权限读取应用使用统计信息，用于屏幕使用时间。如果有历史数据权限，还会读取 30 天前的记录，用于一次性补全历史数据。相机仅在配对扫描界面打开时供扫描器使用：画面在手机上解码，绝不会被存储或发送。</string>
     <string name="privacy_writes_title">应用会写入什么</string>
@@ -918,7 +918,7 @@
     <string name="ld_about_own_server">您自己的服务器</string>
     <string name="ld_about_own_server_sub">配对码、Webhook 或 MQTT</string>
     <string name="ld_about_no_cloud">无需账号，也不经过云服务。iPhone 上也能使用。</string>
-    <string name="ld_about_version_line">Life Dashboard Companion，版本 %1$s。由 Owen Vogelaar 制作。</string>
+    <string name="ld_about_version_line">Life Dashboard，版本 %1$s。由 Owen Vogelaar 制作。</string>
     <string name="ld_about_show_nerd">显示极客统计</string>
     <string name="ld_about_help_sub">指南、新增功能</string>
     <string name="ld_about_support_sub">评分、在 GitHub 上加星标</string>

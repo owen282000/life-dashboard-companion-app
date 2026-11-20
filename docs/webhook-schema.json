@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/owen282000/life-dashboard-companion-app/blob/main/docs/webhook-schema.json",
-  "title": "Life Dashboard Companion webhook payload",
+  "title": "Life Dashboard webhook payload",
   "description": "Every JSON body the app POSTs to a webhook: Health Connect payloads (source health_connect), Screen Time payloads (source screen_time), test pings (test: true) and the heartbeats of Receive. A record array is present only when it holds at least one record, so a payload never carries an empty one. Every record also carries source (the package that wrote it) and uuid (Health Connect's record id). The iOS app sends the same shape with source healthkit_ios. Field-by-field documentation is in webhook.md next to this file.",
   "type": "object",
   "properties": {

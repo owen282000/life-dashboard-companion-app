@@ -484,7 +484,7 @@
 
     <!-- Privacy policy screen: also what Health Connect opens from its privacy policy link -->
     <string name="privacy_title">Privacy policy</string>
-    <string name="privacy_intro">Life Dashboard Companion is a self-hosting tool. It reads health and screen time data on this phone and sends it only to servers you set up yourself. The developer never receives, stores or sees any of your data.</string>
+    <string name="privacy_intro">Life Dashboard is a self-hosting tool. It reads health and screen time data on this phone and sends it only to servers you set up yourself. The developer never receives, stores or sees any of your data.</string>
     <string name="privacy_reads_title">What the app reads</string>
     <string name="privacy_reads_body">Health Connect records, only for the types you switch on and only after you grant the permission. App usage statistics for Screen Time, through usage access. With the history permission, records older than 30 days for a one-off backfill. The camera is used only by the pairing scanner, while that screen is open: frames are decoded on the phone and are never stored or sent.</string>
     <string name="privacy_writes_title">What the app writes</string>
@@ -976,7 +976,7 @@
     <string name="ld_about_own_server">Your own server</string>
     <string name="ld_about_own_server_sub">Pairing code, webhook or MQTT</string>
     <string name="ld_about_no_cloud">No account and no cloud. Also on iPhone.</string>
-    <string name="ld_about_version_line">Life Dashboard Companion, version %1$s. Made by Owen Vogelaar.</string>
+    <string name="ld_about_version_line">Life Dashboard, version %1$s. Made by Owen Vogelaar.</string>
     <string name="ld_about_show_nerd">Show Nerd Stats</string>
     <string name="ld_about_help_sub">Guide, what\'s new</string>
     <string name="ld_about_support_sub">Rate, star on GitHub</string>

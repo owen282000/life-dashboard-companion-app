@@ -548,7 +548,7 @@ The Home Assistant sensors follow the filter. The MQTT sensors and the [Life Das
 ```json
 {
   "test": true,
-  "message": "Test ping from Life Dashboard Companion",
+  "message": "Test ping from Life Dashboard",
   "timestamp": "2026-10-04T12:00:00Z",
   "app_version": "1.31.0",
   "source": "health_connect"

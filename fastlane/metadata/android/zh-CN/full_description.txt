@@ -46,4 +46,4 @@ Life Dashboard Stack 的只读 MCP 服务器可让您自己运行的 AI 模型�
 
 Home Assistant、Grafana 及文中提到的其他产品均为其所有者的商标。它们不包含在本应用中，其所有者与本应用无关。
 
-Life Dashboard Companion 不是医疗器械，不能诊断、治疗、治愈或预防任何疾病。如需医疗建议、诊断或治疗，请咨询医疗专业人员。
+Life Dashboard 不是医疗器械，不能诊断、治疗、治愈或预防任何疾病。如需医疗建议、诊断或治疗，请咨询医疗专业人员。
