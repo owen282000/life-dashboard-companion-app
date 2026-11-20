@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Health Connect and screen time from your Android phone, sent to Home Assistant, MQTT or your own server.</b><br>
-  No cloud in between, no account, no tracking.
+  Every source app at once, with no account and no Google account in between.
 </p>
 
 <p align="center">
@@ -48,9 +48,11 @@
 
 Your watch, ring or scale already writes to Health Connect. This app sends that data, from every source app at once, plus your screen time per app, to Home Assistant, an MQTT broker or a webhook you run. There is no account and no Google account in between, and none of it reaches me.
 
-- In Home Assistant every day lands on its own date, as far back as Health Connect has data, paired with one QR code. The Home Assistant companion app shows the latest value.
+- Samsung Health, Fitbit, Garmin, Oura, Withings: if it writes to Health Connect, it arrives, with no cloud login and no developer app to register per brand. That includes Fitbit, now that Google switched off the Fitbit Web API on 2 November 2026.
+- In Home Assistant all your history lands on the days it happened, paired with one QR code, and it stays when you change phones: the new phone can take over the old one's history.
 - Edits and deletions go out too, not only new records, so your server stays in step with Health Connect.
-- Samsung Health, Fitbit, Garmin, Oura, Withings: if it writes to Health Connect, it arrives. That includes Fitbit, now that Google switched off the Fitbit Web API on 2 November 2026.
+- Day totals add up: steps, distance and calories are Health Connect's own figure for the day, so a walk recorded by both phone and watch counts once.
+- An Android phone and an iPhone send the same payload, so a mixed household shares one Home Assistant integration or one database.
 - Open source (MIT), with the same signing key on GitHub, F-Droid and Google Play.
 - Want to ask Claude or a local model in Ollama about your own history? The [Grafana stack](https://github.com/owen282000/life-dashboard-stack#ask-your-own-ai-mcp) adds an MCP server with eight read-only tools. The app itself contains no AI.
 
