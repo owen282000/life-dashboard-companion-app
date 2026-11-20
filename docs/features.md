@@ -33,7 +33,7 @@ What Life Dashboard Companion does, section by section. For setup and day-to-day
 
 ## Health data
 
-The app reads 34 Health Connect data types. Each has its own switch and its own permission, so you share only what you choose. Every enabled type goes to your webhooks as individual records; 26 of them also become a sensor in Home Assistant through the integration, 25 over MQTT. The integration adds a last workout sensor and the workout minutes of today and yesterday (0.10.0 and newer), and the time per day of mindfulness sessions.
+The app reads 34 Health Connect data types. Each has its own switch and its own permission, so you share only what you choose. Every enabled type goes to your webhooks as individual records; 27 of them also become a sensor in Home Assistant through the integration, 25 over MQTT. The integration adds a last workout sensor and the workout minutes of today and yesterday (0.10.0 and newer), what you ate today (1.2.0 and newer), and the time per day of mindfulness sessions.
 
 | Category | Type | Sensor in Home Assistant |
 |---|---|---|
@@ -61,9 +61,9 @@ The app reads 34 Health Connect data types. Each has its own switch and its own 
 | Vitals | Respiratory rate | Latest value |
 | Vitals | Basal metabolic rate | Latest value |
 | Vitals | VO2 max | Latest value |
-| Sleep | Sleep sessions, with stages | Last sleep duration |
+| Sleep | Sleep sessions, with stages | Last sleep duration; in the integration (1.1.0 and newer) also the hours asleep and the stages of the last night, and hours per stage in the statistics |
 | Nutrition | Hydration | Latest value |
-| Nutrition | Nutrition (meals and nutrients) | No, records only |
+| Nutrition | Nutrition (meals and nutrients) | Calories, protein, carbs and fat eaten today (integration 1.2.0 and newer); single meals as records only |
 | Mindfulness | Meditation sessions (from apps such as Waking Up or Headspace) | No; time per day in the integration's statistics |
 | Cycle tracking | Menstruation period | No, records only |
 | Cycle tracking | Menstruation flow | No, records only |
@@ -131,11 +131,14 @@ Over MQTT the key is part of the topic (`<base>/<key>/state`), and the sensors s
 | `hydration` | `sensor.<phone>_last_drink` (**Last drink**) |
 | `screen_time_top_app` | `sensor.<phone>_most_used_app_today` (**Most used app today**) |
 
-The other nine types (exercise, nutrition, mindfulness and the six cycle tracking types) are events, not single values, so neither route turns them into sensors. The integration counts workouts and mindfulness sessions as time per day in its statistics. Single meals, cycle tracking entries and workout details reach only a webhook of your own, as records.
+The other nine types (exercise, nutrition, mindfulness and the six cycle tracking types) are events, not single values, so MQTT has no sensor for them. The integration has sensors for two of them: the last workout with the workout minutes of today and yesterday, and the calories, protein, carbs and fat eaten today. It also counts workouts and mindfulness sessions as time per day in its statistics. Single meals and cycle tracking entries reach only a webhook of your own, as records.
 
 #### What only the integration adds
 
 - **Long-term statistics.** One value per day for steps, distance, active and total calories, sleep, exercise and mindfulness time, hydration and screen time, each on its own date, so a year of backfill shows up as a year of days. Since integration 1.0.0 distance is in km, and sleep, exercise, mindfulness and screen time are in hours, so a graph reads 42 km and 7.5 h. The IDs kept their names, so `sleep_minutes` and the other `_minutes` statistics hold hours. Heart rate, weight, blood pressure and the other measured values get an hourly mean, minimum and maximum. The IDs look like `life_dashboard:<entry id>_steps`; pick them by name in the **Statistics graph** card.
+- **Sleep stages.** Hours of deep, light, REM and awake sleep per night as statistics, for a bar chart per night, week or month, and `last_sleep_asleep` with the stages of the last night and their times as an attribute. A backfill fills the old nights too. Requires integration 1.1.0 or newer. The [Sleep card](https://github.com/owen282000/life-dashboard-sleep-card) draws the night.
+- **What you ate.** `calories_eaten_today`, `protein_today`, `carbs_today` and `fat_today`, from the meals your food app writes to Health Connect, and every day as a statistic. Requires integration 1.2.0 or newer.
+- **Every app of the day.** `screen_time_today` and `screen_time_yesterday` carry every app as the attribute `apps` (integration 1.2.0 and newer), which the [Screen time cards](https://github.com/owen282000/life-dashboard-screen-time-card) draw.
 - **A sensor per app.** Every app gets a sensor of its own with its time today, in hours since integration 1.0.0, such as `sensor.<phone>_youtube_screen_time`, with `app`, `package`, `date` and `week_minutes` (in minutes) as attributes. They are created disabled: show the disabled entities on the phone's device and enable the apps you want. An app needs 5 minutes over the days a sync carries to get one, a phone gets 50 at most, and a sensor you delete stays deleted. An app missing from a newer day, or left out with the app filter since, reads 0 for that day. Requires integration 0.9.0 or newer. Each app whose sensor you enable also keeps its time per day in long-term statistics, in hours.
 - **Diagnostics.** `last_health_sync` and `last_screen_time_sync` hold the time of the last payload of each kind. A test ping updates them too, which is the quickest check that pairing worked.
 - **History for the phone.** Once an entity is mapped for [receiving](#receiving-from-home-assistant), a **Send history to phone** button queues up to 30 days of its readings for the phone.

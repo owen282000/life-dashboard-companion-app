@@ -14,7 +14,7 @@ If you send to the Life Dashboard integration, use [Route 1](#route-1-home-assis
 
 - **A model that runs locally**, with tool support. [Ollama](https://ollama.com) runs them, on any machine on your network (set `OLLAMA_HOST=0.0.0.0` when the client is on another one); models such as `qwen3` (8B or 14B) or `gpt-oss:20b` handle tool calls. Pick one without a `-cloud` tag: those run on Ollama's servers, not yours. Rough guide: an 8B model wants 16 GB of memory and runs slowly without a graphics card, 20 to 30B wants a 24 GB graphics card or a Mac with 32 GB or more. A NAS without a graphics card is too slow.
 - **A chat client that speaks MCP**, unless you use Home Assistant's own assistant: [Open WebUI](https://docs.openwebui.com/features/extensibility/mcp/) (connects over streamable HTTP) or [LM Studio](https://lmstudio.ai/docs/app/mcp). Ollama itself has no MCP client.
-- **History to ask about.** A backfill in the app (**Health** tab, **What to send**, **Send history**) sends up to a year. Data from more than 30 days before you first gave the app access needs Health Connect's history access, which the backfill page asks for.
+- **History to ask about.** A backfill in the app (**Health** tab, **What to send**, **Send history**) sends from 30 days up to all your history. Data from more than 30 days before you first gave the app access needs Health Connect's history access, which the backfill page asks for.
 
 ## Route 1: Home Assistant
 

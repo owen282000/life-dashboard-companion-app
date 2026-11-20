@@ -6,7 +6,7 @@ Los cambios y las eliminaciones también se envían, no solo los registros nuevo
 
 Home Assistant
 - Instala la integración Life Dashboard desde el Marketplace o HACS y escanea su código QR. Sin YAML, sin broker.
-- 26 de los 34 tipos y el tiempo de pantalla se convierten en sensores. Cada día de tu historial llega con su fecha a las estadísticas a largo plazo, para aproximadamente el último año.
+- 27 de los 34 tipos y el tiempo de pantalla se convierten en sensores. Cada día de tu historial llega con su fecha a las estadísticas a largo plazo.
 - Recibir, con la integración: las mediciones de una báscula o un tensiómetro en Home Assistant pueden escribirse en Health Connect, por cada tipo que actives.
 
 Webhooks y tu propio servidor

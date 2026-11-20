@@ -6,7 +6,7 @@ Wijzigingen en verwijderingen gaan ook mee, niet alleen nieuwe records. Kan een 
 
 Home Assistant
 - Installeer de Life Dashboard-integratie via de Marketplace of HACS en scan de QR-code die ze toont. Geen YAML, geen broker.
-- 26 van de 34 types en schermtijd worden sensoren. Elke dag van je geschiedenis komt op zijn eigen datum in de langetermijnstatistieken, voor ongeveer het laatste jaar.
+- 27 van de 34 types en schermtijd worden sensoren. Elke dag van je geschiedenis komt op zijn eigen datum in de langetermijnstatistieken.
 - Ontvangen, met de integratie: metingen van een weegschaal of bloeddrukmeter in Home Assistant kunnen in Health Connect worden geschreven, per type dat je aanzet.
 
 Webhooks en je eigen server

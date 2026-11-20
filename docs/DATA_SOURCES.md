@@ -28,6 +28,10 @@ Nutrition records mirrored by Health Sync carry only calories, the macros, fiber
 
 Both upload watch data to Health Connect hours later, with the original timestamps. The modification-time watermark picks those records up on the next sync.
 
+### Coros
+
+Writes one total calories record per hour that holds the active energy of that hour only, also 0 kcal for a quiet hour at night. Health Connect then adds no energy at rest, so `daily_totals.total_calories` is several hundred to more than a thousand kcal too low. Observed on one phone in October 2026. The [Coros page](brands/coros.md) has a Home Assistant template that adds the resting part.
+
 ### UREVO (`com.urevo.app`)
 
 The UREVO Android app writes treadmill sessions into Health Connect. Observed on a Foldi 3S with that app as the source:

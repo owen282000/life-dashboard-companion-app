@@ -21,7 +21,7 @@ From Google's own list of what Google Health writes to Health Connect, these are
 | Food and drink | Hydration, nutrition |
 | Cycle tracking | Menstruation period, menstruation flow, intermenstrual bleeding |
 
-In Home Assistant, daily totals and the latest readings become sensors, and each day is stored in long-term statistics on its own date. The app's backfill sends whatever history Google Health has written to Health Connect, up to a year, each day on its own date.
+In Home Assistant, daily totals and the latest readings become sensors, and each day is stored in long-term statistics on its own date. The app's backfill sends whatever history Google Health has written to Health Connect, each day on its own date.
 
 Google Health also writes speed, which this app sends, and floors, step cadence, elevation gained and exercise routes, which aren't among its types.
 
@@ -63,7 +63,7 @@ The [Google Health integration](https://www.home-assistant.io/integrations/googl
 |---|---|---|
 | Setup | Google Cloud project, OAuth client, account link | Install, scan a QR code |
 | Where the data comes from | Google's cloud, polled every 15 minutes or hourly | Your phone, pushed by the app |
-| History | Current values, no backfill | Every day in long-term statistics, backfill up to a year |
+| History | Current values, no backfill | Every day in long-term statistics, backfill of all your history |
 | HRV, respiratory rate, skin temperature | No sensor | Yes |
 | Other apps and devices | What reaches your Google Health account | Any app that writes to Health Connect |
 

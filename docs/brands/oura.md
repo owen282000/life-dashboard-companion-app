@@ -59,7 +59,7 @@ The [Oura Ring integration](https://github.com/louispires/Oura-Home-Assistant-In
 |---|---|---|
 | Setup | Oura developer application, client ID and secret, OAuth link | Install, scan a QR code |
 | Where the data comes from | Oura's cloud, polled every 5 minutes by default | Your phone, pushed by the app |
-| History | Imported into long-term statistics, 3 months by default, up to 4 years | Every day in long-term statistics, backfill up to a year |
+| History | Imported into long-term statistics, 3 months by default, up to 4 years | Every day in long-term statistics, backfill of all your history |
 | Readiness, Sleep and Activity scores | Yes | No, Health Connect has no type for them |
 | Blood oxygen, temperature, stress | Yes | No, they don't reach Health Connect |
 | Other brands | Oura only | Any app that writes to Health Connect |

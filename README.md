@@ -36,7 +36,7 @@
 </p>
 
 <p align="center">
-  <sub>Life Dashboard: <b>Android app</b> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iPhone app</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-ha">Home Assistant integration</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-stack">Grafana stack</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-sleep-card">Sleep card</a></sub>
+  <sub>Life Dashboard: <b>Android app</b> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iPhone app</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-ha">Home Assistant integration</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-stack">Grafana stack</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-sleep-card">Sleep card</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-screen-time-card">Screen time cards</a></sub>
 </p>
 
 <p align="center">
@@ -91,7 +91,7 @@ Not sure your watch is covered? The [brand guides](docs/brands/README.md) show w
 
 ## Part of Life Dashboard
 
-Life Dashboard is four projects and a card, and you only install the parts you need. Put the app on each phone, then pick where the data goes. Both apps send the same payload, so an Android phone and an iPhone can share one Home Assistant or one stack.
+Life Dashboard is four projects and two sets of cards, and you only install the parts you need. Put the app on each phone, then pick where the data goes. Both apps send the same payload, so an Android phone and an iPhone can share one Home Assistant or one stack.
 
 <p align="center">
   <picture><img src="docs/family/android-here.png" alt="Android app: Health Connect and screen time (this repository)" width="400"></picture>
@@ -99,6 +99,7 @@ Life Dashboard is four projects and a card, and you only install the parts you n
   <a href="https://github.com/owen282000/life-dashboard-ha"><img src="docs/family/ha.png" alt="Home Assistant integration: sensors and all your history" width="400"></a>
   <a href="https://github.com/owen282000/life-dashboard-stack"><img src="docs/family/stack.png" alt="Grafana stack: Postgres and Grafana dashboards" width="400"></a>
   <a href="https://github.com/owen282000/life-dashboard-sleep-card"><img src="docs/family/sleep-card.png" alt="Sleep card: one night, stage by stage" width="400"></a>
+  <a href="https://github.com/owen282000/life-dashboard-screen-time-card"><img src="docs/family/screen-time-card.png" alt="Screen time cards: today, the week and the family" width="400"></a>
 </p>
 
 The data can also go to an MQTT broker or a webhook of your own instead. Both apps have that built in, for n8n, Node-RED or a script.
@@ -140,13 +141,14 @@ There are two ways in. Neither needs YAML.
 | | Life Dashboard integration | MQTT |
 |---|---|---|
 | Setup | Marketplace (HACS before 2026.11), then scan a QR code | Enter your broker |
-| Sensors | 26 of 34 types, plus screen time in total and per app | 25 of 34 types, without the last workout, plus screen time in total |
-| History | Every day, up to a year back, through backfill | From the first sync on |
+| Sensors | 27 of 34 types, plus screen time in total and per app | 25 of 34 types, without the last workout, plus screen time in total |
+| History | Every day, as far back as Health Connect has data, through backfill | From the first sync on |
+| Sleep stages per night, and what you ate today | Yes | No |
 | Workouts and mindfulness | Minutes per day | No |
 | **Receive** into Health Connect | Yes | No |
 | Example dashboard | Included | No |
 
-Pick the integration unless you already run a broker and don't need the days before your first sync. Single meals, cycle tracking entries and workout details are events rather than values, so neither route turns them into sensors. A webhook of your own gets them in full. [Setup for both](docs/usage.md#phone-to-home-assistant) is in the guide, and [features.md](docs/features.md#home-assistant-and-mqtt) lists what each one creates.
+Pick the integration unless you already run a broker and don't need the days before your first sync. Single meals and cycle tracking entries are events rather than values, so neither route turns them into sensors. A webhook of your own gets them in full. [Setup for both](docs/usage.md#phone-to-home-assistant) is in the guide, and [features.md](docs/features.md#home-assistant-and-mqtt) lists what each one creates.
 
 [![Open the Life Dashboard integration in the Marketplace](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration)
 

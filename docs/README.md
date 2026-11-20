@@ -5,7 +5,7 @@ Everything about Life Dashboard Companion beyond the [project README](../README.
 ## Get started
 
 - [Setup guide](usage.md): install, permissions, pairing with Home Assistant, MQTT or a webhook, and troubleshooting
-- [Brand guides](brands/README.md): what Garmin, Samsung, Fitbit and Pixel Watch, Oura, Withings and Gadgetbridge write to Health Connect, and how to set each one up
+- [Brand guides](brands/README.md): what Garmin, Samsung, Fitbit and Pixel Watch, Oura, Withings, Coros and Gadgetbridge write to Health Connect, and how to set each one up
 - [Recipes](recipes/README.md): Home Assistant automations and setups to copy
 
 ## Reference

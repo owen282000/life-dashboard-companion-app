@@ -6,7 +6,7 @@ Funktioniert mit jeder App, die in Health Connect schreibt, etwa Samsung Health,
 
 Home Assistant
 - Installiere die Life-Dashboard-Integration über den Marketplace oder HACS und scanne ihren QR-Code. Kein YAML, kein Broker.
-- 26 der 34 Typen und die Bildschirmzeit werden zu Sensoren. Jeder Tag deines Verlaufs landet mit seinem Datum in den Langzeitstatistiken, für etwa das letzte Jahr.
+- 27 der 34 Typen und die Bildschirmzeit werden zu Sensoren. Jeder Tag deines Verlaufs landet mit seinem Datum in den Langzeitstatistiken.
 - Empfangen, mit der Integration: Messwerte von Waage oder Blutdruckmessgerät in Home Assistant können in Health Connect geschrieben werden, pro Typ, den du einschaltest.
 
 Webhooks und dein Server

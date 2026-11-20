@@ -14,6 +14,7 @@ No developer account, no Google Cloud project, no password stored in Home Assist
 |---|---|---|---|
 | Fitbit, Pixel Watch (Google Health app) | Yes | Yes, including weight and body fat | [fitbit.md](fitbit.md) |
 | Garmin (Garmin Connect) | Yes | No | [garmin.md](garmin.md) |
+| Coros (Coros app) | Yes, with total calories that need a correction | Not checked | [coros.md](coros.md) |
 | Samsung Galaxy Watch (Samsung Health) | Yes | Yes, including weight and body fat | [samsung.md](samsung.md) |
 | Oura Ring (Oura app) | Yes | Yes, including weight and blood pressure | [oura.md](oura.md) |
 | Withings (Withings app) | Yes | Yes | [withings.md](withings.md) |

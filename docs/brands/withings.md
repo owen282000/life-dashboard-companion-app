@@ -61,7 +61,7 @@ The Withings app also imports from Health Connect, under **Share > Apps > Health
 | Setup | Withings developer account, client ID and secret, OAuth link | Install, scan a QR code |
 | Where the data comes from | Withings' cloud, by webhook (public HTTPS on port 443) or polling | Your phone, pushed by the app |
 | Sleep score | Yes | No, Health Connect has no type for it |
-| History | Current values | Every day in long-term statistics, backfill up to a year |
+| History | Current values | Every day in long-term statistics, backfill of all your history |
 | Other brands | Withings only | Any app that writes to Health Connect |
 
 Both can run side by side. Hand the integration's readings to the phone only when the Withings app doesn't write to Health Connect itself.
