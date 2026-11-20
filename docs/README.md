@@ -1,6 +1,6 @@
 # Documentation
 
-Everything about Life Dashboard Companion beyond the [project README](../README.md).
+Everything about the Life Dashboard app beyond the [project README](../README.md).
 
 ## Get started
 
@@ -10,7 +10,7 @@ Everything about Life Dashboard Companion beyond the [project README](../README.
 
 ## Reference
 
-- [Features](features.md): everything the app does, every sensor and statistic, and how it compares to the Home Assistant companion app
+- [Features](features.md): everything the app does, every sensor and statistic, and how it compares to Home Assistant's Companion app
 - [Payload reference](webhook.md): the JSON your server receives, signing, retries and example receivers
 - [Pairing your own receiver](pairing.md): let your users connect with one QR code, the link format and code to build it
 - [JSON Schema](webhook-schema.json): the payload as a machine-readable schema

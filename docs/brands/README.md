@@ -1,9 +1,9 @@
 # Your watch or ring in Home Assistant via Health Connect
 
-Most watch, ring and scale apps write their data into [Health Connect](https://developer.android.com/health-and-fitness/health-connect) on your phone. Life Dashboard Companion reads it there and sends it to Home Assistant directly, the same way for every brand:
+Most watch, ring and scale apps write their data into [Health Connect](https://developer.android.com/health-and-fitness/health-connect) on your phone. The Life Dashboard app reads it there and sends it to Home Assistant directly, the same way for every brand:
 
 ```
-watch  ->  brand app  ->  Health Connect  ->  Life Dashboard Companion  ->  Home Assistant
+watch  ->  brand app  ->  Health Connect  ->  Life Dashboard app  ->  Home Assistant
 ```
 
 No developer account, no Google Cloud project, no password stored in Home Assistant, and nothing to break when a vendor changes its login or shuts down an API. Switching watches later changes nothing on the Home Assistant side. The same data can also go to an MQTT broker or to any webhook that accepts a JSON POST.
@@ -28,7 +28,7 @@ Polar, Whoop, Zepp and Xiaomi Mi Fitness also write to Health Connect; what each
 
 ## Other ways into Home Assistant
 
-The Home Assistant companion app also reads Health Connect. Some brands can be read from the vendor's cloud as well: Google Health and Withings through Home Assistant's own integrations, Garmin Connect and Oura through the Marketplace (HACS). The Fitbit, Garmin, Oura and Withings pages compare this app with the brand's cloud integration; the comparison with the companion app is in [features.md](../features.md#how-this-compares-to-the-home-assistant-companion-app). You can also use them together: this app runs next to the companion app, and next to a cloud integration if you want the vendor-only numbers too.
+Home Assistant's Companion app also reads Health Connect. Some brands can be read from the vendor's cloud as well: Google Health and Withings through Home Assistant's own integrations, Garmin Connect and Oura through the Marketplace (HACS). The Fitbit, Garmin, Oura and Withings pages compare this app with the brand's cloud integration; the comparison with the Companion app is in [features.md](../features.md#how-this-compares-to-the-home-assistant-companion-app). You can also use them together: this app runs next to the Companion app, and next to a cloud integration if you want the vendor-only numbers too.
 
 ## Setting up the Home Assistant side
 

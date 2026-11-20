@@ -1,9 +1,9 @@
 # Samsung Health and Galaxy Watch in Home Assistant via Health Connect
 
-Samsung Health syncs with Health Connect on the phone, in both directions. Life Dashboard Companion reads your Samsung Health and Galaxy Watch data there and sends it to Home Assistant. Samsung has no cloud API you can connect Home Assistant to, and its own data SDK is open only to [registered partners](https://developer.samsung.com/health/data/guide/app-verification.html), so Health Connect is the open route:
+Samsung Health syncs with Health Connect on the phone, in both directions. The Life Dashboard app reads your Samsung Health and Galaxy Watch data there and sends it to Home Assistant. Samsung has no cloud API you can connect Home Assistant to, and its own data SDK is open only to [registered partners](https://developer.samsung.com/health/data/guide/app-verification.html), so Health Connect is the open route:
 
 ```
-Galaxy Watch  ->  Samsung Health  ->  Health Connect  ->  Life Dashboard Companion  ->  Home Assistant
+Galaxy Watch  ->  Samsung Health  ->  Health Connect  ->  Life Dashboard app  ->  Home Assistant
 ```
 
 The same data can also go to an MQTT broker or to any webhook that accepts a JSON POST.
@@ -32,7 +32,7 @@ Not in Samsung's list (as of October 2026): stress, ECG, Energy Score, heart rat
 
 In Samsung Health: **Settings > Health Connect**, tap **Get started**, choose the data and tap **Allow**. Reading and writing are granted separately. ([Samsung's guide](https://developer.samsung.com/health/blog/en/accessing-samsung-health-data-through-health-connect))
 
-For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install Life Dashboard Companion](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
+For Home Assistant, follow [Phone to Home Assistant](../usage.md#with-the-integration): install the integration first, so the app's setup can scan its QR code. Then [install the Life Dashboard app](../usage.md#install-the-app), scan the code and [grant its permissions](../usage.md#grant-permissions). Turn on the types above under **What to send** on the **Health** tab, grant their Health Connect permissions, and tap **Sync Now**. The setup wizard's **The essentials** preset turns on only steps, sleep, heart rate, resting heart rate, distance, calories and weight, so switch on any other type from the table yourself. For a broker instead, see [MQTT](../usage.md#mqtt); for your own backend, [webhook.md](../webhook.md).
 
 ## Good to know
 
@@ -44,11 +44,13 @@ Samsung Health writes to Health Connect as soon as data is created or changed on
 
 Because the sync goes both ways, readings from a scale that talks to Home Assistant, and not to Samsung Health, can end up in Samsung Health: this app writes them into Health Connect, and Samsung Health reads them from there. Samsung has confirmed reading weight and body fat that another app (a Withings scale) wrote to Health Connect. See [Receiving measurements from Home Assistant](../usage.md#receiving-measurements-from-home-assistant), and [A measurement from Home Assistant is not in Samsung Health](../usage.md#a-measurement-from-home-assistant-is-not-in-samsung-health) if one doesn't show up. [Your scale into Samsung Health or Google Health](../recipes/scale-to-health-connect.md) covers getting a scale into Home Assistant first, for each brand of scale.
 
-## Compared with the companion app
+<a id="compared-with-the-companion-app"></a>
 
-Samsung has no cloud integration for Home Assistant. The other way in is the Home Assistant companion app, which can also read Health Connect on a Galaxy phone.
+## Compared with Home Assistant's Companion app
 
-| | Companion app sensors | This app |
+Samsung has no cloud integration for Home Assistant. The other way in is Home Assistant's Companion app, which can also read Health Connect on a Galaxy phone.
+
+| | Home Assistant's Companion app | This app |
 |---|---|---|
 | Types | 25 | 34 |
 | History | Latest value, reads the last 30 days | Every day in long-term statistics, backfill of all history |

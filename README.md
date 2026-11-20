@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/readme-icon.png" alt="Life Dashboard Companion icon" width="128" height="128">
+  <img src="docs/readme-icon.png" alt="Life Dashboard for Android icon" width="128" height="128">
 </p>
 
-<h1 align="center">Life Dashboard Companion</h1>
+<h1 align="center">Life Dashboard for Android</h1>
 
 <p align="center">
   <b>Health Connect and screen time from your Android phone, sent to Home Assistant, MQTT or your own server.</b><br>
@@ -17,7 +17,7 @@
 <p align="center">
   <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK&color=30b77e" alt="Download the latest APK"></a>
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration"><img src="https://img.shields.io/badge/Home%20Assistant-Marketplace-41BDF5" alt="Home Assistant integration in the Marketplace"></a>
-  <a href="#install"><img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84" alt="Android 8.0 or newer"></a>
+  <a href="#quick-start"><img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84" alt="Android 8.0 or newer"></a>
   <a href="https://hosted.weblate.org/engage/life-dashboard-companion/"><img src="https://hosted.weblate.org/widget/life-dashboard-companion/app/svg-badge.svg" alt="Translation status on Weblate"></a>
   <a href="https://www.bestpractices.dev/projects/14258"><img src="https://www.bestpractices.dev/projects/14258/badge" alt="OpenSSF Best Practices"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="MIT license"></a>
@@ -25,6 +25,8 @@
 
 <p align="center">
   <a href="#install"><b>Install</b></a>
+  &nbsp;·&nbsp;
+  <a href="#quick-start">Quick&nbsp;start</a>
   &nbsp;·&nbsp;
   <a href="docs/usage.md">Setup&nbsp;guide</a>
   &nbsp;·&nbsp;
@@ -35,14 +37,16 @@
   <a href="https://owen282000.com/life-dashboard/android/">Website</a>
 </p>
 
+<!-- life-dashboard:nav -->
 <p align="center">
-  <sub>Life Dashboard: <b>Android app</b> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iPhone app</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-ha">Home Assistant integration</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-stack">Grafana stack</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-sleep-card">Sleep card</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-screen-time-card">Screen time cards</a></sub>
+  <sub>Life Dashboard: <b>Android app</b> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-companion-app-ios">iPhone app</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-ha">Home Assistant integration</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-stack">Grafana stack</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-sleep-card">Sleep card</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-screen-time-card">Screen time cards</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-year-card">Year card</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-activity-card">Activity card</a> &nbsp;·&nbsp; <a href="https://github.com/owen282000/life-dashboard-before-bed-card">Before bed card</a></sub>
 </p>
+<!-- /life-dashboard:nav -->
 
 <p align="center">
   <picture>
     <source media="(max-width: 600px)" srcset="docs/readme-screens-phone.png">
-    <img src="docs/readme-screens.png" alt="Four app screens: the Health tab with where your data goes and today's figures, each with a seven-day line, the Screen Time tab with today's total and the most used apps, What to send with its categories and data resolution, and Logs with one line per delivery" width="900">
+    <img src="docs/readme-screens.png" alt="Four app screens: the Health tab with where your data goes and today's figures, the Screen Time tab, What to send, and Logs with one line per delivery" width="900">
   </picture>
 </p>
 
@@ -54,14 +58,13 @@ Your watch, ring or scale already writes to Health Connect. This app sends that 
 - Day totals add up: steps, distance and calories are Health Connect's own figure for the day, so a walk recorded by both phone and watch counts once.
 - An Android phone and an iPhone send the same payload, so a mixed household shares one Home Assistant integration or one database.
 - Open source (MIT), with the same signing key on GitHub, F-Droid and Google Play.
-- Want to ask Claude or a local model in Ollama about your own history? The [Grafana stack](https://github.com/owen282000/life-dashboard-stack#ask-your-own-ai-mcp) adds an MCP server with eight read-only tools. The app itself contains no AI.
 
 <a id="why-this-app"></a>
 
 ## What you get
 
 - **34 Health Connect types.** Steps, sleep with stages, heart rate and HRV, speed, weight and body composition, blood pressure, glucose, workouts, nutrition, cycle tracking and more. Each type has its own switch.
-- **Every record, plus clean daily totals.** Every raw record goes out with the app that wrote it. Daily totals for steps, distance and calories come from Health Connect itself, so a walk recorded by both phone and watch counts once.
+- **Every record, with its source.** Every raw record goes out with the app that wrote it and an ID to deduplicate on, next to the day totals.
 - **All your history.** Backfill from 30 days up to 5 years, or everything Health Connect has, in one go. In Home Assistant each day lands on its own date.
 - **Screen time per app.** Foreground minutes for every app, with a day boundary you choose (say 04:00 for late nights) and a filter to leave apps out.
 - **Back into Health Connect.** With **Receive** on, readings from a scale or blood pressure monitor in Home Assistant go into Health Connect. Samsung Health and Google Health pick up the weight and body fat from there. This needs the Life Dashboard integration.
@@ -74,7 +77,7 @@ On the other end, this is the Life Dashboard integration's [example dashboard](h
 <p align="center">
   <picture>
     <source media="(max-width: 600px)" srcset="docs/readme-hero-phone.png">
-    <img src="docs/readme-hero.png" alt="The integration's example dashboard in Home Assistant: today's steps, distance, calories and heart rate, the last workout with its pace, heart rate and laps, recovery with heart rate variability, resting heart rate and VO2 max, and last night's sleep; on a phone, today's tiles and the time in each app" width="900">
+    <img src="docs/readme-hero.png" alt="The integration's example dashboard in Home Assistant: today's activity, the last workout, recovery and sleep; on a phone, today's tiles and time per app" width="900">
   </picture>
 </p>
 
@@ -85,7 +88,7 @@ Health Connect is the place on Android where fitness apps keep their data. Garmi
 <p align="center">
   <picture>
     <source media="(max-width: 600px)" srcset="docs/how-it-works-phone.png">
-    <img src="docs/how-it-works.png" alt="Diagram: Garmin, Samsung Health, Fitbit, Pixel Watch, Oura, Withings and other apps write to Health Connect. Life Dashboard Companion reads Health Connect and screen time and sends them to Home Assistant, MQTT or a webhook. Home Assistant can send scale and blood pressure readings back, and the app writes them into Health Connect." width="900">
+    <img src="docs/how-it-works.png" alt="Diagram: watch and fitness apps write to Health Connect, and the app sends that and screen time to Home Assistant, MQTT or a webhook; readings can come back" width="900">
   </picture>
 </p>
 
@@ -133,7 +136,7 @@ Life Dashboard is two apps, three places for the data to go and a set of cards f
   <a href="https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard&referrer=utm_source%3Dgh-android-readme%26utm_medium%3Dreadme"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="90"></a>
 </p>
 
-Google Play is the easy way: updates arrive automatically, and buying the app supports development. It costs €4.99 (US$4.99) once, with no subscription.
+Google Play is the easy way: updates arrive automatically, and buying the app supports development. It costs €4.99 (US$4.99) once, with no subscription. Google Play lists it as "Health Data for Home Assistant"; on the phone it is called Life Dashboard.
 
 Free, or build it yourself:
 
@@ -141,21 +144,39 @@ Free, or build it yourself:
   <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="60"></a>
   <a href="https://f-droid.org/packages/com.owen282000.lifedashboard/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60"></a>
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/owen282000/life-dashboard-companion-app"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60"></a>
-  <a href="https://alternativeto.net/software/life-dashboard-companion/about/"><img src="docs/brand/badges/alternativeto.svg" alt="Life Dashboard Companion on AlternativeTo" height="60"></a>
+  <a href="https://alternativeto.net/software/life-dashboard-companion/about/"><img src="docs/brand/badges/alternativeto.svg" alt="Life Dashboard on AlternativeTo" height="60"></a>
 </p>
 
 The APK on GitHub is signed. Each release has build provenance that you can [verify](SECURITY.md#verifying-a-release), and the build is [reproducible](docs/building.md#reproduce-a-release-build). F&#8209;Droid builds each release on its own server and ships it only if the result matches this APK, so both have the same signature and you can switch between them. Obtainium installs the APK from GitHub and keeps it updated. These routes stay free, and they are the same app as on Google Play, signed with the same key. [building.md](docs/building.md) explains how to build it yourself.
 
-Screen time works on Android 8.0 and newer. The health part needs Android 9 or newer with [Health Connect](https://developer.android.com/health-and-fitness/health-connect), which is built into Android 14 and later and comes from Google Play on Android 9 through 13.
+Installed? The [quick start](#quick-start) below takes it from there.
 
 ## Quick start
 
-1. In Home Assistant 2026.3 or newer, go to **Settings > Marketplace** ([HACS](https://hacs.xyz/docs/use/) before 2026.11), search for the [Life Dashboard integration](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration) and install it. On HACS, restart Home Assistant. Add the integration if its setup doesn't open by itself. It shows a QR code. Skip this step if you use MQTT or a webhook.
-2. Install the app and open it. Its setup asks where your data should go: scan the code, or enter your broker or webhook URL.
-3. Grant the Health Connect permissions on the **Health** tab, and usage access on the **Screen Time** tab if you want screen time.
-4. Tap **Sync Now**. **Preview payload** under **What to send** shows what it would send.
+What you need:
 
-The [setup guide](docs/usage.md) walks through each step, including battery settings that keep Android from stopping the sync and what to do when nothing arrives.
+- **An Android phone.** Health data needs Android 9 or newer with [Health Connect](https://developer.android.com/health-and-fitness/health-connect), which is part of Android 14 and newer and a free app from Google Play on Android 9 through 13. Screen time alone works on Android 8.0 and newer.
+- **A watch, ring, scale or fitness app that writes to Health Connect**, such as Samsung Health, Garmin Connect, Fitbit or Oura. The app reads what they put there. It doesn't talk to your watch itself.
+- **Home Assistant 2026.3 or newer** for the Life Dashboard integration, or an MQTT broker or a webhook of your own.
+
+Plan on 15 to 30 minutes the first time, most of it in Home Assistant. The pairing itself takes a minute.
+
+1. **Install the Home Assistant integration.** Go to **Settings > Marketplace** ([HACS](https://hacs.xyz/docs/use/) before Home Assistant 2026.11), search for the [Life Dashboard integration](https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration) and install it. On HACS, restart Home Assistant.
+2. **Add it and get the pairing code.** The Marketplace opens the setup by itself. Otherwise go to **Settings > Devices & services > Add integration** and search for Life Dashboard. It ends with a QR code on screen.
+3. **Install the app and scan the code.** [Install](#install) the app and open it. At **Where should your data go?**, tap **Scan a pairing code**, scan the QR code and tap **Pair**. No code yet? Skip it for now with **I will set this up later** and pair later from the **Health** tab.
+4. **Grant permissions.** Health Connect on the **Health** tab, and usage access on the **Screen Time** tab if you want screen time. On Android 9 through 13 the **Health** tab shows an **Install** button when Health Connect is missing. Your watch app also has to be told to write to Health Connect, in its own settings: in Samsung Health that is **Settings > Health Connect**, and the [brand guides](docs/brands/README.md) have the others.
+5. **Tap Sync Now** on the **Health** tab. The first sync sends the last 7 days.
+6. **Send history** under **What to send** gets your past data: 30 days up to 5 years, or everything Health Connect has.
+
+With MQTT or a webhook of your own, skip steps 1 and 2 and enter your broker or URL at step 3. A backfill goes to the integration and to webhooks. MQTT only carries the latest value.
+
+You should now see your phone under **Settings > Devices & services > Life Dashboard** in Home Assistant, with a sensor for each type it sent. If it stays empty, these are the usual reasons:
+
+- **Your watch app isn't writing to Health Connect yet.** Open Health Connect on the phone and check that it has data from that app.
+- **The phone can't reach the address.** `homeassistant.local` often doesn't work on Android, so use the IP address of your Home Assistant instead. An address on your home network only works while the phone is on your Wi-Fi.
+- **The app doesn't have access.** The **Health** tab says **Access not granted yet** until you allow the Health Connect permissions.
+
+The **Logs** tab has one line per delivery and says what went wrong. The [setup guide](docs/usage.md) walks through each step in detail, including battery settings that keep Android from stopping the sync and [what to do when nothing arrives](docs/usage.md#troubleshooting).
 
 ## Home Assistant
 
@@ -178,13 +199,13 @@ Pick the integration unless you already run a broker and don't need the days bef
 <a id="why-is-this-not-part-of-the-companion-app"></a>
 
 <details>
-<summary><b>Already use the Home Assistant companion app?</b></summary>
+<summary><b>Already use Home Assistant's Companion app?</b></summary>
 
 <br>
 
 Keep it. It does presence, notifications and device sensors, and this app doesn't try to. They work side by side.
 
-The companion app also has Health Connect sensors, but with a different goal. Its [documentation](https://companion.home-assistant.io/docs/core/sensors) says "only the last 30 days of data is used", and each sensor shows the latest value. Since version 2026.11.1 that includes the sleep stages of your last night. Writing into Health Connect needs extra permissions that Google reviews, and the companion app hasn't added it yet ([#6799](https://github.com/home-assistant/android/pull/6799), [#5650](https://github.com/home-assistant/android/issues/5650)). For screen time it has a last used app sensor, but no time per app.
+The Companion app also has Health Connect sensors, but with a different goal. Its [documentation](https://companion.home-assistant.io/docs/core/sensors) says "only the last 30 days of data is used", and each sensor shows the latest value. Since version 2026.11.1 that includes the sleep stages of your last night. Writing into Health Connect needs extra permissions that Google reviews, and the Companion app hasn't added it yet ([#6799](https://github.com/home-assistant/android/pull/6799), [#5650](https://github.com/home-assistant/android/issues/5650)). For screen time it has a last used app sensor, but no time per app.
 
 This app covers the health side in depth: 34 types instead of 25, full history in long-term statistics, writing back into Health Connect, and screen time per app. The [full comparison](docs/features.md#how-this-compares-to-the-home-assistant-companion-app) goes row by row.
 
@@ -199,7 +220,7 @@ Any server that accepts a JSON POST can be a destination: n8n, Node-RED, a small
 ```json
 {
   "timestamp": "2026-10-04T12:00:00Z",
-  "app_version": "1.23.0",
+  "app_version": "1.31.0",
   "source": "health_connect",
   "sequence": 1842,
   "daily_totals": [
@@ -223,7 +244,7 @@ Any server that accepts a JSON POST can be a destination: n8n, Node-RED, a small
 
 This example is shortened. Every raw record has a `uuid` to deduplicate on and a `source` that names the app that wrote it. The [payload reference](docs/webhook.md) documents every type and has a minimal receiver to start from, plus [notes for n8n and Node-RED](docs/webhook.md#n8n-and-node-red). The [JSON Schema](docs/webhook-schema.json) lets you validate what your receiver gets.
 
-If you have no backend yet, [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is an example Docker Compose setup: a receiver that checks the signature, Postgres, and a Grafana dashboard. It's a one-person project offered as-is, built to be changed.
+If you have no backend yet, the [Grafana stack](https://github.com/owen282000/life-dashboard-stack) is an example Docker Compose setup: a receiver that checks the signature, Postgres, and a Grafana dashboard. It's a one-person project offered as-is, built to be changed.
 
 ## Ask your own AI
 
@@ -232,6 +253,12 @@ Want to ask an AI how your sleep changed in the weeks you walked more? The [Graf
 ## Privacy
 
 The app has no analytics, no crash reporting and no ads, and there is no Life Dashboard server. Your data goes from the phone to the destinations you configure and nowhere else. Webhooks use HTTPS unless you switch on **Allow plain HTTP webhooks**, for example for a Home Assistant server on your home network. Secrets are encrypted on the phone with a key from the Android Keystore. In short, the app asks for read access to the Health Connect types you switch on, write access to seven body and blood pressure types for **Receive**, usage access for screen time, the camera only to scan a pairing code, and the network to send. [PRIVACY.md](PRIVACY.md) lists every permission and every field that can leave the phone.
+
+<!-- life-dashboard:built -->
+## How this is built
+
+Life Dashboard is a one-person project, and [Claude Code](https://claude.com/claude-code) writes a large part of the code. I decide what gets built, read every change before it is merged, and test it on my own phones and Home Assistant before a release. Automated checks run on every pull request, and the [AI policy](https://github.com/owen282000/life-dashboard-companion-app/blob/main/AI_POLICY.md) explains what the AI does and what I check.
+<!-- /life-dashboard:built -->
 
 ## Documentation
 
@@ -255,7 +282,6 @@ Pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the checks 
 - The typefaces [Space Grotesk](https://github.com/floriankarsten/space-grotesk) and [Space Mono](https://github.com/googlefonts/spacemono), under the SIL Open Font License ([licences](app/src/main/assets/licences))
 - The earlier open source apps that export Health Connect to a webhook, which showed the idea works and were an early inspiration for the integration patterns here
 - Everyone who filed an issue with a payload dump or a quirk of their source app. Most of [DATA_SOURCES.md](docs/DATA_SOURCES.md) comes from those reports.
-- [Claude Code](https://claude.com/claude-code), which drafted a large part of the code. Every change is reviewed and tested before it ships, and [AI_POLICY.md](AI_POLICY.md) explains how.
 
 ## Support the project
 
@@ -263,7 +289,10 @@ Stars, shares and good bug reports all help. This is a one-person project, but y
 
 MIT licensed. See [LICENSE](LICENSE).
 
+<!-- life-dashboard:footer -->
 <p align="center">
   <sub>Made by <a href="https://github.com/owen282000">Owen Vogelaar</a> for the self-hosting and quantified self crowd.</sub><br>
-  <sub>Google Play and the Google Play logo are trademarks of Google LLC.</sub>
+  <sub>Google Play and the Google Play logo are trademarks of Google LLC.</sub><br>
+  <sub>Apple, the Apple logo and App Store are trademarks of Apple Inc.</sub>
 </p>
+<!-- /life-dashboard:footer -->

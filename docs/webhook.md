@@ -1,6 +1,6 @@
 # Webhook payload reference
 
-Life Dashboard Companion sends Health Connect data and screen time to any URL that accepts a JSON POST. This page is what you need to build a receiver for it: the request and how to verify it, a working receiver in Node.js and in Python, every field per data type, and the rules for deletions, buckets, backfills and ordering. A machine-readable [JSON Schema](webhook-schema.json) (Draft 7) covers every body the app sends; validate your receiver against it. The [setup guide](usage.md#your-own-webhook) shows where to enter the URL, headers and secret in the app. To let your users connect by scanning one QR code instead of typing the URL and secret, see [Pairing your own receiver](pairing.md). To see a real payload before you write any code, run [webhook-receiver.py](../scripts/webhook-receiver.py) on a laptop, as described there.
+The Life Dashboard app sends Health Connect data and screen time to any URL that accepts a JSON POST. This page is what you need to build a receiver for it: the request and how to verify it, a working receiver in Node.js and in Python, every field per data type, and the rules for deletions, buckets, backfills and ordering. A machine-readable [JSON Schema](webhook-schema.json) (Draft 7) covers every body the app sends; validate your receiver against it. The [setup guide](usage.md#your-own-webhook) shows where to enter the URL, headers and secret in the app. To let your users connect by scanning one QR code instead of typing the URL and secret, see [Pairing your own receiver](pairing.md). To see a real payload before you write any code, run [webhook-receiver.py](../scripts/webhook-receiver.py) on a laptop, as described there.
 
 If you would rather start from a working backend, [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack) is a Docker Compose setup with an HMAC-verifying receiver, Postgres and a provisioned Grafana dashboard.
 
@@ -230,7 +230,7 @@ A sync payload with steps and heart rate, as it arrives:
 ```json
 {
   "timestamp": "2026-10-04T07:15:02.481Z",
-  "app_version": "1.23.0",
+  "app_version": "1.31.0",
   "source": "health_connect",
   "sequence": 1842,
   "daily_totals": [
@@ -269,7 +269,7 @@ A record array is present only when it holds at least one record; the app never 
 |---|---|---|
 | `timestamp` | date-time | Always: when the payload was built |
 | `timezone` | string | Health Connect and Screen Time payloads, not test pings and heartbeats: the phone's IANA time zone when the payload was built, such as `"Europe/Amsterdam"`. Every time in the payload is UTC; this is the zone `daily_totals` and `screen_time` cut their days in, and with a record's `zone_offset` it tells a receiver the local day after a DST change or a trip |
-| `app_version` | string | Always, such as `"1.23.0"` |
+| `app_version` | string | Always, such as `"1.31.0"` |
 | `source` | string | Always: `health_connect`, `screen_time`, or `healthkit_ios` from the iOS app |
 | `sequence` | integer | Health Connect and Screen Time payloads; not on test pings and heartbeats |
 | Record arrays | array | One per [data type](#health-connect-data-types), only with records in it |
@@ -488,7 +488,7 @@ Skin temperature is a delta from a baseline, as wearables write it to Health Con
 ```json
 {
   "timestamp": "2026-10-04T12:00:00Z",
-  "app_version": "1.23.0",
+  "app_version": "1.31.0",
   "device": "Google Pixel 8",
   "source": "screen_time",
   "sequence": 1843,
@@ -517,7 +517,7 @@ Under **Apps to send** on the **Screen Time** tab the user can leave apps out (*
 ```json
 {
   "timestamp": "2026-10-04T12:00:00Z",
-  "app_version": "1.23.0",
+  "app_version": "1.31.0",
   "device": "Google Pixel 8",
   "source": "screen_time",
   "sequence": 1844,
@@ -550,7 +550,7 @@ The Home Assistant sensors follow the filter. The MQTT sensors and the [Life Das
   "test": true,
   "message": "Test ping from Life Dashboard Companion",
   "timestamp": "2026-10-04T12:00:00Z",
-  "app_version": "1.23.0",
+  "app_version": "1.31.0",
   "source": "health_connect"
 }
 ```

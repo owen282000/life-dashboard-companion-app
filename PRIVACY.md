@@ -1,8 +1,8 @@
 # Privacy policy
 
-Life Dashboard Companion is a self-hosting tool. It reads health and screen time data on your Android phone and sends it to servers that you set up yourself: your Home Assistant, your MQTT broker or your own webhook. If you switch it on, it can also take measurements from your own Home Assistant and write them into Health Connect. The developer has no server for this app and never receives, stores or sees any of your data.
+Life Dashboard for Android is a self-hosting tool. It reads health and screen time data on your Android phone and sends it to servers that you set up yourself: your Home Assistant, your MQTT broker or your own webhook. If you switch it on, it can also take measurements from your own Home Assistant and write them into Health Connect. The developer has no server for this app and never receives, stores or sees any of your data.
 
-Last updated October 4, 2026, for version 1.23.0.
+Last updated November 20, 2026, for version 1.31.0.
 
 ## In short
 
@@ -99,6 +99,7 @@ A settings export with secrets is encrypted with the password you choose. Withou
 | Health Connect write permissions | Writing the measurements your Home Assistant sends: weight, height, body fat, lean body mass, bone mass, body water mass, blood pressure. Asked for one type at a time, when you switch that type on under **Receive** |
 | Usage access (`PACKAGE_USAGE_STATS`) | Screen time per app |
 | Notifications (`POST_NOTIFICATIONS`) | Telling you when syncs keep failing, when one destination keeps missing syncs, when measurements from Home Assistant keep failing, and when undelivered data had to be dropped |
+| Ignore battery optimizations (`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`) | In the versions from GitHub and F-Droid only: letting **Fix** on the **Battery optimization is on** card show Android's own dialog that lets the app run in the background. The Google Play version does not have this permission and opens the app's settings page instead |
 | Camera | Scanning the pairing code that Home Assistant shows. Asked for only when you open the scanner, and the camera runs only while that screen is open. Frames are decoded on the phone and are never stored or sent. Pairing also works without it, by entering the address and secret by hand |
 | Internet (`INTERNET`) | Sending data to your webhook or broker |
 | Network state (`ACCESS_NETWORK_STATE`) | Checking that the phone is online before a scheduled job runs, so a backfill waits for a connection instead of failing |

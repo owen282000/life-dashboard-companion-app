@@ -1,6 +1,6 @@
 # Your scale into Samsung Health or Google Health
 
-A scale that Home Assistant can read, over Bluetooth or through a cloud account, has no way into Samsung Health or Google Health on its own: those apps read Health Connect, and something on the phone has to write the reading there. Life Dashboard Companion does that. The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) hands the reading to the phone in its response to the app's next sync, and the app writes it into Health Connect with the time it was taken. Samsung Health or Google Health picks it up from there.
+A scale that Home Assistant can read, over Bluetooth or through a cloud account, has no way into Samsung Health or Google Health on its own: those apps read Health Connect, and something on the phone has to write the reading there. The Life Dashboard app does that. The [Life Dashboard integration](https://github.com/owen282000/life-dashboard-ha) hands the reading to the phone in its response to the app's next sync, and the app writes it into Health Connect with the time it was taken. Samsung Health or Google Health picks it up from there.
 
 This page covers the common ways a scale gets into Home Assistant, which entity goes into which Health Connect type, and the template sensors some routes need. Checked on October 2, 2026.
 
