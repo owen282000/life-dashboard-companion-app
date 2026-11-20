@@ -6,7 +6,7 @@ Modifications et suppressions sont aussi envoyées, pas seulement les nouveaux e
 
 Home Assistant
 - Installez l’intégration Life Dashboard via la Marketplace ou HACS, puis scannez son code QR. Ni YAML ni broker.
-- 26 des 34 types et le temps d’écran deviennent des capteurs. Chaque jour de votre historique arrive à sa date dans les statistiques à long terme, sur environ un an.
+- 27 des 34 types et le temps d’écran deviennent des capteurs. Chaque jour de votre historique arrive à sa date dans les statistiques à long terme.
 - Recevoir, avec l’intégration : les mesures d’une balance ou d’un tensiomètre dans Home Assistant peuvent être écrites dans Santé Connect, type par type.
 
 Webhooks et votre serveur

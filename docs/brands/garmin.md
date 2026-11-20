@@ -52,7 +52,7 @@ The [Garmin Connect integration](https://github.com/cyberjunky/home-assistant-ga
 | Setup | Garmin username, password and MFA in Home Assistant | Install, scan a QR code |
 | Where the data comes from | Garmin's cloud | Your phone, pushed by the app |
 | Body Battery, stress, training load | Yes | No, Garmin doesn't share them |
-| History | Current values | Every day in long-term statistics, backfill up to a year |
+| History | Current values | Every day in long-term statistics, backfill of all your history |
 | Breaks when Garmin changes its login | It can, and did in March 2026 | No |
 | Other brands | Garmin only | Any app that writes to Health Connect |
 

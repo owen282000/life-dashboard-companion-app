@@ -6,7 +6,7 @@ Anche modifiche ed eliminazioni vengono inviate, non solo i nuovi record. Se una
 
 Home Assistant
 - Installa l'integrazione Life Dashboard dal Marketplace o da HACS e scansiona il suo codice QR. Niente YAML, niente broker.
-- 26 dei 34 tipi e il tempo di utilizzo diventano sensori. Ogni giorno del tuo storico arriva con la sua data nelle statistiche a lungo termine, per circa l'ultimo anno.
+- 27 dei 34 tipi e il tempo di utilizzo diventano sensori. Ogni giorno del tuo storico arriva con la sua data nelle statistiche a lungo termine.
 - Ricezione, con l'integrazione: le misurazioni di bilancia o misuratore di pressione in Home Assistant possono essere scritte in Connessione Salute, per ogni tipo che attivi.
 
 Webhook e il tuo server

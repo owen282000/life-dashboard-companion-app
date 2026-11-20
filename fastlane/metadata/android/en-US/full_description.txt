@@ -7,7 +7,7 @@ Works with any app that writes to Health Connect, such as Samsung Health, Google
 Your data goes only to the addresses you enter. The app contacts no other server.
 
 Home Assistant:
-- The Life Dashboard integration, installed through the Marketplace or HACS. Scan the QR code it shows and you're paired, with no broker and no YAML. Every synced day lands in Home Assistant's long-term statistics on its own date, so a backfill fills in about the last year.
+- The Life Dashboard integration, installed through the Marketplace or HACS. Scan the QR code it shows and you're paired, with no broker and no YAML. Every synced day lands in Home Assistant's long-term statistics on its own date, so a backfill fills in your history.
 - Receive, with the integration: a scale or blood pressure monitor connected to Home Assistant sends its readings to the app, which writes them into Health Connect (weight, height, body composition, blood pressure). You switch it on per type.
 - MQTT Discovery, for a setup that already runs a broker: 25 of the 34 types plus screen time as sensors under one device, with optional TLS and login.
 

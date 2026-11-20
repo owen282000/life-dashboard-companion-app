@@ -6,7 +6,7 @@ Alterações e exclusões também são enviadas, não só registros novos. Quand
 
 Home Assistant
 - Instale a integração Life Dashboard pelo Marketplace ou pelo HACS e escaneie o código QR que ela mostra. Sem YAML, sem broker.
-- 26 dos 34 tipos e o tempo de tela viram sensores. Cada dia do seu histórico chega com a própria data nas estatísticas de longo prazo, para cerca do último ano.
+- 27 dos 34 tipos e o tempo de tela viram sensores. Cada dia do seu histórico chega com a própria data nas estatísticas de longo prazo.
 - Receber, com a integração: as medições de uma balança ou de um medidor de pressão no Home Assistant podem ser gravadas no Conexão Saúde, por tipo que você ativar.
 
 Webhooks e seu próprio servidor
