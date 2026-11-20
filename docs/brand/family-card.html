@@ -1,99 +1,174 @@
 <!DOCTYPE html>
 <!--
-  Source for the four project cards in the "Part of Life Dashboard" section of all four
-  READMEs (docs/family/<part>.png and docs/family/<part>-here.png). One file draws every card;
-  the query string picks the part (?p=android|ios|ha|stack) and &here=1 draws the "You're here"
-  variant for the repository the README belongs to. Drawn at twice the size it is shown at
-  (400 px wide), with transparent corners so it sits on GitHub's light and dark theme alike.
-  Same identity as banner.html: #14181C to #101C1C, accent #30B77E. render-family.sh renders
-  all eight from the repository root.
+  Source for the pictures in the "Part of Life Dashboard" section of every Life Dashboard README
+  (docs/family/). One file draws every tile and the arrow between the groups; the query string
+  picks the part (?p=android|ios|stack|ha|own-server|sleep-card|screen-time-card|year-card|
+  activity-card|before-bed-card|arrow), the theme (&theme=dark|light, for GitHub's dark and light
+  mode) and &here=1 for the "You're here" variant of the repository the README belongs to.
 
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-      --headless=new --screenshot=docs/family/android.png --window-size=800,232 \
-      --hide-scrollbars --force-device-scale-factor=1 \
-      --default-background-color=00000000 "docs/brand/family-card.html?p=android"
+  The section reads top to bottom: the app on your phone, an arrow, where the data goes, an arrow,
+  the cards for a Home Assistant dashboard. The headings and the two lines of text around the
+  arrows are real text in the README, so only the tiles and the arrow are pictures.
+
+  Tiles are drawn at the size below and shown a little smaller in the README (width 198 for the
+  two apps, 168 for the places the data goes, 156 for the cards), so five cards fit next to each
+  other on a desktop and two on a phone. The corners and the strip above a tile are transparent;
+  the "You're here" tag sits on the top border.
+
+  To add a part: add an entry to `parts` below, add its name to render-family.sh, run that script
+  from the repository root and copy docs/family/ to the other repositories.
+
+  Colours follow GitHub's dark and light theme. The chips pass WCAG AA in both.
 -->
 <html>
 <head>
 <meta charset="utf-8">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 800px; height: 232px; overflow: hidden; background: transparent; }
-  .card {
-    position: absolute; inset: 4px; border-radius: 30px; overflow: hidden;
-    background: radial-gradient(130% 130% at 20% 15%, #171D21 0%, #14181C 45%, #101C1C 100%);
-    border: 2px solid rgba(255,255,255,0.10);
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #E8EDEF;
-    display: flex; align-items: center; padding: 0 40px 0 36px; gap: 30px;
+  html, body { overflow: hidden; background: transparent; }
+  [hidden] { display: none !important; }
+  body {
+    --tile: #161b22; --here: #13231a; --border: #30363d; --text: #e6edf3; --muted: #9198a1;
+    --icon: #9198a1; --line: #7d8590; --accent: #3fb950; --on-accent: #0d1117;
+    --chip: #173822; --chip-text: #56d364; --dashed: #545d68; --track: #262c36;
+    --g0: #0e4429; --g1: #006d32; --g2: #26a641; --g3: #39d353;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   }
-  .here .card {
-    border: 3px solid rgba(48,183,126,0.75);
-    background: radial-gradient(130% 130% at 20% 15%, #18241F 0%, #14191B 50%, #101C1C 100%);
+  body.light {
+    --tile: #f6f8fa; --here: #eaf6ee; --border: #d0d7de; --text: #1f2328; --muted: #4b5560;
+    --icon: #59636e; --line: #818b96; --accent: #1a7f37; --on-accent: #ffffff;
+    --chip: #dafbe1; --chip-text: #116329; --dashed: #8c959f; --track: #e6eaef;
+    --g0: #9be9a8; --g1: #40c463; --g2: #30a14e; --g3: #216e39;
   }
-  .grid {
-    position: absolute; inset: 0; opacity: 0.5; pointer-events: none;
-    background-image:
-      linear-gradient(rgba(48,183,126,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(48,183,126,0.05) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
+  /* render-family.sh sets the window to the size of the picture. Chrome lays a narrow window
+     out wider than it is, so the width per kind of tile is repeated here. */
+  .wrap { position: fixed; left: 0; top: 0; bottom: 0; padding-top: 12px; }
+  .phone { width: 236px; } .dest { width: 200px; } .card { width: 186px; }
   .tile {
-    position: relative; flex: none; width: 112px; height: 112px; border-radius: 28px;
-    background: rgba(48,183,126,0.09); border: 2px solid rgba(48,183,126,0.35);
-    display: flex; align-items: center; justify-content: center;
+    position: relative; height: 100%; border: 1px solid var(--border); border-radius: 14px;
+    background: var(--tile); padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 8px;
   }
-  .tile svg { width: 60px; height: 60px; }
-  .text { position: relative; flex: 1; min-width: 0; }
-  .kicker {
-    font-size: 21px; font-weight: 700; letter-spacing: 2.2px; text-transform: uppercase;
-    color: #7E8B91;
+  .card .tile { padding: 16px 16px 18px; }
+  .dest .tile { padding-left: 14px; padding-right: 14px; }
+  .own .tile { border: 1.5px dashed var(--dashed); background: transparent; }
+  .here .tile { border: 2px solid var(--accent); background: var(--here); padding: 17px 17px 19px; }
+  .here.card .tile { padding: 15px 15px 17px; }
+  .here.dest .tile { padding-left: 13px; padding-right: 13px; }
+  .tag {
+    display: none; position: absolute; top: -12px; left: 14px; font-size: 11px; font-weight: 700;
+    line-height: 16px; padding: 3px 9px; border-radius: 7px; background: var(--accent);
+    color: var(--on-accent); white-space: nowrap;
   }
-  .name { margin-top: 8px; font-size: 40px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.1; white-space: nowrap; }
-  .desc { margin-top: 8px; font-size: 27px; line-height: 1.3; color: #AEB8BC; white-space: nowrap; }
-  .corner { position: absolute; top: 30px; right: 32px; }
-  .pill {
-    padding: 6px 18px; border-radius: 999px; white-space: nowrap;
-    background: #162420; border: 2px solid rgba(48,183,126,0.55);
-    font-size: 20px; color: #6FD7A6; font-weight: 700;
+  .here .tag { display: block; }
+  .art { height: 64px; display: flex; align-items: center; justify-content: center; }
+  .card .art { height: 72px; display: block; }
+  .name { font-size: 16px; font-weight: 600; line-height: 19px; white-space: nowrap; }
+  .card .name { font-size: 15px; line-height: 18px; }
+  .desc { font-size: 13px; line-height: 1.4; color: var(--muted); text-wrap: balance; }
+  .chips { margin-top: auto; padding-top: 12px; display: flex; gap: 5px; white-space: nowrap; }
+  .chips span {
+    font-size: 11px; font-weight: 600; line-height: 16px; padding: 3px 8px; border-radius: 999px;
+    background: var(--chip); color: var(--chip-text);
   }
-  .arrow svg { width: 34px; height: 34px; display: block; }
+  /* Line icons: grey strokes, with the part that matters in the accent. */
+  svg.icon { fill: none; stroke: var(--icon); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  svg.icon .a { stroke: var(--accent); }
+  svg.icon .af { stroke: var(--accent); fill: var(--accent); }
+  svg.icon .if { fill: var(--icon); }
+  /* Small previews of the cards. */
+  .rows { height: 72px; display: flex; flex-direction: column; justify-content: center; gap: 7px; }
+  .lane { height: 7px; border-radius: 4px; background: var(--track); position: relative; }
+  .lane span { position: absolute; top: 0; height: 7px; border-radius: 3px; }
+  .split { height: 72px; display: flex; align-items: center; gap: 14px; }
+  .donut { width: 46px; height: 46px; border-radius: 50%; border: 7px solid #e3b341; border-right-color: var(--track); flex: none; }
+  .bars { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .bars div { height: 7px; border-radius: 4px; background: var(--track); }
+  .bars i { display: block; height: 7px; border-radius: 4px; }
+  .year { height: 72px; display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; align-content: center; }
+  .year span { display: block; height: 8px; border-radius: 2px; }
+  .rings { height: 72px; display: flex; align-items: center; justify-content: space-between; }
+  .rings div { width: 44px; height: 44px; border-radius: 50%; border: 6px solid; }
+  .night { height: 8px; border-radius: 4px; background: var(--track); display: flex; align-items: center; gap: 4px; }
+  .night i { width: 5px; height: 8px; border-radius: 2px; background: #e3b341; }
+  .night b { flex: 1; height: 8px; border-radius: 4px; background: #8b6ff0; }
+  /* The arrow between the groups. */
+  .arrow { position: fixed; left: 0; top: 0; bottom: 0; width: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .arrow div { width: 2px; height: 22px; background: var(--line); }
+  .arrow svg { display: block; fill: none; stroke: var(--line); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="grid"></div>
-  <div class="tile"><svg id="glyph" viewBox="0 0 24 24" fill="none" stroke="#30B77E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></svg></div>
-  <div class="text">
-    <div class="kicker" id="kicker"></div>
+<div class="wrap" id="wrap">
+  <div class="tile">
+    <span class="tag">You're here</span>
+    <div class="art" id="art"></div>
     <div class="name" id="name"></div>
     <div class="desc" id="desc"></div>
+    <div class="chips" id="chips"></div>
   </div>
-  <div class="corner" id="corner"></div>
+</div>
+<div class="arrow" id="arrow" hidden>
+  <div></div>
+  <svg width="14" height="9" viewBox="0 0 14 9"><path d="M1 1.5l6 6 6-6"/></svg>
 </div>
 <script>
+  const lane = (color, blocks) => '<div class="lane">' + blocks.map(([side, at, w]) =>
+    '<span style="' + side + ':' + at + 'px;width:' + w + 'px;background:' + color + '"></span>').join("") + '</div>';
+  const night = (pad, screens, gap) => '<div class="night" style="padding-left:' + pad + 'px">' +
+    '<i></i>'.repeat(screens) + '<b style="margin-left:' + gap + 'px"></b></div>';
+  // Fixed pattern, so every render is the same picture.
+  const yearCells = [3,2,3,1,2,3,3,2,0,3,2,3,1,2, 2,3,3,2,3,1,3,3,2,3,2,0,3,3, 1,2,3,3,2,3,2,1,3,2,3,3,2,1,
+    3,3,1,2,3,2,3,3,2,3,1,2,3,3, 2,3,2,3,3,1,2,3,3,2,3,3,2,3];
+  const t = "var(--track)";
+
   const parts = {
-    android: { kicker: "On your phone", name: "Android app", desc: "Health Connect and screen time",
-      glyph: '<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>' },
-    ios: { kicker: "On your phone", name: "iPhone app", desc: "Apple Health",
-      glyph: '<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10 5h4"/>' },
-    ha: { kicker: "Where the data goes", name: "Home Assistant integration", desc: "Sensors and all your history",
-      glyph: '<path d="M3.5 11 12 3.5l8.5 7.5"/><path d="M5.5 9.5V20h13V9.5"/><circle cx="12" cy="13.5" r="2"/><path d="M12 15.5V20"/>' },
-    stack: { kicker: "Where the data goes", name: "Grafana stack", desc: "Postgres and Grafana dashboards",
-      glyph: '<path d="M4 20h16"/><path d="M6.5 16v-4"/><path d="M11 16V7"/><path d="M15.5 16v-6"/><path d="M20 16V4"/>' }
+    "android": { kind: "phone", name: "Android app", desc: "Health Connect and screen time", chips: ["Google Play", "F-Droid"],
+      art: '<svg class="icon" width="44" height="64" viewBox="0 0 44 64"><rect x="3" y="2" width="38" height="60" rx="7"/>' +
+        '<circle class="if" cx="22" cy="8" r="1.4"/><path class="a" d="M14 46v-6M22 46v-12M30 46v-9"/><circle class="a" cx="22" cy="24" r="6"/></svg>' },
+    "ios": { kind: "phone", name: "iPhone app", desc: "Apple Health", chips: ["App Store", "Build it yourself"],
+      art: '<svg class="icon" width="44" height="64" viewBox="0 0 44 64"><rect x="3" y="2" width="38" height="60" rx="7"/><path d="M17 7h10"/>' +
+        '<path class="a" d="M22 34c-6-4-9-7-9-11a4.5 4.5 0 0 1 9-1.5a4.5 4.5 0 0 1 9 1.5c0 4-3 7-9 11z"/><path d="M12 46h6l2-4 3 8 2-4h7"/></svg>' },
+    "stack": { kind: "dest", name: "Grafana stack", desc: "Postgres and Grafana dashboards", chips: ["Docker Compose", "Helm"],
+      art: '<svg class="icon" width="64" height="56" viewBox="0 0 64 56"><rect x="3" y="3" width="58" height="50" rx="6"/>' +
+        '<path class="a" d="M11 40l13-14 10 9 19-19"/><path d="M11 46h18"/></svg>' },
+    "ha": { kind: "dest", name: "Home Assistant", desc: "The integration: sensors and all your history", chips: ["Marketplace (HACS)"],
+      art: '<svg class="icon" width="64" height="58" viewBox="0 0 64 58"><path d="M6 28L32 5l26 23"/><path d="M12 23v31h40V23"/>' +
+        '<circle class="a" cx="32" cy="32" r="5"/><path class="a" d="M32 37v17"/></svg>' },
+    "own-server": { kind: "dest own", name: "Your own server", desc: "MQTT or any webhook, such as n8n or Node-RED", chips: ["Guide on owen282000.com"],
+      art: '<svg class="icon" width="64" height="56" viewBox="0 0 64 56"><rect x="3" y="6" width="58" height="18" rx="4"/><rect x="3" y="32" width="58" height="18" rx="4"/>' +
+        '<circle class="af" cx="12" cy="15" r="1.6"/><circle class="af" cx="12" cy="41" r="1.6"/>' +
+        '<path class="a" d="M40 11l-4 8M46 11l4 4-4 4M30 11l-4 4 4 4"/><path d="M24 41h28"/></svg>' },
+    "sleep-card": { kind: "card", name: "Sleep card", desc: "One night, stage by stage",
+      art: '<div class="rows">' + lane("#d29922", [["left", 6, 5], ["right", 8, 5]]) + lane("#e5566a", [["left", 40, 14], ["left", 92, 22]]) +
+        lane("#4493f8", [["left", 10, 12], ["left", 58, 16], ["left", 112, 10]]) + lane("#7c6ff0", [["left", 24, 12], ["left", 74, 24]]) + '</div>' },
+    "screen-time-card": { kind: "card", name: "Screen time cards", desc: "Today, the week and the family",
+      art: '<div class="split"><div class="donut"></div><div class="bars">' +
+        [["#e5566a", 92], ["#3fb950", 60], ["#4493f8", 45]].map(([c, w]) => '<div><i style="width:' + w + '%;background:' + c + '"></i></div>').join("") +
+        '</div></div>' },
+    "year-card": { kind: "card", name: "Year card", desc: "A year of any sensor, one square a day",
+      art: '<div class="year">' + yearCells.map((v) => '<span style="background:var(--g' + v + ')"></span>').join("") + '</div>' },
+    "activity-card": { kind: "card", name: "Activity card", desc: "Daily goals, the week and your streak",
+      art: '<div class="rings"><div style="border-color:#3fb950;border-left-color:' + t + '"></div>' +
+        '<div style="border-color:#e8833a;border-left-color:' + t + ';border-bottom-color:' + t + '"></div>' +
+        '<div style="border-color:#8b6ff0;border-top-color:' + t + '"></div></div>' },
+    "before-bed-card": { kind: "card", name: "Before bed card", desc: "Your phone in the last hour before sleep",
+      art: '<div class="rows">' + night(4, 2, 8) + night(14, 1, 10) + night(4, 3, 4) + night(20, 1, 14) + '</div>' }
   };
-  parts.sleep = { kicker: "In Home Assistant", name: "Sleep card", desc: "One night, stage by stage",
-    glyph: '<path d="M3 6h5v5h4v7h5v-7h4"/>' };
   const q = new URLSearchParams(location.search);
-  const p = parts[q.get("p")] || parts.android;
-  const here = q.get("here") === "1";
-  if (here) document.body.classList.add("here");
-  document.getElementById("kicker").textContent = p.kicker;
-  document.getElementById("name").textContent = p.name;
-  document.getElementById("desc").textContent = p.desc;
-  document.getElementById("glyph").innerHTML = p.glyph;
-  document.getElementById("corner").innerHTML = here
-    ? '<div class="pill">You’re here</div>'
-    : '<div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#5C6A70" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></div>';
+  if (q.get("theme") === "light") document.body.classList.add("light");
+  if (q.get("p") === "arrow") {
+    document.getElementById("wrap").hidden = true;
+    document.getElementById("arrow").hidden = false;
+  } else {
+    const p = parts[q.get("p")] || parts.android;
+    document.getElementById("wrap").className = "wrap " + p.kind + (q.get("here") === "1" ? " here" : "");
+    document.getElementById("name").textContent = p.name;
+    document.getElementById("desc").textContent = p.desc;
+    document.getElementById("art").innerHTML = p.art;
+    const chips = document.getElementById("chips");
+    if (p.chips) chips.innerHTML = p.chips.map((c) => "<span>" + c + "</span>").join(""); else chips.remove();
+  }
 </script>
 </body>
 </html>
