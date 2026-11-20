@@ -158,6 +158,8 @@ The step-by-step setup for both is in [usage.md](usage.md#phone-to-home-assistan
 
 ### Webhooks
 
+<img src="screenshots/webhook.png" alt="The page of one destination, n8n.example.com: when it last delivered, its URL, its own HMAC signing secret with Copy secret, its headers, Send test and Remove destination" width="300" align="right">
+
 Any server that accepts a JSON POST can receive the data: your own backend, Node-RED, n8n, or the example [life-dashboard-stack](https://github.com/owen282000/life-dashboard-stack).
 
 - **Several URLs per section**, separate for Health Connect and Screen Time, and each with its own headers and signing secret, so a second receiver never breaks the first.
@@ -192,6 +194,8 @@ Health Connect and Screen Time each have their own **When to send**, so screen t
 A regular sync reads what changed since the last one, reaching back a week for records that a source writes late. To fill a receiver with older data, use backfill.
 
 ### Backfill
+
+<img src="screenshots/send-history.png" alt="Send your history: 30 days, 90 days, 6 months, 1 year or All history, each with its number of 3-day chunks, the addresses it goes to and the Start button" width="300" align="right">
 
 **Send history** under **What to send** on the **Health** tab sends past data of every enabled type to your webhooks: 30 days, 90 days, 6 months, 1 year, 2 years, 5 years, or **All history**.
 
