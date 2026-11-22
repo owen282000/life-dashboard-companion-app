@@ -21,6 +21,7 @@ import com.owen282000.lifedashboard.LogType
 import com.owen282000.lifedashboard.PendingSyncStore
 import com.owen282000.lifedashboard.ReceiveLogLine
 import com.owen282000.lifedashboard.SyncStatusStore
+import com.owen282000.lifedashboard.TestPing
 import com.owen282000.lifedashboard.WriteBackLedger
 import com.owen282000.lifedashboard.WriteBackReport
 import com.owen282000.lifedashboard.WriteBackType
@@ -72,6 +73,9 @@ class ReceiveTest {
     private val context = TestSetup.context
     private val fixture = HcFixture(context)
     private val integration = FakeIntegration(TestSetup.HEALTH_SECRET)
+
+    /** The integration from 1.3.0, which can put the signature of its answer in the body. */
+    private val newer = FakeIntegration(TestSetup.HEALTH_SECRET, version = "1.3.0", signedBody = true)
 
     /**
      * T32. Four syncs. 1: a heartbeat asks for weight and blood pressure, and the two offered
@@ -262,8 +266,9 @@ class ReceiveTest {
     }
 
     /** T36. One rejected answer: nothing written, one IN row with the reason, the Receive streak up, the sent acks gone. */
-    private fun rejected(mode: FakeIntegration.Mode, reason: String) = runBlocking {
+    private fun rejected(mode: FakeIntegration.Mode, reason: String, integration: FakeIntegration = this.integration) = runBlocking {
         receiveSetup()
+        receiver.route(TestSetup.HEALTH_PATH, integration::handle)
         prefs.setWriteBackReport(WriteBackReport(ack = listOf("sensor.acked_before@1")))
         integration.offer(FakeIntegration.weight("sensor.scale_weight@3", 80.2, ago(10)))
         integration.mode = mode
@@ -277,7 +282,15 @@ class ReceiveTest {
         assertTrue("the acks of the sent request are gone", prefs.getWriteBackReport().isEmpty)
     }
 
-    @Test fun rejectedWithoutSignature() = rejected(FakeIntegration.Mode.NO_SIGNATURE, "no signature on the response")
+    /** An integration that knows the signed body and leaves the signature out of it, with no header either. */
+    @Test fun rejectedWithoutSignature() = rejected(FakeIntegration.Mode.NO_SIGNATURE, "no signature on the response", newer)
+
+    /** The signed body through the cloud, signed with the key of the other direction. */
+    @Test fun rejectedSignedBodyWithTheSecretItself() =
+        rejected(FakeIntegration.Mode.SIGNED_WITH_SECRET, "the signature does not match", newer.also { it.cloud = true })
+
+    @Test fun rejectedSignedBodyNotInReply() =
+        rejected(FakeIntegration.Mode.WRONG_IN_REPLY_TO, "in_reply_to does not name this request", newer.also { it.cloud = true })
 
     @Test fun rejectedSignedWithTheSecretItself() = rejected(FakeIntegration.Mode.SIGNED_WITH_SECRET, "the signature does not match")
 
@@ -304,6 +317,127 @@ class ReceiveTest {
         integration.mode = FakeIntegration.Mode.HONEST
         TestSetup.syncManager().performSync().getOrThrow()
         assertFalse(prefs.getReceiveStatus().integrationOutdated)
+    }
+
+    /**
+     * P1-47. Through Home Assistant Cloud only the status, the body and the Content-Type come
+     * back. The request asks for the signed body, the integration 1.3.0 answers with it, and the
+     * reading is written and acknowledged as on any route.
+     */
+    @Test
+    fun signedBodyThroughTheCloudIsWrittenAndAcked() = runBlocking {
+        receiveSetup(types = setOf(WriteBackType.WEIGHT))
+        receiver.route(TestSetup.HEALTH_PATH, newer::handle)
+        newer.cloud = true
+        val id = "sensor.scale_weight@47"
+        newer.offer(FakeIntegration.weight(id, 80.2, ago(10)))
+
+        val first = TestSetup.syncManager().performSync().getOrThrow()
+
+        assertEquals(HealthSyncResult.Success(emptyMap(), written = 1), first)
+        assertEquals("body", newer.seen.single().writeback?.str("answer"))
+        assertEquals(id, fixture.read(WeightRecord::class).single().metadata.clientRecordId)
+        assertFalse(prefs.getReceiveStatus().signatureLost)
+        assertEquals(0, TestSetup.streak("RECEIVE"))
+
+        TestSetup.syncManager().performSync().getOrThrow()
+        assertEquals(listOf(id), newer.seen.last().ack())
+        assertEquals(emptyList<String>(), newer.pendingIds())
+    }
+
+    /** P1-47. The signed body on a route that keeps the header: the same outcome, the header not needed. */
+    @Test
+    fun signedBodyWithTheHeaderIsWritten() = runBlocking {
+        receiveSetup(types = setOf(WriteBackType.WEIGHT))
+        receiver.route(TestSetup.HEALTH_PATH, newer::handle)
+        newer.offer(FakeIntegration.weight("sensor.scale_weight@48", 80.2, ago(10)))
+
+        assertEquals(HealthSyncResult.Success(emptyMap(), written = 1), TestSetup.syncManager().performSync().getOrThrow())
+    }
+
+    /**
+     * P1-47. An integration before 1.3.0 behind the cloud: its answer arrives without any
+     * signature, so nothing is written, and it is the notice on the Receive page, not a failed
+     * row and a streak per sync. The request's acks are still delivered. Updating the
+     * integration lifts the notice and the reading arrives.
+     */
+    @Test
+    fun olderIntegrationThroughTheCloudIsANoticeNotAFailure() = runBlocking {
+        receiveSetup(types = setOf(WriteBackType.WEIGHT))
+        integration.cloud = true
+        val reading = FakeIntegration.weight("sensor.scale_weight@49", 80.2, ago(10))
+        integration.offer(reading)
+
+        TestSetup.syncManager().performSync().getOrThrow()
+
+        assertEquals("body", integration.seen.single().writeback?.str("answer"))
+        assertTrue(prefs.getReceiveStatus().signatureLost)
+        assertFalse(prefs.getReceiveStatus().integrationOutdated)
+        assertEquals(emptyList<WeightRecord>(), fixture.read(WeightRecord::class))
+        assertEquals(emptyList<Any>(), inRows())
+        assertEquals(0, TestSetup.streak("RECEIVE"))
+
+        receiver.route(TestSetup.HEALTH_PATH, newer::handle)
+        newer.cloud = true
+        newer.offer(reading)
+        assertEquals(HealthSyncResult.Success(emptyMap(), written = 1), TestSetup.syncManager().performSync().getOrThrow())
+        assertFalse(prefs.getReceiveStatus().signatureLost)
+    }
+
+    private fun ping() = runBlocking {
+        TestPing.send(context, prefs.getDestinations(LogType.HEALTH_CONNECT), LogType.HEALTH_CONNECT)
+    }
+
+    /**
+     * P1-47. The test ping asks for the signed body and checks the answer: it stands through the
+     * cloud with 1.3.0 and with the header from an older integration, it stands with the notice
+     * for an older integration behind the cloud, and it fails on a signature that is missing where
+     * one belongs or does not match.
+     */
+    @Test
+    fun testPingChecksTheAnswer() = runBlocking {
+        TestSetup.health(receiver, setOf(STEPS))
+        val url = receiver.url(TestSetup.HEALTH_PATH)
+        prefs.setReceiveSourceUrl(url)
+
+        receiver.route(TestSetup.HEALTH_PATH, newer::handle)
+        newer.cloud = true
+        assertTrue(ping().isSuccess)
+        val sent = newer.seen.single()
+        assertEquals("true", sent.body.num("test"))
+        assertEquals(setOf("answer"), sent.writeback?.keys)
+        assertEquals("body", sent.writeback?.str("answer"))
+        assertFalse(prefs.getReceiveStatus().signatureLost)
+
+        receiver.route(TestSetup.HEALTH_PATH, integration::handle)
+        assertTrue("an older integration, answering with the header", ping().isSuccess)
+        assertFalse(prefs.getReceiveStatus().signatureLost)
+
+        integration.cloud = true
+        assertTrue("delivered, with the notice for Receive", ping().isSuccess)
+        assertTrue(prefs.getReceiveStatus().signatureLost)
+
+        receiver.route(TestSetup.HEALTH_PATH, newer::handle)
+        assertTrue(ping().isSuccess)
+        assertFalse("a signed answer lifts the notice", prefs.getReceiveStatus().signatureLost)
+
+        newer.mode = FakeIntegration.Mode.SIGNED_WITH_SECRET
+        val failed = ping()
+        assertEquals("The receiver took the ping, but its answer's signature is missing or wrong", failed.exceptionOrNull()?.message)
+        val row = prefs.getWebhookLogs(LogType.HEALTH_CONNECT).maxByOrNull { it.timestamp }!!
+        assertFalse(row.success)
+        assertEquals(200, row.statusCode)
+
+        // 1.3.0 names signed_body, so an answer of it without any signature no longer confirms.
+        newer.mode = FakeIntegration.Mode.NO_SIGNATURE
+        assertTrue(ping().isFailure)
+        // Too old for Receive is still a signed answer to this ping.
+        newer.mode = FakeIntegration.Mode.STALE
+        assertTrue(ping().isSuccess)
+
+        receiver.respond(TestSetup.HEALTH_PATH, 200)
+        assertTrue("a receiver that is not the integration is not checked", ping().isSuccess)
+        assertEquals(0, PendingSyncStore.forContext(context).size())
     }
 
     /**

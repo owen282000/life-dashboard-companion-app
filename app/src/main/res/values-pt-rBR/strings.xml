@@ -84,6 +84,7 @@
     <string name="receive_enable_description">A integração Life Dashboard envia as entidades que você escolheu lá; cada tipo abaixo precisa da própria permissão de gravação no Conexão Saúde.</string>
     <string name="receive_needs_integration">Precisa da integração Life Dashboard: pareie primeiro com o Home Assistant, para que haja um endereço de webhook e um segredo de assinatura.</string>
     <string name="receive_update_integration">Atualize a integração Life Dashboard para receber medições, ou confira se este webhook é o da integração: a última resposta dele não trouxe o protocolo de medições.</string>
+    <string name="receive_update_integration_cloud">Atualize a integração Life Dashboard para a 1.3.0 ou mais recente para receber medições pelo Home Assistant Cloud. Por este caminho a assinatura da resposta dela não chega ao celular, então nada é gravado. O envio de dados continua funcionando.</string>
     <string name="receive_no_types_yet">Na próxima sincronização, o app pergunta ao Home Assistant quais tipos ele oferece.</string>
     <string name="receive_choose_type">Ative um tipo abaixo para recebê-lo.</string>
     <string name="receive_permission_missing">Falta permissão de gravação: %1$s</string>

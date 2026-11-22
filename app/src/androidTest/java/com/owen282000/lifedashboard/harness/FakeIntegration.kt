@@ -30,8 +30,17 @@ import java.util.concurrent.CopyOnWriteArrayList
  * WriteBackPayload, and the signatures come from [Hmac], which is anchored to the vectors of
  * the integration's own tests. A field renamed or a signature computed differently in the app
  * then fails here instead of being wrong in the same way on both sides.
+ *
+ * With [signedBody] it answers like 1.3.0 (`frame_signed_answer`): it names `signed_body` in
+ * every answer, and a request with `"answer": "body"` in its `writeback` block gets the answer
+ * as text inside the body with its signature next to it, the header then over the body as
+ * sent. Without it the request field is ignored, as every integration before 1.3.0 does.
  */
-class FakeIntegration(private val secret: String, private val version: String = "0.7.0") {
+class FakeIntegration(
+    private val secret: String,
+    private val version: String = "0.7.0",
+    private val signedBody: Boolean = false
+) {
 
     init {
         Hmac.check()
@@ -61,6 +70,13 @@ class FakeIntegration(private val secret: String, private val version: String = 
 
     @Volatile
     var mode: Mode = Mode.HONEST
+
+    /**
+     * Answers the way Home Assistant Cloud hands an answer over (`async_webhook_message` in its
+     * cloud client): the status, the body and the Content-Type, and no other header.
+     */
+    @Volatile
+    var cloud: Boolean = false
 
     /** When set, the integration answers with this status and no body, like a Home Assistant that is down. */
     @Volatile
@@ -116,6 +132,7 @@ class FakeIntegration(private val secret: String, private val version: String = 
             putJsonObject("life_dashboard") {
                 put("version", version)
                 put("writeback", if (mode == Mode.PROTOCOL_2) 2 else 1)
+                if (signedBody) put("signed_body", 1)
             }
             putJsonObject("writeback") {
                 put("in_reply_to", if (mode == Mode.WRONG_IN_REPLY_TO) lastSignature ?: "sha256=00" else presented)
@@ -131,12 +148,24 @@ class FakeIntegration(private val secret: String, private val version: String = 
         }
         lastSignature = presented
         // Compact, like json.dumps(separators=(",", ":")), and signed over exactly these bytes.
-        val bytes = answer.toString().toByteArray(Charsets.UTF_8)
-        val signature = when (mode) {
+        val text = answer.toString()
+        fun sign(signed: ByteArray): String? = when (mode) {
             Mode.NO_SIGNATURE -> null
-            Mode.SIGNED_WITH_SECRET -> Hmac.requestSignature(secret, bytes)
-            else -> Hmac.responseSignature(secret, bytes)
+            Mode.SIGNED_WITH_SECRET -> Hmac.requestSignature(secret, signed)
+            else -> Hmac.responseSignature(secret, signed)
         }
+        val asked = signedBody && (block?.get("answer") as? JsonPrimitive)?.takeIf { it.isString }?.content == "body"
+        val bytes = if (asked) {
+            // The answer as text, signed as it stands; the header below signs the body around it.
+            buildJsonObject {
+                put("life_dashboard_signed", 1)
+                put("answer", text)
+                sign(text.toByteArray(Charsets.UTF_8))?.let { put("signature", it) }
+            }.toString().toByteArray(Charsets.UTF_8)
+        } else {
+            text.toByteArray(Charsets.UTF_8)
+        }
+        val signature = if (cloud) null else sign(bytes)
         val headers = listOfNotNull("Content-Type" to "application/json", signature?.let { "X-Signature" to it })
         return MockResponse.Builder()
             .code(200)

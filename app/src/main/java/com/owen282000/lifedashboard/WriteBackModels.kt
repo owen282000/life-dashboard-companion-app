@@ -115,6 +115,12 @@ data class ReceiveStatus(
     val answered: Boolean = false,
     /** True when the source URL answered without the protocol block: the integration is too old. */
     val integrationOutdated: Boolean = false,
+    /**
+     * True when the source URL's answer came without a signature from an integration before
+     * 1.3.0: the route (Home Assistant Cloud) drops the header, and only a newer integration
+     * can put the signature in the body.
+     */
+    val signatureLost: Boolean = false,
     val writtenToday: Int = 0
 )
 
@@ -131,6 +137,9 @@ sealed interface ReceiveSummary {
 
     /** The source URL answered without the protocol block: the integration is too old. */
     data object IntegrationOutdated : ReceiveSummary
+
+    /** The answer's signature does not survive this route, and the integration is too old to put it in the body. */
+    data object SignatureLost : ReceiveSummary
 
     /** On, but no answer from the integration has named its types yet. */
     data object AwaitingTypes : ReceiveSummary
@@ -155,6 +164,7 @@ sealed interface ReceiveSummary {
             if (!receive.enabled || receive.sourceUrl == null) return Off
             if (!available) return NeedsPairing
             if (status.integrationOutdated) return IntegrationOutdated
+            if (status.signatureLost) return SignatureLost
             val offered = status.configured.mapNotNull { WriteBackType.fromKey(it) }
             if (offered.isEmpty()) return if (status.answered) NothingMapped else AwaitingTypes
             val chosen = WriteBackType.entries.filter { it in receive.types && it in offered }

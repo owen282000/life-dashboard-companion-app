@@ -215,8 +215,12 @@
     },
     "writeback": {
       "type": "object",
-      "description": "Health Connect payloads to the Life Dashboard integration only, when Receive is on: what the phone can write, and the outcome of what the integration sent last time. Absent on every other payload. The integration's response is described in webhook.md under Inbound.",
+      "description": "Health Connect payloads to the Life Dashboard integration only, when Receive is on: what the phone can write, and the outcome of what the integration sent last time. A test ping carries the block with answer alone. Absent on every other payload. The integration's response is described in webhook.md under Inbound.",
       "properties": {
+        "answer": {
+          "type": "string",
+          "description": "Optional, from 1.32.0: the form the app asks the integration's answer in. \"body\" asks for the answer as text inside the body with its signature next to it, for routes that drop the X-Signature header of an answer, such as Home Assistant Cloud. Other receivers ignore it"
+        },
         "protocol": {
           "const": 1
         },
@@ -274,12 +278,26 @@
           }
         }
       },
-      "required": [
-        "protocol",
-        "types",
-        "history",
-        "ack",
-        "failed"
+      "anyOf": [
+        {
+          "required": [
+            "protocol",
+            "types",
+            "history",
+            "ack",
+            "failed"
+          ]
+        },
+        {
+          "description": "The block of a test ping: the form of the answer and nothing else",
+          "properties": {
+            "answer": {}
+          },
+          "required": [
+            "answer"
+          ],
+          "additionalProperties": false
+        }
       ]
     },
     "steps": {

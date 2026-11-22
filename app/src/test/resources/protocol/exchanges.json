@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "response_key_label": "life-dashboard-response-v1",
+  "integration": {
+    "version": "1.3.0",
+    "now": "2026-11-20T12:00:00Z"
+  },
+  "cases": [
+    {
+      "name": "sync-that-does-not-ask",
+      "about": "A health sync from an app that knows nothing of the signed body: the answer is the plain JSON with the signature in the header only. The body holds raw UTF-8 outside ASCII, which the request signature covers as UTF-8 bytes.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"timestamp\":\"2026-11-20T11:59:58Z\",\"app_version\":\"1.31.0\",\"source\":\"health_connect\",\"heart_rate\":[{\"bpm\":61,\"time\":\"2026-11-20T11:55:00Z\",\"source\":\"Owen’s Pixel Watch · café\"}]}",
+        "signature": "sha256=1f8be159a380b07dc3e1558b11954dcc0eca856c76563b492746b5d0212e81a3"
+      },
+      "expect": {
+        "status": 200,
+        "content_type": "application/json",
+        "signed_body": false,
+        "answer": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=1f8be159a380b07dc3e1558b11954dcc0eca856c76563b492746b5d0212e81a3\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "answer_signature": "sha256=80691e596929293de475ba03daf37c23c536a609b479f9f12d3649aa2f945518",
+        "body": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=1f8be159a380b07dc3e1558b11954dcc0eca856c76563b492746b5d0212e81a3\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "x_signature": "sha256=80691e596929293de475ba03daf37c23c536a609b479f9f12d3649aa2f945518"
+      }
+    },
+    {
+      "name": "sync-from-an-iphone-that-does-not-ask",
+      "about": "The iOS app writes sorted keys and escapes every / as \\/. The signature is over those bytes as they are.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"app_version\":\"1.9.0\",\"daily_totals\":[{\"date\":\"2026-11-20\",\"steps\":4212}],\"device\":\"iPhone 17 Pro \\/ iOS 27\",\"source\":\"healthkit_ios\",\"timestamp\":\"2026-11-20T11:59:58Z\"}",
+        "signature": "sha256=df5401da869bed7ae0a43aecc8640b5f5058ec0cb5c3dedc0ac2dd50d2bc4c60"
+      },
+      "expect": {
+        "status": 200,
+        "content_type": "application/json",
+        "signed_body": false,
+        "answer": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=df5401da869bed7ae0a43aecc8640b5f5058ec0cb5c3dedc0ac2dd50d2bc4c60\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "answer_signature": "sha256=f5badeec5cb44e61fe994827e78a6b18a8d61b263170ad049cc46dde6e2fd869",
+        "body": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=df5401da869bed7ae0a43aecc8640b5f5058ec0cb5c3dedc0ac2dd50d2bc4c60\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "x_signature": "sha256=f5badeec5cb44e61fe994827e78a6b18a8d61b263170ad049cc46dde6e2fd869"
+      }
+    },
+    {
+      "name": "test-ping-that-does-not-ask",
+      "about": "The test ping of an app before the signed body.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"test\":true,\"message\":\"Test ping from Life Dashboard Companion\",\"timestamp\":\"2026-11-20T11:59:58Z\",\"app_version\":\"1.31.0\",\"source\":\"health_connect\"}",
+        "signature": "sha256=c0a674424b820ee5f9c41ebceb535dafe1f931bc8d52f8581d3849f0d4f3d33f"
+      },
+      "expect": {
+        "status": 200,
+        "content_type": "application/json",
+        "signed_body": false,
+        "answer": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=c0a674424b820ee5f9c41ebceb535dafe1f931bc8d52f8581d3849f0d4f3d33f\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "answer_signature": "sha256=194893c3179d2432d269383da66a76060b55e159db7802568dd50ba02b635d44",
+        "body": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=c0a674424b820ee5f9c41ebceb535dafe1f931bc8d52f8581d3849f0d4f3d33f\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "x_signature": "sha256=194893c3179d2432d269383da66a76060b55e159db7802568dd50ba02b635d44"
+      }
+    },
+    {
+      "name": "test-ping-that-asks",
+      "about": "The test ping with writeback.answer: the answer comes as the signed body, without pending because the ping names no types.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"test\":true,\"message\":\"Test ping from Life Dashboard Companion\",\"timestamp\":\"2026-11-20T11:59:58Z\",\"app_version\":\"1.32.0\",\"source\":\"health_connect\",\"writeback\":{\"answer\":\"body\"}}",
+        "signature": "sha256=3b2b6b6e547fc92af4fffe450eec7e74b36be603297767a1fd65c05f4b644ec2"
+      },
+      "expect": {
+        "status": 200,
+        "content_type": "application/json",
+        "signed_body": true,
+        "answer": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=3b2b6b6e547fc92af4fffe450eec7e74b36be603297767a1fd65c05f4b644ec2\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "answer_signature": "sha256=7947553bb8f02dbead7eacb438a8d575e8fa907a917ac2ffaa0562d675460177",
+        "body": "{\"life_dashboard_signed\":1,\"answer\":\"{\\\"life_dashboard\\\":{\\\"version\\\":\\\"1.3.0\\\",\\\"writeback\\\":1,\\\"signed_body\\\":1},\\\"writeback\\\":{\\\"in_reply_to\\\":\\\"sha256=3b2b6b6e547fc92af4fffe450eec7e74b36be603297767a1fd65c05f4b644ec2\\\",\\\"issued_at\\\":\\\"2026-11-20T12:00:00Z\\\",\\\"configured\\\":[]}}\",\"signature\":\"sha256=7947553bb8f02dbead7eacb438a8d575e8fa907a917ac2ffaa0562d675460177\"}",
+        "x_signature": "sha256=e5bc8606aa64b8136b94eeffc8aa4501234029f33ef0522bc67860f31ed60f0f"
+      }
+    },
+    {
+      "name": "heartbeat-that-asks",
+      "about": "A heartbeat that asks for readings and for the signed body, with nothing mapped in Home Assistant: pending is empty and more is false.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"timestamp\":\"2026-11-20T11:59:58Z\",\"app_version\":\"1.32.0\",\"source\":\"health_connect\",\"writeback\":{\"protocol\":1,\"types\":[\"weight\",\"blood_pressure\"],\"history\":false,\"answer\":\"body\"}}",
+        "signature": "sha256=a0d81c15a3c4397a8c987d594fa44b745b4239ed8a965e0ae97a61e39ce4212e"
+      },
+      "expect": {
+        "status": 200,
+        "content_type": "application/json",
+        "signed_body": true,
+        "answer": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=a0d81c15a3c4397a8c987d594fa44b745b4239ed8a965e0ae97a61e39ce4212e\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[],\"pending\":[],\"more\":false}}",
+        "answer_signature": "sha256=6cc8bf13804a463702e5706d10149c43c324063d59c789914deb6e3fa8074b07",
+        "body": "{\"life_dashboard_signed\":1,\"answer\":\"{\\\"life_dashboard\\\":{\\\"version\\\":\\\"1.3.0\\\",\\\"writeback\\\":1,\\\"signed_body\\\":1},\\\"writeback\\\":{\\\"in_reply_to\\\":\\\"sha256=a0d81c15a3c4397a8c987d594fa44b745b4239ed8a965e0ae97a61e39ce4212e\\\",\\\"issued_at\\\":\\\"2026-11-20T12:00:00Z\\\",\\\"configured\\\":[],\\\"pending\\\":[],\\\"more\\\":false}}\",\"signature\":\"sha256=6cc8bf13804a463702e5706d10149c43c324063d59c789914deb6e3fa8074b07\"}",
+        "x_signature": "sha256=7e23fbad23179beb7d96f12fb924bf4c0dd09a960d6829c4112f61bbf44aa074"
+      }
+    },
+    {
+      "name": "sync-that-asks",
+      "about": "A health sync with records and the writeback block.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"timestamp\":\"2026-11-20T11:59:58Z\",\"app_version\":\"1.32.0\",\"source\":\"health_connect\",\"steps\":[{\"count\":100,\"start_time\":\"2026-11-20T08:00:00Z\",\"end_time\":\"2026-11-20T09:00:00Z\"}],\"writeback\":{\"protocol\":1,\"types\":[\"weight\"],\"history\":true,\"answer\":\"body\"}}",
+        "signature": "sha256=ae76540cb3145f295e4a57c87383f03db7ba4493aca55fb42daae46eecb337c3"
+      },
+      "expect": {
+        "status": 200,
+        "content_type": "application/json",
+        "signed_body": true,
+        "answer": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=ae76540cb3145f295e4a57c87383f03db7ba4493aca55fb42daae46eecb337c3\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[],\"pending\":[],\"more\":false}}",
+        "answer_signature": "sha256=bca2192fe1933e4f7b285cf52c29453197937fd7abb3e1d24af2f0652a0973c9",
+        "body": "{\"life_dashboard_signed\":1,\"answer\":\"{\\\"life_dashboard\\\":{\\\"version\\\":\\\"1.3.0\\\",\\\"writeback\\\":1,\\\"signed_body\\\":1},\\\"writeback\\\":{\\\"in_reply_to\\\":\\\"sha256=ae76540cb3145f295e4a57c87383f03db7ba4493aca55fb42daae46eecb337c3\\\",\\\"issued_at\\\":\\\"2026-11-20T12:00:00Z\\\",\\\"configured\\\":[],\\\"pending\\\":[],\\\"more\\\":false}}\",\"signature\":\"sha256=bca2192fe1933e4f7b285cf52c29453197937fd7abb3e1d24af2f0652a0973c9\"}",
+        "x_signature": "sha256=f524455d2df2cc10791972d789fd1314900243e0b4380d7d606d13ca918e6bc6"
+      }
+    },
+    {
+      "name": "screen-time-test-ping-that-asks",
+      "about": "The form of the answer is not tied to health payloads: a screen time ping that asks gets the signed body too, and never readings.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"test\":true,\"message\":\"Test ping from Life Dashboard Companion\",\"timestamp\":\"2026-11-20T11:59:58Z\",\"app_version\":\"1.32.0\",\"source\":\"screen_time\",\"writeback\":{\"answer\":\"body\"}}",
+        "signature": "sha256=c7c5bb23c9b8fba7e0e3d13b38bf96aec1f954c561c98952e098f3152bd63fb4"
+      },
+      "expect": {
+        "status": 200,
+        "content_type": "application/json",
+        "signed_body": true,
+        "answer": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=c7c5bb23c9b8fba7e0e3d13b38bf96aec1f954c561c98952e098f3152bd63fb4\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "answer_signature": "sha256=ffb4c73a13dab684c3fc1e8ac0b98c91d1b8030080fe71dc0c3cb8f87d0d9973",
+        "body": "{\"life_dashboard_signed\":1,\"answer\":\"{\\\"life_dashboard\\\":{\\\"version\\\":\\\"1.3.0\\\",\\\"writeback\\\":1,\\\"signed_body\\\":1},\\\"writeback\\\":{\\\"in_reply_to\\\":\\\"sha256=c7c5bb23c9b8fba7e0e3d13b38bf96aec1f954c561c98952e098f3152bd63fb4\\\",\\\"issued_at\\\":\\\"2026-11-20T12:00:00Z\\\",\\\"configured\\\":[]}}\",\"signature\":\"sha256=ffb4c73a13dab684c3fc1e8ac0b98c91d1b8030080fe71dc0c3cb8f87d0d9973\"}",
+        "x_signature": "sha256=e072cc5a9e61b10e6dda1136a92b863001c86a99bb3025c76c88497a481996ac"
+      }
+    },
+    {
+      "name": "an-answer-form-nobody-knows",
+      "about": "Any value of writeback.answer other than \"body\" is answered as if it were absent.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"timestamp\":\"2026-11-20T11:59:58Z\",\"app_version\":\"1.40.0\",\"source\":\"health_connect\",\"writeback\":{\"protocol\":1,\"answer\":\"trailer\"}}",
+        "signature": "sha256=cfbb71632ab775b8df2a0025fe4d8f179513a3d878641633627b092f8abbd387"
+      },
+      "expect": {
+        "status": 200,
+        "content_type": "application/json",
+        "signed_body": false,
+        "answer": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=cfbb71632ab775b8df2a0025fe4d8f179513a3d878641633627b092f8abbd387\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "answer_signature": "sha256=93195ba29ac01804aed6261a8f48f10527508a8d941cc89fc7f00f7dee3af298",
+        "body": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{\"in_reply_to\":\"sha256=cfbb71632ab775b8df2a0025fe4d8f179513a3d878641633627b092f8abbd387\",\"issued_at\":\"2026-11-20T12:00:00Z\",\"configured\":[]}}",
+        "x_signature": "sha256=93195ba29ac01804aed6261a8f48f10527508a8d941cc89fc7f00f7dee3af298"
+      }
+    },
+    {
+      "name": "signed-with-another-secret",
+      "about": "A request signed with a secret that is not this phone's: 401, no body, no signature.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"timestamp\":\"2026-11-20T11:59:58Z\",\"app_version\":\"1.32.0\",\"source\":\"health_connect\",\"writeback\":{\"answer\":\"body\"}}",
+        "signature": "sha256=0dd75d5e1d88dc72e50999535ee7b63e6292c6cc0344cfdcd5e4c430a63207d5"
+      },
+      "expect": {
+        "status": 401,
+        "body": ""
+      }
+    },
+    {
+      "name": "unsigned",
+      "about": "No X-Signature at all: 401.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "{\"timestamp\":\"2026-11-20T11:59:58Z\",\"app_version\":\"1.32.0\",\"source\":\"health_connect\"}",
+        "signature": null
+      },
+      "expect": {
+        "status": 401,
+        "body": ""
+      }
+    },
+    {
+      "name": "a-json-array",
+      "about": "Signed correctly, but not a JSON object: 400.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "[{\"writeback\":{\"answer\":\"body\"}}]",
+        "signature": "sha256=c89433d29450cd7a892249ca233cadba731beb4e764e311f32169cb5603ceaa2"
+      },
+      "expect": {
+        "status": 400,
+        "body": ""
+      }
+    },
+    {
+      "name": "not-json",
+      "about": "Signed correctly, but not JSON: 400.",
+      "secret": "5f1d3c9a7be0426884d2a6c1f09b73e5d8a4c2b6e1f70935a8c6d4b2e0f19375",
+      "request": {
+        "body": "timestamp=2026-11-20T11:59:58Z",
+        "signature": "sha256=62fa818c7d5d4e55af0d20026637364778d1d3353cb55f6e6e708e3a146efeca"
+      },
+      "expect": {
+        "status": 400,
+        "body": ""
+      }
+    }
+  ]
+}

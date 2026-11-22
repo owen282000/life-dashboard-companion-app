@@ -9,7 +9,6 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import java.time.Duration
@@ -59,6 +58,24 @@ enum class WriteBackRejection(val reason: String) {
     UNSUPPORTED_PROTOCOL("the response speaks a protocol version this app does not")
 }
 
+/** What the test ping makes of the answer to it, see [WriteBackPayload.verifyPing]. */
+enum class PingAnswer {
+    /** Signed by the holder of the secret, in the body or in the header, and in reply to this ping. */
+    CONFIRMED,
+
+    /** No signature and no claim to one: a receiver that is not the integration. The ping stands, as it always did. */
+    UNSIGNED,
+
+    /** An integration before 1.3.0 whose signature was lost on the way. The ping stands; Receive needs the update. */
+    SIGNATURE_LOST,
+
+    /** A signature that does not match, or an answer that should carry one and does not. */
+    BAD_SIGNATURE,
+
+    /** Signed, but not an answer to this ping. */
+    NOT_IN_REPLY
+}
+
 /** The verified shape of a response from the source URL. */
 sealed class WriteBackResponse {
     /**
@@ -66,6 +83,15 @@ sealed class WriteBackResponse {
      * the integration. The UI says "Update the Life Dashboard integration"; nothing is written.
      */
     data object Incompatible : WriteBackResponse()
+
+    /**
+     * The integration's plain answer arrived without its X-Signature, and its announcement
+     * does not name `signed_body`: an integration before 1.3.0 behind Home Assistant Cloud,
+     * which passes on the status, the body and the Content-Type only. Nothing in the answer is
+     * believed or written; the unsigned announcement is good for one thing, asking the user to
+     * update the integration.
+     */
+    data object SignatureLost : WriteBackResponse()
 
     data class Rejected(val rejection: WriteBackRejection) : WriteBackResponse()
 
@@ -169,6 +195,20 @@ object WriteBackPayload {
     /** The path fragment that marks a Home Assistant webhook URL. */
     private const val HA_WEBHOOK_PATH = "/api/webhook/"
 
+    /** The host of a Home Assistant Cloud webhook, whose path is a token without that fragment. */
+    private const val CLOUDHOOK_HOST = "hooks.nabu.casa"
+
+    /**
+     * What the app asks for in `writeback.answer` (integration 1.3.0): the answer as text
+     * inside the body with its signature next to it, because a route such as Home Assistant
+     * Cloud drops the X-Signature header. Asked on every route, so there is one code path.
+     */
+    const val ANSWER_IN_BODY = "body"
+
+    /** The key that marks a signed body, and the one form of it this app reads. */
+    private const val SIGNED_BODY_KEY = "life_dashboard_signed"
+    private const val SIGNED_BODY_FORM = 1L
+
     private val json = Json { ignoreUnknownKeys = true }
 
     /** The `writeback` block of a request to the source URL (section 3.1 of the protocol). */
@@ -180,6 +220,7 @@ object WriteBackPayload {
         put("protocol", PROTOCOL)
         put("types", buildJsonArray { WriteBackType.entries.filter { it in types }.forEach { add(JsonPrimitive(it.key)) } })
         put("history", history)
+        put("answer", ANSWER_IN_BODY)
         put("ack", buildJsonArray { report.ack.forEach { add(JsonPrimitive(it)) } })
         put(
             "failed",
@@ -197,9 +238,15 @@ object WriteBackPayload {
     fun isActive(enabled: Boolean, sourceUrl: String?, urls: List<String>, secret: String?): Boolean =
         enabled && sourceUrl != null && sourceUrl in urls && !secret.isNullOrBlank()
 
-    /** Picks the integration's URL from the section: the one that looks like a Home Assistant webhook. */
+    /** The `writeback` block of a test ping: no types and no report, only the form of the answer. */
+    fun pingBlock(): JsonObject = buildJsonObject { put("answer", ANSWER_IN_BODY) }
+
+    /**
+     * Picks the integration's URL from the section: the one that looks like a Home Assistant
+     * webhook, on an address of the user's own or on Home Assistant Cloud.
+     */
     fun sourceUrlChoice(urls: List<String>): SourceUrlChoice {
-        val candidates = urls.filter { it.contains(HA_WEBHOOK_PATH) }.distinct()
+        val candidates = urls.filter { it.contains(HA_WEBHOOK_PATH) || isCloudhook(it) }.distinct()
         return when (candidates.size) {
             0 -> SourceUrlChoice.None
             1 -> SourceUrlChoice.One(candidates.single())
@@ -207,10 +254,93 @@ object WriteBackPayload {
         }
     }
 
+    private fun isCloudhook(url: String): Boolean =
+        runCatching { java.net.URI(url.trim()).host }.getOrNull().equals(CLOUDHOOK_HOST, ignoreCase = true)
+
+    /** An answer whose signature checked out, not yet read, or why there is no such answer. */
+    private sealed class Signed {
+        /** [root] is null when the signed text is not a JSON object. */
+        class Answer(val root: JsonObject?) : Signed()
+
+        class Refused(val response: WriteBackResponse) : Signed()
+    }
+
+    private fun refused(rejection: WriteBackRejection): Signed = Signed.Refused(WriteBackResponse.Rejected(rejection))
+
+    /** The first two steps of [verify]: the size, and the signature in the body or in the header. */
+    private fun signedAnswer(body: ByteArray, signatureHeader: String?, secret: String, oversized: Boolean): Signed {
+        if (oversized || body.size > MAX_BODY_BYTES) return refused(WriteBackRejection.TOO_LARGE)
+        val outer = parseObject(String(body, Charsets.UTF_8))
+        return if (outer != null && SIGNED_BODY_KEY in outer) {
+            if (outer.long(SIGNED_BODY_KEY) != SIGNED_BODY_FORM) {
+                return refused(WriteBackRejection.UNSUPPORTED_PROTOCOL)
+            }
+            // The form without its signature is not a way back to an unsigned answer.
+            val answer = outer.string("answer")
+            if (answer == null || "signature" !in outer) return refused(WriteBackRejection.MISSING_SIGNATURE)
+            val expected = WebhookSupport.responseSignature(answer.toByteArray(Charsets.UTF_8), secret)
+            if (!WebhookSupport.signaturesMatch(outer.string("signature"), expected)) {
+                return refused(WriteBackRejection.BAD_SIGNATURE)
+            }
+            Signed.Answer(parseObject(answer))
+        } else {
+            if (signatureHeader.isNullOrBlank()) {
+                // An integration from before the protocol answers 200 with nothing, and a plain
+                // receiver answers whatever it likes: neither is an attack, both mean "not this
+                // protocol". A body that does carry the block is the integration's, with its
+                // signature lost on the way: one that knows the signed body should have sent
+                // it, so that is refused, and an older one has to be updated for this route.
+                val announced = outer?.get("life_dashboard") as? JsonObject ?: return Signed.Refused(WriteBackResponse.Incompatible)
+                return if ("signed_body" in announced) refused(WriteBackRejection.MISSING_SIGNATURE)
+                else Signed.Refused(WriteBackResponse.SignatureLost)
+            }
+            if (!WebhookSupport.signaturesMatch(signatureHeader, WebhookSupport.responseSignature(body, secret))) {
+                return refused(WriteBackRejection.BAD_SIGNATURE)
+            }
+            Signed.Answer(outer)
+        }
+    }
+
+    /**
+     * What the test ping makes of an answer. It confirms on a signature that checks out, in the
+     * body or in the header, and an `in_reply_to` that names this request, and on nothing else:
+     * not on the protocol version and not on the age of `issued_at`, which a receiver that
+     * speaks only this much (the Life Dashboard Stack) does not send, and which Receive checks
+     * on its own answers. The iOS app decides the same way.
+     */
+    fun verifyPing(
+        body: ByteArray,
+        signatureHeader: String?,
+        secret: String,
+        requestSignature: String,
+        oversized: Boolean = false
+    ): PingAnswer {
+        // A long answer from a receiver that is not the integration is not read, and not held against it.
+        if (oversized || body.size > MAX_BODY_BYTES) return PingAnswer.UNSIGNED
+        return when (val signed = signedAnswer(body, signatureHeader, secret, oversized)) {
+            is Signed.Refused -> when (signed.response) {
+                is WriteBackResponse.SignatureLost -> PingAnswer.SIGNATURE_LOST
+                is WriteBackResponse.Rejected -> PingAnswer.BAD_SIGNATURE
+                else -> PingAnswer.UNSIGNED
+            }
+            is Signed.Answer -> {
+                val inReplyTo = (signed.root?.get("writeback") as? JsonObject)?.string("in_reply_to")
+                if (inReplyTo != null && WebhookSupport.signaturesMatch(inReplyTo, requestSignature)) PingAnswer.CONFIRMED
+                else PingAnswer.NOT_IN_REPLY
+            }
+        }
+    }
+
     /**
      * Checks a response from the source URL in the order the protocol prescribes and stops at
      * the first problem: size, signature, protocol, `in_reply_to`, `issued_at`, count. A
      * response that fails any of these writes nothing and is logged as one line.
+     *
+     * The signature is in the body or in the header. A body that is an object with
+     * `life_dashboard_signed` is the signed body: the signature inside decides, over the UTF-8
+     * bytes of `answer` as that text stands, and only then is `answer` read as JSON; the
+     * header is not looked at, whatever it says. Any other body is checked against the
+     * X-Signature header, as before integration 1.3.0. There is no unsigned form.
      *
      * The size is checked before the signature because the transport already stops reading
      * at the cap; verifying a signature over a truncated body would only fail more slowly.
@@ -223,21 +353,12 @@ object WriteBackPayload {
         now: Instant,
         oversized: Boolean = false
     ): WriteBackResponse {
-        if (oversized || body.size > MAX_BODY_BYTES) return WriteBackResponse.Rejected(WriteBackRejection.TOO_LARGE)
-        val text = String(body, Charsets.UTF_8)
-        if (signatureHeader.isNullOrBlank()) {
-            // An integration from before the protocol answers 200 with nothing, and a plain
-            // receiver answers whatever it likes: neither is an attack, both mean "not this
-            // protocol". A body that does carry the block but no signature is refused.
-            return if (hasProtocolBlock(text)) WriteBackResponse.Rejected(WriteBackRejection.MISSING_SIGNATURE)
-            else WriteBackResponse.Incompatible
-        }
-        if (!WebhookSupport.signaturesMatch(signatureHeader, WebhookSupport.responseSignature(body, secret))) {
-            return WriteBackResponse.Rejected(WriteBackRejection.BAD_SIGNATURE)
+        val root = when (val signed = signedAnswer(body, signatureHeader, secret, oversized)) {
+            is Signed.Refused -> return signed.response
+            is Signed.Answer -> signed.root ?: return WriteBackResponse.Rejected(WriteBackRejection.MALFORMED)
         }
 
-        val root = runCatching { json.parseToJsonElement(text).jsonObject }.getOrNull()
-            ?: return WriteBackResponse.Rejected(WriteBackRejection.MALFORMED)
+        // Only from here on is anything in the answer believed.
         val announced = root["life_dashboard"]?.let { it as? JsonObject }
         val protocol = announced?.get("writeback")?.let { (it as? JsonPrimitive)?.longOrNull }
             ?: return WriteBackResponse.Incompatible
@@ -272,8 +393,8 @@ object WriteBackPayload {
         )
     }
 
-    private fun hasProtocolBlock(text: String): Boolean =
-        runCatching { json.parseToJsonElement(text).jsonObject["life_dashboard"] is JsonObject }.getOrDefault(false)
+    private fun parseObject(text: String): JsonObject? =
+        runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull()
 
     /**
      * Validates one reading (section 8.2 of the protocol) and turns it into a [PendingReading].

@@ -163,6 +163,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_RECEIVE_SOURCE_URL = "receive_source_url"
         private const val KEY_RECEIVE_CONFIGURED = "receive_configured_types"
         private const val KEY_RECEIVE_OUTDATED = "receive_integration_outdated"
+        private const val KEY_RECEIVE_SIGNATURE_LOST = "receive_signature_lost_url"
         private const val KEY_WRITEBACK_LEDGER = "ledger"
         private const val KEY_WRITEBACK_REPORT = "report"
 
@@ -603,12 +604,27 @@ class PreferencesManager(context: Context) {
         // removed when the source changes; its presence is "the integration has answered".
         answered = prefs.contains(KEY_RECEIVE_CONFIGURED),
         integrationOutdated = prefs.getBoolean(KEY_RECEIVE_OUTDATED, false),
+        signatureLost = getReceiveSourceUrl()?.let { it == prefs.getString(KEY_RECEIVE_SIGNATURE_LOST, null) } ?: false,
         writtenToday = SyncStatusStore.writtenToday(appContext)
     )
 
     fun setReceiveConfiguredTypes(types: List<String>) = prefs.edit { putString(KEY_RECEIVE_CONFIGURED, types.joinToString(",")) }
 
     fun setReceiveIntegrationOutdated(outdated: Boolean) = prefs.edit { putBoolean(KEY_RECEIVE_OUTDATED, outdated) }
+
+    /**
+     * Remembers that [url] answered without a signature that reached the phone, from an
+     * integration before 1.3.0, or forgets it once that address gave a signed answer. Kept by
+     * address and not with the switch, because the test ping after pairing finds it out before
+     * Receive is switched on.
+     */
+    fun setReceiveSignatureLost(url: String, lost: Boolean) {
+        if (lost) {
+            prefs.edit { putString(KEY_RECEIVE_SIGNATURE_LOST, url) }
+        } else if (prefs.getString(KEY_RECEIVE_SIGNATURE_LOST, null) == url) {
+            prefs.edit { remove(KEY_RECEIVE_SIGNATURE_LOST) }
+        }
+    }
 
     fun getWriteBackLedger(): WriteBackLedger = WriteBackLedger.decode(writeBackPrefs.getString(KEY_WRITEBACK_LEDGER, null))
 

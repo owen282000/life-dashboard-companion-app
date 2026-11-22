@@ -83,6 +83,7 @@
     <string name="receive_enable_description">Life Dashboard 集成会发送您在其中选择的实体；下方的每种类型都需要单独的“健康数据共享”写入权限。</string>
     <string name="receive_needs_integration">需要 Life Dashboard 集成：请先与 Home Assistant 配对，以便获得 Webhook 地址和签名密钥。</string>
     <string name="receive_update_integration">请更新 Life Dashboard 集成以接收测量数据，或检查此 Webhook 是否属于该集成：它上次的响应中不包含测量数据协议。</string>
+    <string name="receive_update_integration_cloud">请将 Life Dashboard 集成更新到 1.3.0 或更高版本，以便通过 Home Assistant Cloud 接收测量数据。在这条路径上，它的响应签名无法到达手机，因此不会写入任何内容。发送数据仍可正常进行。</string>
     <string name="receive_no_types_yet">下次同步时会询问 Home Assistant 提供哪些类型。</string>
     <string name="receive_choose_type">开启下方的某种类型即可接收该类型。</string>
     <string name="receive_permission_missing">缺少写入权限：%1$s</string>

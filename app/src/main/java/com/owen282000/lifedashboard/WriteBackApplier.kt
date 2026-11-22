@@ -149,6 +149,13 @@ class WriteBackApplier(
                 preferencesManager.setReceiveIntegrationOutdated(true)
                 WriteBackRound()
             }
+            is WriteBackResponse.SignatureLost -> {
+                // An integration before 1.3.0 behind Home Assistant Cloud: every round would
+                // fail the same way until it is updated, so the Receive page says that once
+                // instead of a failed row and a notification per sync.
+                sourceUrl?.let { preferencesManager.setReceiveSignatureLost(it, true) }
+                WriteBackRound()
+            }
             is WriteBackResponse.Rejected -> {
                 log(success = false, written = 0, lines = emptyList(), error = "Receive: response rejected (${verified.rejection.reason})")
                 SyncFailureNotifier.recordReceiveResult(context, success = false)
@@ -156,6 +163,7 @@ class WriteBackApplier(
             }
             is WriteBackResponse.Accepted -> {
                 preferencesManager.setReceiveIntegrationOutdated(false)
+                sourceUrl?.let { preferencesManager.setReceiveSignatureLost(it, false) }
                 preferencesManager.setReceiveConfiguredTypes(verified.configured)
                 apply(verified)
             }

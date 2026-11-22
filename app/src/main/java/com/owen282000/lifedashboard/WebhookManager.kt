@@ -59,6 +59,12 @@ class PayloadRefusedException(val statusCode: Int, message: String) : IOExceptio
  */
 class InvalidHeaderException(val problem: WebhookSupport.HeaderProblem) : IllegalArgumentException(problem.message)
 
+/**
+ * A delivery the receiver took, with an answer the app does not accept (see
+ * [TestPing.answerProblem]). Not retried: the same request gets the same answer.
+ */
+class AnswerRefusedException(message: String) : IOException(message)
+
 class WebhookManager(
     /** Where the payload goes, each destination signed with its own secret and sent its own headers. */
     private val destinations: List<Destination>,
@@ -91,7 +97,14 @@ class WebhookManager(
     /** Builds the trust manager of one host; a test passes one with its own CA store. */
     private val trustManagerFor: (ServerTrust?) -> X509TrustManager = { WebhookTrust.trustManager(it) },
     /** Writes a log row and the lifetime count; a test passes one that throws. */
-    private val logRecorder: ((WebhookLog, Boolean) -> Unit)? = null
+    private val logRecorder: ((WebhookLog, Boolean) -> Unit)? = null,
+    /**
+     * The test ping's check of the answer. When set, the answer of every destination that has
+     * a secret is read, up to the protocol's size cap, and handed over; a message back fails
+     * the delivery to that destination with it. Without a secret there is nothing to check an
+     * answer with, so it is not read.
+     */
+    private val answerCheck: ((Destination, SourceResponse) -> String?)? = null
 ) {
 
     /** The client and the client certificate's key managers, built once per post. */
@@ -161,7 +174,8 @@ class WebhookManager(
             val url = destination.url
             val isSource = source != null && url == source.url
             val result = try {
-                postToUrl(clientFor(clients, url), destination, if (isSource) source.payload else jsonPayload, readResponse = isSource)
+                val readResponse = isSource || (answerCheck != null && !destination.secret.isNullOrBlank())
+                postToUrl(clientFor(clients, url), destination, if (isSource) source.payload else jsonPayload, readResponse)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -261,6 +275,10 @@ class WebhookManager(
                                 // body that is cut off is handed over as oversized rather than as
                                 // a truncated document that would fail its signature anyway.
                                 val sourceResponse = if (readResponse) readSourceResponse(response, requestSignature) else null
+                                sourceResponse?.let { answerCheck?.invoke(destination, it) }?.let { problem ->
+                                    logWebhookCall(url, timestamp, statusCode, false, problem, jsonPayload)
+                                    return Result.failure(AnswerRefusedException(problem))
+                                }
                                 val note = listOfNotNull(
                                     if (attempt > 1) "Recovered on attempt $attempt of $MAX_RETRIES" else null,
                                     if (target != url) WebhookSupport.redirectNote(target) else null

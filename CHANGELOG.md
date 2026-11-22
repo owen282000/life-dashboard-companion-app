@@ -4,6 +4,11 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- **Receive** works for a phone paired through Home Assistant Cloud (Nabu Casa). The cloud passes the integration's answer on without its signature, so the app refused every answer and no measurement arrived. The app now asks the integration to put the signature inside the answer and checks it there; this needs the Life Dashboard integration 1.3.0 or newer. With an older integration behind the cloud, the **Receive** page asks you to update it instead of failing every round. A Home Assistant Cloud address is now also recognised as the integration's, so **Receive** can be switched on for it. Nothing changes on an address of your own, also with an older integration.
+- The test ping checks the integration's answer as well: **Send test** and the ping after pairing fail when that answer's signature does not match or is missing where the integration should have sent one. Other receivers are not checked, and see one added optional field, `writeback.answer`, described in [webhook.md](docs/webhook.md#test-ping).
+
 ### Fixed
 
 - Today's steps from Samsung Health were too low until midnight. Reported by @therave79-stack in [#246](https://github.com/owen282000/life-dashboard-companion-app/issues/246), with the numbers that pointed straight at the cause. Samsung Health writes a day's steps as one record from 00:00 to 23:59, and the app asked Health Connect for today up to now, which counts only the part of that record before now: at 16:40 that was 16h40 of 24h. The daily totals, the **Today** panel and the daily totals of a backfill now ask for whole days. Other sources write short records and their totals stay the same.

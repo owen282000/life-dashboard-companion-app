@@ -39,6 +39,14 @@ class ReceiveSummaryTest {
     }
 
     @Test
+    fun `a signature lost on the way from an older integration is said before any type is named`() {
+        val receiving = on.copy(types = setOf(weight))
+        val lost = offered.copy(signatureLost = true)
+        assertEquals(ReceiveSummary.SignatureLost, summary(receive = receiving, status = lost, granted = everything))
+        assertEquals(ReceiveSummary.Off, summary(receive = ReceiveSettings(), status = lost))
+    }
+
+    @Test
     fun `before the first answer it waits for the types`() {
         assertEquals(ReceiveSummary.AwaitingTypes, summary(status = ReceiveStatus()))
     }

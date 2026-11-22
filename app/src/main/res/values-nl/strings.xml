@@ -83,6 +83,7 @@
     <string name="receive_enable_description">De Life Dashboard-integratie stuurt de entiteiten die je daar hebt gekozen; elk type hieronder heeft zijn eigen schrijftoestemming van Health Connect nodig.</string>
     <string name="receive_needs_integration">Vereist de Life Dashboard-integratie: koppel eerst met Home Assistant, zodat er een webhook-adres en een ondertekeningsgeheim zijn.</string>
     <string name="receive_update_integration">Werk de Life Dashboard-integratie bij om metingen te ontvangen, of controleer of deze webhook wel van de integratie is: het laatste antwoord bevatte geen metingenprotocol.</string>
+    <string name="receive_update_integration_cloud">Werk de Life Dashboard-integratie bij naar 1.3.0 of nieuwer om metingen via Home Assistant Cloud te ontvangen. Op deze route komt de handtekening van het antwoord niet bij de telefoon aan, dus wordt er niets geschreven. Het versturen van data blijft werken.</string>
     <string name="receive_no_types_yet">De volgende synchronisatie vraagt Home Assistant welke types het aanbiedt.</string>
     <string name="receive_choose_type">Zet hieronder een type aan om het te ontvangen.</string>
     <string name="receive_permission_missing">Schrijftoestemming ontbreekt: %1$s</string>

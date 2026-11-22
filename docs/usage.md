@@ -265,7 +265,7 @@ A backfill goes to webhooks, and the Home Assistant integration counts as one. M
 
 ## Receiving measurements from Home Assistant
 
-This works the other way around: readings from a scale or blood pressure monitor that talks to Home Assistant, and not to the phone, end up in Health Connect, and from there in apps like Samsung Health. It needs the Life Dashboard integration, version 0.7.0 or later.
+This works the other way around: readings from a scale or blood pressure monitor that talks to Home Assistant, and not to the phone, end up in Health Connect, and from there in apps like Samsung Health. It needs the Life Dashboard integration, version 0.7.0 or later. When the phone is paired through Home Assistant Cloud (**Use Home Assistant Cloud instead** while pairing), it needs the integration 1.3.0 or later and this app 1.32.0 or later: the cloud passes the integration's answer on without its signature header, so the integration puts the signature inside the answer.
 
 1. In Home Assistant, open the integration's options for this phone and pick the entities: one per type, and for blood pressure the systolic and diastolic pair.
 2. In the app, on the **Health** tab, open **Receive** and switch on **Receive measurements**. It uses the paired address as its source, or asks which one when there are several.
@@ -382,6 +382,8 @@ A reading keeps the time it was measured, and Health Connect shows it at that ti
 ### "Update the Life Dashboard integration to receive measurements"
 
 The **Receive** page says this, and its tile says **Update the integration**, when the paired Home Assistant responds like an integration older than 0.7.0, or when the address isn't the integration's. Update the integration through the Marketplace (HACS before Home Assistant 2026.11) and restart Home Assistant; nothing on the phone needs to change. Sending data to Home Assistant keeps working in the meantime.
+
+With a phone paired through Home Assistant Cloud the page asks for the integration 1.3.0 or newer. Older versions sign their answer in a header that the cloud does not pass on, so the app cannot check the answer and writes nothing. After the update the next sync lifts the message. The same goes for a reverse proxy or a tunnel that strips headers it doesn't know. The **Send test** button and the test ping after pairing check the integration's answer too, so the message can already be there before you switch **Receive** on.
 
 ### Screen time does not match Digital Wellbeing
 

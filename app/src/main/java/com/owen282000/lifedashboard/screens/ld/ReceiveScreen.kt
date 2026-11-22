@@ -101,6 +101,10 @@ private fun ReceiveHeader(summary: ReceiveSummary) {
             LDHeading(stringResource(R.string.receive_summary_update_integration))
             LDNote(stringResource(R.string.receive_update_integration), color = LDTheme.colors.warningText, top = 6.dp)
         }
+        ReceiveSummary.SignatureLost -> {
+            LDHeading(stringResource(R.string.receive_summary_update_integration))
+            LDNote(stringResource(R.string.receive_update_integration_cloud), color = LDTheme.colors.warningText, top = 6.dp)
+        }
         ReceiveSummary.AwaitingTypes -> {
             LDHeading(stringResource(R.string.ld_receive_heading_waiting))
             LDNote(stringResource(R.string.receive_no_types_yet), top = 6.dp)
