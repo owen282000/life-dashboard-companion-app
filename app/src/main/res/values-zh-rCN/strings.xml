@@ -929,6 +929,7 @@
     <string name="ld_about_mail">邮件</string>
     <string name="ld_about_support_intro">评分或星标可以帮助更多人发现此应用。</string>
     <string name="ld_about_star">在 GitHub 上加星标</string>
+    <string name="review_star_card">在 F-Droid 和 GitHub 上免费提供。如果它对您有用，加个星标可以帮助更多人发现此应用。</string>
     <string name="ld_about_source_intro">此应用运行的每一行代码您都可以查看。</string>
     <string name="ld_about_receiver">连接您自己的接收端</string>
     <string name="ld_about_receiver_sub">让您的用户扫描一个二维码即可配对</string>

@@ -1138,6 +1138,7 @@
     <string name="ld_about_mail">البريد</string>
     <string name="ld_about_support_intro">التقييم أو النجمة يساعدان الآخرين في العثور على التطبيق.</string>
     <string name="ld_about_star">منح نجمة على GitHub</string>
+    <string name="review_star_card">مجاني على F-Droid وGitHub. إذا كان يعمل جيدًا لديك، فالنجمة تساعد الآخرين في العثور عليه.</string>
     <string name="ld_about_source_intro">يمكنك قراءة كل سطر يشغّله هذا التطبيق.</string>
     <string name="ld_about_receiver">توصيل جهة الاستقبال الخاصة بك</string>
     <string name="ld_about_receiver_sub">إتاحة الإقران لمستخدميك بمسح رمز QR واحد</string>

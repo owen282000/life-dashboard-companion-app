@@ -972,6 +972,7 @@
     <string name="ld_about_mail">मेल</string>
     <string name="ld_about_support_intro">रेटिंग या स्टार से दूसरों को ऐप ढूंढने में मदद मिलती है।</string>
     <string name="ld_about_star">GitHub पर स्टार दें</string>
+    <string name="review_star_card">F-Droid और GitHub पर मुफ़्त। अगर यह आपके लिए ठीक काम करता है, तो एक स्टार से दूसरों को इसे ढूंढने में मदद मिलती है।</string>
     <string name="ld_about_source_intro">यह ऐप जो भी लाइन चलाता है, आप उसे पढ़ सकते हैं।</string>
     <string name="ld_about_receiver">अपना रिसीवर कनेक्ट करें</string>
     <string name="ld_about_receiver_sub">आपके यूज़र एक QR कोड स्कैन करके पेयर कर सकें</string>

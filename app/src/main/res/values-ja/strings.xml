@@ -928,6 +928,7 @@
     <string name="ld_about_mail">メール</string>
     <string name="ld_about_support_intro">評価やスターがあると、ほかの人がこのアプリを見つけやすくなります。</string>
     <string name="ld_about_star">GitHubでスターを付ける</string>
+    <string name="review_star_card">F-DroidとGitHubで無料で入手できます。お役に立っているなら、スターを付けていただくと、ほかの人がこのアプリを見つけやすくなります。</string>
     <string name="ld_about_source_intro">このアプリが実行するコードは1行残らず読めます。</string>
     <string name="ld_about_receiver">自分の受信側を接続</string>
     <string name="ld_about_receiver_sub">QRコードを1つスキャンするだけでユーザーがペアリングできます</string>
