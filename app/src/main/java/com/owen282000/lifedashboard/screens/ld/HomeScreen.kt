@@ -42,6 +42,7 @@ import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ReceiveSummary
 import com.owen282000.lifedashboard.SyncMode
 import com.owen282000.lifedashboard.appPreferences
+import com.owen282000.lifedashboard.listSeparator
 import com.owen282000.lifedashboard.screens.formatTime
 import com.owen282000.lifedashboard.ui.ld.LDBackfillStage
 import com.owen282000.lifedashboard.ui.ld.LDBanner
@@ -482,7 +483,7 @@ private fun receiveSummary(state: HealthUiState): String =
         is ReceiveSummary.PermissionMissing -> stringResource(R.string.ld_home_receive_permission)
         is ReceiveSummary.Receiving -> {
             val names = summary.types.map { stringResource(it.dataType.displayNameRes) }
-            if (names.size <= RECEIVE_NAMES_ON_TILE) names.joinToString(", ")
+            if (names.size <= RECEIVE_NAMES_ON_TILE) names.joinToString(listSeparator())
             else pluralStringResource(R.plurals.ld_home_receive_types, names.size, names.size)
         }
     }

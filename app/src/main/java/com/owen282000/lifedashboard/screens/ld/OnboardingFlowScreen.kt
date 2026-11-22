@@ -79,6 +79,7 @@ import com.owen282000.lifedashboard.PairingSource
 import com.owen282000.lifedashboard.PreferencesManager
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.TestPing
+import com.owen282000.lifedashboard.listSeparator
 import com.owen282000.lifedashboard.screens.text
 import com.owen282000.lifedashboard.ui.ld.LDButton
 import com.owen282000.lifedashboard.ui.ld.LDButtonKind
@@ -691,7 +692,7 @@ private fun DoneStep(form: OnboardingForm, stored: List<Destination>, prefs: Pre
     val syncing = listOfNotNull(
         stringResource(R.string.onboarding_feature_health).takeIf { form.healthConnect },
         stringResource(R.string.onboarding_feature_screen).takeIf { form.screenTime }
-    ).joinToString(", ")
+    ).joinToString(listSeparator())
 
     LDHeading(stringResource(R.string.onboarding_done_title))
     LDGap(12.dp)

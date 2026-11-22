@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.SyncMode
+import com.owen282000.lifedashboard.listSeparator
 import com.owen282000.lifedashboard.ui.ld.LDTheme
 import com.owen282000.lifedashboard.ui.ld.LDType
 import com.owen282000.lifedashboard.viewmodel.ScheduleDraft
@@ -42,7 +43,7 @@ private fun scheduleSummary(schedule: ScheduleDraft): String {
             schedule.intervalText.toIntOrNull() ?: 0
         )
         SyncMode.TIMES -> if (schedule.times.isEmpty()) stringResource(R.string.schedule_summary_no_times)
-        else stringResource(R.string.schedule_summary_times, schedule.times.joinToString(", ") { formatTime(it) })
+        else stringResource(R.string.schedule_summary_times, schedule.times.joinToString(listSeparator()) { formatTime(it) })
     }
     if (schedule.days.size < DayOfWeek.entries.size) {
         // dayLabel is @Composable, so the labels are resolved first and joined afterwards.

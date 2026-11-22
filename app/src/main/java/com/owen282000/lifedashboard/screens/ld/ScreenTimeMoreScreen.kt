@@ -12,6 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.owen282000.lifedashboard.MqttSupport
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.WebhookTrust
+import com.owen282000.lifedashboard.listSeparator
 import com.owen282000.lifedashboard.ui.ld.LDCard
 import com.owen282000.lifedashboard.ui.ld.LDGap
 import com.owen282000.lifedashboard.ui.ld.LDHeading
@@ -46,7 +47,7 @@ fun ScreenTimeMoreScreen() {
             )
             LDRow(
                 stringResource(R.string.ld_title_export_data),
-                value = listOf(stringResource(R.string.common_csv), stringResource(R.string.common_json)).joinToString(", "),
+                value = listOf(stringResource(R.string.common_csv), stringResource(R.string.common_json)).joinToString(listSeparator()),
                 enabled = state.hasUsageAccess,
                 onClick = { navigator.push(LDRoute.ExportData(LDSection.ScreenTime)) }
             )
@@ -93,4 +94,4 @@ private fun screenTimeAdvancedSummary(state: ScreenTimeUiState): String = listOf
     if (state.clientCertAlias != null) stringResource(R.string.sync_advanced_client_cert) else null,
     if (WebhookTrust.hostKeys(state.saved.webhook.urls).any { it in state.serverTrust }) stringResource(R.string.sync_advanced_server_trust) else null,
     MqttSupport.phoneSlug(state.phoneName)?.let { stringResource(R.string.sync_advanced_phone_name, it) }
-).joinToString(", ")
+).joinToString(listSeparator())

@@ -48,6 +48,7 @@ import com.owen282000.lifedashboard.WebhookLog
 import com.owen282000.lifedashboard.WebhookLogRow
 import com.owen282000.lifedashboard.WebhookLogStore
 import com.owen282000.lifedashboard.WriteBackType
+import com.owen282000.lifedashboard.listSeparator
 import com.owen282000.lifedashboard.screens.formatCount
 import com.owen282000.lifedashboard.ui.ld.LDButton
 import com.owen282000.lifedashboard.ui.ld.LDButtonKind
@@ -318,7 +319,7 @@ private fun LogRowLine(
     val delete = stringResource(R.string.ld_logs_delete)
     val share = stringResource(R.string.payload_share)
     // How it went first, so a failure is heard before the rest.
-    val spoken = listOfNotNull(outcome, log.statusCode?.toString(), host, time, facts.joinToString(", "), log.errorMessage?.takeIf { isFailure }).joinToString(", ")
+    val spoken = listOfNotNull(outcome, log.statusCode?.toString(), host, time, facts.joinToString(listSeparator()), log.errorMessage?.takeIf { isFailure }).joinToString(listSeparator())
     val details = stringResource(R.string.ld_logs_show_details)
     val actions = stringResource(R.string.ld_logs_show_actions)
 
@@ -444,7 +445,7 @@ private fun logRowFacts(row: WebhookLogRow): List<String> {
             // Past two the row gets long, and the page has them all.
             val names = row.receiveTypes.take(2).map { receiveTypeName(it) }
             val more = row.receiveTypes.size - names.size
-            if (names.isNotEmpty()) add(names.joinToString(", ") + if (more > 0) " +$more" else "")
+            if (names.isNotEmpty()) add(names.joinToString(listSeparator()) + if (more > 0) " +$more" else "")
         }
     }
     return buildList {
