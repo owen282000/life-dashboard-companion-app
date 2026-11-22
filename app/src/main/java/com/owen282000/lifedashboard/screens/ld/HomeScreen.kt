@@ -476,7 +476,7 @@ private fun receiveSummary(state: HealthUiState): String =
     when (val summary = ReceiveSummary.of(state.receive, state.receiveStatus, state.grantedPermissions, state.receiveAvailable)) {
         ReceiveSummary.Off -> stringResource(R.string.receive_off)
         ReceiveSummary.NeedsPairing -> stringResource(R.string.receive_summary_needs_pairing)
-        ReceiveSummary.IntegrationOutdated -> stringResource(R.string.receive_summary_update_integration)
+        ReceiveSummary.IntegrationOutdated, ReceiveSummary.SignatureLost -> stringResource(R.string.receive_summary_update_integration)
         ReceiveSummary.AwaitingTypes -> stringResource(R.string.ld_home_receive_waiting)
         ReceiveSummary.NothingMapped -> stringResource(R.string.receive_summary_nothing_mapped)
         ReceiveSummary.ChooseType -> stringResource(R.string.ld_home_receive_choose)

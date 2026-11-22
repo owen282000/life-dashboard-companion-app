@@ -84,6 +84,7 @@
     <string name="receive_enable_description">La integración Life Dashboard envía las entidades que elegiste allí; cada tipo de abajo necesita su propio permiso de escritura en Health Connect.</string>
     <string name="receive_needs_integration">Necesita la integración Life Dashboard: primero vincula con Home Assistant, para tener una dirección de webhook y un secreto de firma.</string>
     <string name="receive_update_integration">Actualiza la integración Life Dashboard para recibir mediciones, o comprueba que este webhook sea el de la integración: su última respuesta no traía ningún protocolo de mediciones.</string>
+    <string name="receive_update_integration_cloud">Actualiza la integración Life Dashboard a la 1.3.0 o posterior para recibir mediciones a través de Home Assistant Cloud. Por esta ruta la firma de su respuesta no llega al teléfono, así que no se escribe nada. El envío de datos sigue funcionando.</string>
     <string name="receive_no_types_yet">La próxima sincronización le pregunta a Home Assistant qué tipos ofrece.</string>
     <string name="receive_choose_type">Activa un tipo de abajo para recibirlo.</string>
     <string name="receive_permission_missing">Falta el permiso de escritura: %1$s</string>

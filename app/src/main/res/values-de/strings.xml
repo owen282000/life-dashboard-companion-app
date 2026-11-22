@@ -83,6 +83,7 @@
     <string name="receive_enable_description">Die Life-Dashboard-Integration sendet die Entitäten, die du dort ausgewählt hast; jeder Typ unten braucht seine eigene Schreibberechtigung von Health Connect.</string>
     <string name="receive_needs_integration">Braucht die Life-Dashboard-Integration: kopple zuerst mit Home Assistant, damit es eine Webhook-Adresse und ein Signaturgeheimnis gibt.</string>
     <string name="receive_update_integration">Aktualisiere die Life-Dashboard-Integration, um Messwerte zu empfangen, oder prüfe, ob dieser Webhook wirklich der Integration gehört: die letzte Antwort enthielt kein Messwerte-Protokoll.</string>
+    <string name="receive_update_integration_cloud">Aktualisiere die Life-Dashboard-Integration auf 1.3.0 oder neuer, um Messwerte über Home Assistant Cloud zu empfangen. Auf diesem Weg kommt die Signatur ihrer Antwort nicht beim Telefon an, daher wird nichts geschrieben. Das Senden von Daten funktioniert weiter.</string>
     <string name="receive_no_types_yet">Die nächste Synchronisierung fragt Home Assistant, welche Typen es anbietet.</string>
     <string name="receive_choose_type">Schalte unten einen Typ ein, um ihn zu empfangen.</string>
     <string name="receive_permission_missing">Schreibberechtigung fehlt: %1$s</string>

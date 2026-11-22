@@ -83,6 +83,7 @@
     <string name="receive_enable_description">Life Dashboard इंटीग्रेशन वे एंटिटी भेजता है जो आपने वहां चुनी हैं। नीचे दिए हर टाइप के लिए Health Connect में लिखने की अलग अनुमति चाहिए।</string>
     <string name="receive_needs_integration">इसके लिए Life Dashboard इंटीग्रेशन चाहिए: पहले Home Assistant से पेयर करें, ताकि वेबहुक पता और साइनिंग सीक्रेट मौजूद हों।</string>
     <string name="receive_update_integration">मेज़रमेंट पाने के लिए Life Dashboard इंटीग्रेशन अपडेट करें, या जांचें कि यह वेबहुक इंटीग्रेशन का ही है: इसके पिछले जवाब में मेज़रमेंट प्रोटोकॉल नहीं था।</string>
+    <string name="receive_update_integration_cloud">Home Assistant Cloud के ज़रिए मेज़रमेंट पाने के लिए Life Dashboard इंटीग्रेशन को 1.3.0 या उससे नए वर्शन पर अपडेट करें। इस रास्ते पर उसके जवाब का सिग्नेचर फ़ोन तक नहीं पहुंचता, इसलिए कुछ भी नहीं लिखा जाता। डेटा भेजना चलता रहता है।</string>
     <string name="receive_no_types_yet">अगले सिंक में Home Assistant से पूछा जाएगा कि वह कौनसे टाइप देता है।</string>
     <string name="receive_choose_type">किसी टाइप को पाने के लिए उसे नीचे चालू करें।</string>
     <string name="receive_permission_missing">लिखने की अनुमति नहीं है: %1$s</string>

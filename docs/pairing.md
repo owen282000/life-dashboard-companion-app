@@ -183,8 +183,9 @@ X-Signature: sha256=<hex of HMAC-SHA256(secret, raw body)>
   "test": true,
   "message": "Test ping from Life Dashboard",
   "timestamp": "2026-10-04T12:00:00Z",
-  "app_version": "1.31.0",
-  "source": "health_connect"
+  "app_version": "1.32.0",
+  "source": "health_connect",
+  "writeback": { "answer": "body" }
 }
 ```
 
@@ -202,7 +203,7 @@ def signature_ok(raw_body: bytes, header: str, secret: str) -> bool:
     return hmac.compare_digest(expected, header or "")
 ```
 
-Then answer with any `2xx`, and the user sees **Connected.** with "Delivered: the receiver accepted the test ping." Anything else, or no answer, gives **Not connected yet.** with "Test ping failed:" and the reason, such as the HTTP status, and a **Try again** button. During the app's first setup the same result comes as a short message instead: "Paired with health.example.com, test ping delivered", or "Paired with health.example.com, but the test ping failed" with the reason. Answer a bad signature with `401`, as for every other request.
+From 1.32.0 the ping also carries `"writeback": {"answer": "body"}`, which is for the Life Dashboard integration; ignore it, and answer with whatever body you like. Then answer with any `2xx`, and the user sees **Connected.** with "Delivered: the receiver accepted the test ping." Anything else, or no answer, gives **Not connected yet.** with "Test ping failed:" and the reason, such as the HTTP status, and a **Try again** button. During the app's first setup the same result comes as a short message instead: "Paired with health.example.com, test ping delivered", or "Paired with health.example.com, but the test ping failed" with the reason. Answer a bad signature with `401`, as for every other request.
 
 A ping carries no data, so do not store it as a measurement. It is a good moment to mark the user as connected on your side. The pairing stays in place when the ping fails, so a user can fix the address or the network and tap **Try again**, or **Send test** on the address's page, later.
 

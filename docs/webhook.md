@@ -278,7 +278,7 @@ A record array is present only when it holds at least one record; the app never 
 | `deleted_records`, `deletions_unavailable` | array | When there is something to report: [Deletions](#deletions) |
 | `records_outside_window` | object | When there is something to report: [Records outside the read window](#records-outside-the-read-window) |
 | `backfill`, `window_start`, `window_end`, `window_complete` | | Backfill payloads only: [Backfill windows](#backfill-windows) |
-| `writeback` | object | Only to the Receive URL: [Inbound](#inbound-what-the-integration-may-send-back) |
+| `writeback` | object | Only to the Receive URL, and on a test ping with `answer` alone: [Inbound](#inbound-what-the-integration-may-send-back) |
 | `_diagnostics` | object | Health Connect payloads with records, and the payload of an empty backfill window: [Diagnostics](#diagnostics) |
 | `device`, `app_filter`, `screen_time` | | Screen Time payloads only: [Screen Time payload](#screen-time-payload) |
 | `test`, `message` | | Test pings only: [Test ping](#test-ping) |
@@ -550,10 +550,13 @@ The Home Assistant sensors follow the filter. The MQTT sensors and the [Life Das
   "test": true,
   "message": "Test ping from Life Dashboard",
   "timestamp": "2026-10-04T12:00:00Z",
-  "app_version": "1.31.0",
-  "source": "health_connect"
+  "app_version": "1.32.0",
+  "source": "health_connect",
+  "writeback": { "answer": "body" }
 }
 ```
+
+`writeback.answer` (from 1.32.0) asks the Life Dashboard integration to put the signature of its answer in the body, as [every request of Receive](#the-signed-body) does; any other receiver can ignore it. When the address has a signing secret, the app checks the integration's answer to the ping the same way: the ping stands on a signature that matches, in the body or in the header, and an `in_reply_to` that names the ping, and fails on a signature that does not match, on an answer to another request, and on an unsigned answer that names `signed_body`. It does not look at `life_dashboard.writeback` or at the age of `issued_at`; those are for the answers Receive reads. A receiver that is not the integration is not checked, and its answer needs no signature. An integration before 1.3.0 behind Home Assistant Cloud still passes, and the **Receive** page then asks to update it.
 
 `source` is the section the address belongs to, `health_connect` or `screen_time`, so a receiver can tell which of its last-sync times the ping answers for (the iOS app sends `healthkit_ios`). It is signed like any other request. A ping is retried like a sync but never queued in the outbox, and the pairing stays in place when it fails: the app names the reason. [Pairing your own receiver](pairing.md#after-pair-the-test-ping) shows what a receiver that hands out its own QR code should answer.
 
@@ -776,13 +779,14 @@ The app can also take measurements the other way: readings from a scale or a blo
 
 #### What the app adds to its request
 
-When Receive is on, the payload for one webhook URL, the source URL (the section's URL that contains `/api/webhook/`; the app asks which when there are several), carries a `writeback` block. Every other URL of the section gets the plain payload, and the block never appears in Screen Time or backfill payloads. Receive needs a signing secret on the source URL, and verifies the responses with that one.
+When Receive is on, the payload for one webhook URL, the source URL (the section's URL that contains `/api/webhook/` or is a Home Assistant Cloud webhook on `hooks.nabu.casa`; the app asks which when there are several), carries a `writeback` block. Every other URL of the section gets the plain payload, and the block never appears in Screen Time or backfill payloads; a [test ping](#test-ping) carries it with `answer` alone. Receive needs a signing secret on the source URL, and verifies the responses with that one.
 
 ```json
 "writeback": {
   "protocol": 1,
   "types": ["weight", "body_fat", "blood_pressure"],
   "history": false,
+  "answer": "body",
   "ack": ["sensor.bathroom_scale_weight@1790405400000"],
   "failed": [
     { "id": "sensor.bathroom_scale_body_fat@1790405400000", "code": "permission_denied" }
@@ -793,6 +797,7 @@ When Receive is on, the payload for one webhook URL, the source URL (the section
 - `protocol` is always `1`.
 - `types` are the types the user switched on and holds the Health Connect write permission for; the integration sends readings of those types only.
 - `history` is `true` when **Accept older measurements** is on. It is informational: the app enforces the 30-day window itself.
+- `answer` is always `"body"`, from 1.32.0: it asks for [the signed body](#the-signed-body). An integration before 1.3.0 ignores it and answers with the header alone.
 - `ack` names the readings written since the previous request (inserted, or already present at the same or a higher version and therefore left alone).
 - `failed` names the readings that were not written, each with a code from the table below, never with its value.
 
@@ -812,11 +817,27 @@ k_resp = HMAC-SHA256(key = secret as UTF-8 bytes, message = "life-dashboard-resp
 The response key is derived from the shared secret and is never the secret itself, so a request the app signed can never be played back to it as a response. The app checks, in this order, and stops at the first fault without writing anything:
 
 1. The body is at most 262144 bytes.
-2. The header is present and equal (in constant time) to its own computation.
+2. A body that is [the signed body](#the-signed-body) has `life_dashboard_signed` equal to `1` and a `signature` equal (in constant time) to the app's own computation over the UTF-8 bytes of `answer`; only then is `answer` read. For any other body, the header is present and equal (in constant time) to the app's own computation over the raw body.
 3. `life_dashboard.writeback` is `1`.
 4. `writeback.in_reply_to` equals the `X-Signature` the app put on this very request.
 5. `writeback.issued_at` is within 10 minutes of the phone's clock.
 6. There are at most 200 readings.
+
+<a id="the-signed-body"></a>
+
+Some routes do not pass the header on. Home Assistant Cloud hands the phone the status, the body and the Content-Type of an answer and nothing else, so through a cloud webhook `X-Signature` never arrives. The app therefore asks, with `"answer": "body"` in every `writeback` block, for the signature inside the body, and the integration (1.3.0 or later) then answers:
+
+```json
+{
+  "life_dashboard_signed": 1,
+  "answer": "{\"life_dashboard\":{\"version\":\"1.3.0\",\"writeback\":1,\"signed_body\":1},\"writeback\":{...}}",
+  "signature": "sha256=<hex of HMAC-SHA256(k_resp, UTF-8 bytes of answer)>"
+}
+```
+
+`answer` is the response described here, as text, byte for byte, and `signature` is what the header would have carried over it, under the same key. The app checks the signature over that text as it stands and only then reads it as JSON, so a hop that rebuilds the outer JSON cannot break it. For a signed body the signature inside decides: the header is not looked at. There is no unsigned form: a signed body without `signature`, or with any other value of `life_dashboard_signed`, is rejected.
+
+Every answer of an integration that can do this names `"signed_body": 1` in `life_dashboard`. An answer with the protocol block, without that field and without a signature that arrived is an integration before 1.3.0 behind such a route: nothing in it is read, the **Receive** page asks to update the integration to 1.3.0, and it is not counted as a failed round. On a route that keeps the header, an integration before 1.3.0 works as it always did.
 
 A rejected response is one row in the **Logs** tab. A response without the protocol block at all, which is what an integration older than 0.7.0 sends, makes the **Receive** page ask to update the Life Dashboard integration, or to check that this webhook is the integration's; an app with Receive off never reads the body.
 
@@ -924,6 +945,7 @@ A receiver that only talks to the current app can skip this section. Payloads th
 | Before 1.18.0 | No `deleted_records`, `deletions_unavailable`, `sequence` or `window_complete` |
 | 1.18.0 through 1.21.0 | Could name a record in `deleted_records` that exists again, and send one `uuid` as a record and as a deletion in the same payload. For these payloads, apply `deleted_records` before the records of the same payload, and let a record that arrives in a later payload restore a `uuid` that was deleted. |
 | Before 1.20.0 | No `writeback` and no `own_records_skipped` |
+| Before 1.32.0 | No `writeback.answer`, test pings carry no `writeback`, and a response is only accepted with the `X-Signature` header |
 | Before 1.21.0 | No `records_outside_window`, `read_from` or `lookback_gap_from`; Screen Time payloads carry no `sequence` |
 | Before 1.22.0 | Test pings carry no `app_version` |
 | Before 1.23.0 | No `metadata`, `app_filter` or `filtered_screen_time_minutes`, and no bucket carries `complete`. A window they sent again holds only the late records, so combine it with the stored window as described under [Data resolution](#data-resolution); a record they read again because its source wrote it again is counted twice by that rule, and nothing in the payload tells that case apart. In a backfill, the window that straddled each 3-day chunk bound went out with only its part after the bound, and a measured series with a backlog could lose the samples of the window its chunk ended in. |

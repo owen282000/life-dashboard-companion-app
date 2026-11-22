@@ -92,11 +92,16 @@ class WriteBackPayloadTest {
     }
 
     @Test
-    fun `a missing signature on a protocol body is rejected, and an empty body is an old integration`() {
-        val body = response().toByteArray()
+    fun `a protocol body without its signature is never taken, and an empty body is an old integration`() {
+        // Before 1.3.0 the integration cannot put the signature in the body: the header was
+        // lost on the way (Home Assistant Cloud), and the app asks for an update.
+        assertEquals(WriteBackResponse.SignatureLost, WriteBackPayload.verify(response().toByteArray(), null, secret, requestSignature, now))
+        assertEquals(WriteBackResponse.SignatureLost, WriteBackPayload.verify(response().toByteArray(), " ", secret, requestSignature, now))
+        // One that names signed_body could have, so its unsigned answer is refused as before.
+        val newer = response().replace("\"writeback\": 1}", "\"writeback\": 1, \"signed_body\": 1}").toByteArray()
         assertEquals(
             WriteBackResponse.Rejected(WriteBackRejection.MISSING_SIGNATURE),
-            WriteBackPayload.verify(body, null, secret, requestSignature, now)
+            WriteBackPayload.verify(newer, null, secret, requestSignature, now)
         )
         assertEquals(WriteBackResponse.Incompatible, WriteBackPayload.verify(ByteArray(0), null, secret, requestSignature, now))
         assertEquals(
@@ -164,6 +169,78 @@ class WriteBackPayloadTest {
         assertEquals(WriteBackPayload.MAX_READINGS, (signed(response(pending = justEnough)) as WriteBackResponse.Accepted).readings.size)
     }
 
+    // The signed body
+
+    private fun envelope(answer: String, signature: String? = WebhookSupport.responseSignature(answer.toByteArray(), secret), form: String = "1"): ByteArray {
+        val text = Json.encodeToString(kotlinx.serialization.serializer<String>(), answer)
+        val signed = signature?.let { ",\"signature\":\"$it\"" }.orEmpty()
+        return """{"life_dashboard_signed":$form,"answer":$text$signed}""".toByteArray()
+    }
+
+    private fun verifyBody(body: ByteArray, header: String? = null) = WriteBackPayload.verify(body, header, secret, requestSignature, now)
+
+    @Test
+    fun `a signed body is accepted without a header, and with any header`() {
+        val pending = """[{"id":"s@1"}]"""
+        val body = envelope(response(pending = pending))
+        assertEquals(1, (verifyBody(body) as WriteBackResponse.Accepted).readings.size)
+        assertTrue(verifyBody(body, WebhookSupport.responseSignature(body, secret)) is WriteBackResponse.Accepted)
+        assertTrue("the header is not looked at for a signed body", verifyBody(body, "sha256=" + "00".repeat(32)) is WriteBackResponse.Accepted)
+    }
+
+    @Test
+    fun `the signature inside decides, over the answer's text as it stands`() {
+        val answer = response()
+        val wrong = WebhookSupport.responseSignature((answer + " ").toByteArray(), secret)
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.BAD_SIGNATURE), verifyBody(envelope(answer, wrong)))
+        val underRequestKey = WebhookSupport.signature(answer, secret)
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.BAD_SIGNATURE), verifyBody(envelope(answer, underRequestKey)))
+        val body = envelope(answer, wrong)
+        assertEquals(
+            "a header that matches the body does not make up for it",
+            WriteBackResponse.Rejected(WriteBackRejection.BAD_SIGNATURE),
+            verifyBody(body, WebhookSupport.responseSignature(body, secret))
+        )
+        val notText = """{"life_dashboard_signed":1,"answer":"{}","signature":12}""".toByteArray()
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.BAD_SIGNATURE), verifyBody(notText))
+    }
+
+    @Test
+    fun `a signed body without its signature or its answer is no way back to unsigned`() {
+        val missing = WriteBackResponse.Rejected(WriteBackRejection.MISSING_SIGNATURE)
+        val body = envelope(response(), signature = null)
+        assertEquals(missing, verifyBody(body))
+        assertEquals("not with a valid header either", missing, verifyBody(body, WebhookSupport.responseSignature(body, secret)))
+        assertEquals(missing, verifyBody("""{"life_dashboard_signed":1,"signature":"sha256=00"}""".toByteArray()))
+        assertEquals(missing, verifyBody("""{"life_dashboard_signed":1,"answer":{"life_dashboard":{"writeback":1}},"signature":"sha256=00"}""".toByteArray()))
+    }
+
+    @Test
+    fun `only form 1 of the signed body is read`() {
+        val unsupported = WriteBackResponse.Rejected(WriteBackRejection.UNSUPPORTED_PROTOCOL)
+        assertEquals(unsupported, verifyBody(envelope(response(), form = "2")))
+        assertEquals(unsupported, verifyBody(envelope(response(), form = "\"1\"")))
+        assertEquals(unsupported, verifyBody(envelope(response(), form = "null")))
+    }
+
+    @Test
+    fun `what is inside a signed body is checked like a plain answer`() {
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.MALFORMED), verifyBody(envelope("not json")))
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.MALFORMED), verifyBody(envelope("[1]")))
+        assertEquals(WriteBackResponse.Incompatible, verifyBody(envelope("""{"life_dashboard":{"version":"0.6.0"}}""")))
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.UNSUPPORTED_PROTOCOL), verifyBody(envelope(response(protocol = "2"))))
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.NOT_IN_REPLY), verifyBody(envelope(response(inReplyTo = "sha256=" + "cd".repeat(32)))))
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.STALE), verifyBody(envelope(response(issuedAt = "2026-09-27T06:25:00Z"))))
+        val tooMany = (1..WriteBackPayload.MAX_READINGS + 1).joinToString(",", "[", "]") { "{\"id\":\"s@$it\"}" }
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.TOO_MANY), verifyBody(envelope(response(pending = tooMany))))
+    }
+
+    @Test
+    fun `the size cap comes before the signed body is read`() {
+        val padded = envelope(response() + " ".repeat(WriteBackPayload.MAX_BODY_BYTES))
+        assertEquals(WriteBackResponse.Rejected(WriteBackRejection.TOO_LARGE), verifyBody(padded))
+    }
+
     // The request block
 
     @Test
@@ -174,7 +251,7 @@ class WriteBackPayloadTest {
             report = WriteBackReport(ack = listOf("sensor.w@1"), failed = listOf(FailedReading("sensor.f@2", "permission_denied")))
         ).toString()
         assertEquals(
-            """{"protocol":1,"types":["weight","blood_pressure"],"history":true,"ack":["sensor.w@1"],"failed":[{"id":"sensor.f@2","code":"permission_denied"}]}""",
+            """{"protocol":1,"types":["weight","blood_pressure"],"history":true,"answer":"body","ack":["sensor.w@1"],"failed":[{"id":"sensor.f@2","code":"permission_denied"}]}""",
             block
         )
     }
@@ -215,6 +292,13 @@ class WriteBackPayloadTest {
             SourceUrlChoice.Several(listOf("https://a/api/webhook/1", "https://b/api/webhook/2")),
             WriteBackPayload.sourceUrlChoice(listOf("https://a/api/webhook/1", "https://b/api/webhook/2", "https://a/api/webhook/1"))
         )
+        // A Home Assistant Cloud webhook has a token for a path, so it is known by its host.
+        assertEquals(
+            SourceUrlChoice.One("https://hooks.nabu.casa/gAAAAAB-abc_def"),
+            WriteBackPayload.sourceUrlChoice(listOf("https://grafana.example/hook", "https://hooks.nabu.casa/gAAAAAB-abc_def"))
+        )
+        assertEquals(SourceUrlChoice.None, WriteBackPayload.sourceUrlChoice(listOf("https://example.com/hooks.nabu.casa/x")))
+        assertEquals(SourceUrlChoice.None, WriteBackPayload.sourceUrlChoice(listOf("https://hooks.nabu.casa.example.com/x")))
     }
 
     // Validation per reading

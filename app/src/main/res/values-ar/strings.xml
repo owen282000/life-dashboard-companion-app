@@ -87,6 +87,7 @@
     <string name="receive_enable_description">يرسل تكامل Life Dashboard الكيانات التي اخترتها هناك؛ ويحتاج كل نوع أدناه إلى إذن كتابة خاص به في Health Connect.</string>
     <string name="receive_needs_integration">يتطلب تكامل Life Dashboard: يجب الإقران مع Home Assistant أولًا، ليتوفر عنوان webhook وسر توقيع.</string>
     <string name="receive_update_integration">حدّث تكامل Life Dashboard لاستقبال القياسات، أو تحقق من أن هذا الـ webhook تابع للتكامل: آخر رد منه لم يتضمن بروتوكول القياسات.</string>
+    <string name="receive_update_integration_cloud">حدّث تكامل Life Dashboard إلى الإصدار 1.3.0 أو أحدث لاستقبال القياسات عبر Home Assistant Cloud. على هذا المسار لا يصل توقيع رده إلى الهاتف، لذلك لا يُكتب أي شيء. يستمر إرسال البيانات في العمل.</string>
     <string name="receive_no_types_yet">في المزامنة القادمة يُسأل Home Assistant عن الأنواع التي يوفرها.</string>
     <string name="receive_choose_type">فعّل نوعًا أدناه لاستقباله.</string>
     <string name="receive_permission_missing">إذن الكتابة غير متوفر: %1$s</string>

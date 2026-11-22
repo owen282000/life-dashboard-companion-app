@@ -85,6 +85,7 @@
     <string name="receive_enable_description">The Life Dashboard integration sends the entities you chose there; each type below needs its own Health Connect write permission.</string>
     <string name="receive_needs_integration">Needs the Life Dashboard integration: pair with Home Assistant first, so there is a webhook address and a signing secret.</string>
     <string name="receive_update_integration">Update the Life Dashboard integration to receive measurements, or check that this webhook is the integration\'s: its last answer carried no measurements protocol.</string>
+    <string name="receive_update_integration_cloud">Update the Life Dashboard integration to 1.3.0 or newer to receive measurements through Home Assistant Cloud. On this route the signature on its answer does not reach the phone, so nothing is written. Sending data keeps working.</string>
     <string name="receive_no_types_yet">The next sync asks Home Assistant which types it offers.</string>
     <string name="receive_choose_type">Switch on a type below to receive it.</string>
     <string name="receive_permission_missing">Write permission missing: %1$s</string>

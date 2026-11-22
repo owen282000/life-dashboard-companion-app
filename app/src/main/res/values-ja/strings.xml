@@ -82,6 +82,7 @@
     <string name="receive_enable_description">Life Dashboard統合は、そこで選んだエンティティを送信します。下の各タイプには、それぞれヘルスコネクトの書き込み権限が必要です。</string>
     <string name="receive_needs_integration">Life Dashboard統合が必要です。先にHome Assistantとペアリングして、Webhookのアドレスと署名シークレットを用意してください。</string>
     <string name="receive_update_integration">測定値を受信するにはLife Dashboard統合を更新してください。または、このWebhookが統合のものか確認してください。最後の応答に測定値のプロトコルが含まれていませんでした。</string>
+    <string name="receive_update_integration_cloud">Home Assistant Cloud経由で測定値を受信するには、Life Dashboard統合を1.3.0以降に更新してください。この経路では応答の署名がスマートフォンに届かないため、何も書き込まれません。データの送信は引き続き動作します。</string>
     <string name="receive_no_types_yet">次回の同期で、Home Assistantが提供するタイプを確認します。</string>
     <string name="receive_choose_type">受信するタイプを下でオンにしてください。</string>
     <string name="receive_permission_missing">書き込み権限がありません：%1$s</string>
