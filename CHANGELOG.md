@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Fixed
+
+- Today's steps from Samsung Health were too low until midnight. Reported by @therave79-stack in [#246](https://github.com/owen282000/life-dashboard-companion-app/issues/246), with the numbers that pointed straight at the cause. Samsung Health writes a day's steps as one record from 00:00 to 23:59, and the app asked Health Connect for today up to now, which counts only the part of that record before now: at 16:40 that was 16h40 of 24h. The daily totals, the **Today** panel and the daily totals of a backfill now ask for whole days. Other sources write short records and their totals stay the same.
+
 ### Changed
 
 - The app is called Life Dashboard everywhere now: in the app itself, in the test ping and in the F-Droid listing. Google Play still lists it as Health Data for Home Assistant, and the MQTT device in Home Assistant keeps its name.

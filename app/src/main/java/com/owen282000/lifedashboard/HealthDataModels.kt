@@ -560,6 +560,21 @@ data class DailyTotals(
 )
 
 /**
+ * The whole local days a range touches, from the first one's midnight to the midnight after the
+ * last, for the aggregate behind [DailyTotals]. Health Connect counts only the part of a record
+ * that lies inside the asked range, and Samsung Health writes a day's steps as one record from
+ * 00:00 to 23:59 whose count it keeps updating, so asking for today up to now gave 16h40 of 24h
+ * of it at 16:40 (issue #246). A short record lies inside its day either way, so for every other
+ * source the totals stay the same.
+ */
+object WholeDays {
+    fun of(start: java.time.LocalDateTime, end: java.time.LocalDateTime): Pair<java.time.LocalDateTime, java.time.LocalDateTime> {
+        val endDay = end.toLocalDate().atStartOfDay()
+        return start.toLocalDate().atStartOfDay() to (if (end == endDay) endDay else endDay.plusDays(1))
+    }
+}
+
+/**
  * Max records delivered per sync for this type, to bound payload size and memory. The batch is
  * capped oldest-first (see [ResilientReadLogic.capOldestFirst]) so later syncs catch up without
  * skipping records.

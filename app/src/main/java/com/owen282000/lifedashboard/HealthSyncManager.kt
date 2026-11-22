@@ -705,11 +705,7 @@ class HealthSyncManager(
                 val zone = java.time.ZoneId.systemDefault()
                 val firstDay = windowStart.atZone(zone).toLocalDate().atStartOfDay()
                 val dayAfterLast = windowEnd.atZone(zone).toLocalDate().plusDays(1).atStartOfDay()
-                healthConnectManager.readDailyTotalsBetween(
-                    firstDay,
-                    minOf(dayAfterLast, java.time.LocalDateTime.now(zone)),
-                    enabledTypes
-                )
+                healthConnectManager.readDailyTotalsBetween(firstDay, dayAfterLast, enabledTypes)
             } else emptyList()
             // Later chunks read only the types still draining, as a sync's passes do (issue #73);
             // a type that could not be read in any chunk keeps the window from being complete.
