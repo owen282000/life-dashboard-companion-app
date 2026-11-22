@@ -557,7 +557,8 @@ class HealthConnectManager(
     /**
      * The same totals for every local day between [start] and [end], one entry per day that
      * has any of the enabled metrics. A backfill asks for the days its window touches, so a
-     * receiver gets each historical day's real total rather than the raw records' sum.
+     * receiver gets each historical day's real total rather than the raw records' sum. Each
+     * day is asked for whole, also today and a day the range cuts, see [WholeDays].
      */
     suspend fun readDailyTotalsBetween(
         start: java.time.LocalDateTime,
@@ -571,6 +572,7 @@ class HealthConnectManager(
             if (HealthDataType.TOTAL_CALORIES in enabledTypes) add(TotalCaloriesBurnedRecord.ENERGY_TOTAL)
         }
         if (metrics.isEmpty() || !start.isBefore(end)) return emptyList()
+        val (from, to) = WholeDays.of(start, end)
 
         return try {
             // Bounded like every read: daily totals that do not come back are left out of this
@@ -579,7 +581,7 @@ class HealthConnectManager(
                 healthConnectClient.aggregateGroupByPeriod(
                     androidx.health.connect.client.request.AggregateGroupByPeriodRequest(
                         metrics = metrics,
-                        timeRangeFilter = TimeRangeFilter.between(start, end),
+                        timeRangeFilter = TimeRangeFilter.between(from, to),
                         timeRangeSlicer = java.time.Period.ofDays(1)
                     )
                 )
@@ -651,7 +653,8 @@ class HealthConnectManager(
             healthConnectClient.aggregateGroupByPeriod(
                 androidx.health.connect.client.request.AggregateGroupByPeriodRequest(
                     metrics = setOf(metric),
-                    timeRangeFilter = TimeRangeFilter.between(TodaySeries.firstDay(today).atStartOfDay(), java.time.LocalDateTime.now()),
+                    // To the end of today, not to now: see WholeDays (issue #246).
+                    timeRangeFilter = TimeRangeFilter.between(TodaySeries.firstDay(today).atStartOfDay(), today.plusDays(1).atStartOfDay()),
                     timeRangeSlicer = java.time.Period.ofDays(1)
                 )
             )
