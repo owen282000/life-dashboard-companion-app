@@ -969,6 +969,7 @@
     <string name="ld_about_mail">Mail</string>
     <string name="ld_about_support_intro">Een beoordeling of een ster helpt anderen de app te vinden.</string>
     <string name="ld_about_star">Ster geven op GitHub</string>
+    <string name="review_star_card">Gratis op F-Droid en GitHub. Werkt het voor jou, dan helpt een ster anderen de app te vinden.</string>
     <string name="ld_about_source_intro">Je kunt elke regel lezen die deze app uitvoert.</string>
     <string name="ld_about_receiver">Sluit je eigen ontvanger aan</string>
     <string name="ld_about_receiver_sub">Laat je gebruikers koppelen door één QR-code te scannen</string>

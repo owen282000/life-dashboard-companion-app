@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file. The format is b
 ### Fixed
 
 - Today's steps from Samsung Health were too low until midnight. Reported by @therave79-stack in [#246](https://github.com/owen282000/life-dashboard-companion-app/issues/246), with the numbers that pointed straight at the cause. Samsung Health writes a day's steps as one record from 00:00 to 23:59, and the app asked Health Connect for today up to now, which counts only the part of that record before now: at 16:40 that was 16h40 of 24h. The daily totals, the **Today** panel and the daily totals of a backfill now ask for whole days. Other sources write short records and their totals stay the same.
+- The card in the GitHub and F-Droid versions that asks for a star was still in English in the other ten languages. It now follows the phone's language.
 
 ### Changed
 

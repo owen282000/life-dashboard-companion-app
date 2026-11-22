@@ -969,6 +969,7 @@
     <string name="ld_about_mail">E-Mail</string>
     <string name="ld_about_support_intro">Eine Bewertung oder ein Stern hilft anderen, die App zu finden.</string>
     <string name="ld_about_star">Stern auf GitHub vergeben</string>
+    <string name="review_star_card">Kostenlos auf F-Droid und GitHub. Wenn die App bei dir läuft, hilft ein Stern anderen, sie zu finden.</string>
     <string name="ld_about_source_intro">Du kannst jede Zeile lesen, die diese App ausführt.</string>
     <string name="ld_about_receiver">Eigenen Empfänger anschließen</string>
     <string name="ld_about_receiver_sub">Lass deine Nutzer koppeln, indem sie einen QR-Code scannen</string>
