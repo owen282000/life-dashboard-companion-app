@@ -57,6 +57,7 @@ import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ScreenTimeManager
 import com.owen282000.lifedashboard.SyncMode
 import com.owen282000.lifedashboard.appPreferences
+import com.owen282000.lifedashboard.listSeparator
 import com.owen282000.lifedashboard.screens.ScheduleStatusLine
 import com.owen282000.lifedashboard.screens.formatTime
 import com.owen282000.lifedashboard.screens.text
@@ -365,7 +366,7 @@ private fun ScreenTimePanel(data: ScreenTimeHomeData?, modifier: Modifier = Modi
         val minutes = data?.minutesPerDay.orEmpty()
         if (minutes.size >= 2) {
             val label = stringResource(R.string.dashboard_minutes_per_day_last_days, minutes.size)
-            val spoken = stringResource(R.string.ld_key_value, label, minutes.joinToString(", "))
+            val spoken = stringResource(R.string.ld_key_value, label, minutes.joinToString(listSeparator()))
             Column(Modifier.padding(top = 10.dp).clearAndSetSemantics { contentDescription = spoken }) {
                 Text(label, style = LDType.rowSubtitle, color = LDTheme.colors.muted)
                 SparkLine(minutes.map { it.toDouble() }, Modifier.padding(top = 4.dp), height = 28.dp)
@@ -513,7 +514,7 @@ private fun screenTimeScheduleSummary(state: ScreenTimeUiState): String {
     return when {
         schedule.wouldNeverRun() -> stringResource(R.string.ld_screen_when_never)
         schedule.mode == SyncMode.INTERVAL -> stringResource(R.string.schedule_summary_interval, schedule.intervalText.toIntOrNull() ?: 0)
-        else -> stringResource(R.string.schedule_summary_times, schedule.times.joinToString(", ") { formatTime(it) })
+        else -> stringResource(R.string.schedule_summary_times, schedule.times.joinToString(listSeparator()) { formatTime(it) })
     }
 }
 

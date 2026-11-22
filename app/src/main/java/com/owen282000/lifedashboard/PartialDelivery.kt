@@ -17,7 +17,7 @@ object PartialDelivery {
         urls.map { url -> runCatching { URI(url.trim()).host }.getOrNull() ?: url.substringAfter("://").substringBefore('/').substringBefore('?') }
             .filter { it.isNotBlank() }
             .distinct()
-            .joinToString(", ")
+            .joinToString(listSeparator())
 
     /**
      * The next value of the partial streak: up by one when [missed] is not empty, back to zero

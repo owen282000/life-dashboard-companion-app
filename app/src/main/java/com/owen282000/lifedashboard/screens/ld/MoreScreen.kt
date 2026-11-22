@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.ThemeMode
 import com.owen282000.lifedashboard.appPreferences
+import com.owen282000.lifedashboard.listSeparator
 import com.owen282000.lifedashboard.ui.ld.LDCard
 import com.owen282000.lifedashboard.ui.ld.LDGap
 import com.owen282000.lifedashboard.ui.ld.LDHeading
@@ -38,7 +39,7 @@ fun MoreScreen() {
     val advancedSummary = listOfNotNull(
         stringResource(if (state.includeDailyTotals) R.string.health_daily_totals else R.string.health_no_daily_totals),
         if (state.clientCertAlias != null) stringResource(R.string.sync_advanced_client_cert) else null
-    ).joinToString(", ")
+    ).joinToString(listSeparator())
     val notificationsSummary = if (state.failureNotificationsEnabled) {
         pluralStringResource(R.plurals.health_notifications_on, state.failureThreshold, state.failureThreshold)
     } else {
@@ -56,7 +57,7 @@ fun MoreScreen() {
         LDCard(Modifier.ldStaggerRise(1)) {
             LDRow(
                 stringResource(R.string.ld_title_export_data),
-                value = listOf(stringResource(R.string.common_csv), stringResource(R.string.common_json)).joinToString(", "),
+                value = listOf(stringResource(R.string.common_csv), stringResource(R.string.common_json)).joinToString(listSeparator()),
                 onClick = { navigator.push(LDRoute.ExportData()) }
             )
             LDRow(stringResource(R.string.ld_title_backup_restore), value = stringResource(R.string.screentime_settings), onClick = { navigator.push(LDRoute.BackupRestore) })

@@ -221,7 +221,7 @@ object BackfillTexts {
         is BackfillFailure.Read -> res.getString(R.string.health_backfill_failed_read, failure.detail)
         is BackfillFailure.Delivery -> res.getString(R.string.health_backfill_failed_delivery, failure.done, failure.total)
         is BackfillFailure.NotReturned ->
-            res.getString(R.string.health_backfill_failed_not_returned, failure.done, failure.total, failure.types.joinToString(", "))
+            res.getString(R.string.health_backfill_failed_not_returned, failure.done, failure.total, failure.types.joinToString(listSeparator()))
         is BackfillFailure.TooManyChunks -> res.getString(
             R.string.health_backfill_failed_too_many_chunks,
             failure.done,

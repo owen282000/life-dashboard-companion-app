@@ -12,6 +12,7 @@ import com.owen282000.lifedashboard.ReceiveSummary
 import com.owen282000.lifedashboard.SourceUrlChoice
 import com.owen282000.lifedashboard.WriteBackPayload
 import com.owen282000.lifedashboard.WriteBackType
+import com.owen282000.lifedashboard.listSeparator
 import com.owen282000.lifedashboard.ui.ld.LDButton
 import com.owen282000.lifedashboard.ui.ld.LDButtonKind
 import com.owen282000.lifedashboard.ui.ld.LDCard
@@ -115,7 +116,7 @@ private fun ReceiveHeader(summary: ReceiveSummary) {
         }
         is ReceiveSummary.PermissionMissing -> {
             LDHeading(stringResource(R.string.ld_receive_heading_permission))
-            LDNote(stringResource(R.string.receive_permission_missing, summary.types.map { stringResource(it.dataType.displayNameRes) }.joinToString(", ")), top = 6.dp)
+            LDNote(stringResource(R.string.receive_permission_missing, summary.types.map { stringResource(it.dataType.displayNameRes) }.joinToString(listSeparator())), top = 6.dp)
         }
         is ReceiveSummary.Receiving -> {
             LDHeading(stringResource(R.string.ld_receive_heading_on))
