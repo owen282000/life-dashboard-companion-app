@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.32.0] - 2026-11-22
+
 ### Added
 
 - **Receive** works for a phone paired through Home Assistant Cloud (Nabu Casa). The cloud passes the integration's answer on without its signature, so the app refused every answer and no measurement arrived. The app now asks the integration to put the signature inside the answer and checks it there; this needs the Life Dashboard integration 1.3.0 or newer. With an older integration behind the cloud, the **Receive** page asks you to update it instead of failing every round. A Home Assistant Cloud address is now also recognised as the integration's, so **Receive** can be switched on for it. Nothing changes on an address of your own, also with an older integration.
@@ -1204,7 +1206,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.31.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.32.0...HEAD
+[1.32.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.31.0...1.32.0
 [1.31.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.30.1...1.31.0
 [1.30.1]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.30.0...1.30.1
 [1.30.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.29.0...1.30.0
