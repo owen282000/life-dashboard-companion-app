@@ -315,7 +315,9 @@ If you write your own receiver and add up the raw records, you'll count steps tw
 
 If the app only syncs when you open it, the phone is stopping its background jobs to save battery. Go through [Let the app run in the background](#let-the-app-run-in-the-background), including the separate battery or startup manager that some brands have. Then check that you didn't switch off background reading in Health Connect: without it, only **Sync Now** works (see [Health Connect](#health-connect)).
 
-The **Logs** tab shows when syncs actually ran, which tells you whether they're being held back.
+**Background runs** in the **Logs** tab shows whether they're being held back. It lists every scheduled sync Android ran in the background, with the time it started, Health or Screen Time, what came of it (synced, no new data, failed, or stopped by Android) and how long it took. Runs in a row that found no new data show as one line with a count, and the list keeps the last 50. When the list stays empty for hours, Android isn't running the app in the background at all.
+
+A run marked **Stopped by Android** was started but cut off before it finished, and Android runs it again later. The line under it says why, as far as Android tells (from Android 12): **Battery saver or Doze**, **Background use restricted** (the app's battery use is restricted, or Android put it on standby), **Background time used up**, **A condition was no longer met**, **Took longer than Android allows**, or **System or other reason**. The first two usually mean that a setting from [Let the app run in the background](#let-the-app-run-in-the-background) is still holding the app back. The third comes when the app is rarely opened, since Android gives such apps less background time.
 
 ### Scanning the code opens a web page instead of the app
 

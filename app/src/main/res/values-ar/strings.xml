@@ -1160,4 +1160,25 @@
     <string name="ld_onboarding_sending_to">الإرسال إلى</string>
     <string name="ld_onboarding_one_thing_left">بقي أمر واحد</string>
     <string name="ld_onboarding_two_things_left">بقي أمران</string>
+
+    <!-- Background runs in Logs -->
+    <string name="ld_logs_runs_title">عمليات التشغيل في الخلفية</string>
+    <string name="ld_logs_runs_note">كل مرة شغّل فيها Android مزامنة مجدولة في الخلفية، وما نتج عنها. إذا بقيت هذه القائمة فارغة لساعات، فإن Android لا يشغّل التطبيق في الخلفية.</string>
+    <string name="ld_logs_runs_synced">تمت المزامنة</string>
+    <string name="ld_logs_runs_stopped">أوقفه Android</string>
+    <string name="ld_logs_runs_reason_battery">موفر البطارية أو Doze</string>
+    <string name="ld_logs_runs_reason_restricted">الاستخدام في الخلفية مقيّد</string>
+    <string name="ld_logs_runs_reason_quota">نفد وقت الخلفية</string>
+    <string name="ld_logs_runs_reason_constraints">لم يعد أحد الشروط متحققًا</string>
+    <string name="ld_logs_runs_reason_time_limit">استغرق وقتًا أطول مما يسمح به Android</string>
+    <string name="ld_logs_runs_reason_other">النظام أو سبب آخر</string>
+    <string name="ld_logs_hide_details">إخفاء التفاصيل</string>
+    <plurals name="ld_logs_runs_times_since">
+        <item quantity="zero">%1$d مرة منذ %2$s</item>
+        <item quantity="one">%1$d مرة منذ %2$s</item>
+        <item quantity="two">مرتان منذ %2$s</item>
+        <item quantity="few">%1$d مرات منذ %2$s</item>
+        <item quantity="many">%1$d مرةً منذ %2$s</item>
+        <item quantity="other">%1$d مرة منذ %2$s</item>
+    </plurals>
 </resources>

@@ -950,4 +950,20 @@
     <string name="ld_onboarding_sending_to">送信先</string>
     <string name="ld_onboarding_one_thing_left">残り1つ</string>
     <string name="ld_onboarding_two_things_left">残り2つ</string>
+
+    <!-- Background runs in Logs -->
+    <string name="ld_logs_runs_title">バックグラウンド実行</string>
+    <string name="ld_logs_runs_note">Androidがバックグラウンドで予定された同期を実行するたびに、その結果とともにここに表示されます。何時間も空のままなら、Androidはこのアプリをバックグラウンドで実行していません。</string>
+    <string name="ld_logs_runs_synced">同期済み</string>
+    <string name="ld_logs_runs_stopped">Androidが停止</string>
+    <string name="ld_logs_runs_reason_battery">バッテリーセーバーまたはDoze</string>
+    <string name="ld_logs_runs_reason_restricted">バックグラウンドでの使用が制限されています</string>
+    <string name="ld_logs_runs_reason_quota">バックグラウンドの実行時間の上限に達しました</string>
+    <string name="ld_logs_runs_reason_constraints">条件を満たさなくなりました</string>
+    <string name="ld_logs_runs_reason_time_limit">Androidが許す時間を超えました</string>
+    <string name="ld_logs_runs_reason_other">システムまたはその他の理由</string>
+    <string name="ld_logs_hide_details">詳細を隠す</string>
+    <plurals name="ld_logs_runs_times_since">
+        <item quantity="other">%2$s以降%1$d回</item>
+    </plurals>
 </resources>

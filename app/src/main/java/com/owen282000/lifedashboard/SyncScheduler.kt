@@ -47,6 +47,9 @@ object SyncScheduler {
 
     private val executor: Executor = Executors.newSingleThreadExecutor()
 
+    /** Whether a worker with these [tags] is a run this scheduler queued, not a manual sync. */
+    fun isScheduled(tags: Set<String>): Boolean = TAG_SCHEDULED in tags
+
     /** Called after a settings change or at app start: apply the stored schedule of [source]. */
     fun reschedule(context: Context, source: LogType) {
         plan(context.applicationContext, source, finished = null)

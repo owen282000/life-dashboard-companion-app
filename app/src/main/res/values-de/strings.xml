@@ -991,4 +991,21 @@
     <string name="ld_onboarding_sending_to">Sendet an</string>
     <string name="ld_onboarding_one_thing_left">Noch eine Sache</string>
     <string name="ld_onboarding_two_things_left">Noch zwei Dinge</string>
+
+    <!-- Background runs in Logs -->
+    <string name="ld_logs_runs_title">Läufe im Hintergrund</string>
+    <string name="ld_logs_runs_note">Jedes Mal, wenn Android eine geplante Synchronisierung im Hintergrund ausgeführt hat, und was dabei herauskam. Bleibt das stundenlang leer, lässt Android die App nicht im Hintergrund laufen.</string>
+    <string name="ld_logs_runs_synced">Synchronisiert</string>
+    <string name="ld_logs_runs_stopped">Von Android gestoppt</string>
+    <string name="ld_logs_runs_reason_battery">Akkusparmodus oder Doze</string>
+    <string name="ld_logs_runs_reason_restricted">Hintergrundnutzung eingeschränkt</string>
+    <string name="ld_logs_runs_reason_quota">Hintergrundzeit aufgebraucht</string>
+    <string name="ld_logs_runs_reason_constraints">Eine Bedingung war nicht mehr erfüllt</string>
+    <string name="ld_logs_runs_reason_time_limit">Dauerte länger, als Android erlaubt</string>
+    <string name="ld_logs_runs_reason_other">System oder anderer Grund</string>
+    <string name="ld_logs_hide_details">Details ausblenden</string>
+    <plurals name="ld_logs_runs_times_since">
+        <item quantity="one">%1$d-mal seit %2$s</item>
+        <item quantity="other">%1$d-mal seit %2$s</item>
+    </plurals>
 </resources>

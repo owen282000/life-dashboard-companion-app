@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- **Background runs** in the **Logs** tab: every scheduled sync Android ran in the background, when it started, for Health or Screen Time, what came of it and how long it took. Until now a run that found no new data, or that Android stopped halfway, left no trace, so a day without syncs could not be told apart from a day Android never ran the app. A run Android stopped says why, such as battery saver or Doze, restricted background use or background time used up. Runs in a row with no new data are one line with a count, and the list keeps the last 50. Syncs you start yourself are not in it.
+
 ## [1.32.0] - 2026-11-22
 
 ### Added

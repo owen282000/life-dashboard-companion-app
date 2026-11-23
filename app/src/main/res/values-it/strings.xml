@@ -1034,4 +1034,22 @@
     <string name="ld_onboarding_sending_to">Invio a</string>
     <string name="ld_onboarding_one_thing_left">Resta una cosa</string>
     <string name="ld_onboarding_two_things_left">Restano due cose</string>
+
+    <!-- Background runs in Logs -->
+    <string name="ld_logs_runs_title">Esecuzioni in background</string>
+    <string name="ld_logs_runs_note">Ogni volta che Android ha eseguito una sincronizzazione pianificata in background, e com\'è andata. Se resta vuoto per ore, Android non sta facendo funzionare l\'app in background.</string>
+    <string name="ld_logs_runs_synced">Sincronizzato</string>
+    <string name="ld_logs_runs_stopped">Interrotto da Android</string>
+    <string name="ld_logs_runs_reason_battery">Risparmio energetico o Doze</string>
+    <string name="ld_logs_runs_reason_restricted">Uso in background limitato</string>
+    <string name="ld_logs_runs_reason_quota">Tempo in background esaurito</string>
+    <string name="ld_logs_runs_reason_constraints">Una condizione non era più soddisfatta</string>
+    <string name="ld_logs_runs_reason_time_limit">Ha richiesto più tempo di quanto Android consenta</string>
+    <string name="ld_logs_runs_reason_other">Sistema o altro motivo</string>
+    <string name="ld_logs_hide_details">Nascondi i dettagli</string>
+    <plurals name="ld_logs_runs_times_since">
+        <item quantity="one">%1$d volta da %2$s</item>
+        <item quantity="many">%1$d volte da %2$s</item>
+        <item quantity="other">%1$d volte da %2$s</item>
+    </plurals>
 </resources>

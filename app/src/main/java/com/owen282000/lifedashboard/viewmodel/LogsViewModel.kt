@@ -4,6 +4,8 @@ import android.app.Application
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.owen282000.lifedashboard.BackgroundRun
+import com.owen282000.lifedashboard.BackgroundRunStore
 import com.owen282000.lifedashboard.ExportManager
 import com.owen282000.lifedashboard.PayloadPreview
 import com.owen282000.lifedashboard.PendingSyncStore
@@ -25,7 +27,9 @@ import java.io.IOException
 data class LogsState(
     val rows: List<WebhookLogRow>,
     val stats: LogStats,
-    val pending: Int
+    val pending: Int,
+    /** Background runs, newest first. */
+    val runs: List<BackgroundRun> = emptyList()
 )
 
 enum class LogExportFormat { Json, Csv }
@@ -63,17 +67,21 @@ class LogsViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun read(): LogsState {
         val rows = preferences.getWebhookLogRows()
-        return LogsState(rows, LogStats.of(rows.map { it.log }), PendingSyncStore.forContext(app).size())
+        return LogsState(rows, LogStats.of(rows.map { it.log }), PendingSyncStore.forContext(app).size(), BackgroundRunStore.forContext(app).load())
     }
 
-    fun delete(ids: Set<String>) {
+    /** [withRuns] is Clear on the unfiltered list, which takes the background runs along. */
+    fun delete(ids: Set<String>, withRuns: Boolean = false) {
         loading?.cancel()
         _state.value = _state.value?.let { state ->
             val rows = state.rows.filterNot { it.log.id in ids }
-            state.copy(rows = rows, stats = LogStats.of(rows.map { it.log }))
+            state.copy(rows = rows, stats = LogStats.of(rows.map { it.log }), runs = if (withRuns) emptyList() else state.runs)
         }
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { preferences.deleteWebhookLogs(ids) }
+            withContext(Dispatchers.IO) {
+                preferences.deleteWebhookLogs(ids)
+                if (withRuns) BackgroundRunStore.forContext(app).clear()
+            }
             refresh()
         }
     }
