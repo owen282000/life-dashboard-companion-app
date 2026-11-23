@@ -951,4 +951,20 @@
     <string name="ld_onboarding_sending_to">发送到</string>
     <string name="ld_onboarding_one_thing_left">还剩一件事</string>
     <string name="ld_onboarding_two_things_left">还剩两件事</string>
+
+    <!-- Background runs in Logs -->
+    <string name="ld_logs_runs_title">后台运行</string>
+    <string name="ld_logs_runs_note">每次 Android 在后台运行计划同步，以及结果如何。如果这里数小时都是空的，说明 Android 没有让应用在后台运行。</string>
+    <string name="ld_logs_runs_synced">已同步</string>
+    <string name="ld_logs_runs_stopped">被 Android 停止</string>
+    <string name="ld_logs_runs_reason_battery">省电模式或 Doze</string>
+    <string name="ld_logs_runs_reason_restricted">后台使用受限</string>
+    <string name="ld_logs_runs_reason_quota">后台时间已用完</string>
+    <string name="ld_logs_runs_reason_constraints">某个条件不再满足</string>
+    <string name="ld_logs_runs_reason_time_limit">耗时超过 Android 允许的时长</string>
+    <string name="ld_logs_runs_reason_other">系统或其他原因</string>
+    <string name="ld_logs_hide_details">隐藏详细信息</string>
+    <plurals name="ld_logs_runs_times_since">
+        <item quantity="other">自 %2$s 起 %1$d 次</item>
+    </plurals>
 </resources>

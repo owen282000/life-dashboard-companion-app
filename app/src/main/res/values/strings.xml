@@ -1011,4 +1011,21 @@
     <string name="ld_onboarding_sending_to">Sending to</string>
     <string name="ld_onboarding_one_thing_left">One thing left</string>
     <string name="ld_onboarding_two_things_left">Two things left</string>
+
+    <!-- Background runs in Logs -->
+    <string name="ld_logs_runs_title">Background runs</string>
+    <string name="ld_logs_runs_note">Every time Android ran a scheduled sync in the background, and what came of it. If this stays empty for hours, Android is not running the app in the background.</string>
+    <string name="ld_logs_runs_synced">Synced</string>
+    <string name="ld_logs_runs_stopped">Stopped by Android</string>
+    <string name="ld_logs_runs_reason_battery">Battery saver or Doze</string>
+    <string name="ld_logs_runs_reason_restricted">Background use restricted</string>
+    <string name="ld_logs_runs_reason_quota">Background time used up</string>
+    <string name="ld_logs_runs_reason_constraints">A condition was no longer met</string>
+    <string name="ld_logs_runs_reason_time_limit">Took longer than Android allows</string>
+    <string name="ld_logs_runs_reason_other">System or other reason</string>
+    <string name="ld_logs_hide_details">Hide the details</string>
+    <plurals name="ld_logs_runs_times_since">
+        <item quantity="one">%1$d times since %2$s</item>
+        <item quantity="other">%1$d times since %2$s</item>
+    </plurals>
 </resources>

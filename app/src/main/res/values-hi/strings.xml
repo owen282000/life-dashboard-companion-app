@@ -994,4 +994,21 @@
     <string name="ld_onboarding_sending_to">कहां भेजा जा रहा है</string>
     <string name="ld_onboarding_one_thing_left">एक काम बचा है</string>
     <string name="ld_onboarding_two_things_left">दो काम बचे हैं</string>
+
+    <!-- Background runs in Logs -->
+    <string name="ld_logs_runs_title">बैकग्राउंड रन</string>
+    <string name="ld_logs_runs_note">हर बार जब Android ने बैकग्राउंड में कोई शेड्यूल किया गया सिंक चलाया, और उसका नतीजा क्या रहा। अगर यह घंटों तक खाली रहे, तो Android ऐप को बैकग्राउंड में नहीं चला रहा है।</string>
+    <string name="ld_logs_runs_synced">सिंक हुआ</string>
+    <string name="ld_logs_runs_stopped">Android ने रोका</string>
+    <string name="ld_logs_runs_reason_battery">बैटरी सेवर या Doze</string>
+    <string name="ld_logs_runs_reason_restricted">बैकग्राउंड इस्तेमाल पर पाबंदी</string>
+    <string name="ld_logs_runs_reason_quota">बैकग्राउंड का समय खत्म</string>
+    <string name="ld_logs_runs_reason_constraints">कोई शर्त अब पूरी नहीं थी</string>
+    <string name="ld_logs_runs_reason_time_limit">Android की तय सीमा से ज़्यादा समय लगा</string>
+    <string name="ld_logs_runs_reason_other">सिस्टम या कोई और वजह</string>
+    <string name="ld_logs_hide_details">जानकारी छिपाएं</string>
+    <plurals name="ld_logs_runs_times_since">
+        <item quantity="one">%2$s से %1$d बार</item>
+        <item quantity="other">%2$s से %1$d बार</item>
+    </plurals>
 </resources>

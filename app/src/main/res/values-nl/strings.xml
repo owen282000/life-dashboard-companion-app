@@ -991,4 +991,21 @@
     <string name="ld_onboarding_sending_to">Verstuurt naar</string>
     <string name="ld_onboarding_one_thing_left">Nog één ding te doen</string>
     <string name="ld_onboarding_two_things_left">Nog twee dingen te doen</string>
+
+    <!-- Background runs in Logs -->
+    <string name="ld_logs_runs_title">Syncs op de achtergrond</string>
+    <string name="ld_logs_runs_note">Elke keer dat Android een geplande sync op de achtergrond uitvoerde, en wat dat opleverde. Blijft dit urenlang leeg, dan laat Android de app niet op de achtergrond draaien.</string>
+    <string name="ld_logs_runs_synced">Gesynct</string>
+    <string name="ld_logs_runs_stopped">Gestopt door Android</string>
+    <string name="ld_logs_runs_reason_battery">Batterijbesparing of Doze</string>
+    <string name="ld_logs_runs_reason_restricted">Achtergrondgebruik beperkt</string>
+    <string name="ld_logs_runs_reason_quota">Achtergrondtijd op</string>
+    <string name="ld_logs_runs_reason_constraints">Een voorwaarde gold niet meer</string>
+    <string name="ld_logs_runs_reason_time_limit">Duurde langer dan Android toestaat</string>
+    <string name="ld_logs_runs_reason_other">Systeem of andere reden</string>
+    <string name="ld_logs_hide_details">Details verbergen</string>
+    <plurals name="ld_logs_runs_times_since">
+        <item quantity="one">%1$d keer sinds %2$s</item>
+        <item quantity="other">%1$d keer sinds %2$s</item>
+    </plurals>
 </resources>

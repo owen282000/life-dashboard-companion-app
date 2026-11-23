@@ -160,6 +160,9 @@ fun LogsListScreen() {
             item(key = "top", contentType = "top") {
                 Column { LogsTop(loaded, formats) }
             }
+            item(key = "runs", contentType = "runs") {
+                BackgroundRunsSection(loaded.runs, formats)
+            }
             if (rows.isNotEmpty()) {
                 item(key = "filters", contentType = "filters") {
                     Column {
@@ -213,7 +216,7 @@ fun LogsListScreen() {
             confirmButton = {
                 TextButton(onClick = {
                     dialog = null
-                    viewModel.delete(ids())
+                    viewModel.delete(ids(), withRuns = filter == LogFilter.All)
                 }) { Text(stringResource(R.string.logs_clear_confirm), color = LDTheme.colors.warning) }
             },
             dismissButton = {
@@ -485,11 +488,14 @@ internal class LogFormats(locale: Locale, is24Hour: Boolean) {
     private fun format(locale: Locale, skeleton: String) = SimpleDateFormat(DateFormat.getBestDateTimePattern(locale, skeleton), locale)
 
     private val clock = format(locale, if (is24Hour) "Hms" else "hms")
+    private val hoursMinutes = format(locale, if (is24Hour) "Hm" else "hm")
     private val minutes = format(locale, if (is24Hour) "MMMdHm" else "MMMdhm")
     private val seconds = format(locale, if (is24Hour) "MMMdHms" else "MMMdhms")
     private val date = format(locale, "MMMd")
 
     fun time(millis: Long): String = clock.format(Date(millis))
+
+    fun clock(millis: Long): String = hoursMinutes.format(Date(millis))
 
     fun dateTime(millis: Long): String = minutes.format(Date(millis))
 

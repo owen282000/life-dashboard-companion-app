@@ -47,7 +47,7 @@ data class WebhookLogRow(
  */
 class WebhookLogStore(private val context: Context) {
 
-    private val prefs = context.getSharedPreferences(LOGS_PREFS_NAME, Context.MODE_PRIVATE)
+    private val prefs = WebhookLogStore.prefs(context)
 
     private val payloadDir: File by lazy {
         File(context.filesDir, PAYLOAD_DIR).apply { mkdirs() }
@@ -227,6 +227,9 @@ class WebhookLogStore(private val context: Context) {
         const val TRUNCATION_MARKER = "\n... truncated, enable full payloads in settings to keep everything"
 
         private val MARKER_BYTES = TRUNCATION_MARKER.toByteArray()
+
+        /** The metadata file, which [BackgroundRunStore] shares because it stays out of backups. */
+        internal fun prefs(context: Context) = context.getSharedPreferences(LOGS_PREFS_NAME, Context.MODE_PRIVATE)
 
         /**
          * What actually gets written for [payload]: the whole thing when the user keeps full
