@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.33.0] - 2026-11-24
+
 ### Added
 
 - **Background runs** in the **Logs** tab: every scheduled sync Android ran in the background, when it started, for Health or Screen Time, what came of it and how long it took. Until now a run that found no new data, or that Android stopped halfway, left no trace, so a day without syncs could not be told apart from a day Android never ran the app. A run Android stopped says why, such as battery saver or Doze, restricted background use or background time used up. Runs in a row with no new data are one line with a count, and the list keeps the last 50. Syncs you start yourself are not in it.
@@ -1214,7 +1216,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.32.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.33.0...HEAD
+[1.33.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.32.0...1.33.0
 [1.32.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.31.0...1.32.0
 [1.31.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.30.1...1.31.0
 [1.30.1]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.30.0...1.30.1
