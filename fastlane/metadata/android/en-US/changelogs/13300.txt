@@ -1,0 +1,5 @@
+New
+- Background runs in the Logs tab: every scheduled sync Android ran, what came of it, and why Android stopped it if it did.
+Fixed
+- Weight on the Today panel follows the measurement system from Regional preferences, so metric on an English (United States) phone shows kilograms.
+Full release notes: https://github.com/owen282000/life-dashboard-companion-app/releases/tag/1.33.0
