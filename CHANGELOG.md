@@ -8,6 +8,10 @@ All notable changes to this project are documented in this file. The format is b
 
 - **Background runs** in the **Logs** tab: every scheduled sync Android ran in the background, when it started, for Health or Screen Time, what came of it and how long it took. Until now a run that found no new data, or that Android stopped halfway, left no trace, so a day without syncs could not be told apart from a day Android never ran the app. A run Android stopped says why, such as battery saver or Doze, restricted background use or background time used up. Runs in a row with no new data are one line with a count, and the list keeps the last 50. Syncs you start yourself are not in it.
 
+### Fixed
+
+- The **Today** panel showed weight in pounds on a phone set to English (United States), even when Regional preferences asked for metric. Reported by @venno-sudo in [#253](https://github.com/owen282000/life-dashboard-companion-app/issues/253). The panel chose the unit from the region alone. It now follows the measurement system you pick under Settings > System > Languages > Regional preferences (Android 16 and later), and only falls back to the region without that choice. Health Connect and what goes to Home Assistant were always in kilograms.
+
 ## [1.32.0] - 2026-11-22
 
 ### Added
