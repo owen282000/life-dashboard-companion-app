@@ -27,6 +27,7 @@ import com.owen282000.lifedashboard.R
 import com.owen282000.lifedashboard.TodayKind
 import com.owen282000.lifedashboard.TodayStat
 import com.owen282000.lifedashboard.TodayState
+import com.owen282000.lifedashboard.WeightUnit
 import com.owen282000.lifedashboard.screens.formatCount
 import com.owen282000.lifedashboard.ui.ld.LDButton
 import com.owen282000.lifedashboard.ui.ld.LDGap
@@ -38,7 +39,6 @@ import com.owen282000.lifedashboard.ui.ld.SparkLine
 import com.owen282000.lifedashboard.ui.ld.ldLargeText
 import com.owen282000.lifedashboard.ui.ld.ldStaggerRise
 import java.text.NumberFormat
-import java.util.Locale
 import kotlin.math.roundToInt
 
 private const val POUNDS_PER_KILOGRAM = 2.20462
@@ -201,5 +201,4 @@ private fun formatFigure(stat: TodayStat, value: Double): String = when (stat.ki
     }
 }
 
-/** The countries of ICU's US measurement system. LocaleData has it only from Android 9, and the app starts at 8. */
-private fun weighsInPounds(): Boolean = Locale.getDefault().country in setOf("US", "LR", "MM")
+private fun weighsInPounds(): Boolean = WeightUnit.inPounds()

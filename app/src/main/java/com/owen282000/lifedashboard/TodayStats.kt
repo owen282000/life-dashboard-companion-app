@@ -3,6 +3,7 @@ package com.owen282000.lifedashboard
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.Locale
 
 /**
  * The figures the Today panel may show. Nothing sensitive is in this list, so nothing sensitive
@@ -35,6 +36,21 @@ data class TodayState(
     /** False until the first read is back, so the panel does not flash its fallback first. */
     val hasLoaded: Boolean = false
 )
+
+/** Whether the panel shows weight in pounds or in kilograms. Free of Android so it is tested on the JVM. */
+object WeightUnit {
+    /**
+     * The measurement system the phone asks for first: Regional preferences in Android 16 and
+     * later puts it on the locale as `-u-ms-`, and someone with the language set to English (United
+     * States) can choose metric there. Without that choice, the countries of ICU's US measurement
+     * system; LocaleData has it only from Android 9, and the app starts at 8.
+     */
+    fun inPounds(locale: Locale = Locale.getDefault()): Boolean = when (locale.getUnicodeLocaleType("ms")) {
+        "metric" -> false
+        "ussystem", "uksystem" -> true
+        else -> locale.country in setOf("US", "LR", "MM")
+    }
+}
 
 /** Turns what Health Connect answers into the panel's series, free of Android so it is tested on the JVM. */
 object TodaySeries {
