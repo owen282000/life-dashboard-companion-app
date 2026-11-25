@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [1.34.0] - 2026-11-25
+
 ### Added
 
 - The **Health** tab says **Background access is off** when Health Connect doesn't let the app read in the background, with **Grant** to ask for it. Without that permission every scheduled sync reads nothing, while **Sync Now** still works, which looked like a sync that runs but sends an empty payload ([#265](https://github.com/owen282000/life-dashboard-companion-app/discussions/265)). Android's battery and background settings don't grant it, it is a separate permission in Health Connect. **Background runs** in **Logs** names the same reason under a run that read nothing for it. Not shown on a Health Connect that has no such permission, or on a phone that only receives.
@@ -1220,7 +1222,8 @@ Details on the scheduling rules and the bucketed payload shape are in [docs/feat
 
 See the [GitHub Releases](https://github.com/owen282000/life-dashboard-companion-app/releases) for full notes. Highlights: HMAC payload signing and smart retries (1.4.x), menstruation data types and resilient reads (1.3.x), payload pagination and bounded batches (1.2.x), initial Health Connect and Screen Time sync (1.0.0).
 
-[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.33.0...HEAD
+[Unreleased]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.34.0...HEAD
+[1.34.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.33.0...1.34.0
 [1.33.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.32.0...1.33.0
 [1.32.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.31.0...1.32.0
 [1.31.0]: https://github.com/owen282000/life-dashboard-companion-app/compare/1.30.1...1.31.0
