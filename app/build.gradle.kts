@@ -83,13 +83,15 @@ val appVersionCode = semverMatch?.destructured?.let { (major, minor, patch) ->
 
 android {
     namespace = "com.owen282000.lifedashboard"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) { minorApiLevel = 1 }
+    }
 
     defaultConfig {
         applicationId = "com.owen282000.lifedashboard"
         minSdk = 26
         // Play requires API 35 to stay available to new users, and API 36 for new apps and
-        // updates from 31 August 2026. compileSdk is already 37.
+        // updates from 31 August 2026. compileSdk is already 37.1.
         targetSdk = 36
         versionCode = appVersionCode
         versionName = appVersionName

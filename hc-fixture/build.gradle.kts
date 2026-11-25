@@ -17,7 +17,9 @@ ktlint {
 
 android {
     namespace = "com.owen282000.lifedashboard.fixture"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) { minorApiLevel = 1 }
+    }
 
     defaultConfig {
         applicationId = "com.owen282000.lifedashboard.fixture"
