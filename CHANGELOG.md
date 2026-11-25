@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- The **Health** tab says **Background access is off** when Health Connect doesn't let the app read in the background, with **Grant** to ask for it. Without that permission every scheduled sync reads nothing, while **Sync Now** still works, which looked like a sync that runs but sends an empty payload ([#265](https://github.com/owen282000/life-dashboard-companion-app/discussions/265)). Android's battery and background settings don't grant it, it is a separate permission in Health Connect. **Background runs** in **Logs** names the same reason under a run that read nothing for it. Not shown on a Health Connect that has no such permission, or on a phone that only receives.
+
 ## [1.33.0] - 2026-11-24
 
 ### Added

@@ -793,6 +793,8 @@
     <string name="ld_home_nothing_since">لم يُسلَّم شيء منذ %1$s.</string>
     <string name="ld_home_overdue_battery">لم يُسلَّم شيء منذ %1$s. قد يكون تحسين البطارية يؤجل المزامنة.</string>
     <string name="ld_home_overdue_logs">لم يُسلَّم شيء منذ %1$s. تعرض علامة التبويب «السجلات» ما حدث.</string>
+    <string name="ld_home_background_access_title">الوصول في الخلفية متوقف</string>
+    <string name="ld_home_background_access_body">لا يسمح Health Connect للتطبيق بالقراءة وهو مغلق، لذلك لا ترسل عمليات المزامنة المجدولة شيئًا. تعمل فقط المزامنة التي تبدؤها بنفسك. إعدادات البطارية في Android لا تغيّر ذلك.</string>
     <string name="ld_home_hold_never">المزامنة التلقائية متوقفة. «المزامنة الآن» لا تزال تعمل.</string>
     <string name="ld_home_hold_quiet">ساعات الهدوء حتى %1$s. «المزامنة الآن» لا تزال تعمل.</string>
     <string name="ld_home_hold_day_off">لا مزامنة تلقائية اليوم. «المزامنة الآن» لا تزال تعمل.</string>
@@ -1172,6 +1174,7 @@
     <string name="ld_logs_runs_reason_constraints">لم يعد أحد الشروط متحققًا</string>
     <string name="ld_logs_runs_reason_time_limit">استغرق وقتًا أطول مما يسمح به Android</string>
     <string name="ld_logs_runs_reason_other">النظام أو سبب آخر</string>
+    <string name="ld_logs_runs_reason_no_background_access">لا يسمح Health Connect بالقراءة في الخلفية</string>
     <string name="ld_logs_hide_details">إخفاء التفاصيل</string>
     <plurals name="ld_logs_runs_times_since">
         <item quantity="zero">%1$d مرة منذ %2$s</item>

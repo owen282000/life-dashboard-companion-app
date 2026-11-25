@@ -151,7 +151,8 @@ internal class FakeHealthOps(
     var syncResult: Result<HealthSyncResult> = Result.success(HealthSyncResult.Success(mapOf(HealthDataType.STEPS to 12))),
     var previewResult: Result<String> = Result.success("{}"),
     var pingResult: Result<Unit> = Result.success(Unit),
-    var otherSources: List<String> = emptyList()
+    var otherSources: List<String> = emptyList(),
+    var backgroundRead: Boolean = true
 ) : HealthOps {
     var syncs = 0
 
@@ -184,6 +185,7 @@ internal class FakeHealthOps(
 
     override suspend fun availability() = availability
     override suspend fun grantedPermissions() = granted
+    override suspend fun backgroundReadAvailable() = backgroundRead
     override suspend fun sync(): Result<HealthSyncResult> { syncs++; return syncResult }
     val previewTypes = mutableListOf<Set<HealthDataType>>()
     val previewResolutions = mutableListOf<Map<HealthDataType, SeriesResolution>>()

@@ -668,6 +668,8 @@
     <string name="ld_home_nothing_since">%1$s以降、何も配信されていません。</string>
     <string name="ld_home_overdue_battery">%1$s以降、何も配信されていません。電池の最適化が同期を止めている可能性があります。</string>
     <string name="ld_home_overdue_logs">%1$s以降、何も配信されていません。「ログ」タブで状況を確認できます。</string>
+    <string name="ld_home_background_access_title">バックグラウンドでのアクセスがオフです</string>
+    <string name="ld_home_background_access_body">Health Connectはアプリが閉じている間の読み取りを許可していないため、予定した同期では何も送信されません。自分で開始した同期だけが動作します。Androidの電池の設定では変わりません。</string>
     <string name="ld_home_hold_never">自動同期はオフです。「今すぐ同期」は使えます。</string>
     <string name="ld_home_hold_quiet">%1$sまで休止時間帯です。「今すぐ同期」は使えます。</string>
     <string name="ld_home_hold_day_off">今日は自動同期がありません。「今すぐ同期」は使えます。</string>
@@ -962,6 +964,7 @@
     <string name="ld_logs_runs_reason_constraints">条件を満たさなくなりました</string>
     <string name="ld_logs_runs_reason_time_limit">Androidが許す時間を超えました</string>
     <string name="ld_logs_runs_reason_other">システムまたはその他の理由</string>
+    <string name="ld_logs_runs_reason_no_background_access">Health Connectがバックグラウンドでの読み取りを許可していません</string>
     <string name="ld_logs_hide_details">詳細を隠す</string>
     <plurals name="ld_logs_runs_times_since">
         <item quantity="other">%2$s以降%1$d回</item>

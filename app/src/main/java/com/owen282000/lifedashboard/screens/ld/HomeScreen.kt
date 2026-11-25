@@ -46,6 +46,7 @@ import com.owen282000.lifedashboard.listSeparator
 import com.owen282000.lifedashboard.screens.formatTime
 import com.owen282000.lifedashboard.ui.ld.LDBackfillStage
 import com.owen282000.lifedashboard.ui.ld.LDBanner
+import com.owen282000.lifedashboard.ui.ld.LDBannerAction
 import com.owen282000.lifedashboard.ui.ld.LDButton
 import com.owen282000.lifedashboard.ui.ld.LDButtonKind
 import com.owen282000.lifedashboard.ui.ld.LDButtonSize
@@ -245,6 +246,12 @@ private fun HomeContent(state: HealthUiState, viewModel: HealthConnectViewModel)
 
         LDSecretsBanners(state.secretsUnavailable, state.secretsNeedReentry, viewModel::dismissSecretsLost)
         LDRefusedBanner(state.refused != null, viewModel::retryRefused, viewModel::dismissRefused)
+        if (saved.hasDestination && home != HomeState.NoAccess && state.backgroundAccessMissing) {
+            LDBanner(stringResource(R.string.ld_home_background_access_title), message = stringResource(R.string.ld_home_background_access_body)) {
+                LDBannerAction(stringResource(R.string.common_grant), onClick = viewModel::requestAccess)
+            }
+            LDGap(8.dp)
+        }
         if (saved.hasDestination) {
             val since = overdueSince?.let { stringResource(R.string.ld_home_nothing_since, formatDay(it, zone)) }
             LDBatteryCard(battery, since)

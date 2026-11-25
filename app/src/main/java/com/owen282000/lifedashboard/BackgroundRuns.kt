@@ -32,7 +32,9 @@ data class BackgroundRun(
     val count: Int = 1,
     /** How long the last run took. */
     val durationSeconds: Double? = null,
-    val stopReason: String? = null
+    val stopReason: String? = null,
+    /** Why a run that was not stopped still read nothing, when the app can tell. */
+    val readProblem: String? = null
 ) {
     enum class Outcome {
         SYNCED,
@@ -65,9 +67,16 @@ data class BackgroundRun(
         OTHER
     }
 
+    /** Why a run read nothing, in the cases the app can name. */
+    enum class ReadProblem {
+        /** Health Connect does not let the app read in the background, see [BackgroundAccess]. */
+        NO_BACKGROUND_ACCESS
+    }
+
     val sourceType: LogType? get() = LogType.entries.firstOrNull { it.name == source }
     val outcomeType: Outcome? get() = Outcome.entries.firstOrNull { it.name == outcome }
     val stopReasonType: StopReason? get() = StopReason.entries.firstOrNull { it.name == stopReason }
+    val readProblemType: ReadProblem? get() = ReadProblem.entries.firstOrNull { it.name == readProblem }
 
     companion object {
         /** A WorkInfo.STOP_REASON_* to the group the Logs tab names. */
@@ -114,7 +123,7 @@ object BackgroundRunLog {
         if (run.outcomeType?.merges == true) {
             val index = entries.indexOfFirst { it.source == run.source }
             val newest = entries.getOrNull(index)
-            if (newest != null && newest.outcome == run.outcome) {
+            if (newest != null && newest.outcome == run.outcome && newest.readProblem == run.readProblem) {
                 val merged = newest.copy(last = run.last, count = newest.count + run.count, durationSeconds = run.durationSeconds)
                 return listOf(merged) + entries.filterIndexed { i, _ -> i != index }
             }
@@ -168,7 +177,8 @@ class BackgroundRunRecorder(private val worker: ListenableWorker, private val so
     private val startedAt = System.currentTimeMillis()
     private val startedElapsed = SystemClock.elapsedRealtime()
 
-    fun finished(outcome: BackgroundRun.Outcome) = note(outcome, stopReason = null)
+    fun finished(outcome: BackgroundRun.Outcome, readProblem: BackgroundRun.ReadProblem? = null) =
+        note(outcome, stopReason = null, readProblem = readProblem)
 
     /**
      * For a worker Android stopped. WorkManager sets the reason before it cancels the coroutine,
@@ -179,7 +189,7 @@ class BackgroundRunRecorder(private val worker: ListenableWorker, private val so
         note(BackgroundRun.Outcome.STOPPED, BackgroundRun.stopReasonOf(reason))
     }
 
-    private fun note(outcome: BackgroundRun.Outcome, stopReason: BackgroundRun.StopReason?) {
+    private fun note(outcome: BackgroundRun.Outcome, stopReason: BackgroundRun.StopReason?, readProblem: BackgroundRun.ReadProblem? = null) {
         if (!scheduled) return
         val tenths = (SystemClock.elapsedRealtime() - startedElapsed) / 100.0
         // Never in the way of the sync or of the cancellation being passed on.
@@ -191,7 +201,8 @@ class BackgroundRunRecorder(private val worker: ListenableWorker, private val so
                     first = startedAt,
                     last = startedAt,
                     durationSeconds = tenths.roundToLong() / 10.0,
-                    stopReason = stopReason?.name
+                    stopReason = stopReason?.name,
+                    readProblem = readProblem?.name
                 )
             )
         }

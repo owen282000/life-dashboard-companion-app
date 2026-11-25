@@ -42,6 +42,9 @@ import kotlinx.coroutines.withContext
 interface HealthOps {
     suspend fun availability(): HcAvailability
     suspend fun grantedPermissions(): Set<String>
+
+    /** Whether Health Connect knows the permission to read in the background, see [BackgroundAccess]. */
+    suspend fun backgroundReadAvailable(): Boolean = true
     suspend fun sync(): Result<HealthSyncResult>
 
     /**
@@ -153,6 +156,8 @@ class RealHealthOps(private val context: Context) : HealthOps {
     } catch (e: Exception) {
         emptySet()
     }
+
+    override suspend fun backgroundReadAvailable(): Boolean = HealthConnectManager(context).backgroundReadAvailable()
 
     override suspend fun sync() = HealthSyncManager(context).performSync()
     override suspend fun preview(types: Set<HealthDataType>, resolutions: Map<HealthDataType, SeriesResolution>) =

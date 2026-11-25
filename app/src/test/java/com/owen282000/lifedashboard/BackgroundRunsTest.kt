@@ -166,4 +166,27 @@ class BackgroundRunsTest {
         assertEquals(BackgroundRun.Outcome.NOTHING_NEW, BackgroundRun.outcomeOf(Result.success<ScreenTimeSyncResult>(ScreenTimeSyncResult.NoData)))
         assertEquals(BackgroundRun.Outcome.FAILED, BackgroundRun.outcomeOf(Result.success<ScreenTimeSyncResult>(ScreenTimeSyncResult.Queued(4))))
     }
+
+    @Test
+    fun aRunWithoutBackgroundAccessKeepsItsReasonAndDoesNotMergeWithAPlainOne() {
+        val plain = run(LogType.HEALTH_CONNECT, BackgroundRun.Outcome.NOTHING_NEW, 0)
+        val blocked = run(LogType.HEALTH_CONNECT, BackgroundRun.Outcome.NOTHING_NEW, 15)
+            .copy(readProblem = BackgroundRun.ReadProblem.NO_BACKGROUND_ACCESS.name)
+        val entries = adding(plain, blocked, blocked.copy(first = blocked.first + 900_000L, last = blocked.last + 900_000L))
+
+        assertEquals(2, entries.size)
+        assertEquals(BackgroundRun.ReadProblem.NO_BACKGROUND_ACCESS, entries[0].readProblemType)
+        assertEquals(2, entries[0].count)
+        assertNull(entries[1].readProblemType)
+    }
+
+    @Test
+    fun backgroundAccessIsMissingOnlyWhenItCouldBeGrantedAndWouldMatter() {
+        val steps = "android.permission.health.READ_STEPS"
+        assertTrue(BackgroundAccess.missing(setOf(steps), readsTypes = true, featureAvailable = true))
+        assertEquals(false, BackgroundAccess.missing(setOf(steps, HealthConnectManager.BACKGROUND_PERMISSION), readsTypes = true, featureAvailable = true))
+        assertEquals("an older Health Connect has nothing to grant", false, BackgroundAccess.missing(setOf(steps), readsTypes = true, featureAvailable = false))
+        assertEquals("a phone that only receives reads nothing", false, BackgroundAccess.missing(setOf(steps), readsTypes = false, featureAvailable = true))
+        assertEquals("without any access the screen asks for that first", false, BackgroundAccess.missing(emptySet(), readsTypes = true, featureAvailable = true))
+    }
 }

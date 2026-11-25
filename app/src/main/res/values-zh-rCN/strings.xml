@@ -669,6 +669,8 @@
     <string name="ld_home_nothing_since">自 %1$s 以来没有任何数据送达。</string>
     <string name="ld_home_overdue_battery">自 %1$s 以来没有任何数据送达。电池优化可能在延迟同步。</string>
     <string name="ld_home_overdue_logs">自 %1$s 以来没有任何数据送达。“日志”标签页会显示具体情况。</string>
+    <string name="ld_home_background_access_title">后台访问已关闭</string>
+    <string name="ld_home_background_access_body">Health Connect 不允许应用在关闭时读取数据，因此计划同步不会发送任何内容。只有你自己开始的同步才有效。Android 的电池设置无法改变这一点。</string>
     <string name="ld_home_hold_never">自动同步已关闭。“立即同步”仍然可用。</string>
     <string name="ld_home_hold_quiet">免打扰时段持续到 %1$s。“立即同步”仍然可用。</string>
     <string name="ld_home_hold_day_off">今天没有自动同步。“立即同步”仍然可用。</string>
@@ -963,6 +965,7 @@
     <string name="ld_logs_runs_reason_constraints">某个条件不再满足</string>
     <string name="ld_logs_runs_reason_time_limit">耗时超过 Android 允许的时长</string>
     <string name="ld_logs_runs_reason_other">系统或其他原因</string>
+    <string name="ld_logs_runs_reason_no_background_access">Health Connect 不允许在后台读取</string>
     <string name="ld_logs_hide_details">隐藏详细信息</string>
     <plurals name="ld_logs_runs_times_since">
         <item quantity="other">自 %2$s 起 %1$d 次</item>

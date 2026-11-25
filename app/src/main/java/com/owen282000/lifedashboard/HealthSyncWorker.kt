@@ -17,7 +17,8 @@ class HealthSyncWorker(
         val run = BackgroundRunRecorder(this@HealthSyncWorker, LogType.HEALTH_CONNECT)
         try {
             val syncResult = syncManager.performSync()
-            run.finished(BackgroundRun.outcomeOf(syncResult))
+            val outcome = BackgroundRun.outcomeOf(syncResult)
+            run.finished(outcome, if (outcome == BackgroundRun.Outcome.SYNCED) null else readProblem())
             when {
                 syncResult.isSuccess -> Result.success()
                 syncResult.isFailure -> Result.failure()
@@ -35,6 +36,21 @@ class HealthSyncWorker(
             // manual ones included, reports that it finished.
             SyncScheduler.onSyncFinished(applicationContext, LogType.HEALTH_CONNECT, id, tags)
         }
+    }
+
+    /** Asked only after a run that sent nothing, so a run that works costs no extra call. */
+    private suspend fun readProblem(): BackgroundRun.ReadProblem? = try {
+        val manager = HealthConnectManager(applicationContext)
+        val missing = BackgroundAccess.missing(
+            granted = manager.getGrantedPermissions(),
+            readsTypes = PreferencesManager(applicationContext).getHealthEnabledDataTypes().isNotEmpty(),
+            featureAvailable = manager.backgroundReadAvailable()
+        )
+        if (missing) BackgroundRun.ReadProblem.NO_BACKGROUND_ACCESS else null
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        null
     }
 
     companion object {

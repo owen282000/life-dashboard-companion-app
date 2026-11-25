@@ -273,6 +273,37 @@ class HealthConnectViewModelTest {
     }
 
     @Test
+    fun `reads without background access warn that scheduled syncs read nothing`() = runTest {
+        val settings = FakeAppSettings(health = HealthDraft(WebhookDraft(), setOf(HealthDataType.STEPS), emptyMqtt()))
+        val ops = FakeHealthOps(granted = setOf("android.permission.health.READ_STEPS"))
+        val vm = vm(settings, ops)
+        vm.refreshPermissions()
+        assertTrue(vm.state.value.backgroundAccessMissing)
+
+        val requests = mutableListOf<Set<String>>()
+        val job = launch(dispatcher, start = CoroutineStart.UNDISPATCHED) { vm.permissionRequests.collect { requests += it } }
+        vm.requestAccess()
+        assertTrue("the banner's Grant asks for background reading", HealthConnectManager.BACKGROUND_PERMISSION in requests.single())
+        job.cancel()
+
+        ops.granted = ops.granted + HealthConnectManager.BACKGROUND_PERMISSION
+        vm.refreshPermissions()
+        assertFalse(vm.state.value.backgroundAccessMissing)
+    }
+
+    @Test
+    fun `no background warning where Health Connect has no such permission, or nothing is read`() = runTest {
+        val settings = FakeAppSettings(health = HealthDraft(WebhookDraft(), setOf(HealthDataType.STEPS), emptyMqtt()))
+        val older = vm(settings, FakeHealthOps(granted = setOf("android.permission.health.READ_STEPS"), backgroundRead = false))
+        older.refreshPermissions()
+        assertFalse(older.state.value.backgroundAccessMissing)
+
+        val receiveOnly = vm(ops = FakeHealthOps(granted = setOf(WriteBackType.WEIGHT.writePermission)))
+        receiveOnly.refreshPermissions()
+        assertFalse(receiveOnly.state.value.backgroundAccessMissing)
+    }
+
+    @Test
     fun `without Health Connect a shortcut keeps the selection and says why, and asks nothing`() = runTest {
         val settings = FakeAppSettings(health = HealthDraft(WebhookDraft(), setOf(HealthDataType.STEPS), emptyMqtt()))
         val ops = FakeHealthOps(availability = HcAvailability.NOT_INSTALLED)
