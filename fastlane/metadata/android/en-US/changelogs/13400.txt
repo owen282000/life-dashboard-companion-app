@@ -1,0 +1,3 @@
+New
+- The Health tab says when Health Connect doesn't allow reading in the background. Without that permission scheduled syncs send nothing and only Sync Now works, and Grant asks for it again. Background runs in Logs names the same reason.
+Full release notes: https://github.com/owen282000/life-dashboard-companion-app/releases/tag/1.34.0
