@@ -24,7 +24,7 @@ okhttp = "5.5.1"
 kotlinxSerialization = "1.13.0"
 splashScreen = "1.2.0"
 glance = "1.1.1"
-camerax = "1.6.2"
+camerax = "1.7.0"
 zxing = "3.5.4"
 # Only in the Google Play build (playImplementation): the in-app review dialog, P1-28.
 playReview = "2.0.2"
