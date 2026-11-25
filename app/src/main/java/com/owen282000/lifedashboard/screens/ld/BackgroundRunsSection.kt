@@ -116,6 +116,9 @@ private fun BackgroundRunLine(run: BackgroundRun, formats: LogFormats) {
             if (stopped) {
                 Text(stringResource(stopReasonLabel(run.stopReasonType)), style = LDType.mono(12.sp, lineHeight = 17.sp), color = colors.warningText)
             }
+            if (!stopped && run.readProblemType == BackgroundRun.ReadProblem.NO_BACKGROUND_ACCESS) {
+                Text(stringResource(R.string.ld_logs_runs_reason_no_background_access), style = LDType.mono(12.sp, lineHeight = 17.sp), color = colors.warningText)
+            }
             if (run.count > 1) {
                 Text(
                     pluralStringResource(R.plurals.ld_logs_runs_times_since, run.count, run.count, runMoment(run.first, formats)),

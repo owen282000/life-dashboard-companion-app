@@ -692,6 +692,8 @@
     <string name="ld_home_nothing_since">Niets afgeleverd sinds %1$s.</string>
     <string name="ld_home_overdue_battery">Niets afgeleverd sinds %1$s. Misschien houdt batterijoptimalisatie de synchronisaties tegen.</string>
     <string name="ld_home_overdue_logs">Niets afgeleverd sinds %1$s. Het tabblad Logs laat zien wat er gebeurde.</string>
+    <string name="ld_home_background_access_title">Toegang op de achtergrond staat uit</string>
+    <string name="ld_home_background_access_body">Health Connect laat de app niet lezen als die dicht is, dus geplande syncs sturen niets. Alleen een sync die je zelf start werkt. De batterij-instellingen van Android veranderen dat niet.</string>
     <string name="ld_home_hold_never">Automatische synchronisatie staat uit. Nu synchroniseren werkt nog steeds.</string>
     <string name="ld_home_hold_quiet">Stille uren tot %1$s. Nu synchroniseren werkt nog steeds.</string>
     <string name="ld_home_hold_day_off">Vandaag geen automatische synchronisatie. Nu synchroniseren werkt nog steeds.</string>
@@ -1003,6 +1005,7 @@
     <string name="ld_logs_runs_reason_constraints">Een voorwaarde gold niet meer</string>
     <string name="ld_logs_runs_reason_time_limit">Duurde langer dan Android toestaat</string>
     <string name="ld_logs_runs_reason_other">Systeem of andere reden</string>
+    <string name="ld_logs_runs_reason_no_background_access">Health Connect staat lezen op de achtergrond niet toe</string>
     <string name="ld_logs_hide_details">Details verbergen</string>
     <plurals name="ld_logs_runs_times_since">
         <item quantity="one">%1$d keer sinds %2$s</item>

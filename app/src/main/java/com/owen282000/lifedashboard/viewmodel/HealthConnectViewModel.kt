@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.owen282000.lifedashboard.BackfillJob
 import com.owen282000.lifedashboard.BackfillStart
 import com.owen282000.lifedashboard.BackfillStatus
+import com.owen282000.lifedashboard.BackgroundAccess
 import com.owen282000.lifedashboard.FailureReason
 import com.owen282000.lifedashboard.HealthConnectManager
 import com.owen282000.lifedashboard.HealthDataType
@@ -49,6 +50,8 @@ data class HealthUiState(
     /** Whether any data type can be read; null until the first permission check has run. Background or write access alone does not count. */
     val hasPermissions: Boolean? = null,
     val grantedPermissions: Set<String> = emptySet(),
+    /** Whether Health Connect knows the permission to read in the background; false until checked. */
+    val backgroundReadAvailable: Boolean = false,
     /** Bumped after a sync, here or in the worker, so the dashboard card reloads, as on the Screen Time tab. */
     val refreshKey: Int = 0,
     val includeDailyTotals: Boolean = false,
@@ -124,6 +127,10 @@ data class HealthUiState(
      */
     val receiveAvailable: Boolean get() =
         WriteBackPayload.sourceUrlChoice(saved.webhook.urlsWithSecret) != SourceUrlChoice.None
+
+    /** Scheduled syncs read nothing: the warning on the home screen, see [BackgroundAccess]. */
+    val backgroundAccessMissing: Boolean get() =
+        BackgroundAccess.missing(grantedPermissions, saved.enabledTypes.isNotEmpty(), backgroundReadAvailable)
 
     /** Sync Now says Syncing for either kind: one started now would only wait for the other. */
     val isSyncBusy: Boolean get() = isSyncing || workerSyncing
@@ -330,11 +337,13 @@ class HealthConnectViewModel(
                 return@launch
             }
             val granted = ops.grantedPermissions()
+            val backgroundReadAvailable = ops.backgroundReadAvailable()
             _state.update {
                 it.copy(
                     availability = availability,
                     hasPermissions = HealthDataType.entries.any { type -> readPermission(type) in granted },
                     grantedPermissions = granted,
+                    backgroundReadAvailable = backgroundReadAvailable,
                     accessBlocked = null
                 )
             }

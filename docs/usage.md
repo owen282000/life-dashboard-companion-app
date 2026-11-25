@@ -156,7 +156,7 @@ Health Connect is Android's shared store for health data. Apps like Samsung Heal
 **Grant access to this app.** On the **Health** tab, open **What to send** and tap **Grant** on the **Health Connect access** row at the bottom. Once a destination and data types are set, the tab itself also says **Access not granted yet**, with a **Grant** button. Health Connect opens its own permission screen, which asks for two things:
 
 - **Read access per data type**, one switch for each type you turned on. If no types are selected yet, it offers all 34 types, and the ones you allow become your selection.
-- **Reading in the background.** Only **Sync Now**, with the app open on screen, works without it. Scheduled syncs, the quick settings tile and automations all run while the app is closed, and Health Connect refuses them if you switch this off.
+- **Reading in the background.** Only **Sync Now**, with the app open on screen, works without it. Scheduled syncs, the quick settings tile and automations all run while the app is closed, and Health Connect refuses them if you switch this off. The **Health** tab then says **Background access is off**, with **Grant** to ask for it again. Android's own battery and background settings don't grant it: it's in Health Connect, under **App permissions**, the app, then **Additional access**.
 
 A type you turn on later under **What to send** asks for its own permission at that moment. A type with a lock has no permission yet. **Essentials** and **All types** ask for what's missing together, and what you refuse stays off. **None** switches everything off and stays that way, also when permissions are still granted.
 
@@ -318,6 +318,8 @@ If the app only syncs when you open it, the phone is stopping its background job
 **Background runs** in the **Logs** tab shows whether they're being held back. It lists every scheduled sync Android ran in the background, with the time it started, Health or Screen Time, what came of it (synced, no new data, failed, or stopped by Android) and how long it took. Runs in a row that found no new data show as one line with a count, and the list keeps the last 50. When the list stays empty for hours, Android isn't running the app in the background at all.
 
 A run marked **Stopped by Android** was started but cut off before it finished, and Android runs it again later. The line under it says why, as far as Android tells (from Android 12): **Battery saver or Doze**, **Background use restricted** (the app's battery use is restricted, or Android put it on standby), **Background time used up**, **A condition was no longer met**, **Took longer than Android allows**, or **System or other reason**. The first two usually mean that a setting from [Let the app run in the background](#let-the-app-run-in-the-background) is still holding the app back. The third comes when the app is rarely opened, since Android gives such apps less background time.
+
+A run that read nothing because Health Connect doesn't allow reading in the background says so on the line under it. Only **Sync Now** works then, and [Health Connect](#health-connect) says how to allow it.
 
 ### Scanning the code opens a web page instead of the app
 

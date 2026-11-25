@@ -695,6 +695,8 @@
     <string name="ld_home_nothing_since">%1$s से कुछ डिलीवर नहीं हुआ।</string>
     <string name="ld_home_overdue_battery">%1$s से कुछ डिलीवर नहीं हुआ। हो सकता है बैटरी ऑप्टिमाइज़ेशन सिंक रोक रहा हो।</string>
     <string name="ld_home_overdue_logs">%1$s से कुछ डिलीवर नहीं हुआ। लॉग टैब में दिखता है कि क्या हुआ।</string>
+    <string name="ld_home_background_access_title">बैकग्राउंड में एक्सेस बंद है</string>
+    <string name="ld_home_background_access_body">Health Connect ऐप को बंद रहने पर पढ़ने नहीं देता, इसलिए शेड्यूल किए गए सिंक कुछ नहीं भेजते। सिर्फ़ वही सिंक काम करता है जो आप खुद शुरू करते हैं। Android की बैटरी सेटिंग से यह नहीं बदलता।</string>
     <string name="ld_home_hold_never">अपने आप होने वाले सिंक बंद हैं। अभी सिंक करें अब भी काम करता है।</string>
     <string name="ld_home_hold_quiet">%1$s तक शांत समय। अभी सिंक करें अब भी काम करता है।</string>
     <string name="ld_home_hold_day_off">आज अपने आप कोई सिंक नहीं होगा। अभी सिंक करें अब भी काम करता है।</string>
@@ -1006,6 +1008,7 @@
     <string name="ld_logs_runs_reason_constraints">कोई शर्त अब पूरी नहीं थी</string>
     <string name="ld_logs_runs_reason_time_limit">Android की तय सीमा से ज़्यादा समय लगा</string>
     <string name="ld_logs_runs_reason_other">सिस्टम या कोई और वजह</string>
+    <string name="ld_logs_runs_reason_no_background_access">Health Connect बैकग्राउंड में पढ़ने की अनुमति नहीं देता</string>
     <string name="ld_logs_hide_details">जानकारी छिपाएं</string>
     <plurals name="ld_logs_runs_times_since">
         <item quantity="one">%2$s से %1$d बार</item>

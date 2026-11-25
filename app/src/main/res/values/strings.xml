@@ -700,6 +700,8 @@
     <string name="ld_home_nothing_since">Nothing delivered since %1$s.</string>
     <string name="ld_home_overdue_battery">Nothing delivered since %1$s. Battery optimization may be holding the syncs.</string>
     <string name="ld_home_overdue_logs">Nothing delivered since %1$s. The Logs tab shows what happened.</string>
+    <string name="ld_home_background_access_title">Background access is off</string>
+    <string name="ld_home_background_access_body">Health Connect doesn\'t let the app read while it\'s closed, so scheduled syncs send nothing. Only a sync you start yourself works. Android\'s battery settings don\'t change this.</string>
     <string name="ld_home_hold_never">Automatic syncs are off. Sync Now still works.</string>
     <string name="ld_home_hold_quiet">Quiet hours until %1$s. Sync Now still works.</string>
     <string name="ld_home_hold_day_off">No automatic syncs today. Sync Now still works.</string>
@@ -1023,6 +1025,7 @@
     <string name="ld_logs_runs_reason_constraints">A condition was no longer met</string>
     <string name="ld_logs_runs_reason_time_limit">Took longer than Android allows</string>
     <string name="ld_logs_runs_reason_other">System or other reason</string>
+    <string name="ld_logs_runs_reason_no_background_access">Health Connect doesn\'t allow reading in the background</string>
     <string name="ld_logs_hide_details">Hide the details</string>
     <plurals name="ld_logs_runs_times_since">
         <item quantity="one">%1$d times since %2$s</item>

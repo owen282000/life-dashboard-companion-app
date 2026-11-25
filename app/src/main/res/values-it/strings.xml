@@ -718,6 +718,8 @@
     <string name="ld_home_nothing_since">Nessuna consegna dal %1$s.</string>
     <string name="ld_home_overdue_battery">Nessuna consegna dal %1$s. Forse l\'ottimizzazione della batteria sta trattenendo le sincronizzazioni.</string>
     <string name="ld_home_overdue_logs">Nessuna consegna dal %1$s. La scheda Log mostra cosa è successo.</string>
+    <string name="ld_home_background_access_title">L\'accesso in background è disattivato</string>
+    <string name="ld_home_background_access_body">Health Connect non lascia leggere l\'app quando è chiusa, quindi le sincronizzazioni pianificate non inviano nulla. Funziona solo una sincronizzazione avviata da te. Le impostazioni della batteria di Android non cambiano questo.</string>
     <string name="ld_home_hold_never">Le sincronizzazioni automatiche sono disattivate. Sincronizza ora funziona comunque.</string>
     <string name="ld_home_hold_quiet">Ore di silenzio fino alle %1$s. Sincronizza ora funziona comunque.</string>
     <string name="ld_home_hold_day_off">Oggi nessuna sincronizzazione automatica. Sincronizza ora funziona comunque.</string>
@@ -1046,6 +1048,7 @@
     <string name="ld_logs_runs_reason_constraints">Una condizione non era più soddisfatta</string>
     <string name="ld_logs_runs_reason_time_limit">Ha richiesto più tempo di quanto Android consenta</string>
     <string name="ld_logs_runs_reason_other">Sistema o altro motivo</string>
+    <string name="ld_logs_runs_reason_no_background_access">Health Connect non consente la lettura in background</string>
     <string name="ld_logs_hide_details">Nascondi i dettagli</string>
     <plurals name="ld_logs_runs_times_since">
         <item quantity="one">%1$d volta da %2$s</item>

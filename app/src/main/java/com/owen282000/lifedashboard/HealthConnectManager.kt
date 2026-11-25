@@ -959,6 +959,18 @@ class HealthConnectManager(
     }
 
     /**
+     * Whether this Health Connect knows the permission to read in the background. An older one
+     * does not, and then there is nothing to grant, so the app does not ask for it either.
+     */
+    fun backgroundReadAvailable(): Boolean = try {
+        isHealthConnectAvailable() &&
+            healthConnectClient.features.getFeatureStatus(HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_IN_BACKGROUND) ==
+            HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+    } catch (e: Exception) {
+        false
+    }
+
+    /**
      * Reads the deletions Health Connect recorded for [type] since the token the app stored last
      * time, and returns the token to store for next time (issue #61).
      *

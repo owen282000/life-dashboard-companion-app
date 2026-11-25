@@ -692,6 +692,8 @@
     <string name="ld_home_nothing_since">Seit %1$s nichts zugestellt.</string>
     <string name="ld_home_overdue_battery">Seit %1$s nichts zugestellt. Vielleicht hält die Akku-Optimierung die Synchronisierungen zurück.</string>
     <string name="ld_home_overdue_logs">Seit %1$s nichts zugestellt. Der Tab Logs zeigt, was passiert ist.</string>
+    <string name="ld_home_background_access_title">Zugriff im Hintergrund ist aus</string>
+    <string name="ld_home_background_access_body">Health Connect lässt die App nicht lesen, solange sie geschlossen ist, daher senden geplante Synchronisierungen nichts. Nur eine Synchronisierung, die du selbst startest, funktioniert. Die Akku-Einstellungen von Android ändern daran nichts.</string>
     <string name="ld_home_hold_never">Automatische Synchronisierung ist aus. Jetzt synchronisieren funktioniert weiterhin.</string>
     <string name="ld_home_hold_quiet">Ruhezeit bis %1$s. Jetzt synchronisieren funktioniert weiterhin.</string>
     <string name="ld_home_hold_day_off">Heute keine automatische Synchronisierung. Jetzt synchronisieren funktioniert weiterhin.</string>
@@ -1003,6 +1005,7 @@
     <string name="ld_logs_runs_reason_constraints">Eine Bedingung war nicht mehr erfüllt</string>
     <string name="ld_logs_runs_reason_time_limit">Dauerte länger, als Android erlaubt</string>
     <string name="ld_logs_runs_reason_other">System oder anderer Grund</string>
+    <string name="ld_logs_runs_reason_no_background_access">Health Connect erlaubt kein Lesen im Hintergrund</string>
     <string name="ld_logs_hide_details">Details ausblenden</string>
     <plurals name="ld_logs_runs_times_since">
         <item quantity="one">%1$d-mal seit %2$s</item>
