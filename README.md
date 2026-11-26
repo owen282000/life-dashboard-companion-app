@@ -11,11 +11,11 @@
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.owen282000.lifedashboard&referrer=utm_source%3Dgh-android-readme%26utm_medium%3Dreadme"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="72"></a><br>
-  <sub>€4.99 (US$4.99) once. No subscription, no in-app purchases. Same code as this repo, or <a href="#install">get the APK</a> from GitHub or F&#8209;Droid.</sub>
+  <sub>€4.99 (US$4.99) once. No subscription, no in-app purchases, updates arrive automatically. <a href="#install">Other ways to install</a>.</sub>
 </p>
 
 <p align="center">
-  <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Download%20APK&color=30b77e" alt="Download the latest APK"></a>
+  <a href="https://github.com/owen282000/life-dashboard-companion-app/releases/latest"><img src="https://img.shields.io/github/v/release/owen282000/life-dashboard-companion-app?label=Release" alt="Latest release"></a>
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=owen282000&repository=life-dashboard-ha&category=integration"><img src="https://img.shields.io/badge/Home%20Assistant-Marketplace-41BDF5" alt="Home Assistant integration in the Marketplace"></a>
   <a href="#quick-start"><img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84" alt="Android 8.0 or newer"></a>
   <a href="https://hosted.weblate.org/engage/life-dashboard-companion/"><img src="https://hosted.weblate.org/widget/life-dashboard-companion/app/svg-badge.svg" alt="Translation status on Weblate"></a>
